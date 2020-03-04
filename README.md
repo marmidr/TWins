@@ -1,29 +1,44 @@
-# README #
+# Brief
 
-This README would normally document whatever steps are necessary to get your application up and running.
+`TWins` library is meant to support terminal emulator ASCII codes 
+for small ARM devices, like Cortex-M3.
 
-### What is this repository for? ###
+## References
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+Implementation is based on examples:
 
-### How do I get set up? ###
+* https://github.com/fidian/ansi/blob/master/ansi
+* https://github.com/stark/Color-Scripts
+* https://wiki.bash-hackers.org/scripting/terminalcodes
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+## Goals
 
-### Contribution guidelines ###
+### Primary goals
 
-* Writing tests
-* Code review
-* Other guidelines
+* text properties
+  * foreground and background color codes
+  * attributes (bold, inversion)
+* operations
+  * clear screen
+  * go to home
+  * go to location
+* reading input
+  * regular text -> echo
+  * commands (backspace, up, down, tab)
 
-### Who do I talk to? ###
+### Secondary goals
 
-* Repo owner or admin
-* Other community or team contact
+* support for drawing window with background and frame
+* popup windows
+* controls
+  * panes
+  * tabs
+  * edit fields (text/number)
+  * static labels
+  * check boxes
+  * radio group
+  * button group
+
+---
+
+Hope I'll deal with it :)
