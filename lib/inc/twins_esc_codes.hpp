@@ -25,10 +25,10 @@
 
 // -----------------------------------------------------------------------------
 
-#define ANSI_ESC(x)     "\033" ## x
-#define ANSI_CSI        ANSI_ESC("[")
-#define ANSI_OSC        ANSI_ESC("]")
-#define ANSI_ST         ANSI_ESC("\\")
+#define ANSI_ESC(x)     "\033" x
+#define ANSI_CSI(x)     ANSI_ESC("[" x)
+#define ANSI_OSC(x)     ANSI_ESC("]" x)
+#define ANSI_ST(x)      ANSI_ESC("\\" x)
 
 /*******************************************************************************
  * @name Text Display Modifier Escape Sequences

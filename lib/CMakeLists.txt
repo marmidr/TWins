@@ -6,8 +6,12 @@
 
 set(TARGETNAME twins)
 
-include_directories(inc)
-
 add_library(${TARGETNAME}
     src/twins.cpp
+    src/twins_colors.cpp
+)
+
+target_include_directories(${TARGETNAME}
+    PUBLIC
+        inc
 )
