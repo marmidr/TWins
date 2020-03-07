@@ -126,11 +126,20 @@
 #define ESC_CURSOR_HIDE                 ANSI_CSI("?25l")
 #define ESC_CURSOR_SHOW                 ANSI_CSI("?25h")
 
-#define ESC_CURSOR_GOTO(ln, col)        ANSI_CSI(#ln ";" #col "H")
+#define ESC_CURSOR_HOME                 ANSI_CSI("H")
+#define ESC_CURSOR_COLUMN(col)          ANSI_CSI(#col "G")
+#define ESC_CURSOR_GOTO(row, col)       ANSI_CSI(#row ";" #col "H")
 #define ESC_CURSOR_UP(lines)            ANSI_CSI(#lines "A")
 #define ESC_CURSOR_DOWN(lines)          ANSI_CSI(#lines "B")
 #define ESC_CURSOR_FORWARD(columns)     ANSI_CSI(#columns "C")
 #define ESC_CURSOR_BACKWARD(columns)    ANSI_CSI(#columns "D")
+
+#define ESC_CURSOR_COLUMN_FMT           ESC_CURSOR_COLUMN(%u)
+#define ESC_CURSOR_GOTO_FMT             ESC_CURSOR_GOTO(%u, %u)
+#define ESC_CURSOR_UP_FMT               ESC_CURSOR_UP(%u)
+#define ESC_CURSOR_DOWN_FMT             ESC_CURSOR_DOWN(%u)
+#define ESC_CURSOR_FORWARD_FMT          ESC_CURSOR_FORWARD(%u)
+#define ESC_CURSOR_BACKWARD_FMT         ESC_CURSOR_BACKWARD(%u)
 
 //@}
 

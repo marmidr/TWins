@@ -7,6 +7,7 @@
 #pragma once
 #include "twins_esc_codes.hpp"
 #include <stdint.h>
+#include <stdio.h>
 
 // -----------------------------------------------------------------------------
 
@@ -131,6 +132,10 @@ struct WindowCallbacks
     IsCheckboxChecked isCheckboxChecked;
 };
 
+struct Theme
+{
+};
+
 /**
  * @brief
  */
@@ -143,7 +148,8 @@ struct Widget
         Panel,
         Label,
         CheckBox,
-        Button
+        Button,
+        PageCtrl
     };
 
     Type        type = {};
@@ -161,6 +167,7 @@ struct Widget
             const char *            caption;
             const WindowCallbacks * pCallbacks;
             const Widget *          pChildrens;
+            uint16_t                childrensCount;
         } window;
 
         struct
@@ -169,6 +176,7 @@ struct Widget
             ColorBG         bgColor;
             const char *    caption;
             const Widget *  pChildrens;
+            uint16_t        childrensCount;
         } panel;
 
         struct
@@ -189,8 +197,58 @@ struct Widget
             const char *text;
             uint8_t     groupId;
         } button;
+
+        struct
+        {
+
+        } pagectrl;
     };
 
+};
+
+enum class Key : uint8_t
+{
+    None,
+    Esc,
+    Return,
+    Tab,
+    Up,
+    Down,
+    Left,
+    Right,
+    Insert,
+    Delete,
+    Home,
+    End,
+    PgUp,
+    PgDown,
+};
+
+enum class Mod : uint8_t
+{
+    None,
+    Ctrl = 1,
+    Alt = 2,
+    Shift = 4,
+};
+
+union KeyCode
+{
+    uint16_t code;
+    struct
+    {
+        Key k;
+        Mod m;
+    };
+};
+
+struct IOs
+{
+    void (*writeStr)(const char *s);
+    void (*writeStrFmt)(const char *fmt, va_list ap);
+    void (*onKey)(Widget *pActWidget, Key k, Mod m);
+    void *(*malloc)(uint32_t sz);
+    void (*mfree)(void *ptr);
 };
 
 // -----------------------------------------------------------------------------
@@ -198,27 +256,42 @@ struct Widget
 /**
  * @brief
  */
-uint32_t writeStr(const char *fmt, ...);
+void init(IOs *ios);
 
 /**
  * @brief
+ */
+void writeStr(const char *s);
+void writeStrFmt(const char *fmt, ...);
+void drawWidget(const Widget *pWdgt);
+
+/**
+ * @brief Cursor manipulation
  */
 void moveTo(uint16_t col, uint16_t row);
-void moveToHome();
+void moveToCol(uint16_t col);
+inline void moveToHome()           { writeStr(ESC_CURSOR_HOME); }
 void moveBy(int16_t cols, int16_t rows);
 
+inline void cursorSavePos()        { writeStr(ESC_CURSOR_POS_SAVE); }
+inline void cursorRestorePos()     { writeStr(ESC_CURSOR_POS_RESTORE); }
+inline void cursorHide()           { writeStr(ESC_CURSOR_HIDE); }
+inline void cursorShow()           { writeStr(ESC_CURSOR_SHOW); }
+
 /**
- * @brief
+ * @brief Screen manipulation
  */
-void cursorSavePos();
-void cursorRestorePos();
+inline void clrScreenAbove()       { writeStr(ESC_ERASE_DISPLAY_ABOVE); }
+inline void clrScreenBelow()       { writeStr(ESC_ERASE_DISPLAY_BELOW); }
+inline void clrScreenAll()         { writeStr(ESC_ERASE_DISPLAY_ALL); }
+
+inline void clrScreenSave()        { writeStr(ESC_SCREEN_SAVE); }
+inline void clrScreenRestore()     { writeStr(ESC_SCREEN_RESTORE); }
 
 /**
  * @brief
  */
-void clrScreenAbove();
-void clrScreenBelow();
-void clrScreenAll();
+ void quit();
 
 // -----------------------------------------------------------------------------
 
