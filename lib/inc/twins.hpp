@@ -250,10 +250,11 @@ struct IOs
 {
     int     (*writeStr)(const char *s);
     int     (*writeStrFmt)(const char *fmt, va_list ap);
-    void    (*onKey)(Widget *pActWidget, Key k, Mod m);
     void *  (*malloc)(uint32_t sz);
     void    (*mfree)(void *ptr);
 };
+
+static constexpr uint16_t WIDGET_ID_ALL = (-1);
 
 // -----------------------------------------------------------------------------
 
@@ -268,15 +269,15 @@ void init(IOs *ios);
 int writeChar(char c, uint16_t n);
 int writeStr(const char *s);
 int writeStrFmt(const char *fmt, ...);
-void drawWidget(const Widget *pWdgt);
+void drawWidget(const Widget *pWindow, uint16_t widgetId = WIDGET_ID_ALL);
 
 /**
  * @brief Cursor manipulation
  */
 void moveTo(uint16_t col, uint16_t row);
 void moveToCol(uint16_t col);
-inline void moveToHome()           { writeStr(ESC_CURSOR_HOME); }
 void moveBy(int16_t cols, int16_t rows);
+inline void moveToHome()           { writeStr(ESC_CURSOR_HOME); }
 
 inline void cursorSavePos()        { writeStr(ESC_CURSOR_POS_SAVE); }
 inline void cursorRestorePos()     { writeStr(ESC_CURSOR_POS_RESTORE); }
@@ -286,9 +287,9 @@ inline void cursorShow()           { writeStr(ESC_CURSOR_SHOW); }
 /**
  * @brief Screen manipulation
  */
-inline void clrScreenAbove()       { writeStr(ESC_ERASE_DISPLAY_ABOVE); }
-inline void clrScreenBelow()       { writeStr(ESC_ERASE_DISPLAY_BELOW); }
-inline void clrScreenAll()         { writeStr(ESC_ERASE_DISPLAY_ALL); }
+inline void clrScreenAbove()       { writeStr(ESC_SCREEN_ERASE_ABOVE); }
+inline void clrScreenBelow()       { writeStr(ESC_SCREEN_ERASE_BELOW); }
+inline void clrScreenAll()         { writeStr(ESC_SCREEN_ERASE_ALL); }
 
 inline void clrScreenSave()        { writeStr(ESC_SCREEN_SAVE); }
 inline void clrScreenRestore()     { writeStr(ESC_SCREEN_RESTORE); }

@@ -27,7 +27,7 @@ keycode get_key()
     static keycode kc;
 
     /* odczytane zostanie co najwyżej 8 bajtów */
-    if ((kc.num=read(tty_fileno, kc.array, 8)) == -1)
+    if ((kc.num = read(tty_fileno, kc.array, 8)) == -1)
         kc.num = 0;
 
     errno = 0;

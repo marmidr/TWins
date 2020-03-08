@@ -49,6 +49,9 @@ struct TxtBuff
 static Coord origin;
 static const WindowCallbacks *pWndClbcks;
 
+// forward decl
+static void drawWidgetInternal(const Widget *pWgt);
+
 // -----------------------------------------------------------------------------
 
 static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, ColorFG clFg, const FrameStyle style)
@@ -60,6 +63,7 @@ static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, ColorF
     {
     case FrameStyle::Single: frame = frame_single; break;
     case FrameStyle::Double: frame = frame_double; break;
+    default: break;
     }
 
     // background and frame
@@ -111,7 +115,7 @@ static void drawWindow(const Widget *pWgt)
     {
         if (pWgt->window.pChildrens[i].type == Widget::Type::None)
             break;
-        drawWidget(&pWgt->window.pChildrens[i]);
+        drawWidgetInternal(&pWgt->window.pChildrens[i]);
     }
     origin = origin_bkp;
 
@@ -144,7 +148,7 @@ static void drawPanel(const Widget *pWgt)
     {
         if (pWgt->panel.pChildrens[i].type == Widget::Type::None)
             break;
-        drawWidget(&pWgt->panel.pChildrens[i]);
+        drawWidgetInternal(&pWgt->panel.pChildrens[i]);
     }
     origin = origin_bkp;
 
@@ -156,9 +160,12 @@ static void drawLabel(const Widget *pWgt)
     assert(pWndClbcks);
 
     // label text
-    if (pWgt->label.text)
+
+    const char *txt = pWgt->label.text;
+    if (!txt) txt = pWndClbcks->getLabelText(pWgt);
+
+    if (txt)
     {
-        auto text_len = strlen(pWgt->label.text);
         moveTo(origin.col + pWgt->coord.col, origin.row + pWgt->coord.row);
 
         // limit the text len to Widget width
@@ -168,13 +175,13 @@ static void drawLabel(const Widget *pWgt)
         // setup colors
         writeStrFmt("%s%s", clrFg(pWgt->label.fgColor), clrBg(pWgt->label.bgColor));
         // print label
-        int n = writeStrFmt(fmt, pWgt->label.text);
+        int n = writeStrFmt(fmt, txt);
         // fill remaining space with spaces
         writeChar(' ', max_len - n);
     }
 }
 
-void drawWidget(const Widget *pWgt)
+static void drawWidgetInternal(const Widget *pWgt)
 {
     switch (pWgt->type)
     {
@@ -186,6 +193,76 @@ void drawWidget(const Widget *pWgt)
     case Widget::PageCtrl:  break;
     default:                break;
     }
+}
+
+static void coordOffsetBy(Coord &cord, const Widget *pWgt)
+{
+    cord.col += pWgt->coord.col;
+    cord.row += pWgt->coord.row;
+}
+
+// recursive function searching for widgetId
+static const Widget *findWidget(const Widget widgets[], const uint16_t widgetsCount, uint16_t widgetId, Coord &widgetScreenCord)
+{
+    const auto *p_wgt = widgets;
+
+    for (uint16_t w = 0; w < widgetsCount; w++)
+    {
+        if (p_wgt->id == widgetId)
+        {
+            // coordOffsetBy(widgetScreenCord, p_wgt);
+            return p_wgt;
+        }
+
+        if (p_wgt->type == Widget::Window)
+        {
+            const auto *p = findWidget(p_wgt->window.pChildrens, p_wgt->window.childrensCount, widgetId, widgetScreenCord);
+            if (p)
+            {
+                coordOffsetBy(widgetScreenCord, p_wgt);
+                return p;
+            }
+        }
+
+        if (p_wgt->type == Widget::Panel)
+        {
+            const auto *p = findWidget(p_wgt->panel.pChildrens, p_wgt->panel.childrensCount, widgetId, widgetScreenCord);
+            if (p)
+            {
+                coordOffsetBy(widgetScreenCord, p_wgt);
+                return p;
+            }
+        }
+
+        p_wgt++;
+    }
+
+    return nullptr;
+}
+
+// -----------------------------------------------------------------------------
+
+void drawWidget(const Widget *pWindow, uint16_t widgetId)
+{
+    assert(pWindow);
+    assert(pWindow->type == Widget::Window);
+    assert(pWindow->window.pCallbacks);
+
+    if (widgetId == WIDGET_ID_ALL)
+    {
+        drawWidgetInternal(pWindow);
+    }
+    else
+    {
+        pWndClbcks = pWindow->window.pCallbacks;
+        origin = {0, 0};
+
+        // search window for widget by it's Id
+        if (const auto *p_wgt = findWidget(pWindow, 1, widgetId, origin))
+            drawWidgetInternal(p_wgt);
+    }
+
+    pWndClbcks = nullptr;
 }
 
 // -----------------------------------------------------------------------------

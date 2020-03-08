@@ -151,16 +151,18 @@
 
 /** Resets any escape sequence modifiers back to their defaults. */
 #define ESC_RESET                       ANSI_CSI("0m")
+
 /** Erases the entire display, returning the cursor to the top left. */
-#define ESC_ERASE_DISPLAY_BELOW         ANSI_CSI("0J")
-#define ESC_ERASE_DISPLAY_ABOVE         ANSI_CSI("1J")
-#define ESC_ERASE_DISPLAY_ALL           ANSI_CSI("2J")
+#define ESC_SCREEN_ERASE_ALL           ANSI_CSI("2J")
+#define ESC_SCREEN_ERASE_BELOW         ANSI_CSI("0J")
+#define ESC_SCREEN_ERASE_ABOVE         ANSI_CSI("1J")
 
 /** Erases the current line, returning the cursor to the far left. */
-#define ESC_ERASE_LINE_RIGHT            ANSI_CSI("0K")
-#define ESC_ERASE_LINE_LEFT             ANSI_CSI("1K")
-#define ESC_ERASE_LINE_ALL              ANSI_CSI("2K")
+#define ESC_LINE_ERASE_ALL              ANSI_CSI("2K")
+#define ESC_LINE_ERASE_RIGHT            ANSI_CSI("0K")
+#define ESC_LINE_ERASE_LEFT             ANSI_CSI("1K")
 
+/** */
 #define ESC_SCREEN_SAVE                 ANSI_CSI("?47h")
 #define ESC_SCREEN_RESTORE              ANSI_CSI("?47l")
 
