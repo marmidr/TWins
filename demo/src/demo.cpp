@@ -16,7 +16,8 @@ enum WndMainIDs
     ID_WND,
         ID_PANEL_VERSIONS,
             ID_LABEL_FW_VERSION,
-            ID_LABEL_DATE_TIME,
+            ID_LABEL_DATE,
+            ID_LABEL_TIME,
         ID_PANEL_CONFIG
 };
 
@@ -33,8 +34,9 @@ const twins::WindowCallbacks wndMainClbcks =
             return true;
         },
     .isFocused = [](const twins::Widget* pWdgt) { return false; },
-    .isVisible = [](const twins::Widget* pWdgt) { return false; },
-    .isCheckboxChecked = [](const twins::Widget* pWdgt) { return false; },
+    .isVisible = [](const twins::Widget* pWdgt) { return true; },
+    .getCheckboxChecked = [](const twins::Widget* pWdgt) { return false; },
+    .getLabelText = [](const twins::Widget* pWdgt) { return ""; }
 };
 
 const twins::Widget wndMain =
@@ -47,6 +49,7 @@ const twins::Widget wndMain =
     {
         .frameStyle = twins::FrameStyle::Double,
         .bgColor = twins::ColorBG::BLUE,
+        .fgColor = twins::ColorFG::WHITE,
         .caption = "Service Menu",
         .pCallbacks = &wndMainClbcks,
         .pChildrens = (twins::Widget[])
@@ -54,52 +57,66 @@ const twins::Widget wndMain =
             {
                 .type = twins::Widget::Panel,
                 .id = ID_PANEL_VERSIONS,
-                .coord = { 5, 2 },
-                .size = { 20, 6 },
+                .coord = { 4, 2 },
+                .size = { 21, 5 },
                 .panel =
                 {
                     .frameStyle = twins::FrameStyle::Single,
                     .bgColor = twins::ColorBG::GREEN,
+                    .fgColor = twins::ColorFG::WHITE,
                     .caption = "VER",
                     .pChildrens = (twins::Widget[])
                     {
                         {
                             .type = twins::Widget::Label,
                             .id = ID_LABEL_FW_VERSION,
-                            .coord = { 2, 2 },
-                            .size = { 12, 1 },
+                            .coord = { 2, 1 },
+                            .size = { 14, 1 },
                             .label =
                             {
                                 .bgColor = twins::ColorBG::BLACK_INTENSE,
                                 .fgColor = twins::ColorFG::WHITE,
-                                .caption = "FwVer: %6s"
+                                .text = "FwVer: 1"
                             }
                         },
                         {
                             .type = twins::Widget::Label,
-                            .id = ID_LABEL_DATE_TIME,
-                            .coord = { 2, 3 },
-                            .size = { 12, 1 },
+                            .id = ID_LABEL_DATE,
+                            .coord = { 2, 2 },
+                            .size = { 16, 1 },
                             .label =
                             {
-                                .bgColor = twins::ColorBG::BLACK_INTENSE,
-                                .fgColor = twins::ColorFG::YELLOW,
-                                .caption = "Date: %s"
+                                .bgColor = twins::ColorBG::WHITE,
+                                .fgColor = twins::ColorFG::BLACK,
+                                .text = "Date: " __DATE__
+                            }
+                        },
+                        {
+                            .type = twins::Widget::Label,
+                            .id = ID_LABEL_TIME,
+                            .coord = { 2, 3 },
+                            .size = { 16, 1 },
+                            .label =
+                            {
+                                .bgColor = twins::ColorBG::WHITE,
+                                .fgColor = twins::ColorFG::BLACK,
+                                .text = "Time: " __TIME__
                             }
                         },
                     },
-                    .childrensCount = 2
+                    .childrensCount = 3
                 }
             },
             {
                 .type = twins::Widget::Panel,
                 .id = ID_PANEL_CONFIG,
                 .coord = { 30, 2 },
-                .size = { 25, 6 },
+                .size = { 25, 8 },
                 .panel =
                 {
                     .frameStyle = twins::FrameStyle::Single,
                     .bgColor = twins::ColorBG::GREEN,
+                    .fgColor = twins::ColorFG::WHITE,
                     .caption = "CONFIG",
                     .childrensCount = 0
                 }
@@ -114,11 +131,11 @@ static twins::IOs tios =
 {
     .writeStr = [](const char *s)
     {
-        printf(s);
+        return printf(s);
     },
     .writeStrFmt = [](const char *fmt, va_list ap)
     {
-        vprintf(fmt, ap);
+        return vprintf(fmt, ap);
     },
     .onKey = [](twins::Widget *pActWidget, twins::Key k, twins::Mod m)
     {

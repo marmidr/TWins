@@ -38,12 +38,20 @@ const char * const frame_double[] =
     "╚", "═", "╝",
 };
 
+extern IOs *pIOs;
+struct TxtBuff
+{
+    TxtBuff(uint32_t sz) { buff = (char*)pIOs->malloc(sz+1); }
+    ~TxtBuff()           { pIOs->mfree(buff); }
+    char *buff;
+};
+
 static Coord origin;
 static const WindowCallbacks *pWndClbcks;
 
 // -----------------------------------------------------------------------------
 
-static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, const FrameStyle style)
+static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, ColorFG clFg, const FrameStyle style)
 {
     moveTo(origin.col + coord.col, origin.row + coord.row);
 
@@ -56,6 +64,7 @@ static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, const 
 
     // background and frame
     writeStr(clrBg(clBg));
+    writeStr(clrFg(clFg));
 
     writeStr(frame[0]);
     for (int c = coord.col + 1; c < coord.col + size.width - 1; c++)
@@ -79,60 +88,99 @@ static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, const 
     writeStr(frame[8]);
 }
 
-static void drawWindow(const Widget *pWdgt)
+static void drawWindow(const Widget *pWgt)
 {
     auto origin_bkp = origin;
     origin = {0, 0};
-    pWndClbcks = pWdgt->window.pCallbacks;
-    drawFrame(pWdgt->coord, pWdgt->size, pWdgt->window.bgColor, pWdgt->window.frameStyle);
+    pWndClbcks = pWgt->window.pCallbacks;
+    assert(pWndClbcks);
+    drawFrame(pWgt->coord, pWgt->size, pWgt->window.bgColor, pWgt->window.fgColor, pWgt->window.frameStyle);
 
     // title
-    if (pWdgt->window.caption)
+    if (pWgt->window.caption)
     {
-        auto capt_len = strlen(pWdgt->window.caption);
-        moveTo(pWdgt->coord.col + (pWdgt->size.width - capt_len - 4)/2,
-            pWdgt->coord.row);
-        writeStrFmt("╡ %s%s%s ╞", ESC_FG_YELLOW, pWdgt->window.caption, ESC_FG_DEFAULT);
+        auto capt_len = strlen(pWgt->window.caption);
+        moveTo(pWgt->coord.col + (pWgt->size.width - capt_len - 4)/2,
+            pWgt->coord.row);
+        writeStrFmt("╡ %s%s%s ╞", ESC_FG_YELLOW, pWgt->window.caption, ESC_FG_DEFAULT);
         writeStr(ESC_BG_DEFAULT);
     }
 
-    origin = pWdgt->coord;
-    for (int i = 0; i < pWdgt->window.childrensCount; i++)
-        drawWidget(&pWdgt->window.pChildrens[i]);
-
+    origin = pWgt->coord;
+    for (int i = 0; i < pWgt->window.childrensCount; i++)
+    {
+        if (pWgt->window.pChildrens[i].type == Widget::Type::None)
+            break;
+        drawWidget(&pWgt->window.pChildrens[i]);
+    }
     origin = origin_bkp;
+
     pWndClbcks = nullptr;
-    moveTo(0, pWdgt->coord.row + pWdgt->size.height);
+    moveTo(0, pWgt->coord.row + pWgt->size.height);
+    writeStr(ESC_BG_DEFAULT ESC_FG_DEFAULT);
 }
 
-static void drawPanel(const Widget *pWdgt)
+static void drawPanel(const Widget *pWgt)
 {
     assert(pWndClbcks);
-    if (!pWndClbcks->isEnabled(pWdgt)) writeStr(ESC_FAINT_ON);
-    drawFrame(pWdgt->coord, pWdgt->size, pWdgt->panel.bgColor, pWdgt->panel.frameStyle);
+    if (!pWndClbcks->isEnabled(pWgt)) writeStr(ESC_FAINT_ON);
+    drawFrame(pWgt->coord, pWgt->size, pWgt->panel.bgColor, pWgt->panel.fgColor, pWgt->panel.frameStyle);
 
     // title
-    if (pWdgt->panel.caption)
+    if (pWgt->panel.caption)
     {
-        auto capt_len = strlen(pWdgt->panel.caption);
-        moveTo(origin.col + pWdgt->coord.col + (pWdgt->size.width - capt_len - 2)/2,
-            origin.row + pWdgt->coord.row);
+        auto capt_len = strlen(pWgt->panel.caption);
+        moveTo(origin.col + pWgt->coord.col + (pWgt->size.width - capt_len - 2)/2,
+            origin.row + pWgt->coord.row);
 
-        assert(pWndClbcks);
-        writeStrFmt(" %s%s%s ", ESC_FG_YELLOW, pWdgt->panel.caption, ESC_FG_DEFAULT);
+        writeStrFmt(" %s%s%s ", ESC_FG_WHITE_INTENSE ESC_BOLD_ON, pWgt->panel.caption, ESC_BOLD_OFF);
         writeStr(ESC_BG_DEFAULT);
     }
 
-    if (!pWndClbcks->isEnabled(pWdgt)) writeStr(ESC_FAINT_OFF);
+    auto origin_bkp = origin;
+    origin.col += pWgt->coord.col;
+    origin.row += pWgt->coord.row;
+    for (int i = 0; i < pWgt->panel.childrensCount; i++)
+    {
+        if (pWgt->panel.pChildrens[i].type == Widget::Type::None)
+            break;
+        drawWidget(&pWgt->panel.pChildrens[i]);
+    }
+    origin = origin_bkp;
+
+    if (!pWndClbcks->isEnabled(pWgt)) writeStr(ESC_FAINT_OFF);
 }
 
-void drawWidget(const Widget *pWdgt)
+static void drawLabel(const Widget *pWgt)
 {
-    switch (pWdgt->type)
+    assert(pWndClbcks);
+
+    // label text
+    if (pWgt->label.text)
     {
-    case Widget::Window:    drawWindow(pWdgt); break;
-    case Widget::Panel:     drawPanel(pWdgt); break;
-    case Widget::Label:     break;
+        auto text_len = strlen(pWgt->label.text);
+        moveTo(origin.col + pWgt->coord.col, origin.row + pWgt->coord.row);
+
+        // limit the text len to Widget width
+        auto max_len = pWgt->size.width;
+        char fmt[6];
+        snprintf(fmt, sizeof(fmt), "%%" ".%u" "s", max_len);
+        // setup colors
+        writeStrFmt("%s%s", clrFg(pWgt->label.fgColor), clrBg(pWgt->label.bgColor));
+        // print label
+        int n = writeStrFmt(fmt, pWgt->label.text);
+        // fill remaining space with spaces
+        writeChar(' ', max_len - n);
+    }
+}
+
+void drawWidget(const Widget *pWgt)
+{
+    switch (pWgt->type)
+    {
+    case Widget::Window:    drawWindow(pWgt); break;
+    case Widget::Panel:     drawPanel(pWgt); break;
+    case Widget::Label:     drawLabel(pWgt); break;
     case Widget::CheckBox:  break;
     case Widget::Button:    break;
     case Widget::PageCtrl:  break;

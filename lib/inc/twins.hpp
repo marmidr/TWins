@@ -123,13 +123,15 @@ struct WindowCallbacks
     using IsEnabled = bool (*)(const Widget*);
     using IsFocused = bool (*)(const Widget*);
     using IsVisible = bool (*)(const Widget*);
-    using IsCheckboxChecked = bool (*)(const Widget*);
+    using GetCheckboxChecked = bool (*)(const Widget*);
+    using GetLabelText = const char* (*)(const Widget*);
 
     OnDraw    onDraw;
     IsEnabled isEnabled;
     IsFocused isFocused;
     IsVisible isVisible;
-    IsCheckboxChecked isCheckboxChecked;
+    GetCheckboxChecked getCheckboxChecked;
+    GetLabelText getLabelText;
 };
 
 struct Theme
@@ -164,6 +166,7 @@ struct Widget
         {
             FrameStyle              frameStyle;
             ColorBG                 bgColor;
+            ColorFG                 fgColor;
             const char *            caption;
             const WindowCallbacks * pCallbacks;
             const Widget *          pChildrens;
@@ -174,6 +177,7 @@ struct Widget
         {
             FrameStyle      frameStyle;
             ColorBG         bgColor;
+            ColorFG         fgColor;
             const char *    caption;
             const Widget *  pChildrens;
             uint16_t        childrensCount;
@@ -183,7 +187,7 @@ struct Widget
         {
             ColorBG     bgColor;
             ColorFG     fgColor;
-            const char *caption;
+            const char *text;
         } label;
 
         struct
@@ -244,11 +248,11 @@ union KeyCode
 
 struct IOs
 {
-    void (*writeStr)(const char *s);
-    void (*writeStrFmt)(const char *fmt, va_list ap);
-    void (*onKey)(Widget *pActWidget, Key k, Mod m);
-    void *(*malloc)(uint32_t sz);
-    void (*mfree)(void *ptr);
+    int     (*writeStr)(const char *s);
+    int     (*writeStrFmt)(const char *fmt, va_list ap);
+    void    (*onKey)(Widget *pActWidget, Key k, Mod m);
+    void *  (*malloc)(uint32_t sz);
+    void    (*mfree)(void *ptr);
 };
 
 // -----------------------------------------------------------------------------
@@ -261,8 +265,9 @@ void init(IOs *ios);
 /**
  * @brief
  */
-void writeStr(const char *s);
-void writeStrFmt(const char *fmt, ...);
+int writeChar(char c, uint16_t n);
+int writeStr(const char *s);
+int writeStrFmt(const char *fmt, ...);
 void drawWidget(const Widget *pWdgt);
 
 /**

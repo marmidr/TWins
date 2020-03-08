@@ -19,7 +19,7 @@ namespace twins
 //     Coord origin;
 // } status;
 
-static IOs *pIOs;
+IOs *pIOs;
 
 // -----------------------------------------------------------------------------
 
@@ -28,17 +28,26 @@ void init(IOs *ios)
     pIOs = ios;
 }
 
-void writeStr(const char *s)
+int writeChar(char c, uint16_t count)
 {
-    pIOs->writeStr(s);
+    char str[2] = {c, '\0'};
+    for (uint16_t i = 0; i < count; i++)
+        writeStr(str);
+    return count;
 }
 
-void writeStrFmt(const char *fmt, ...)
+int writeStr(const char *s)
+{
+    return pIOs->writeStr(s);
+}
+
+int writeStrFmt(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    pIOs->writeStrFmt(fmt, ap);
+    int n = pIOs->writeStrFmt(fmt, ap);
     va_end(ap);
+    return n;
 }
 
 void moveTo(uint16_t col, uint16_t row)
