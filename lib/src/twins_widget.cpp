@@ -111,7 +111,7 @@ static void drawWindow(const Widget *pWgt)
     }
 
     origin = pWgt->coord;
-    for (int i = 0; i < pWgt->window.childrensCount; i++)
+    for (int i = 0; i < pWgt->window.childCount; i++)
     {
         if (pWgt->window.pChildrens[i].type == Widget::Type::None)
             break;
@@ -144,7 +144,7 @@ static void drawPanel(const Widget *pWgt)
     auto origin_bkp = origin;
     origin.col += pWgt->coord.col;
     origin.row += pWgt->coord.row;
-    for (int i = 0; i < pWgt->panel.childrensCount; i++)
+    for (int i = 0; i < pWgt->panel.childCount; i++)
     {
         if (pWgt->panel.pChildrens[i].type == Widget::Type::None)
             break;
@@ -216,7 +216,7 @@ static const Widget *findWidget(const Widget widgets[], const uint16_t widgetsCo
 
         if (p_wgt->type == Widget::Window)
         {
-            const auto *p = findWidget(p_wgt->window.pChildrens, p_wgt->window.childrensCount, widgetId, widgetScreenCord);
+            const auto *p = findWidget(p_wgt->window.pChildrens, p_wgt->window.childCount, widgetId, widgetScreenCord);
             if (p)
             {
                 coordOffsetBy(widgetScreenCord, p_wgt);
@@ -226,7 +226,7 @@ static const Widget *findWidget(const Widget widgets[], const uint16_t widgetsCo
 
         if (p_wgt->type == Widget::Panel)
         {
-            const auto *p = findWidget(p_wgt->panel.pChildrens, p_wgt->panel.childrensCount, widgetId, widgetScreenCord);
+            const auto *p = findWidget(p_wgt->panel.pChildrens, p_wgt->panel.childCount, widgetId, widgetScreenCord);
             if (p)
             {
                 coordOffsetBy(widgetScreenCord, p_wgt);

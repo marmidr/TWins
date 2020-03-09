@@ -4,6 +4,8 @@
  *          https://bitbucket.org/mmidor/twins
  *****************************************************************************/
 
+#include "twins_input_posix.hpp"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>

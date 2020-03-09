@@ -6,7 +6,6 @@
 
 #pragma once
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
 // -----------------------------------------------------------------------------
@@ -14,25 +13,34 @@
 namespace twins
 {
 
+extern IOs *pIOs;
+
 struct StringBuff
 {
-    StringBuff()
-    {
-        capacity = 5;
-        size = 0;
-        buff = (char*)malloc(capacity);
-        *buff = '\0';
-    }
+    // avoid memory allocation in constructor
+    StringBuff() = default;
+
     ~StringBuff()
     {
-        free(buff);
+        pIOs->mfree(pBuff);
     }
-    void resize(int sz)
+    void resize(uint16_t sz)
     {
+        if (!pBuff)
+        {
+            capacity = sz > 0 ? sz : 8;
+            pBuff = (char*)pIOs->malloc(capacity);
+            *pBuff = '\0';
+            return;
+        }
+
         if (sz > capacity)
         {
             capacity = sz;
-            buff = (char*)realloc(buff, capacity);
+            char *pnew = (char*)pIOs->malloc(capacity);
+            memcpy(pnew, pBuff, size+1);
+            pIOs->mfree(pBuff);
+            pBuff = pnew;
         }
     }
     void cat(const char *s)
@@ -41,28 +49,33 @@ struct StringBuff
         if (size + s_len >= capacity-1)
             resize(capacity + s_len + 10);
 
-        strcat(buff, s);
+        strcat(pBuff, s);
         size += s_len;
-        buff[size] = '\0';
+        pBuff[size] = '\0';
     }
     void cat(char c)
     {
         if (size + 1 >= capacity-1)
             resize(capacity + 10);
 
-        buff[size] = c;
+        pBuff[size] = c;
         size += 1;
-        buff[size] = '\0';
+        pBuff[size] = '\0';
     }
     void clear()
     {
         size = 0;
-        *buff = '\0';
+        if (pBuff) *pBuff = '\0';
+    }
+    const char *cstr() const
+    {
+        return pBuff ? pBuff : "";
     }
 
-    char *buff;
-    int capacity;
-    int size;
+private:
+    char *  pBuff = nullptr;
+    int16_t capacity = 0;
+    int16_t size = 0;
 };
 
 // -----------------------------------------------------------------------------

@@ -170,7 +170,7 @@ struct Widget
             const char *            caption;
             const WindowCallbacks * pCallbacks;
             const Widget *          pChildrens;
-            uint16_t                childrensCount;
+            uint16_t                childCount;
         } window;
 
         struct
@@ -180,7 +180,7 @@ struct Widget
             ColorFG         fgColor;
             const char *    caption;
             const Widget *  pChildrens;
-            uint16_t        childrensCount;
+            uint16_t        childCount;
         } panel;
 
         struct
