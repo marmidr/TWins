@@ -1,9 +1,10 @@
-# Brief
+# TWins in brief
 
-`TWins` library is designed to allow a developer to create graphical terminal applications on non-os platforms, like bare Cortex-M3.
+`TWins` is a C++ library designed to allow a developer to create graphical terminal applications on non-os platforms, like bare Cortex-M3.
 It provides basic facilities required by interactive applications such as screen and cursor management, keyboard input, keymaps, color codes.
-Additional it allows to desing terminal windows and it's controls in a convenient way as tree of `twins::Widget` structures.
+Additional it allows to define terminal windows and it's widgets in a convenient way as const tree of `twins::Widget` structures.
 
+![example 1](doc/sshot1.png)
 
 ## References
 
@@ -15,9 +16,7 @@ Implementation is based on examples:
 * http://0x80.pl/articles/terminals.html
 * https://www.jedsoft.org/slang/
 
-## Goals
-
-### Primary goals
+## Primary goals
 
 * text properties
     * foreground and background color codes
@@ -29,19 +28,23 @@ Implementation is based on examples:
 * reading input
     * regular characters (a..z)
     * control codes (Up/Down, Del, Ctrl, Home, ...)
+* two modes: direct terminal output and buffered  
+    buffered mode is required on UART terminals due to slow refresh rate and ugly flickering
+* separation library to ease porting
 
-### Secondary goals
 
-* support for drawing window with background and frame
-* popup windows
-* controls
-    * panes
-    * tabs
-    * edit fields (text/number)
-    * static labels
-    * check boxes
-    * radio group
-    * button group
+## Secondary goals
+
+Widgets (controls) to implement:
+
+* window
+* panel
+* static label
+* check box
+* edit field (text/number)
+* radio group
+* button group
+* page control
 
 ---
 
