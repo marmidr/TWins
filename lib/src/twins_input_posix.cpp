@@ -2,6 +2,7 @@
  * @brief   TWins - keyboard input - POSIX
  * @author  Mariusz Midor
  *          https://bitbucket.org/mmidor/twins
+ * @note    Most of this code comes from http://0x80.pl/articles/terminals.html
  *****************************************************************************/
 
 #include "twins_input_posix.hpp"
@@ -19,7 +20,7 @@
 namespace twins
 {
 
-struct key_code_t
+struct KeySequence
 {
     /** ANSI key sequence, up to 9 characters, NUL terminated */
     char    keySeq[9];
@@ -31,17 +32,17 @@ static int         ttyFileNo;
 static char        termEOFcode;
 static termios     termIOs;
 static uint16_t    termKeyTimeoutMs;
-static key_code_t  keyCode;
+static KeySequence keySeq;
 
 // -----------------------------------------------------------------------------
 
 static void readKey()
 {
     // read up to 8 bytes
-    int nb = read(ttyFileNo, keyCode.keySeq, sizeof(keyCode.keySeq)-1);
+    int nb = read(ttyFileNo, keySeq.keySeq, sizeof(keySeq.keySeq)-1);
     if (nb == -1) nb = 0;
-    keyCode.seqLen = nb;
-    keyCode.keySeq[keyCode.seqLen] = '\0';
+    keySeq.seqLen = nb;
+    keySeq.keySeq[keySeq.seqLen] = '\0';
     errno = 0;
 }
 
@@ -99,18 +100,18 @@ void inputPosixFree()
     checkErrNo(__LINE__);
 }
 
-const char* inputPosixCheckInput(bool &quitRequested)
+const char* inputPosixCheckKeys(bool &quitRequested)
 {
-    keyCode.seqLen = 0;
+    keySeq.seqLen = 0;
     waitForKey();
 
-    if (keyCode.seqLen == 1 && keyCode.keySeq[0] == termEOFcode)
+    if (keySeq.seqLen == 1 && keySeq.keySeq[0] == termEOFcode)
     {
         quitRequested = true;
         return nullptr;
     }
 
-    return keyCode.seqLen ? keyCode.keySeq : nullptr;
+    return keySeq.seqLen ? keySeq.keySeq : nullptr;
 }
 
 // -----------------------------------------------------------------------------

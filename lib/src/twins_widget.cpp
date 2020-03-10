@@ -5,6 +5,9 @@
  *****************************************************************************/
 
 #include "twins.hpp"
+#include "twins_string.hpp"
+#include "twins_utf8str.hpp"
+
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -39,15 +42,9 @@ const char * const frame_double[] =
 };
 
 extern IOs *pIOs;
-struct TxtBuff
-{
-    TxtBuff(uint32_t sz) { buff = (char*)pIOs->malloc(sz+1); }
-    ~TxtBuff()           { pIOs->mfree(buff); }
-    char *buff;
-};
-
 static Coord origin;
 static const WindowCallbacks *pWndClbcks;
+static String str;
 
 // forward decl
 static void drawWidgetInternal(const Widget *pWgt);
@@ -160,23 +157,25 @@ static void drawLabel(const Widget *pWgt)
     assert(pWndClbcks);
 
     // label text
-
     const char *txt = pWgt->label.text;
-    if (!txt) txt = pWndClbcks->getLabelText(pWgt);
+    if (!txt)
+        txt = pWndClbcks->getLabelText(pWgt);
 
     if (txt)
     {
-        moveTo(origin.col + pWgt->coord.col, origin.row + pWgt->coord.row);
-
-        // limit the text len to Widget width
         auto max_len = pWgt->size.width;
-        char fmt[6];
-        snprintf(fmt, sizeof(fmt), "%%" ".%u" "s", max_len);
+        str = txt;
+        str.trim(max_len, true);
+
+        moveTo(origin.col + pWgt->coord.col, origin.row + pWgt->coord.row);
         // setup colors
-        writeStrFmt("%s%s", clrFg(pWgt->label.fgColor), clrBg(pWgt->label.bgColor));
+        writeStr(clrFg(pWgt->label.fgColor));
+        writeStr(clrBg(pWgt->label.bgColor));
         // print label
-        int n = writeStrFmt(fmt, txt);
-        // fill remaining space with spaces
+        writeStr(str.cstr());
+        // fill remaining space with spaces;
+        // count UTF-8 sequences, not bytes
+        int n = utf8len(str.cstr());
         writeChar(' ', max_len - n);
     }
 }

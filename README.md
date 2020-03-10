@@ -30,7 +30,7 @@ Implementation is based on examples:
     * control codes (Up/Down, Del, Ctrl, Home, ...)
 * two modes: direct terminal output and buffered  
     buffered mode is required on UART terminals due to slow refresh rate and ugly flickering
-* separation library to ease porting
+* separation layer to ease porting
 
 
 ## Secondary goals

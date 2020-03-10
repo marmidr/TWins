@@ -15,7 +15,7 @@ namespace twins
 /** @brief Template returning length of array of type T */
 void inputPosixInit(uint16_t timeoutMs);
 void inputPosixFree();
-const char* inputPosixCheckInput(bool &quitRequested);
+const char* inputPosixCheckKeys(bool &quitRequested);
 
 // -----------------------------------------------------------------------------
 

@@ -5,6 +5,8 @@
  *****************************************************************************/
 
 #include "twins.hpp"
+#include "twins_string.hpp"
+
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -20,6 +22,7 @@ namespace twins
 // } status;
 
 IOs *pIOs;
+twins::String linebuff;
 
 // -----------------------------------------------------------------------------
 
@@ -28,12 +31,13 @@ void init(IOs *ios)
     pIOs = ios;
 }
 
-int writeChar(char c, uint16_t count)
+int writeChar(char c, int16_t count)
 {
-    char str[2] = {c, '\0'};
-    for (uint16_t i = 0; i < count; i++)
-        writeStr(str);
-    return count;
+    if (count <= 0)
+        return 0;
+    linebuff.clear();
+    linebuff.append(c, count);
+    return writeStr(linebuff.cstr());
 }
 
 int writeStr(const char *s)

@@ -1,0 +1,149 @@
+/******************************************************************************
+ * @brief   TWins - string class for our needs
+ * @author  Mariusz Midor
+ *          https://bitbucket.org/mmidor/twins
+ *****************************************************************************/
+
+#include "twins.hpp"
+#include "twins_string.hpp"
+#include "twins_utf8str.hpp"
+
+#include <stdint.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
+
+// -----------------------------------------------------------------------------
+
+namespace twins
+{
+
+extern IOs *pIOs;
+
+String::~String()
+{
+    pIOs->mfree(mpBuff);
+    mpBuff = nullptr;
+}
+
+void String::append(const char *s)
+{
+    int s_len = strlen(s);
+    resize(mSize + s_len);
+    strcat(mpBuff, s);
+    mSize += s_len;
+    mpBuff[mSize] = '\0';
+}
+
+void String::append(char c, uint16_t count)
+{
+    resize(mSize + count);
+    char *p = mpBuff + mSize;
+    mSize += count;
+    while (count--)
+        *p++ = c;
+    mpBuff[mSize] = '\0';
+}
+
+void String::appendFmt(const char *fmt, ...)
+{
+    // https://en.cppreference.com/w/cpp/io/c/fprintf
+    uint8_t retry = 1;
+
+    do
+    {
+        va_list ap;
+        va_start(ap, fmt);
+        int freespace = mCapacity - mSize;
+        int n = vsnprintf(mpBuff + mSize, freespace, fmt, ap);
+        va_end(ap);
+
+        if (n > 0)
+        {
+            // everything ok
+            if (n < freespace)
+                break;
+
+            // too small buffer
+            resize(mCapacity + n + 10);
+        }
+        else
+        {
+            // error
+            break;
+        }
+
+    } while (retry--);
+}
+
+void String::trim(uint16_t trimPos, bool addEllipsis)
+{
+    if (trimPos >= mSize)
+        return;
+    if (addEllipsis && trimPos > 0)
+        trimPos--;
+
+    char *p = mpBuff;
+    char *pEnd = mpBuff + mSize;
+
+    for (int pos = 0; pos < trimPos; pos++)
+    {
+        int seqLen = utf8seqlen(p);
+        if (seqLen <= 0) break;
+        p += seqLen;
+    }
+
+    if (p >= pEnd) return;
+    mSize = p - mpBuff;
+    mpBuff[mSize] = '\0';
+
+    if (addEllipsis)
+        append("…");
+}
+
+void String::clear()
+{
+    mSize = 0;
+    if (mpBuff) *mpBuff = '\0';
+}
+
+String& String::operator=(const char *s)
+{
+    clear();
+    append(s);
+    return *this;
+}
+
+int String::utf8Len() const
+{
+    return utf8len(mpBuff);
+}
+
+void String::resize(uint16_t newCapacity)
+{
+    if (newCapacity < 31) newCapacity = 31;
+
+    if (!mpBuff)
+    {
+        mCapacity = newCapacity+1;
+        mpBuff = (char*)pIOs->malloc(mCapacity);
+        *mpBuff = '\0';
+        return;
+    }
+
+    if (newCapacity > mCapacity)
+    {
+        char *pnew = (char*)pIOs->malloc(newCapacity+1);
+        if (pnew == mpBuff)
+            return;
+
+        mCapacity = newCapacity+1;
+        memcpy(pnew, mpBuff, mSize+1);
+        pIOs->mfree(mpBuff);
+        mpBuff = pnew;
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+} // namespace

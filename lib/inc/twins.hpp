@@ -7,7 +7,7 @@
 #pragma once
 #include "twins_esc_codes.hpp"
 #include <stdint.h>
-#include <stdio.h>
+#include <stdarg.h>
 
 // -----------------------------------------------------------------------------
 
@@ -151,6 +151,7 @@ struct Widget
         Label,
         CheckBox,
         Button,
+        Led,
         PageCtrl
     };
 
@@ -201,6 +202,14 @@ struct Widget
             const char *text;
             uint8_t     groupId;
         } button;
+
+        struct
+        {
+            ColorBG     bgColorOff;
+            ColorBG     bgColorOn;
+            ColorFG     fgColor;
+            const char *text;
+        } led;
 
         struct
         {
@@ -266,7 +275,7 @@ void init(IOs *ios);
 /**
  * @brief
  */
-int writeChar(char c, uint16_t n);
+int writeChar(char c, int16_t count);
 int writeStr(const char *s);
 int writeStrFmt(const char *fmt, ...);
 void drawWidget(const Widget *pWindow, uint16_t widgetId = WIDGET_ID_ALL);
