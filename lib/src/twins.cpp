@@ -21,12 +21,12 @@ namespace twins
 //     Coord origin;
 // } status;
 
-IOs *pIOs;
-twins::String linebuff;
+const IOs *pIOs;                //
+static twins::String linebuff;  // line buffer to avoid printing single chars
 
 // -----------------------------------------------------------------------------
 
-void init(IOs *ios)
+void init(const IOs *ios)
 {
     pIOs = ios;
 }
@@ -42,16 +42,25 @@ int writeChar(char c, int16_t count)
 
 int writeStr(const char *s)
 {
+    if (!s) return 0;
     return pIOs->writeStr(s);
 }
 
 int writeStrFmt(const char *fmt, ...)
 {
+    if (!fmt) return 0;
     va_list ap;
     va_start(ap, fmt);
     int n = pIOs->writeStrFmt(fmt, ap);
     va_end(ap);
     return n;
+}
+
+// just an idea:
+void flush()
+{
+    writeStr(linebuff.cstr());
+    linebuff.clear();
 }
 
 void moveTo(uint16_t col, uint16_t row)

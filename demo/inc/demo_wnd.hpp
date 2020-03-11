@@ -16,19 +16,65 @@ enum WndMainIDs
             ID_LABEL_FW_VERSION,
             ID_LABEL_DATE,
             ID_LABEL_TIME,
-        ID_PANEL_CONFIG,
+        ID_PANEL_STATE,
+            ID_LED_PUMP,
+            ID_LED_LOCK,
+            ID_LED_BATTERY,
         ID_PANEL_KEYCODE,
             ID_LABEL_KEYCODE
 };
 
 // -----------------------------------------------------------------------------
 
-extern const twins::WindowCallbacks wndMainClbcks;
+extern twins::IWindowState * getWind1State();
+
+const twins::Widget pnlStateChilds[] =
+{
+    {
+        type    : twins::Widget::Led,
+        id      : ID_LED_BATTERY,
+        coord   : { 2, 1 },
+        size    : { 6, 1 },
+        { led : {
+            bgColorOff  : twins::ColorBG::WHITE,
+            bgColorOn   : twins::ColorBG::MAGENTA,
+            fgColor     : twins::ColorFG::BLACK,
+            text        : "(BATT)"
+        }}
+    },
+    {
+        type    : twins::Widget::Led,
+        id      : ID_LED_LOCK,
+        coord   : { 9, 1 },
+        size    : { 6, 1 },
+        { led : {
+            bgColorOff  : twins::ColorBG::WHITE,
+            bgColorOn   : twins::ColorBG::GREEN,
+            fgColor     : twins::ColorFG::BLACK,
+            text        : "(LOCK)"
+        }}
+    },
+    {
+        type    : twins::Widget::Led,
+        id      : ID_LED_PUMP,
+        coord   : { 16, 1 },
+        size    : { 6, 1 },
+        { led : {
+            bgColorOff  : twins::ColorBG::WHITE,
+            bgColorOn   : twins::ColorBG::YELLOW,
+            fgColor     : twins::ColorFG::BLACK,
+            text        : "(PUMP)"
+        }}
+    },
+};
 
 const twins::Widget wndMain =
 {
     // NOTE: all members must be initialized, in order they are declared,
     // otherwise GCC may fail to compile: 'sorry, unimplemented: non-trivial designated initializers not supported'
+
+    // C-style:     .onDraw = []
+    // C++ style:   onDraw : []
 
     type    : twins::Widget::Window,
     id      : ID_WND,
@@ -39,7 +85,7 @@ const twins::Widget wndMain =
         bgColor     : twins::ColorBG::BLUE,
         fgColor     : twins::ColorFG::WHITE,
         caption     : "Service Menu (Ctrl+D quit)",
-        pCallbacks  : &wndMainClbcks,
+        getState    : getWind1State,
         pChildrens  : (const twins::Widget[])
         {
             {
@@ -93,16 +139,16 @@ const twins::Widget wndMain =
             },
             {
                 type    : twins::Widget::Panel,
-                id      : ID_PANEL_CONFIG,
+                id      : ID_PANEL_STATE,
                 coord   : { 30, 2 },
-                size    : { 25, 8 },
+                size    : { 25, 3 },
                 { panel : {
                     frameStyle  : twins::FrameStyle::Single,
-                    bgColor     : twins::ColorBG::GREEN,
-                    fgColor     : twins::ColorFG::WHITE,
-                    caption     : "CONFIG",
-                    pChildrens  : {},
-                    childCount  : {}
+                    bgColor     : twins::ColorBG::WHITE,
+                    fgColor     : twins::ColorFG::BLUE,
+                    caption     : "STATE: Leds",
+                    pChildrens  : pnlStateChilds,
+                    childCount  : 3 //twins::arrSize(pnlStateChilds)
                 }} // panel
             },
             {

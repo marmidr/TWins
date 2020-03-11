@@ -5,9 +5,7 @@
  *****************************************************************************/
 
 #include "demo_wnd.hpp"
-
 #include "twins.hpp"
-#include "twins_string.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,71 +13,85 @@
 
 // -----------------------------------------------------------------------------
 
-static char lbl_keycode_txt[8];
-
-const twins::WindowCallbacks wndMainClbcks =
+class Wnd1State : public twins::IWindowState
 {
-    // C-style:     .onDraw = []
-    // C++ style:   onDraw : []
-
-    onDraw : [](const twins::Widget* pWgt)
+public:
+    bool onDraw(const twins::Widget* pWgt)
     {
         // render default
         return false;
-    },
-    isEnabled : [](const twins::Widget* pWgt)
+    }
+    bool isEnabled(const twins::Widget* pWgt)
     {
-        static bool pnlEnabled = false;
-
-        if (pWgt->id == ID_PANEL_CONFIG)
+        if (pWgt->id == ID_PANEL_VERSIONS)
         {
-            pnlEnabled = !pnlEnabled;
-            return pnlEnabled;
+            return pnlConfigEnabled;
         }
 
         return true;
-    },
-    isFocused : [](const twins::Widget* pWgt)
+    }
+    bool isFocused(const twins::Widget* pWgt)
     {
         return false;
-    },
-    isVisible : [](const twins::Widget* pWgt)
+    }
+    bool isVisible(const twins::Widget* pWgt)
     {
         return true;
-    },
-    getCheckboxChecked : [](const twins::Widget* pWgt)
+    }
+    bool getCheckboxChecked(const twins::Widget* pWgt)
     {
         return false;
-    },
-    getLabelText : [](const twins::Widget* pWgt) -> const char*
+    }
+    void getLabelText(const twins::Widget* pWgt, twins::String &out)
     {
-        static twins::String str;
+        out.clear();
 
         if (pWgt->id == ID_LABEL_KEYCODE)
         {
-            str.clear();
-            str.append("KEY: ");
+            out.append("KEY: ");
 
-            for (unsigned i = 0; i < sizeof(lbl_keycode_txt); i++)
+            for (unsigned i = 0; i < sizeof(lblKeycodeSeq); i++)
             {
-                char c = lbl_keycode_txt[i];
+                char c = lblKeycodeSeq[i];
                 if (!c) break;
 
                 if (c < ' ')
-                    str.appendFmt("\\x%02x", c);
+                    out.appendFmt("\\x%02x", c);
                 else
-                    str.append(c);
+                    out.append(c);
             }
-
-            return str.cstr();
         }
-        return nullptr;
     }
+    bool getLedLit(const twins::Widget* pWgt)
+    {
+        if (pWgt->id == ID_LED_LOCK)
+        {
+            ledLock = !ledLock;
+            return ledLock;
+        }
+        if (pWgt->id == ID_LED_PUMP)
+        {
+            ledBatt = !ledBatt;
+            return lblKeycodeSeq[0] == ' ';
+        }
+        return ledBatt;
+    }
+
+public:
+    char lblKeycodeSeq[8];
+
+private:
+    bool pnlConfigEnabled = false;
+    bool ledLock = false;
+    bool ledBatt = false;
 };
 
 // -----------------------------------------------------------------------------
 
-static twins::IOs tios =
+static Wnd1State wnd1State;
+twins::IWindowState * getWind1State() { return &wnd1State; }
+
+static const twins::IOs tios =
 {
     writeStr : [](const char *s)
     {
@@ -113,7 +125,7 @@ int main()
 
     twins::init(&tios);
     twins::drawWidget(&wndMain);
-    twins::inputPosixInit(100);
+    twins::inputPosixInit(500);
     fflush(stdout);
 
     for (;;)
@@ -124,11 +136,16 @@ int main()
 
         if (keyseq)
         {
-            strncpy(lbl_keycode_txt, keyseq, sizeof(lbl_keycode_txt));
+            strncpy(wnd1State.lblKeycodeSeq, keyseq, sizeof(wnd1State.lblKeycodeSeq));
             twins::drawWidget(&wndMain, ID_LABEL_KEYCODE);
-            // printf("Key: %s\n", keyseq);
-            fflush(stdout);
         }
+
+        twins::drawWidget(&wndMain, ID_LED_LOCK);
+        twins::drawWidget(&wndMain, ID_LED_BATTERY);
+        twins::drawWidget(&wndMain, ID_LED_PUMP);
+        twins::moveToHome();
+        // printf("Key: %s\n", keyseq);
+        fflush(stdout);
     }
 
     twins::moveTo(0, wndMain.coord.row + wndMain.size.height + 1);

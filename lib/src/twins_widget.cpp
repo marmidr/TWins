@@ -41,19 +41,25 @@ const char * const frame_double[] =
     "╚", "═", "╝",
 };
 
-extern IOs *pIOs;
-static Coord origin;
-static const WindowCallbacks *pWndClbcks;
-static String str;
+extern IOs *pIOs;               //
+static Coord parentCoord;            // current widget left-top position
+static IWindowState *pWndState; //
+static String wgtStr;           // common string buff for widget renderers
 
 // forward decl
 static void drawWidgetInternal(const Widget *pWgt);
 
 // -----------------------------------------------------------------------------
 
+static void coordOffsetBy(Coord &cord, const Coord &offs)
+{
+    cord.col += offs.col;
+    cord.row += offs.row;
+}
+
 static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, ColorFG clFg, const FrameStyle style)
 {
-    moveTo(origin.col + coord.col, origin.row + coord.row);
+    moveTo(parentCoord.col + coord.col, parentCoord.row + coord.row);
 
     const char * const * frame = frame_none;
     switch (style)
@@ -91,10 +97,11 @@ static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, ColorF
 
 static void drawWindow(const Widget *pWgt)
 {
-    auto origin_bkp = origin;
-    origin = {0, 0};
-    pWndClbcks = pWgt->window.pCallbacks;
-    assert(pWndClbcks);
+    pWndState = pWgt->window.getState();
+    assert(pWndState);
+
+    auto origin_bkp = parentCoord;
+    parentCoord = {0, 0};
     drawFrame(pWgt->coord, pWgt->size, pWgt->window.bgColor, pWgt->window.fgColor, pWgt->window.frameStyle);
 
     // title
@@ -103,81 +110,88 @@ static void drawWindow(const Widget *pWgt)
         auto capt_len = strlen(pWgt->window.caption);
         moveTo(pWgt->coord.col + (pWgt->size.width - capt_len - 4)/2,
             pWgt->coord.row);
-        writeStrFmt("╡ %s%s%s ╞", ESC_FG_YELLOW, pWgt->window.caption, ESC_FG_DEFAULT);
+        writeStrFmt("╡ %s%s%s ╞", ESC_FG_YELLOW ESC_BOLD_ON, pWgt->window.caption, ESC_FG_DEFAULT ESC_BOLD_OFF);
         writeStr(ESC_BG_DEFAULT);
     }
 
-    origin = pWgt->coord;
+    parentCoord = pWgt->coord;
     for (int i = 0; i < pWgt->window.childCount; i++)
     {
         if (pWgt->window.pChildrens[i].type == Widget::Type::None)
             break;
         drawWidgetInternal(&pWgt->window.pChildrens[i]);
     }
-    origin = origin_bkp;
+    parentCoord = origin_bkp;
 
-    pWndClbcks = nullptr;
+    pWndState = nullptr;
     moveTo(0, pWgt->coord.row + pWgt->size.height);
+    // TODO: resetClBg(), resetClFg()
     writeStr(ESC_BG_DEFAULT ESC_FG_DEFAULT);
 }
 
 static void drawPanel(const Widget *pWgt)
 {
-    assert(pWndClbcks);
-    if (!pWndClbcks->isEnabled(pWgt)) writeStr(ESC_FAINT_ON);
+    if (!pWndState->isEnabled(pWgt)) writeStr(ESC_FAINT_ON);
     drawFrame(pWgt->coord, pWgt->size, pWgt->panel.bgColor, pWgt->panel.fgColor, pWgt->panel.frameStyle);
 
     // title
     if (pWgt->panel.caption)
     {
         auto capt_len = strlen(pWgt->panel.caption);
-        moveTo(origin.col + pWgt->coord.col + (pWgt->size.width - capt_len - 2)/2,
-            origin.row + pWgt->coord.row);
+        moveTo(parentCoord.col + pWgt->coord.col + (pWgt->size.width - capt_len - 2)/2,
+            parentCoord.row + pWgt->coord.row);
 
         writeStrFmt(" %s%s%s ", ESC_FG_WHITE_INTENSE ESC_BOLD_ON, pWgt->panel.caption, ESC_BOLD_OFF);
         writeStr(ESC_BG_DEFAULT);
     }
 
-    auto origin_bkp = origin;
-    origin.col += pWgt->coord.col;
-    origin.row += pWgt->coord.row;
+    auto origin_bkp = parentCoord;
+    parentCoord.col += pWgt->coord.col;
+    parentCoord.row += pWgt->coord.row;
     for (int i = 0; i < pWgt->panel.childCount; i++)
     {
         if (pWgt->panel.pChildrens[i].type == Widget::Type::None)
             break;
         drawWidgetInternal(&pWgt->panel.pChildrens[i]);
     }
-    origin = origin_bkp;
+    parentCoord = origin_bkp;
 
-    if (!pWndClbcks->isEnabled(pWgt)) writeStr(ESC_FAINT_OFF);
+    //TODO: attributesReset()
+    if (!pWndState->isEnabled(pWgt)) writeStr(ESC_FAINT_OFF);
 }
 
 static void drawLabel(const Widget *pWgt)
 {
-    assert(pWndClbcks);
-
     // label text
-    const char *txt = pWgt->label.text;
-    if (!txt)
-        txt = pWndClbcks->getLabelText(pWgt);
+    if (pWgt->label.text)
+        wgtStr = pWgt->label.text;
+    else
+        pWndState->getLabelText(pWgt, wgtStr);
 
-    if (txt)
-    {
-        auto max_len = pWgt->size.width;
-        str = txt;
-        str.trim(max_len, true);
+    auto max_len = pWgt->size.width;
+    wgtStr.trim(max_len, true);
 
-        moveTo(origin.col + pWgt->coord.col, origin.row + pWgt->coord.row);
-        // setup colors
-        writeStr(clrFg(pWgt->label.fgColor));
-        writeStr(clrBg(pWgt->label.bgColor));
-        // print label
-        writeStr(str.cstr());
-        // fill remaining space with spaces;
-        // count UTF-8 sequences, not bytes
-        int n = utf8len(str.cstr());
-        writeChar(' ', max_len - n);
-    }
+    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+    // setup colors
+    writeStr(clrFg(pWgt->label.fgColor));
+    writeStr(clrBg(pWgt->label.bgColor));
+    // print label
+    writeStr(wgtStr.cstr());
+    // fill remaining space with spaces;
+    // count UTF-8 sequences, not bytes
+    int n = utf8len(wgtStr.cstr());
+    writeChar(' ', max_len - n);
+}
+
+static void drawLed(const Widget *pWgt)
+{
+    // led text
+    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+    auto clbg = pWndState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
+    // setup colors
+    writeStr(clrFg(pWgt->led.fgColor));
+    writeStr(clrBg(clbg));
+    writeStr(pWgt->led.text);
 }
 
 static void drawWidgetInternal(const Widget *pWgt)
@@ -189,19 +203,14 @@ static void drawWidgetInternal(const Widget *pWgt)
     case Widget::Label:     drawLabel(pWgt); break;
     case Widget::CheckBox:  break;
     case Widget::Button:    break;
+    case Widget::Led:       drawLed(pWgt); break;
     case Widget::PageCtrl:  break;
     default:                break;
     }
 }
 
-static void coordOffsetBy(Coord &cord, const Widget *pWgt)
-{
-    cord.col += pWgt->coord.col;
-    cord.row += pWgt->coord.row;
-}
-
 // recursive function searching for widgetId
-static const Widget *findWidget(const Widget widgets[], const uint16_t widgetsCount, uint16_t widgetId, Coord &widgetScreenCord)
+static const Widget *findWidget(const Widget widgets[], const uint16_t widgetsCount, uint16_t widgetId, Coord &widgetCord)
 {
     const auto *p_wgt = widgets;
 
@@ -215,20 +224,20 @@ static const Widget *findWidget(const Widget widgets[], const uint16_t widgetsCo
 
         if (p_wgt->type == Widget::Window)
         {
-            const auto *p = findWidget(p_wgt->window.pChildrens, p_wgt->window.childCount, widgetId, widgetScreenCord);
+            const auto *p = findWidget(p_wgt->window.pChildrens, p_wgt->window.childCount, widgetId, widgetCord);
             if (p)
             {
-                coordOffsetBy(widgetScreenCord, p_wgt);
+                coordOffsetBy(widgetCord, p_wgt->coord);
                 return p;
             }
         }
 
         if (p_wgt->type == Widget::Panel)
         {
-            const auto *p = findWidget(p_wgt->panel.pChildrens, p_wgt->panel.childCount, widgetId, widgetScreenCord);
+            const auto *p = findWidget(p_wgt->panel.pChildrens, p_wgt->panel.childCount, widgetId, widgetCord);
             if (p)
             {
-                coordOffsetBy(widgetScreenCord, p_wgt);
+                coordOffsetBy(widgetCord, p_wgt->coord);
                 return p;
             }
         }
@@ -245,7 +254,6 @@ void drawWidget(const Widget *pWindow, uint16_t widgetId)
 {
     assert(pWindow);
     assert(pWindow->type == Widget::Window);
-    assert(pWindow->window.pCallbacks);
 
     if (widgetId == WIDGET_ID_ALL)
     {
@@ -253,15 +261,16 @@ void drawWidget(const Widget *pWindow, uint16_t widgetId)
     }
     else
     {
-        pWndClbcks = pWindow->window.pCallbacks;
-        origin = {0, 0};
+        pWndState = pWindow->window.getState();
+        assert(pWndState);
+        parentCoord = {0, 0};
 
         // search window for widget by it's Id
-        if (const auto *p_wgt = findWidget(pWindow, 1, widgetId, origin))
+        if (const auto *p_wgt = findWidget(pWindow, 1, widgetId, parentCoord))
             drawWidgetInternal(p_wgt);
-    }
 
-    pWndClbcks = nullptr;
+        pWndState = nullptr;
+    }
 }
 
 // -----------------------------------------------------------------------------

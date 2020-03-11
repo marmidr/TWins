@@ -28,6 +28,7 @@ String::~String()
 
 void String::append(const char *s)
 {
+    if (!s) return;
     int s_len = strlen(s);
     resize(mSize + s_len);
     strcat(mpBuff, s);
@@ -35,8 +36,9 @@ void String::append(const char *s)
     mpBuff[mSize] = '\0';
 }
 
-void String::append(char c, uint16_t count)
+void String::append(char c, int16_t count)
 {
+    if (count <= 0) return;
     resize(mSize + count);
     char *p = mpBuff + mSize;
     mSize += count;
@@ -47,6 +49,8 @@ void String::append(char c, uint16_t count)
 
 void String::appendFmt(const char *fmt, ...)
 {
+    if (!fmt) return;
+
     // https://en.cppreference.com/w/cpp/io/c/fprintf
     uint8_t retry = 1;
 
@@ -107,11 +111,19 @@ void String::clear()
     if (mpBuff) *mpBuff = '\0';
 }
 
-String& String::operator=(const char *s)
+void String::operator=(const char *s)
 {
     clear();
     append(s);
-    return *this;
+}
+
+void String::operator=(String &&other)
+{
+    free();
+    mpBuff      = other.mpBuff;
+    mCapacity   = other.mCapacity;
+    mSize       = other.mSize;
+    other.free();
 }
 
 int String::utf8Len() const
@@ -142,6 +154,14 @@ void String::resize(uint16_t newCapacity)
         pIOs->mfree(mpBuff);
         mpBuff = pnew;
     }
+}
+
+void String::free()
+{
+    pIOs->mfree(mpBuff);
+    mpBuff = nullptr;
+    mCapacity = 0;
+    mSize = 0;
 }
 
 // -----------------------------------------------------------------------------

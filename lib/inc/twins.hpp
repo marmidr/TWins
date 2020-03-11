@@ -6,6 +6,7 @@
 
 #pragma once
 #include "twins_esc_codes.hpp"
+#include "twins_string.hpp"
 #include <stdint.h>
 #include <stdarg.h>
 
@@ -113,25 +114,16 @@ enum class FrameStyle : uint8_t
 struct Widget;
 
 /** @brief Each window uses these callbacks while drawing */
-struct WindowCallbacks
+class IWindowState
 {
-    /** function called each time the widget is beeing draw;
-     * @param pWgt - pointer to widget beeing draw
-     * @return true if user handled draw, false otherwise
-     */
-    using OnDraw    = bool (*)(const Widget*);
-    using IsEnabled = bool (*)(const Widget*);
-    using IsFocused = bool (*)(const Widget*);
-    using IsVisible = bool (*)(const Widget*);
-    using GetCheckboxChecked = bool (*)(const Widget*);
-    using GetLabelText = const char* (*)(const Widget*);
-
-    OnDraw    onDraw;
-    IsEnabled isEnabled;
-    IsFocused isFocused;
-    IsVisible isVisible;
-    GetCheckboxChecked getCheckboxChecked;
-    GetLabelText getLabelText;
+public:
+    virtual bool onDraw(const Widget*) = 0;
+    virtual bool isEnabled(const Widget*) = 0;
+    virtual bool isFocused(const Widget*) = 0;
+    virtual bool isVisible(const Widget*) = 0;
+    virtual bool getCheckboxChecked(const Widget*) = 0;
+    virtual void getLabelText(const Widget*, String &out) = 0;
+    virtual bool getLedLit(const Widget*) = 0;
 };
 
 struct Theme
@@ -156,7 +148,7 @@ struct Widget
     };
 
     Type        type = {};
-    uint8_t     id = 0;
+    uint16_t    id = 0;
     Coord       coord;
     Size        size;
 
@@ -165,13 +157,13 @@ struct Widget
     {
         struct
         {
-            FrameStyle              frameStyle;
-            ColorBG                 bgColor;
-            ColorFG                 fgColor;
-            const char *            caption;
-            const WindowCallbacks * pCallbacks;
-            const Widget *          pChildrens;
-            uint16_t                childCount;
+            FrameStyle      frameStyle;
+            ColorBG         bgColor;
+            ColorFG         fgColor;
+            const char *    caption;
+            IWindowState *  (*getState)();
+            const Widget *  pChildrens;
+            uint16_t        childCount;
         } window;
 
         struct
@@ -270,7 +262,7 @@ static constexpr uint16_t WIDGET_ID_ALL = (-1);
 /**
  * @brief
  */
-void init(IOs *ios);
+void init(const IOs *ios);
 
 /**
  * @brief
