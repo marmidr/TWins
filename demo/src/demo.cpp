@@ -16,12 +16,12 @@
 class Wnd1State : public twins::IWindowState
 {
 public:
-    bool onDraw(const twins::Widget* pWgt)
+    bool onDraw(const twins::Widget* pWgt) override
     {
         // render default
         return false;
     }
-    bool isEnabled(const twins::Widget* pWgt)
+    bool isEnabled(const twins::Widget* pWgt) override
     {
         if (pWgt->id == ID_PANEL_VERSIONS)
         {
@@ -30,19 +30,20 @@ public:
 
         return true;
     }
-    bool isFocused(const twins::Widget* pWgt)
+    bool isFocused(const twins::Widget* pWgt) override
     {
+        if (pWgt->id == ID_BTN_YES) return true;
         return false;
     }
-    bool isVisible(const twins::Widget* pWgt)
+    bool isVisible(const twins::Widget* pWgt) override
     {
         return true;
     }
-    bool getCheckboxChecked(const twins::Widget* pWgt)
+    bool getCheckboxChecked(const twins::Widget* pWgt) override
     {
-        return false;
+        return ledBatt;
     }
-    void getLabelText(const twins::Widget* pWgt, twins::String &out)
+    void getLabelText(const twins::Widget* pWgt, twins::String &out) override
     {
         out.clear();
 
@@ -62,7 +63,11 @@ public:
             }
         }
     }
-    bool getLedLit(const twins::Widget* pWgt)
+    void getEditText(const twins::Widget*, twins::String &out) override
+    {
+        out = "Name:";
+    }
+    bool getLedLit(const twins::Widget* pWgt) override
     {
         if (pWgt->id == ID_LED_LOCK)
         {
@@ -76,6 +81,12 @@ public:
         }
         return ledBatt;
     }
+    void getProgressBarNfo(const twins::Widget*, int &pos, int &max) override
+    {
+        pos = pgbarPos++;
+        max = 20;
+        if (pgbarPos >= max) pgbarPos = 0;
+    }
 
 public:
     char lblKeycodeSeq[8];
@@ -84,6 +95,7 @@ private:
     bool pnlConfigEnabled = false;
     bool ledLock = false;
     bool ledBatt = false;
+    int pgbarPos = 0;
 };
 
 // -----------------------------------------------------------------------------
@@ -95,7 +107,7 @@ static const twins::IOs tios =
 {
     writeStr : [](const char *s)
     {
-        return printf(s);
+        return printf("%s", s);
     },
     writeStrFmt : [](const char *fmt, va_list ap)
     {
@@ -143,6 +155,8 @@ int main()
         twins::drawWidget(&wndMain, ID_LED_LOCK);
         twins::drawWidget(&wndMain, ID_LED_BATTERY);
         twins::drawWidget(&wndMain, ID_LED_PUMP);
+        twins::drawWidget(&wndMain, ID_CHKBX1);
+        twins::drawWidget(&wndMain, ID_PRGBAR1);
         twins::moveToHome();
         // printf("Key: %s\n", keyseq);
         fflush(stdout);

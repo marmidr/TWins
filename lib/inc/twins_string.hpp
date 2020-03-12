@@ -25,11 +25,12 @@ public:
 
     void append(const char *s);
     void append(char c, int16_t count = 1);
+    void append(const char *s, int16_t count);
     void appendFmt(const char *fmt, ...);
     void trim(uint16_t trimPos, bool addEllipsis = false);
     void clear();
-    int  size() const { return mSize; }
-    int  utf8Len() const;
+    unsigned size() const { return mSize; }
+    unsigned utf8Len() const;
     const char *cstr() const { return mpBuff ? mpBuff : ""; }
     void operator=(const char *s);
     void operator=(const String &other) { *this = other.cstr(); }

@@ -21,7 +21,11 @@ enum WndMainIDs
             ID_LED_LOCK,
             ID_LED_BATTERY,
         ID_PANEL_KEYCODE,
-            ID_LABEL_KEYCODE
+            ID_LABEL_KEYCODE,
+        ID_CHKBX1,
+        ID_BTN_YES,
+        ID_BTN_NO,
+        ID_PRGBAR1,
 };
 
 // -----------------------------------------------------------------------------
@@ -81,7 +85,6 @@ const twins::Widget wndMain =
     coord   : { 10, 4 },
     size    : { 60, 12 },
     { window : {
-        frameStyle  : twins::FrameStyle::Double,
         bgColor     : twins::ColorBG::BLUE,
         fgColor     : twins::ColorFG::WHITE,
         caption     : "Service Menu (Ctrl+D quit)",
@@ -94,7 +97,6 @@ const twins::Widget wndMain =
                 coord   : { 2, 2 },
                 size    : { 21, 5 },
                 { panel : {
-                    frameStyle  : twins::FrameStyle::Single,
                     bgColor     : twins::ColorBG::GREEN,
                     fgColor     : twins::ColorFG::WHITE,
                     caption     : "VER",
@@ -143,7 +145,6 @@ const twins::Widget wndMain =
                 coord   : { 30, 2 },
                 size    : { 25, 3 },
                 { panel : {
-                    frameStyle  : twins::FrameStyle::Single,
                     bgColor     : twins::ColorBG::WHITE,
                     fgColor     : twins::ColorFG::BLUE,
                     caption     : "STATE: Leds",
@@ -157,7 +158,6 @@ const twins::Widget wndMain =
                 coord   : { 2, 8 },
                 size    : { 21, 3 },
                 { panel : {
-                    frameStyle  : twins::FrameStyle::Single,
                     bgColor     : twins::ColorBG::CYAN,
                     fgColor     : twins::ColorFG::WHITE,
                     caption     : "KEY-CODES",
@@ -177,9 +177,47 @@ const twins::Widget wndMain =
                     },
                     childCount : 1
                 }} // panel
-            }
+            },
+            {
+                type    : twins::Widget::CheckBox,
+                id      : ID_CHKBX1,
+                coord   : { 30, 6 },
+                size    : { 12, 1 },
+                { checkbox : {
+                    text    : "Enable "
+                }}
+            },
+            {
+                type    : twins::Widget::Button,
+                id      : ID_BTN_YES,
+                coord   : { 30, 8 },
+                size    : { 8, 1 },
+                { button : {
+                    text    : "YES",
+                    groupId : 1
+                }}
+            },
+            {
+                type    : twins::Widget::Button,
+                id      : ID_BTN_NO,
+                coord   : { 38, 8 },
+                size    : { 8, 1 },
+                { button : {
+                    text    : "NO!",
+                    groupId : 1
+                }}
+            },
+            {
+                type    : twins::Widget::ProgressBar,
+                id      : ID_PRGBAR1,
+                coord   : { 30, 10 },
+                size    : { 20, 1 },
+                { progressbar : {
+                    //
+                }}
+            },
         },
-        childCount : 3,
+        childCount : 7,
     }} // window
 };
 

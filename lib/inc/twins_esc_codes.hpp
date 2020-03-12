@@ -50,8 +50,11 @@
 #define ESC_UNDERLINE_OFF               ANSI_CSI("24m")
 
 // if not blinks, the bg color may be lighter
-#define ESC_BLINK_ON                    ANSI_CSI("5m")
-#define ESC_BLINK_OFF                   ANSI_CSI("25m")
+#define ESC_BLINK_SLOW_ON               ANSI_CSI("5m")
+#define ESC_BLINK_SLOW_OFF              ANSI_CSI("25m")
+
+#define ESC_BLINK_FAST_ON               ANSI_CSI("6m")
+#define ESC_BLINK_FAST_OFF              ANSI_CSI("26m")
 
 #define ESC_INVERSE_ON                  ANSI_CSI("7m")
 #define ESC_INVERSE_OFF                 ANSI_CSI("27m")
@@ -62,6 +65,11 @@
 #define ESC_STRIKETHROUGH_ON            ANSI_CSI("9m")
 #define ESC_STRIKETHROUGH_OFF           ANSI_CSI("29m")
 
+#define ESC_CTRL_1(ctrl1)               ANSI_CSI(##ctrl1 "m")
+#define ESC_CTRL_2(ctrl1, ctrl2)        ANSI_CSI(##ctrl1 ";" ##ctrl2 "m")
+
+// '\u001B]8;;https://github.com\u0007Click\u001B]8;;\u0007'
+#define ESC_LINK(url, capt)             ANSI_OSC("8;;") url "\u0007" capt ANSI_OSC("8;;\u0007")
 
 //@}
 

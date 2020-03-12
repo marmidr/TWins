@@ -95,6 +95,8 @@ enum class FontAttrib : uint8_t
     Faint,
     Italics,
     Underline,
+    BlinkSlow,
+    BlinkFast,
     Inverse,
     Invisible,
     StrikeThrough
@@ -117,13 +119,16 @@ struct Widget;
 class IWindowState
 {
 public:
+    virtual ~IWindowState() = default;
     virtual bool onDraw(const Widget*) = 0;
     virtual bool isEnabled(const Widget*) = 0;
     virtual bool isFocused(const Widget*) = 0;
     virtual bool isVisible(const Widget*) = 0;
     virtual bool getCheckboxChecked(const Widget*) = 0;
     virtual void getLabelText(const Widget*, String &out) = 0;
+    virtual void getEditText(const Widget*, String &out) = 0;
     virtual bool getLedLit(const Widget*) = 0;
+    virtual void getProgressBarNfo(const Widget*, int &pos, int &max) = 0;
 };
 
 struct Theme
@@ -141,10 +146,13 @@ struct Widget
         Window,
         Panel,
         Label,
+        Edit,
         CheckBox,
         Button,
         Led,
-        PageCtrl
+        PageCtrl,
+        Page,
+        ProgressBar
     };
 
     Type        type = {};
@@ -157,7 +165,6 @@ struct Widget
     {
         struct
         {
-            FrameStyle      frameStyle;
             ColorBG         bgColor;
             ColorFG         fgColor;
             const char *    caption;
@@ -168,7 +175,6 @@ struct Widget
 
         struct
         {
-            FrameStyle      frameStyle;
             ColorBG         bgColor;
             ColorFG         fgColor;
             const char *    caption;
@@ -185,8 +191,13 @@ struct Widget
 
         struct
         {
+            ColorBG     bgColor;
+            ColorFG     fgColor;
+        } edit;
+
+        struct
+        {
             const char *text;
-            bool        checked;
         } checkbox;
 
         struct
@@ -205,8 +216,23 @@ struct Widget
 
         struct
         {
-
+            const Widget *  pPages;
+            uint16_t        pageCount;
         } pagectrl;
+
+        struct
+        {
+            ColorBG         bgColor;
+            ColorFG         fgColor;
+            const char *    caption;
+            const Widget *  pChildrens;
+            uint16_t        childCount;
+        } page;
+
+        struct
+        {
+
+        } progressbar;
     };
 
 };
@@ -271,6 +297,28 @@ int writeChar(char c, int16_t count);
 int writeStr(const char *s);
 int writeStrFmt(const char *fmt, ...);
 void drawWidget(const Widget *pWindow, uint16_t widgetId = WIDGET_ID_ALL);
+
+/**
+ * @brief Foreground color stack
+ */
+ // TODO:
+inline void pushClrFg(ColorFG cl){} // remember current color and write new one to terminal
+inline void popClrFg(){}            // restore last color and write it to terminal
+inline void resetClrFg(){}          // clear stack, reset to default
+
+/**
+ * @brief Background color stack
+ */
+inline void pushClrBg(ColorBG cl){}
+inline void popClrBg(){}
+inline void resetClrBg(){}
+
+/**
+ * @brief Font attributes stack
+ */
+inline void pushAttr(FontAttrib attr){}
+inline void popAttr(){}
+inline void resetAttr(){}
 
 /**
  * @brief Cursor manipulation

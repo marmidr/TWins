@@ -47,6 +47,19 @@ void String::append(char c, int16_t count)
     mpBuff[mSize] = '\0';
 }
 
+void String::append(const char *s, int16_t count)
+{
+    if (count <= 0) return;
+    if (!s) return;
+    int s_len = strlen(s);
+    resize(mSize + count*s_len);
+    char *p = mpBuff + mSize;
+    mSize += count*s_len;
+    while (count--)
+        p = strcat(p, s);
+    mpBuff[mSize] = '\0';
+}
+
 void String::appendFmt(const char *fmt, ...)
 {
     if (!fmt) return;
@@ -126,9 +139,9 @@ void String::operator=(String &&other)
     other.free();
 }
 
-int String::utf8Len() const
+unsigned String::utf8Len() const
 {
-    return utf8len(mpBuff);
+    return (unsigned)utf8len(mpBuff);
 }
 
 void String::resize(uint16_t newCapacity)

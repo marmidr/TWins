@@ -42,7 +42,7 @@ const char * const frame_double[] =
 };
 
 extern IOs *pIOs;               //
-static Coord parentCoord;            // current widget left-top position
+static Coord parentCoord;       // current widget left-top position
 static IWindowState *pWndState; //
 static String wgtStr;           // common string buff for widget renderers
 
@@ -102,7 +102,7 @@ static void drawWindow(const Widget *pWgt)
 
     auto origin_bkp = parentCoord;
     parentCoord = {0, 0};
-    drawFrame(pWgt->coord, pWgt->size, pWgt->window.bgColor, pWgt->window.fgColor, pWgt->window.frameStyle);
+    drawFrame(pWgt->coord, pWgt->size, pWgt->window.bgColor, pWgt->window.fgColor, twins::FrameStyle::Double);
 
     // title
     if (pWgt->window.caption)
@@ -132,7 +132,7 @@ static void drawWindow(const Widget *pWgt)
 static void drawPanel(const Widget *pWgt)
 {
     if (!pWndState->isEnabled(pWgt)) writeStr(ESC_FAINT_ON);
-    drawFrame(pWgt->coord, pWgt->size, pWgt->panel.bgColor, pWgt->panel.fgColor, pWgt->panel.frameStyle);
+    drawFrame(pWgt->coord, pWgt->size, pWgt->panel.bgColor, pWgt->panel.fgColor, twins::FrameStyle::Single);
 
     // title
     if (pWgt->panel.caption)
@@ -194,19 +194,76 @@ static void drawLed(const Widget *pWgt)
     writeStr(pWgt->led.text);
 }
 
+static void drawCheckbox(const Widget *pWgt)
+{
+    const char *s_chk_state = pWndState->getCheckboxChecked(pWgt) ? "[x] " : "[ ] ";
+    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+
+    // setup colors
+    if (pWndState->isFocused(pWgt))
+        writeStr(ESC_INVERSE_ON);
+    writeStr(s_chk_state);
+    writeStr(pWgt->checkbox.text);
+    writeStr(ESC_INVERSE_OFF);
+}
+
+static void drawButton(const Widget *pWgt)
+{
+    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+    wgtStr.clear();
+    wgtStr.append("[ ");
+    wgtStr.append(pWgt->button.text);
+    wgtStr.trim(pWgt->size.width-2);
+    wgtStr.append(" ]");
+    writeStr(wgtStr.cstr());
+}
+
+static void drawPageControl(const Widget *pWgt)
+{
+    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+}
+
+static void drawPage(const Widget *pWgt)
+{
+    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+}
+
+static void drawProgressBarControl(const Widget *pWgt)
+{
+    int pos = 0, max = 1;
+    pWndState->getProgressBarNfo(pWgt, pos, max);
+
+    if (max <= 0) max = 1;
+    if (pos > max) pos = max;
+
+    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+    wgtStr.clear();
+    int fill = pos * pWgt->size.width / max;
+    wgtStr.append("█", fill);
+    wgtStr.append("░", pWgt->size.width - fill);
+    writeStr(wgtStr.cstr());
+
+    // writeStr("░░▒▒▓▓██");
+    // writeStr("████░░░░░░░░░░░░");
+}
+
 static void drawWidgetInternal(const Widget *pWgt)
 {
     switch (pWgt->type)
     {
-    case Widget::Window:    drawWindow(pWgt); break;
-    case Widget::Panel:     drawPanel(pWgt); break;
-    case Widget::Label:     drawLabel(pWgt); break;
-    case Widget::CheckBox:  break;
-    case Widget::Button:    break;
-    case Widget::Led:       drawLed(pWgt); break;
-    case Widget::PageCtrl:  break;
-    default:                break;
+    case Widget::Window:        drawWindow(pWgt); break;
+    case Widget::Panel:         drawPanel(pWgt); break;
+    case Widget::Label:         drawLabel(pWgt); break;
+    case Widget::CheckBox:      drawCheckbox(pWgt); break;
+    case Widget::Button:        drawButton(pWgt); break;
+    case Widget::Led:           drawLed(pWgt); break;
+    case Widget::PageCtrl:      drawPageControl(pWgt); break;
+    case Widget::Page:          drawPage(pWgt); break;
+    case Widget::ProgressBar:   drawProgressBarControl(pWgt); break;
+    default:                    break;
     }
+
+    writeStr(ESC_BG_DEFAULT ESC_FG_DEFAULT);
 }
 
 // recursive function searching for widgetId
