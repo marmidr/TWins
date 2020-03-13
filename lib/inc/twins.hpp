@@ -5,20 +5,14 @@
  *****************************************************************************/
 
 #pragma once
+#include "twins_common.hpp"
 #include "twins_esc_codes.hpp"
 #include "twins_string.hpp"
-#include <stdint.h>
-#include <stdarg.h>
 
 // -----------------------------------------------------------------------------
 
 namespace twins
 {
-
-/** @brief Template returning length of array of type T */
-template<unsigned N, typename T>
-unsigned arrSize(const T (&arr)[N]) { return N; }
-
 
 /** @brief Screen coordinates */
 struct Coord
@@ -37,7 +31,8 @@ struct Size
 /** @brief Foreground colors */
 enum class ColorFG : uint8_t
 {
-    DEFAULT,
+    NONE,       // means 'no change'
+    DEFAULT,    // reset do terminal default
     BLACK,
     BLACK_INTENSE,
     RED,
@@ -60,7 +55,8 @@ enum class ColorFG : uint8_t
 /** @brief Background colors */
 enum class ColorBG : uint8_t
 {
-    DEFAULT,
+    NONE,       // means 'no change'
+    DEFAULT,    // reset do terminal default
     BLACK,
     BLACK_INTENSE,
     RED,
@@ -80,10 +76,10 @@ enum class ColorBG : uint8_t
 };
 
 /** @brief Convert color identifier to ASCII ESC code */
-const char* clrFg(ColorFG clr);
+const char* decodeCl(ColorFG cl);
 
 /** @brief Convert color identifier to ASCII ESC code */
-const char* clrBg(ColorBG clr);
+const char* decodeCl(ColorBG cl);
 
 /**
  * @brief
@@ -273,15 +269,8 @@ union KeyCode
     };
 };
 
-struct IOs
-{
-    int     (*writeStr)(const char *s);
-    int     (*writeStrFmt)(const char *fmt, va_list ap);
-    void *  (*malloc)(uint32_t sz);
-    void    (*mfree)(void *ptr);
-};
-
 static constexpr uint16_t WIDGET_ID_ALL = (-1);
+
 
 // -----------------------------------------------------------------------------
 
@@ -301,24 +290,23 @@ void drawWidget(const Widget *pWindow, uint16_t widgetId = WIDGET_ID_ALL);
 /**
  * @brief Foreground color stack
  */
- // TODO:
-inline void pushClrFg(ColorFG cl){} // remember current color and write new one to terminal
-inline void popClrFg(){}            // restore last color and write it to terminal
-inline void resetClrFg(){}          // clear stack, reset to default
+void pushClrFg(ColorFG cl);
+void popClrFg();
+void resetClrFg();
 
 /**
  * @brief Background color stack
  */
-inline void pushClrBg(ColorBG cl){}
-inline void popClrBg(){}
-inline void resetClrBg(){}
+void pushClrBg(ColorBG cl);
+void popClrBg();
+void resetClrBg();
 
 /**
  * @brief Font attributes stack
  */
-inline void pushAttr(FontAttrib attr){}
-inline void popAttr(){}
-inline void resetAttr(){}
+void pushAttr(FontAttrib attr);
+void popAttr();
+void resetAttr();
 
 /**
  * @brief Cursor manipulation

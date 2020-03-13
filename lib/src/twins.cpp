@@ -5,11 +5,10 @@
  *****************************************************************************/
 
 #include "twins.hpp"
-#include "twins_string.hpp"
+#include "twins_stack.hpp"
 
 #include <string.h>
 #include <stdio.h>
-#include <stdarg.h>
 
 // -----------------------------------------------------------------------------
 
@@ -87,6 +86,107 @@ void moveBy(int16_t cols, int16_t rows)
         writeStrFmt(ESC_CURSOR_DOWN_FMT, rows);
 }
 
+// -----------------------------------------------------------------------------
+
+/** @brief Current font colors and attributes */
+static ColorFG currentClFg = ColorFG::DEFAULT;
+static ColorBG currentClBg = ColorBG::DEFAULT;
+
+/** @brief Font colors and attribute stacks */
+static Stack<ColorFG> stackClFg;
+static Stack<ColorBG> stackClBg;
+static Stack<FontAttrib> stackAttr;
+
+void pushClrFg(ColorFG cl)
+{
+    stackClFg.push(currentClFg);
+    currentClFg = cl;
+    pIOs->writeStr(decodeCl(currentClFg));
+}
+
+void popClrFg()
+{
+    if (stackClFg.size())
+    {
+        currentClFg = *stackClFg.pop();
+        pIOs->writeStr(decodeCl(currentClFg));
+    }
+}
+
+void resetClrFg()
+{
+    stackClFg.clear();
+    pIOs->writeStr(ESC_FG_DEFAULT);
+}
+
+void pushClrBg(ColorBG cl)
+{
+    stackClBg.push(currentClBg);
+    currentClBg = cl;
+    pIOs->writeStr(decodeCl(currentClBg));
+}
+
+void popClrBg()
+{
+    if (stackClBg.size())
+    {
+        currentClBg = *stackClBg.pop();
+        pIOs->writeStr(decodeCl(currentClBg));
+    }
+}
+
+void resetClrBg()
+{
+    stackClBg.clear();
+    pIOs->writeStr(ESC_BG_DEFAULT);
+}
+
+void pushAttr(FontAttrib attr)
+{
+    stackAttr.push(attr);
+
+    switch (attr)
+    {
+    case FontAttrib::Normal:        pIOs->writeStr(ESC_RESET); break;
+    case FontAttrib::Bold:          pIOs->writeStr(ESC_BOLD_ON); break;
+    case FontAttrib::Faint:         pIOs->writeStr(ESC_FAINT_ON); break;
+    case FontAttrib::Italics:       pIOs->writeStr(ESC_ITALICS_ON); break;
+    case FontAttrib::Underline:     pIOs->writeStr(ESC_UNDERLINE_ON); break;
+    case FontAttrib::BlinkSlow:     pIOs->writeStr(ESC_BLINK_SLOW_ON); break;
+    case FontAttrib::BlinkFast:     pIOs->writeStr(ESC_BLINK_FAST_ON); break;
+    case FontAttrib::Inverse:       pIOs->writeStr(ESC_INVERSE_ON); break;
+    case FontAttrib::Invisible:     pIOs->writeStr(ESC_INVISIBLE_ON); break;
+    case FontAttrib::StrikeThrough: pIOs->writeStr(ESC_STRIKETHROUGH_ON); break;
+    //default: break;
+    }
+}
+
+void popAttr()
+{
+    if (auto *pAttr = stackAttr.pop())
+    {
+        switch (*pAttr)
+        {
+        case FontAttrib::Normal:        break;
+        case FontAttrib::Bold:          pIOs->writeStr(ESC_BOLD_OFF); break;
+        case FontAttrib::Faint:         pIOs->writeStr(ESC_FAINT_OFF); break;
+        case FontAttrib::Italics:       pIOs->writeStr(ESC_ITALICS_OFF); break;
+        case FontAttrib::Underline:     pIOs->writeStr(ESC_UNDERLINE_OFF); break;
+        case FontAttrib::BlinkSlow:     pIOs->writeStr(ESC_BLINK_SLOW_OFF); break;
+        case FontAttrib::BlinkFast:     pIOs->writeStr(ESC_BLINK_FAST_OFF); break;
+        case FontAttrib::Inverse:       pIOs->writeStr(ESC_INVERSE_OFF); break;
+        case FontAttrib::Invisible:     pIOs->writeStr(ESC_INVISIBLE_OFF); break;
+        case FontAttrib::StrikeThrough: pIOs->writeStr(ESC_STRIKETHROUGH_OFF); break;
+        default: break;
+        }
+    }
+}
+
+void resetAttr()
+{
+    stackAttr.clear();
+    pIOs->writeStr(ESC_RESET);
+}
 
 // -----------------------------------------------------------------------------
 

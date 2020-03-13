@@ -4,21 +4,19 @@
  *          https://bitbucket.org/mmidor/twins
  *****************************************************************************/
 
-#include "twins.hpp"
+#include "twins_common.hpp"
 #include "twins_string.hpp"
 #include "twins_utf8str.hpp"
 
 #include <stdint.h>
+#include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdarg.h>
 
 // -----------------------------------------------------------------------------
 
 namespace twins
 {
-
-extern IOs *pIOs;
 
 String::~String()
 {

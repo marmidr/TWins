@@ -22,10 +22,10 @@ enum WndMainIDs
             ID_LED_BATTERY,
         ID_PANEL_KEYCODE,
             ID_LABEL_KEYCODE,
-        ID_CHKBX1,
+        ID_CHBX_ENBL,
         ID_BTN_YES,
         ID_BTN_NO,
-        ID_PRGBAR1,
+        ID_PRGBAR_1,
 };
 
 // -----------------------------------------------------------------------------
@@ -87,7 +87,7 @@ const twins::Widget wndMain =
     { window : {
         bgColor     : twins::ColorBG::BLUE,
         fgColor     : twins::ColorFG::WHITE,
-        caption     : "Service Menu (Ctrl+D quit)",
+        caption     : "Service " ESC_BOLD_ON "Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF ESC_BOLD_OFF,
         getState    : getWind1State,
         pChildrens  : (const twins::Widget[])
         {
@@ -108,9 +108,9 @@ const twins::Widget wndMain =
                             coord   : { 2, 1 },
                             size    : { 14, 1 },
                             { label : {
-                                bgColor : twins::ColorBG::BLACK_INTENSE,
+                                bgColor : twins::ColorBG::BLACK,
                                 fgColor : twins::ColorFG::WHITE,
-                                text    : "FwVer: 1"
+                                text    : "FwVer: 1.1"
                             }}
                         },
                         {
@@ -119,8 +119,8 @@ const twins::Widget wndMain =
                             coord   : { 2, 2 },
                             size    : { 16, 1 },
                             { label : {
-                                bgColor : twins::ColorBG::WHITE,
-                                fgColor : twins::ColorFG::BLACK,
+                                bgColor : twins::ColorBG::NONE,
+                                fgColor : twins::ColorFG::YELLOW,
                                 text    : "Date•" __DATE__
                             }}
                         },
@@ -180,7 +180,7 @@ const twins::Widget wndMain =
             },
             {
                 type    : twins::Widget::CheckBox,
-                id      : ID_CHKBX1,
+                id      : ID_CHBX_ENBL,
                 coord   : { 30, 6 },
                 size    : { 12, 1 },
                 { checkbox : {
@@ -209,7 +209,7 @@ const twins::Widget wndMain =
             },
             {
                 type    : twins::Widget::ProgressBar,
-                id      : ID_PRGBAR1,
+                id      : ID_PRGBAR_1,
                 coord   : { 30, 10 },
                 size    : { 20, 1 },
                 { progressbar : {

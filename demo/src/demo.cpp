@@ -25,7 +25,8 @@ public:
     {
         if (pWgt->id == ID_PANEL_VERSIONS)
         {
-            return pnlConfigEnabled;
+            pnlVerEnabled = !pnlVerEnabled;
+            return pnlVerEnabled;
         }
 
         return true;
@@ -92,7 +93,7 @@ public:
     char lblKeycodeSeq[8];
 
 private:
-    bool pnlConfigEnabled = false;
+    bool pnlVerEnabled = false;
     bool ledLock = false;
     bool ledBatt = false;
     int pgbarPos = 0;
@@ -155,8 +156,9 @@ int main()
         twins::drawWidget(&wndMain, ID_LED_LOCK);
         twins::drawWidget(&wndMain, ID_LED_BATTERY);
         twins::drawWidget(&wndMain, ID_LED_PUMP);
-        twins::drawWidget(&wndMain, ID_CHKBX1);
-        twins::drawWidget(&wndMain, ID_PRGBAR1);
+        twins::drawWidget(&wndMain, ID_CHBX_ENBL);
+        twins::drawWidget(&wndMain, ID_PRGBAR_1);
+        twins::drawWidget(&wndMain, ID_PANEL_VERSIONS);
         twins::moveToHome();
         // printf("Key: %s\n", keyseq);
         fflush(stdout);

@@ -54,7 +54,7 @@
 #define ESC_BLINK_SLOW_OFF              ANSI_CSI("25m")
 
 #define ESC_BLINK_FAST_ON               ANSI_CSI("6m")
-#define ESC_BLINK_FAST_OFF              ANSI_CSI("26m")
+#define ESC_BLINK_FAST_OFF              ANSI_CSI("25m")
 
 #define ESC_INVERSE_ON                  ANSI_CSI("7m")
 #define ESC_INVERSE_OFF                 ANSI_CSI("27m")
