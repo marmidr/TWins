@@ -163,7 +163,7 @@ struct Widget
         {
             ColorBG         bgColor;
             ColorFG         fgColor;
-            const char *    caption;
+            const char *    title;
             IWindowState *  (*getState)();
             const Widget *  pChildrens;
             uint16_t        childCount;
@@ -173,7 +173,7 @@ struct Widget
         {
             ColorBG         bgColor;
             ColorFG         fgColor;
-            const char *    caption;
+            const char *    title;
             const Widget *  pChildrens;
             uint16_t        childCount;
         } panel;
@@ -220,7 +220,7 @@ struct Widget
         {
             ColorBG         bgColor;
             ColorFG         fgColor;
-            const char *    caption;
+            const char *    title;
             const Widget *  pChildrens;
             uint16_t        childCount;
         } page;

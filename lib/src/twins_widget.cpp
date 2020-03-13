@@ -71,26 +71,32 @@ static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, ColorF
     pushClrBg(clBg);
     pushClrFg(clFg);
 
-    writeStr(frame[0]);
-    for (int c = coord.col + 1; c < coord.col + size.width - 1; c++)
-        writeStr(frame[1]);
-    writeStr(frame[2]);
+    // top line
+    wgtStr.clear();
+    wgtStr.append(frame[0]);
+    wgtStr.append(frame[1], size.width - 2);
+    wgtStr.append(frame[2]);
+    writeStr(wgtStr.cstr());
 
-    moveBy(-size.width, 1);
+    // lines in the middle
+    wgtStr.clear();
+    wgtStr.append(frame[3]);
+    wgtStr.append(frame[4], size.width - 2);
+    wgtStr.append(frame[5]);
 
     for (int r = coord.row + 1; r < coord.row + size.height - 1; r++)
     {
-        writeStr(frame[3]);
-        for (int c = coord.col + 1; c < coord.col + size.width - 1; c++)
-            writeStr(frame[4]);
-        writeStr(frame[5]);
         moveBy(-size.width, 1);
+        writeStr(wgtStr.cstr());
     }
 
-    writeStr(frame[6]);
-    for (int c = coord.col + 1; c < coord.col + size.width - 1; c++)
-        writeStr(frame[7]);
-    writeStr(frame[8]);
+    // bottom line
+    wgtStr.clear();
+    wgtStr.append(frame[6]);
+    wgtStr.append(frame[7], size.width - 2);
+    wgtStr.append(frame[8]);
+    moveBy(-size.width, 1);
+    writeStr(wgtStr.cstr());
 }
 
 static void drawWindow(const Widget *pWgt)
@@ -101,14 +107,14 @@ static void drawWindow(const Widget *pWgt)
         pWgt->window.bgColor, pWgt->window.fgColor, FrameStyle::Double);
 
     // title
-    if (pWgt->window.caption)
+    if (pWgt->window.title)
     {
-        auto capt_len = strlen(pWgt->window.caption);
+        auto capt_len = strlen(pWgt->window.title);
         moveTo(pWgt->coord.col + (pWgt->size.width - capt_len - 4)/2,
             pWgt->coord.row);
         pushClrFg(ColorFG::YELLOW);
         pushAttr(FontAttrib::Bold);
-        writeStrFmt("╡ %s ╞", pWgt->window.caption);
+        writeStrFmt("╡ %s ╞", pWgt->window.title);
         popAttr();
         popClrFg();
     }
@@ -134,15 +140,15 @@ static void drawPanel(const Widget *pWgt)
         pWgt->panel.bgColor, pWgt->panel.fgColor, FrameStyle::Single);
 
     // title
-    if (pWgt->panel.caption)
+    if (pWgt->panel.title)
     {
-        auto capt_len = strlen(pWgt->panel.caption);
+        auto capt_len = strlen(pWgt->panel.title);
         moveTo(parentCoord.col + pWgt->coord.col + (pWgt->size.width - capt_len - 2)/2,
             parentCoord.row + pWgt->coord.row);
 
         pushClrFg(ColorFG::WHITE_INTENSE);
         pushAttr(FontAttrib::Bold);
-        writeStrFmt(" %s ", pWgt->panel.caption);
+        writeStrFmt(" %s ", pWgt->panel.title);
         popClrFg();
         popAttr();
     }

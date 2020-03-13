@@ -87,7 +87,7 @@ const twins::Widget wndMain =
     { window : {
         bgColor     : twins::ColorBG::BLUE,
         fgColor     : twins::ColorFG::WHITE,
-        caption     : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
+        title       : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
         getState    : getWind1State,
         pChildrens  : (const twins::Widget[])
         {
@@ -99,7 +99,7 @@ const twins::Widget wndMain =
                 { panel : {
                     bgColor     : twins::ColorBG::GREEN,
                     fgColor     : twins::ColorFG::WHITE,
-                    caption     : "VER",
+                    title       : "VER",
                     pChildrens  : (const twins::Widget[])
                     {
                         {
@@ -147,7 +147,7 @@ const twins::Widget wndMain =
                 { panel : {
                     bgColor     : twins::ColorBG::WHITE,
                     fgColor     : twins::ColorFG::BLUE,
-                    caption     : "STATE: Leds",
+                    title       : "STATE: Leds",
                     pChildrens  : pnlStateChilds,
                     childCount  : 3 //twins::arrSize(pnlStateChilds)
                 }} // panel
@@ -160,7 +160,7 @@ const twins::Widget wndMain =
                 { panel : {
                     bgColor     : twins::ColorBG::CYAN,
                     fgColor     : twins::ColorFG::WHITE,
-                    caption     : "KEY-CODES",
+                    title       : "KEY-CODES",
                     pChildrens  : (const twins::Widget[])
                     {
                         {
