@@ -107,9 +107,9 @@ static void drawWindow(const Widget *pWgt)
         moveTo(pWgt->coord.col + (pWgt->size.width - capt_len - 4)/2,
             pWgt->coord.row);
         pushClrFg(ColorFG::YELLOW);
-        // pushAttr(FontAttrib::Bold);
+        pushAttr(FontAttrib::Bold);
         writeStrFmt("╡ %s ╞", pWgt->window.caption);
-        // popAttr();
+        popAttr();
         popClrFg();
     }
 

@@ -86,7 +86,7 @@ const char* decodeCl(ColorBG cl);
  */
 enum class FontAttrib : uint8_t
 {
-    Normal,
+    None,
     Bold,
     Faint,
     Italics,

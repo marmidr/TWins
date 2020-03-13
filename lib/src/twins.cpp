@@ -69,7 +69,7 @@ void moveTo(uint16_t col, uint16_t row)
 
 void moveToCol(uint16_t col)
 {
-
+    writeStrFmt(ESC_CURSOR_COLUMN_FMT, col);
 }
 
 void moveBy(int16_t cols, int16_t rows)
@@ -119,6 +119,8 @@ void resetClrFg()
     pIOs->writeStr(ESC_FG_DEFAULT);
 }
 
+// -----------------------------------------------------------------------------
+
 void pushClrBg(ColorBG cl)
 {
     stackClBg.push(currentClBg);
@@ -141,23 +143,26 @@ void resetClrBg()
     pIOs->writeStr(ESC_BG_DEFAULT);
 }
 
+// -----------------------------------------------------------------------------
+
+static int8_t attrFaint = 0;
+
 void pushAttr(FontAttrib attr)
 {
     stackAttr.push(attr);
 
     switch (attr)
     {
-    case FontAttrib::Normal:        pIOs->writeStr(ESC_RESET); break;
-    case FontAttrib::Bold:          pIOs->writeStr(ESC_BOLD_ON); break;
-    case FontAttrib::Faint:         pIOs->writeStr(ESC_FAINT_ON); break;
+    case FontAttrib::Bold:          if (!attrFaint) pIOs->writeStr(ESC_BOLD); break;
+    case FontAttrib::Faint:         attrFaint++; pIOs->writeStr(ESC_FAINT); break;
     case FontAttrib::Italics:       pIOs->writeStr(ESC_ITALICS_ON); break;
     case FontAttrib::Underline:     pIOs->writeStr(ESC_UNDERLINE_ON); break;
-    case FontAttrib::BlinkSlow:     pIOs->writeStr(ESC_BLINK_SLOW_ON); break;
-    case FontAttrib::BlinkFast:     pIOs->writeStr(ESC_BLINK_FAST_ON); break;
+    case FontAttrib::BlinkSlow:     pIOs->writeStr(ESC_BLINK_SLOW); break;
+    case FontAttrib::BlinkFast:     pIOs->writeStr(ESC_BLINK_FAST); break;
     case FontAttrib::Inverse:       pIOs->writeStr(ESC_INVERSE_ON); break;
     case FontAttrib::Invisible:     pIOs->writeStr(ESC_INVISIBLE_ON); break;
     case FontAttrib::StrikeThrough: pIOs->writeStr(ESC_STRIKETHROUGH_ON); break;
-    //default: break;
+    default: break;
     }
 }
 
@@ -167,13 +172,12 @@ void popAttr()
     {
         switch (*pAttr)
         {
-        case FontAttrib::Normal:        break;
-        case FontAttrib::Bold:          pIOs->writeStr(ESC_BOLD_OFF); break;
-        case FontAttrib::Faint:         pIOs->writeStr(ESC_FAINT_OFF); break;
+        case FontAttrib::Bold:          if (!attrFaint) pIOs->writeStr(ESC_NORMAL); break;
+        case FontAttrib::Faint:         attrFaint--; pIOs->writeStr(ESC_NORMAL); break;
         case FontAttrib::Italics:       pIOs->writeStr(ESC_ITALICS_OFF); break;
         case FontAttrib::Underline:     pIOs->writeStr(ESC_UNDERLINE_OFF); break;
-        case FontAttrib::BlinkSlow:     pIOs->writeStr(ESC_BLINK_SLOW_OFF); break;
-        case FontAttrib::BlinkFast:     pIOs->writeStr(ESC_BLINK_FAST_OFF); break;
+        case FontAttrib::BlinkSlow:
+        case FontAttrib::BlinkFast:     pIOs->writeStr(ESC_BLINK_OFF); break;
         case FontAttrib::Inverse:       pIOs->writeStr(ESC_INVERSE_OFF); break;
         case FontAttrib::Invisible:     pIOs->writeStr(ESC_INVISIBLE_OFF); break;
         case FontAttrib::StrikeThrough: pIOs->writeStr(ESC_STRIKETHROUGH_OFF); break;
@@ -184,8 +188,9 @@ void popAttr()
 
 void resetAttr()
 {
+    attrFaint = 0;
     stackAttr.clear();
-    pIOs->writeStr(ESC_RESET);
+    pIOs->writeStr(ESC_ATTRIBUTES_DEFAULT);
 }
 
 // -----------------------------------------------------------------------------

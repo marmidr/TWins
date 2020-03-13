@@ -165,6 +165,6 @@ int main()
     }
 
     twins::moveTo(0, wndMain.coord.row + wndMain.size.height + 1);
-    twins::writeStr(ESC_RESET);
+    // twins::writeStr();
     twins::inputPosixFree();
 }

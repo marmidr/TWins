@@ -17,7 +17,7 @@
  *
  *  @code
  *      printf("Normal String, "
- *             ESC_BOLD_ON "Bold String, "
+ *             ESC_ATTR_BOLD "Bold String, "
  *             ESC_UNDERLINE_ON "Bold and Underlined String, "
  *             ESC_RESET ESC_FG_BLUE ESC_BG_YELLOW "Normal Blue-on-Yellow String");
  *  @endcode
@@ -36,11 +36,9 @@
 
 //@{
 
-#define ESC_BOLD_ON                     ANSI_CSI("1m")
-#define ESC_BOLD_OFF                    ANSI_CSI("22m")
-
-#define ESC_FAINT_ON                    ANSI_CSI("2m")
-#define ESC_FAINT_OFF                   ANSI_CSI("22m")
+#define ESC_BOLD                        ANSI_CSI("1m")
+#define ESC_FAINT                       ANSI_CSI("2m")
+#define ESC_NORMAL                      ANSI_CSI("22m")
 
 // if not italics, may be same as inverse
 #define ESC_ITALICS_ON                  ANSI_CSI("3m")
@@ -50,11 +48,9 @@
 #define ESC_UNDERLINE_OFF               ANSI_CSI("24m")
 
 // if not blinks, the bg color may be lighter
-#define ESC_BLINK_SLOW_ON               ANSI_CSI("5m")
-#define ESC_BLINK_SLOW_OFF              ANSI_CSI("25m")
-
-#define ESC_BLINK_FAST_ON               ANSI_CSI("6m")
-#define ESC_BLINK_FAST_OFF              ANSI_CSI("25m")
+#define ESC_BLINK_SLOW                  ANSI_CSI("5m")
+#define ESC_BLINK_FAST                  ANSI_CSI("6m")
+#define ESC_BLINK_OFF                   ANSI_CSI("25m")
 
 #define ESC_INVERSE_ON                  ANSI_CSI("7m")
 #define ESC_INVERSE_OFF                 ANSI_CSI("27m")
@@ -65,8 +61,10 @@
 #define ESC_STRIKETHROUGH_ON            ANSI_CSI("9m")
 #define ESC_STRIKETHROUGH_OFF           ANSI_CSI("29m")
 
-#define ESC_CTRL_1(ctrl1)               ANSI_CSI(##ctrl1 "m")
-#define ESC_CTRL_2(ctrl1, ctrl2)        ANSI_CSI(##ctrl1 ";" ##ctrl2 "m")
+#define ESC_FONT(id)                    ANSI_CSI("1" #id "m")
+#define ESC_FONT_DEFAULT                ANSI_CSI("10m")
+
+#define ESC_ATTRIBUTES_DEFAULT          ANSI_CSI("10;22;23;24;25;27;28;29m")
 
 // '\u001B]8;;https://github.com\u0007Click\u001B]8;;\u0007'
 #define ESC_LINK(url, capt)             ANSI_OSC("8;;") url "\u0007" capt ANSI_OSC("8;;\u0007")
@@ -120,6 +118,9 @@
 #define ESC_BG_DEFAULT                  ANSI_CSI("49m")
 #define ESC_BG_RGB(r,g,b)               ANSI_CSI("48;2;" #r ";" #g ";" #b ";m")
 
+/** Put Foreground and Background colors to their defaults */
+#define ESC_COLORS_DEFAULT              ANSI_CSI("0m")
+
 //@}
 
  /*******************************************************************************
@@ -156,9 +157,6 @@
  */
 
 //@{
-
-/** Resets any escape sequence modifiers back to their defaults. */
-#define ESC_RESET                       ANSI_CSI("0m")
 
 /** Erases the entire display, returning the cursor to the top left. */
 #define ESC_SCREEN_ERASE_ALL           ANSI_CSI("2J")

@@ -87,7 +87,7 @@ const twins::Widget wndMain =
     { window : {
         bgColor     : twins::ColorBG::BLUE,
         fgColor     : twins::ColorFG::WHITE,
-        caption     : "Service " ESC_BOLD_ON "Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF ESC_BOLD_OFF,
+        caption     : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
         getState    : getWind1State,
         pChildrens  : (const twins::Widget[])
         {
@@ -106,10 +106,10 @@ const twins::Widget wndMain =
                             type    : twins::Widget::Label,
                             id      : ID_LABEL_FW_VERSION,
                             coord   : { 2, 1 },
-                            size    : { 14, 1 },
+                            size    : { 12, 1 },
                             { label : {
                                 bgColor : twins::ColorBG::BLACK,
-                                fgColor : twins::ColorFG::WHITE,
+                                fgColor : twins::ColorFG::MAGENTA_INTENSE,
                                 text    : "FwVer: 1.1"
                             }}
                         },
@@ -131,7 +131,7 @@ const twins::Widget wndMain =
                             size    : { 16, 1 },
                             { label : {
                                 bgColor : twins::ColorBG::WHITE,
-                                fgColor : twins::ColorFG::BLACK,
+                                fgColor : twins::ColorFG::MAGENTA,
                                 text    : "Time≡" __TIME__
                             }}
                         },
