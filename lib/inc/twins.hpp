@@ -76,10 +76,10 @@ enum class ColorBG : uint8_t
 };
 
 /** @brief Convert color identifier to ASCII ESC code */
-const char* decodeCl(ColorFG cl);
+const char* encodeCl(ColorFG cl);
 
 /** @brief Convert color identifier to ASCII ESC code */
-const char* decodeCl(ColorBG cl);
+const char* encodeCl(ColorBG cl);
 
 /**
  * @brief
@@ -233,42 +233,6 @@ struct Widget
 
 };
 
-enum class Key : uint8_t
-{
-    None,
-    Esc,
-    Return,
-    Tab,
-    Up,
-    Down,
-    Left,
-    Right,
-    Insert,
-    Delete,
-    Home,
-    End,
-    PgUp,
-    PgDown,
-};
-
-enum class Mod : uint8_t
-{
-    None,
-    Ctrl = 1,
-    Alt = 2,
-    Shift = 4,
-};
-
-union KeyCode
-{
-    uint16_t code;
-    struct
-    {
-        Key k;
-        Mod m;
-    };
-};
-
 static constexpr uint16_t WIDGET_ID_ALL = (-1);
 
 
@@ -285,7 +249,19 @@ void init(const IOs *ios);
 int writeChar(char c, int16_t count);
 int writeStr(const char *s);
 int writeStrFmt(const char *fmt, ...);
+
+/**
+ * @brief Draw all, single or set of widgets
+ */
 void drawWidget(const Widget *pWindow, uint16_t widgetId = WIDGET_ID_ALL);
+
+void drawWidgets(const Widget *pWindow, uint16_t *pWidgetIds, uint16_t count);
+
+template<int N>
+void drawWidgets(const Widget *pWindow, uint16_t (&pWidgetIds)[N])
+{
+    drawWidgets(pWindow, pWidgetIds, N);
+}
 
 /**
  * @brief Foreground color stack
@@ -334,7 +310,9 @@ inline void clrScreenRestore()     { writeStr(ESC_SCREEN_RESTORE); }
 /**
  * @brief
  */
- void quit();
+void decodeInputSeq(KeySequence &input, KeyCode &output);
+
+//void quit();
 
 // -----------------------------------------------------------------------------
 

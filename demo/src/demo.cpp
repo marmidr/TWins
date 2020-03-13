@@ -48,13 +48,14 @@ public:
     {
         out.clear();
 
-        if (pWgt->id == ID_LABEL_KEYCODE)
+        if (pWgt->id == ID_LABEL_KEYSEQ)
         {
-            out.append("KEY: ");
+            // out.appendFmt("SEQ[%zu]:", strlen(lblKeycodeSeq));
+            out.append("SEQ:");
 
             for (unsigned i = 0; i < sizeof(lblKeycodeSeq); i++)
             {
-                char c = lblKeycodeSeq[i];
+                uint8_t c = lblKeycodeSeq[i];
                 if (!c) break;
 
                 if (c < ' ')
@@ -62,6 +63,13 @@ public:
                 else
                     out.append(c);
             }
+        }
+
+        if (pWgt->id == ID_LABEL_KEYNAME)
+        {
+            // out.appendFmt("KEY[%zu]:", strlen(lblKeyName));
+            out.append("KEY:");
+            out.append(lblKeyName);
         }
     }
     void getEditText(const twins::Widget*, twins::String &out) override
@@ -91,12 +99,12 @@ public:
 
 public:
     char lblKeycodeSeq[8];
-
+    const char *lblKeyName = "";
 private:
     bool pnlVerEnabled = false;
     bool ledLock = false;
     bool ledBatt = false;
-    int pgbarPos = 0;
+    int  pgbarPos = 0;
 };
 
 // -----------------------------------------------------------------------------
@@ -144,13 +152,20 @@ int main()
     for (;;)
     {
         bool quit_req = false;
-        const char *keyseq = twins::inputPosixCheckKeys(quit_req);
+        twins::KeySequence key_seq;
+        twins::inputPosixCheckKeys(key_seq, quit_req);
         if (quit_req) break;
 
-        if (keyseq)
+        if (key_seq.seqLen)
         {
-            strncpy(wnd1State.lblKeycodeSeq, keyseq, sizeof(wnd1State.lblKeycodeSeq));
-            twins::drawWidget(&wndMain, ID_LABEL_KEYCODE);
+            twins::KeyCode key_decoded;
+            twins::decodeInputSeq(key_seq, key_decoded);
+
+            strncpy(wnd1State.lblKeycodeSeq, key_seq.keySeq, sizeof(wnd1State.lblKeycodeSeq));
+            wnd1State.lblKeyName = key_decoded.name;
+
+            twins::drawWidget(&wndMain, ID_LABEL_KEYSEQ);
+            twins::drawWidget(&wndMain, ID_LABEL_KEYNAME);
         }
 
         twins::drawWidget(&wndMain, ID_LED_LOCK);

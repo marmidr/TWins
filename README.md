@@ -4,7 +4,7 @@
 It provides basic facilities required by interactive applications such as screen and cursor management, keyboard input, keymaps, color codes.
 Additional it allows to define terminal windows and it's widgets in a convenient way as const tree of `twins::Widget` structures.
 
-![example 1](doc/sshot1.png)
+![example 1](doc/sshot2.png)
 
 ## References
 
@@ -39,12 +39,13 @@ Widgets (controls) to implement:
 
 * window
 * panel
-* static label
+* static label / led
 * check box
 * edit field (text/number)
 * radio group
 * button group
 * page control
+* progress bar
 
 ---
 

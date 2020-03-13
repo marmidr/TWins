@@ -101,7 +101,7 @@ void pushClrFg(ColorFG cl)
 {
     stackClFg.push(currentClFg);
     currentClFg = cl;
-    pIOs->writeStr(decodeCl(currentClFg));
+    pIOs->writeStr(encodeCl(currentClFg));
 }
 
 void popClrFg()
@@ -109,7 +109,7 @@ void popClrFg()
     if (stackClFg.size())
     {
         currentClFg = *stackClFg.pop();
-        pIOs->writeStr(decodeCl(currentClFg));
+        pIOs->writeStr(encodeCl(currentClFg));
     }
 }
 
@@ -125,7 +125,7 @@ void pushClrBg(ColorBG cl)
 {
     stackClBg.push(currentClBg);
     currentClBg = cl;
-    pIOs->writeStr(decodeCl(currentClBg));
+    pIOs->writeStr(encodeCl(currentClBg));
 }
 
 void popClrBg()
@@ -133,7 +133,7 @@ void popClrBg()
     if (stackClBg.size())
     {
         currentClBg = *stackClBg.pop();
-        pIOs->writeStr(decodeCl(currentClBg));
+        pIOs->writeStr(encodeCl(currentClBg));
     }
 }
 

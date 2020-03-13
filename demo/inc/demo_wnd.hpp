@@ -20,8 +20,9 @@ enum WndMainIDs
             ID_LED_PUMP,
             ID_LED_LOCK,
             ID_LED_BATTERY,
-        ID_PANEL_KEYCODE,
-            ID_LABEL_KEYCODE,
+        ID_PANEL_KEY,
+            ID_LABEL_KEYSEQ,
+            ID_LABEL_KEYNAME,
         ID_CHBX_ENBL,
         ID_BTN_YES,
         ID_BTN_NO,
@@ -83,7 +84,7 @@ const twins::Widget wndMain =
     type    : twins::Widget::Window,
     id      : ID_WND,
     coord   : { 10, 4 },
-    size    : { 60, 12 },
+    size    : { 60, 13 },
     { window : {
         bgColor     : twins::ColorBG::BLUE,
         fgColor     : twins::ColorFG::WHITE,
@@ -154,9 +155,9 @@ const twins::Widget wndMain =
             },
             {
                 type    : twins::Widget::Panel,
-                id      : ID_PANEL_KEYCODE,
+                id      : ID_PANEL_KEY,
                 coord   : { 2, 8 },
-                size    : { 21, 3 },
+                size    : { 21, 4 },
                 { panel : {
                     bgColor     : twins::ColorBG::CYAN,
                     fgColor     : twins::ColorFG::WHITE,
@@ -165,7 +166,7 @@ const twins::Widget wndMain =
                     {
                         {
                             type    : twins::Widget::Label,
-                            id      : ID_LABEL_KEYCODE,
+                            id      : ID_LABEL_KEYSEQ,
                             coord   : { 2, 1 },
                             size    : { 17, 1 },
                             { label : {
@@ -174,8 +175,19 @@ const twins::Widget wndMain =
                                 text    : nullptr // use callback to get text
                             }}
                         },
+                        {
+                            type    : twins::Widget::Label,
+                            id      : ID_LABEL_KEYNAME,
+                            coord   : { 2, 2 },
+                            size    : { 17, 1 },
+                            { label : {
+                                bgColor : twins::ColorBG::WHITE,
+                                fgColor : twins::ColorFG::GREEN,
+                                text    : nullptr // use callback to get text
+                            }}
+                        },
                     },
-                    childCount : 1
+                    childCount : 2
                 }} // panel
             },
             {

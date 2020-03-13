@@ -57,14 +57,14 @@ const char * const mapClBg[] =
 
 // -----------------------------------------------------------------------------
 
-const char* decodeCl(ColorFG cl)
+const char* encodeCl(ColorFG cl)
 {
     if ((int)cl < arrSize(mapClFg))
         return mapClFg[(int)cl];
     return "";
 }
 
-const char* decodeCl(ColorBG cl)
+const char* encodeCl(ColorBG cl)
 {
     if ((int)cl < arrSize(mapClBg))
         return mapClBg[(int)cl];

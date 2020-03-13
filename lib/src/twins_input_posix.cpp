@@ -6,6 +6,7 @@
  *****************************************************************************/
 
 #include "twins_input_posix.hpp"
+#include "twins_common.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,29 +21,21 @@
 namespace twins
 {
 
-struct KeySequence
-{
-    /** ANSI key sequence, up to 9 characters, NUL terminated */
-    char    keySeq[9];
-    /** sequence length */
-    uint8_t seqLen;
-};
-
 static int         ttyFileNo;
 static char        termEOFcode;
 static termios     termIOs;
 static uint16_t    termKeyTimeoutMs;
-static KeySequence keySeq;
+static KeySequence *pKeySeq;
 
 // -----------------------------------------------------------------------------
 
 static void readKey()
 {
     // read up to 8 bytes
-    int nb = read(ttyFileNo, keySeq.keySeq, sizeof(keySeq.keySeq)-1);
+    int nb = read(ttyFileNo, pKeySeq->keySeq, sizeof(pKeySeq->keySeq)-1);
     if (nb == -1) nb = 0;
-    keySeq.seqLen = nb;
-    keySeq.keySeq[keySeq.seqLen] = '\0';
+    pKeySeq->seqLen = nb;
+    pKeySeq->keySeq[pKeySeq->seqLen] = '\0';
     errno = 0;
 }
 
@@ -98,20 +91,20 @@ void inputPosixFree()
     termIOs.c_lflag |= (ICANON | ECHO);
     tcsetattr(ttyFileNo, TCSAFLUSH, &termIOs);
     checkErrNo(__LINE__);
+    close(ttyFileNo);
 }
 
-const char* inputPosixCheckKeys(bool &quitRequested)
+void inputPosixCheckKeys(twins::KeySequence &output, bool &quitRequested)
 {
-    keySeq.seqLen = 0;
+    pKeySeq = &output;
+    output.seqLen = 0;
     waitForKey();
 
-    if (keySeq.seqLen == 1 && keySeq.keySeq[0] == termEOFcode)
+    if (pKeySeq->seqLen == 1 && pKeySeq->keySeq[0] == termEOFcode)
     {
         quitRequested = true;
-        return nullptr;
+        return;
     }
-
-    return keySeq.seqLen ? keySeq.keySeq : nullptr;
 }
 
 // -----------------------------------------------------------------------------
