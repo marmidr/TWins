@@ -9,6 +9,8 @@
 #include "twins_esc_codes.hpp"
 #include "twins_string.hpp"
 
+#include <initializer_list>
+
 // -----------------------------------------------------------------------------
 
 namespace twins
@@ -133,6 +135,9 @@ struct Theme
 /**
  * @brief
  */
+
+ using WID = uint16_t;
+
 struct Widget
 {
     enum Type
@@ -150,10 +155,10 @@ struct Widget
         ProgressBar
     };
 
-    Type        type = {};
-    uint16_t    id = 0;
-    Coord       coord;
-    Size        size;
+    Type    type = {};
+    WID     id = 0;
+    Coord   coord;
+    Size    size;
 
     /** */
     union
@@ -232,34 +237,42 @@ struct Widget
 
 };
 
-static constexpr uint16_t WIDGET_ID_ALL = (-1);
+static constexpr WID WIDGET_ID_ALL = (-1);
 
 
 // -----------------------------------------------------------------------------
 
 /**
- * @brief
+ * @brief Initialize TWins
  */
 void init(const IOs *ios);
 
 /**
- * @brief
+ * @brief Write char or string to the output
  */
 int writeChar(char c, int16_t count);
 int writeStr(const char *s);
 int writeStrFmt(const char *fmt, ...);
 
 /**
- * @brief Draw all, single or set of widgets
+ * @brief Draw single widget or entire window
  */
-void drawWidget(const Widget *pWindow, uint16_t widgetId = WIDGET_ID_ALL);
+void drawWidget(const Widget *pWindow, WID widgetId = WIDGET_ID_ALL);
 
-void drawWidgets(const Widget *pWindow, uint16_t *pWidgetIds, uint16_t count);
+/**
+ * @brief Draw selected widgets
+ */
+void drawWidgets(const Widget *pWindow, const WID *pWidgetIds, uint16_t count);
 
 template<int N>
-void drawWidgets(const Widget *pWindow, uint16_t (&pWidgetIds)[N])
+inline void drawWidgets(const Widget *pWindow, const WID (&widgetIds)[N])
 {
-    drawWidgets(pWindow, pWidgetIds, N);
+    drawWidgets(pWindow, widgetIds, N);
+}
+
+inline void drawWidgets(const Widget *pWindow, const std::initializer_list<WID> &ids)
+{
+    drawWidgets(pWindow, ids.begin(), ids.size());
 }
 
 /**
@@ -307,7 +320,7 @@ inline void clrScreenSave()        { writeStr(ESC_SCREEN_SAVE); }
 inline void clrScreenRestore()     { writeStr(ESC_SCREEN_RESTORE); }
 
 /**
- * @brief
+ * @brief Decode given ANSI sequence and produce readable Key Code
  */
 void decodeInputSeq(KeySequence &input, KeyCode &output);
 

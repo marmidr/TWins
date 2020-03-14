@@ -287,7 +287,7 @@ static void drawWidgetInternal(const Widget *pWgt)
 
 // recursive function searching for widgetId
 static const Widget *findWidget(const Widget widgets[], const uint16_t widgetsCount,
-                                uint16_t widgetId, Coord &widgetCord, const Widget **ppParent)
+                                WID widgetId, Coord &widgetCord, const Widget **ppParent)
 {
     const auto *p_wgt = widgets;
 
@@ -356,7 +356,7 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
 
 // -----------------------------------------------------------------------------
 
-void drawWidget(const Widget *pWindow, uint16_t widgetId)
+void drawWidget(const Widget *pWindow, WID widgetId)
 {
     assert(pWindow);
     assert(pWindow->type == Widget::Window);
@@ -370,11 +370,38 @@ void drawWidget(const Widget *pWindow, uint16_t widgetId)
     else
     {
         parentCoord = {0, 0};
-
         const Widget *p_parent = pWindow;
 
         // search window for widget by it's Id
         if (const auto *p_wgt = findWidget(pWindow, 1, widgetId, parentCoord, &p_parent))
+        {
+            // set parent's background color
+            pushClrBg(getWidgetBgColor(p_parent));
+            drawWidgetInternal(p_wgt);
+            popClrBg();
+        }
+    }
+
+    pWndState = nullptr;
+    resetAttr();
+    resetClrBg();
+    resetClrFg();
+}
+
+void drawWidgets(const Widget *pWindow, const WID *pWidgetIds, uint16_t count)
+{
+    assert(pWindow);
+    assert(pWindow->type == Widget::Window);
+    pWndState = pWindow->window.getState();
+    assert(pWndState);
+
+    for (unsigned i = 0; i < count; i++)
+    {
+        parentCoord = {0, 0};
+        const Widget *p_parent = pWindow;
+
+        // search window for widget by it's Id
+        if (const auto *p_wgt = findWidget(pWindow, 1, pWidgetIds[i], parentCoord, &p_parent))
         {
             // set parent's background color
             pushClrBg(getWidgetBgColor(p_parent));

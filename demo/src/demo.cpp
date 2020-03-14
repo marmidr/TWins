@@ -164,16 +164,14 @@ int main()
             strncpy(wnd1State.lblKeycodeSeq, key_seq.keySeq, sizeof(wnd1State.lblKeycodeSeq));
             wnd1State.lblKeyName = key_decoded.name;
 
-            twins::drawWidget(&wndMain, ID_LABEL_KEYSEQ);
-            twins::drawWidget(&wndMain, ID_LABEL_KEYNAME);
+            twins::drawWidgets(&wndMain, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
         }
 
-        twins::drawWidget(&wndMain, ID_LED_LOCK);
-        twins::drawWidget(&wndMain, ID_LED_BATTERY);
-        twins::drawWidget(&wndMain, ID_LED_PUMP);
-        twins::drawWidget(&wndMain, ID_CHBX_ENBL);
-        twins::drawWidget(&wndMain, ID_PRGBAR_1);
-        twins::drawWidget(&wndMain, ID_PANEL_VERSIONS);
+        twins::drawWidgets(&wndMain,
+        {
+            ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_CHBX_ENBL, ID_PRGBAR_1, ID_PANEL_VERSIONS
+        });
+
         twins::moveToHome();
         // printf("Key: %s\n", keyseq);
         fflush(stdout);
