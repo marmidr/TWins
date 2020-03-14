@@ -49,8 +49,9 @@ enum class Key : uint8_t
 {
     None,
     Esc,
-    Return,
     Tab,
+    Enter,
+    Backspace,
     //
     Up,
     Down,
@@ -93,13 +94,13 @@ struct KeyCode
 {
     union
     {
-        char    code[5];    // UTF-8 code: 'a', '4', 'Ł'
-        Key     key;    // 'F1'
+        char    utf8[5];// UTF-8 code: 'a', '4', 'Ł'
+        Key     key;    // 'F1', 'Enter'
     };
 
     union
     {
-        uint8_t mod;    // KEY_MOD_CTRL | KEY_MOD_SHIFT
+        uint8_t mod_all;    // KEY_MOD_CTRL | KEY_MOD_SHIFT
         struct
         {
             uint8_t ctrl  : 1;

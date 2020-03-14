@@ -6,6 +6,8 @@ Additional it allows to define terminal windows and it's widgets in a convenient
 
 ![example 1](doc/sshot2.png)
 
+Wikipedia: [reference color tables for different terminals](https://en.m.wikipedia.org/wiki/ANSI_escape_code)
+
 ## References
 
 Implementation is based on examples:

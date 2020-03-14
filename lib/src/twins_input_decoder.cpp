@@ -54,18 +54,20 @@ const SeqMap keys_map[] =
 
 const SeqMap esc_keys_map[] =
 {
-    KEY_DEF("[A",       "Up",       Key::Up,        KEY_MOD_NONE)
-    KEY_DEF("[B",       "Down",     Key::Down,      KEY_MOD_NONE)
-    KEY_DEF("[C",       "Right",    Key::Right,     KEY_MOD_NONE)
-    KEY_DEF("[D",       "Left",     Key::Left,      KEY_MOD_NONE)
-    KEY_DEF("[F",       "End",      Key::End,       KEY_MOD_NONE)     //
-    KEY_DEF("[H",       "Pos1",     Key::Home,      KEY_MOD_NONE)    //
-    KEY_DEF("[1~",      "Home",     Key::Home,      KEY_MOD_NONE)    //
-    KEY_DEF("[2~",      "Ins",      Key::Insert,    KEY_MOD_NONE)
-    KEY_DEF("[3~",      "Del",      Key::Delete,    KEY_MOD_NONE)
-    KEY_DEF("[4~",      "End",      Key::End,       KEY_MOD_NONE)     //
-    KEY_DEF("[5~",      "PgUp",     Key::PgUp,      KEY_MOD_NONE)
-    KEY_DEF("[6~",      "PdDown",   Key::PgDown,    KEY_MOD_NONE)
+    KEY_DEF("[A",       "Up",       Key::Up,        KEY_MOD_NONE)   // xterm
+    KEY_DEF("[B",       "Down",     Key::Down,      KEY_MOD_NONE)   // xterm
+    KEY_DEF("[C",       "Right",    Key::Right,     KEY_MOD_NONE)   // xterm
+    KEY_DEF("[D",       "Left",     Key::Left,      KEY_MOD_NONE)   // xterm
+    KEY_DEF("[F",       "End",      Key::End,       KEY_MOD_NONE)   // xterm
+    KEY_DEF("[H",       "Home",     Key::Home,      KEY_MOD_NONE)   // xterm
+    KEY_DEF("[1~",      "Home",     Key::Home,      KEY_MOD_NONE)   // vt
+    KEY_DEF("[2~",      "Ins",      Key::Insert,    KEY_MOD_NONE)   // vt
+    KEY_DEF("[3~",      "Del",      Key::Delete,    KEY_MOD_NONE)   // vt
+    KEY_DEF("[4~",      "End",      Key::End,       KEY_MOD_NONE)   // vt
+    KEY_DEF("[5~",      "PgUp",     Key::PgUp,      KEY_MOD_NONE)   // vt
+    KEY_DEF("[6~",      "PdDown",   Key::PgDown,    KEY_MOD_NONE)   // vt
+    KEY_DEF("[7~",      "Home",     Key::Home,      KEY_MOD_NONE)   // vt
+    KEY_DEF("[8~",      "End",      Key::End,       KEY_MOD_NONE)   // vt
     KEY_DEF("OP",       "F1",       Key::F1,        KEY_MOD_NONE)
     KEY_DEF("OQ",       "F2",       Key::F2,        KEY_MOD_NONE)
     KEY_DEF("OR",       "F3",       Key::F3,        KEY_MOD_NONE)
@@ -86,7 +88,7 @@ const SeqMap esc_keys_map[] =
     KEY_DEF("[1;2C",    "S-Right",  Key::Right,     KEY_MOD_SHIFT)
     KEY_DEF("[1;2D",    "S-Left",   Key::Left,      KEY_MOD_SHIFT)
     KEY_DEF("[1;2F",    "S-End",    Key::End,       KEY_MOD_SHIFT)
-    KEY_DEF("[1;2H",    "S-Pos1",   Key::Home,      KEY_MOD_SHIFT)
+    KEY_DEF("[1;2H",    "S-Home",   Key::Home,      KEY_MOD_SHIFT)
     KEY_DEF("[1;2~",    "S-Home",   Key::Home,      KEY_MOD_SHIFT)
     KEY_DEF("[2;2~",    "S-Ins",    Key::Insert,    KEY_MOD_SHIFT)
     KEY_DEF("[3;2~",    "S-Del",    Key::Delete,    KEY_MOD_SHIFT)
@@ -113,7 +115,7 @@ const SeqMap esc_keys_map[] =
     KEY_DEF("[1;3C",    "M-Right",  Key::Right,     KEY_MOD_ALT)
     KEY_DEF("[1;3D",    "M-Left",   Key::Left,      KEY_MOD_ALT)
     KEY_DEF("[1;3F",    "M-End",    Key::End,       KEY_MOD_ALT)
-    KEY_DEF("[1;3H",    "M-Pos1",   Key::Home,      KEY_MOD_ALT)
+    KEY_DEF("[1;3H",    "M-Home",   Key::Home,      KEY_MOD_ALT)
     KEY_DEF("",         "M-Home",   0,              0)
     KEY_DEF("[2;3~",    "M-Ins",    Key::Insert,    KEY_MOD_ALT)
     KEY_DEF("[3;3~",    "M-Del",    Key::Delete,    KEY_MOD_ALT)
@@ -140,7 +142,7 @@ const SeqMap esc_keys_map[] =
     KEY_DEF("[1;5C",    "C-Right",  Key::Right,     KEY_MOD_CTRL)
     KEY_DEF("[1;5D",    "C-Left",   Key::Left,      KEY_MOD_CTRL)
     KEY_DEF("[1;5F",    "C-End",    Key::End,       KEY_MOD_CTRL)
-    KEY_DEF("[1;5H",    "C-Pos1",   Key::Home,      KEY_MOD_CTRL)
+    KEY_DEF("[1;5H",    "C-Home",   Key::Home,      KEY_MOD_CTRL)
     KEY_DEF("[2;5~",    "C-Ins",    Key::Insert,    KEY_MOD_CTRL)
     KEY_DEF("[3;5~",    "C-Del",    Key::Delete,    KEY_MOD_CTRL)
     KEY_DEF("",         "C-End",    0,              0)
@@ -166,7 +168,7 @@ const SeqMap esc_keys_map[] =
     KEY_DEF("[1;6C",    "S-C-Right",    Key::Right,     KEY_MOD_SHIFT | KEY_MOD_CTRL)
     KEY_DEF("[1;6D",    "S-C-Left",     Key::Left,      KEY_MOD_SHIFT | KEY_MOD_CTRL)
     KEY_DEF("[1;6F",    "S-C-End",      Key::End,       KEY_MOD_SHIFT | KEY_MOD_CTRL)
-    KEY_DEF("[1;6H",    "S-C-Pos1",     Key::Home,      KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[1;6H",    "S-C-Home",     Key::Home,      KEY_MOD_SHIFT | KEY_MOD_CTRL)
     KEY_DEF("[2;6~",    "S-C-Ins",      Key::Insert,    KEY_MOD_SHIFT | KEY_MOD_CTRL)
     KEY_DEF("[3;6~",    "S-C-Del",      Key::Delete,    KEY_MOD_SHIFT | KEY_MOD_CTRL)
     KEY_DEF("",         "S-C-End",      0,              0)
@@ -192,7 +194,7 @@ const SeqMap esc_keys_map[] =
     KEY_DEF("[1;7C",    "C-M-Right",    Key::Right,     KEY_MOD_CTRL | KEY_MOD_ALT)
     KEY_DEF("[1;7D",    "C-M-Left",     Key::Left,      KEY_MOD_CTRL | KEY_MOD_ALT)
     KEY_DEF("[1;7F",    "C-M-End",      Key::End,       KEY_MOD_CTRL | KEY_MOD_ALT)
-    KEY_DEF("[1;7H",    "C-M-Pos1",     Key::Home,      KEY_MOD_CTRL | KEY_MOD_ALT)
+    KEY_DEF("[1;7H",    "C-M-Home",     Key::Home,      KEY_MOD_CTRL | KEY_MOD_ALT)
     KEY_DEF("[2;7~",    "C-M-Ins",      Key::Insert,    KEY_MOD_CTRL | KEY_MOD_ALT)
     KEY_DEF("[3;7~",    "C-M-Del",      Key::Delete,    KEY_MOD_CTRL | KEY_MOD_ALT)
     KEY_DEF("",         "C-M-End",      0,              0)
@@ -212,118 +214,157 @@ const SeqMap esc_keys_map[] =
     KEY_DEF("[24;7~",   "C-M-F12",      Key::F12,       KEY_MOD_CTRL | KEY_MOD_ALT)
     KEY_DEF("[29;7~",   "C-M-Apps",     0,              0)
     KEY_DEF("[34;7~",   "C-M-Win",      0,              0)
+    // + Shift + Alt
 };
 
-/*
 const CtrlMap ctrl_keys_map[] =
 {
-    KEY_DEF( 0, "C-2", 0, 0)
-    KEY_DEF( 1, "C-A", 0, 0)
-    KEY_DEF( 2, "C-B", 0, 0)
-    KEY_DEF( 3, "C-C", 0, 0)
-    KEY_DEF( 4, "C-D", 0, 0)
-    KEY_DEF( 5, "C-E", 0, 0)
-    KEY_DEF( 6, "C-F", 0, 0)
-    KEY_DEF( 7, "C-G", 0, 0)
-    KEY_DEF( 8, "C-H", 0, 0)
-    KEY_DEF( 9, "C-I", 0, 0)
-    KEY_DEF(10, "C-J", 0, 0)
-    KEY_DEF(11, "C-K", 0, 0)
-    KEY_DEF(12, "C-L", 0, 0)
-    KEY_DEF(13, "C-M", 0, 0)
-    KEY_DEF(14, "C-N", 0, 0)
-    KEY_DEF(15, "C-O", 0, 0)
-    KEY_DEF(16, "C-P", 0, 0)
-    KEY_DEF(17, "C-Q", 0, 0)
-    KEY_DEF(18, "C-R", 0, 0)
-    KEY_DEF(19, "C-S", 0, 0)
-    KEY_DEF(20, "C-T", 0, 0)
-    KEY_DEF(21, "C-U", 0, 0)
-    KEY_DEF(22, "C-V", 0, 0)
-    KEY_DEF(23, "C-W", 0, 0)
-    KEY_DEF(24, "C-X", 0, 0)
-    KEY_DEF(25, "C-Y", 0, 0)
-    KEY_DEF(26, "C-Z", 0, 0)
-    KEY_DEF(27, "C-3", 0, 0)
-    KEY_DEF(29, "C-5", 0, 0)
-    KEY_DEF(30, "C-6", 0, 0)
-    KEY_DEF(31, "C-7", 0, 0)
+    // KEY_DEF( 0, "C-2", '2', KEY_MOD_CTRL)
+    KEY_DEF( 1, "C-A", 'A', KEY_MOD_CTRL)
+    KEY_DEF( 2, "C-B", 'B', KEY_MOD_CTRL)
+    KEY_DEF( 3, "C-C", 'C', KEY_MOD_CTRL)
+    KEY_DEF( 4, "C-D", 'D', KEY_MOD_CTRL)
+    KEY_DEF( 5, "C-E", 'E', KEY_MOD_CTRL)
+    KEY_DEF( 6, "C-F", 'F', KEY_MOD_CTRL)
+    KEY_DEF( 7, "C-G", 'G', KEY_MOD_CTRL)
+    KEY_DEF( 8, "C-H", 'H', KEY_MOD_CTRL)
+    KEY_DEF( 9, "C-I", 'I', KEY_MOD_CTRL)
+    KEY_DEF(10, "C-J", 'J', KEY_MOD_CTRL)
+    KEY_DEF(11, "C-K", 'K', KEY_MOD_CTRL)
+    KEY_DEF(12, "C-L", 'L', KEY_MOD_CTRL)
+    KEY_DEF(13, "C-M", 'M', KEY_MOD_CTRL)
+    KEY_DEF(14, "C-N", 'N', KEY_MOD_CTRL)
+    KEY_DEF(15, "C-O", 'O', KEY_MOD_CTRL)
+    KEY_DEF(16, "C-P", 'P', KEY_MOD_CTRL)
+    KEY_DEF(17, "C-Q", 'Q', KEY_MOD_CTRL)
+    KEY_DEF(18, "C-R", 'R', KEY_MOD_CTRL)
+    KEY_DEF(19, "C-S", 'S', KEY_MOD_CTRL)
+    KEY_DEF(20, "C-T", 'T', KEY_MOD_CTRL)
+    KEY_DEF(21, "C-U", 'U', KEY_MOD_CTRL)
+    KEY_DEF(22, "C-V", 'V', KEY_MOD_CTRL)
+    KEY_DEF(23, "C-W", 'W', KEY_MOD_CTRL)
+    KEY_DEF(24, "C-X", 'X', KEY_MOD_CTRL)
+    KEY_DEF(25, "C-Y", 'Y', KEY_MOD_CTRL)
+    KEY_DEF(26, "C-Z", 'Z', KEY_MOD_CTRL)
+    // KEY_DEF(27, "C-3", '3', KEY_MOD_CTRL)
+    // KEY_DEF(29, "C-5", '5', KEY_MOD_CTRL)
+    // KEY_DEF(30, "C-6", '6', KEY_MOD_CTRL)
+    // KEY_DEF(31, "C-7", '7', KEY_MOD_CTRL)
 };
-*/
+
 enum class Ansi : uint8_t
 {
-    NUL = 0x00,  // (Null)
-    SOH = 0x01,  // (Start of Header)
-    STX = 0x02,  // (Start of Text)
-    ETX = 0x03,  // (End of Text)
-    EOT = 0x04,  // (End of Transmission)
-    ENQ = 0x05,  // (Enquiry)
-    ACK = 0x06,  // (Acknowledgment)
-    BEL = 0x07,  // (Bell)
-    BS  = 0x08,  // (Backspace)
-    HT  = 0x09,  // (Horizontal Tab)
-    LF  = 0x0A,  // (Line Feed)
-    VT  = 0x0B,  // (Vertical Tab)
-    FF  = 0x0C,  // (Form Feed)
-    CR  = 0x0D,  // (Carriage Return)
-    SO  = 0x0E,  // (Shift Out)
-    SI  = 0x0F,  // (Shift In)
-    DLE = 0x10,  // (Data Link Escape)
-    DC1 = 0x11,  // (XON)(Device Control 1)
-    DC2 = 0x12,  // (Device Control 2)
-    DC3 = 0x13,  // (XOFF)(Device Control 3)
-    DC4 = 0x14,  // (Device Control 4)
-    NAK = 0x15,  // (Negative Ack.)
-    SYN = 0x16,  // (Synchronous Idle)
-    ETB = 0x17,  // (End of Trans. Block)
-    CAN = 0x18,  // (Cancel)
-    EM  = 0x19,  // (End of Medium)
-    SUB = 0x1A,  // (Substitute)
-    ESC = 0x1B,  // (Escape)
-    FS  = 0x1C,  // (File Separator)
-    GS  = 0x1D,  // (Group Separator)
-    RS  = 0x1E,  // (Record Separator)
-    US  = 0x1F,  // (Unit Separator)
+    NUL = 0x00,  // Null
+    SOH = 0x01,  // Start of Header
+    STX = 0x02,  // Start of Text
+    ETX = 0x03,  // End of Text
+    EOT = 0x04,  // End of Transmission
+    ENQ = 0x05,  // Enquiry
+    ACK = 0x06,  // Acknowledgment
+    BEL = 0x07,  // Bell
+    BS  = 0x08,  // Backspace
+    HT  = 0x09,  // Horizontal Tab
+    LF  = 0x0A,  // Line Feed
+    VT  = 0x0B,  // Vertical Tab
+    FF  = 0x0C,  // Form Feed
+    CR  = 0x0D,  // Carriage Return
+    SO  = 0x0E,  // Shift Out
+    SI  = 0x0F,  // Shift In
+    DLE = 0x10,  // Data Link Escape
+    DC1 = 0x11,  // XONDevice Control 1
+    DC2 = 0x12,  // Device Control 2
+    DC3 = 0x13,  // XOFFDevice Control 3
+    DC4 = 0x14,  // Device Control 4
+    NAK = 0x15,  // Negative Ack.
+    SYN = 0x16,  // Synchronous Idle
+    ETB = 0x17,  // End of Trans. Block
+    CAN = 0x18,  // Cancel
+    EM  = 0x19,  // End of Medium
+    SUB = 0x1A,  // Substitute
+    ESC = 0x1B,  // Escape
+    FS  = 0x1C,  // File Separator
+    GS  = 0x1D,  // Group Separator
+    RS  = 0x1E,  // Record Separator
+    US  = 0x1F,  // Unit Separator
+    DEL = 0x7F   // Delete
 };
 
 // -----------------------------------------------------------------------------
-
-#define KEY_ESC     '\x1B'
 
 void decodeInputSeq(KeySequence &input, KeyCode &output)
 {
     output = {};
 
-    if (input.seqLen > 0)
+    if (input.seqLen == 0)
+        return;
+
+    if (input.seqLen == 1)
     {
-        if (input.keySeq[0] == KEY_ESC)
+        const char c0 = input.keySeq[0];
+        const char *name = "?";
+
+        switch ((Ansi)c0)
         {
-            for (unsigned i = 0; i < arrSize(esc_keys_map); i++)
+        case Ansi::BS:
+        case Ansi::DEL: output.key = Key::Backspace; name = "Backspace"; break;
+        case Ansi::HT:  output.key = Key::Tab;       name = "Tab"; break;
+        case Ansi::LF:  output.key = Key::Enter;     name = "Enter"; break;
+        case Ansi::ESC: output.key = Key::Esc;       name = "Esc"; break;
+        default: break;
+        }
+
+        if (output.key != Key::None)
+        {
+            output.mod_all = KEY_MOD_SPECIAL;
+            #if TWINS_USE_KEY_NAMES
+            output.name = name;
+            #endif
+            return;
+        }
+
+        for (unsigned i = 0; i < arrSize(ctrl_keys_map); i++)
+        {
+            if (c0 == ctrl_keys_map[i].ctrl_code)
             {
-               int cmp = strcmp(input.keySeq + 1, esc_keys_map[i].seq);
-               if (cmp == 0)
-               {
-                    output.key = esc_keys_map[i].key;
-                    output.mod = esc_keys_map[i].mod | KEY_MOD_SPECIAL;
-                    #if TWINS_USE_KEY_NAMES
-                    output.name = esc_keys_map[i].name;
-                    #endif
-                    break;
-                }
+                output.utf8[0] = (char)ctrl_keys_map[i].key;
+                output.utf8[1] = '\0';
+                output.mod_all = ctrl_keys_map[i].mod;
+                #if TWINS_USE_KEY_NAMES
+                output.name = ctrl_keys_map[i].name;
+                #endif
+                return;
             }
         }
-        else
+    }
+
+    if (input.keySeq[0] == (char)Ansi::ESC)
+    {
+        // TODO: use sorted list of keys and binary search
+        for (unsigned i = 0; i < arrSize(esc_keys_map); i++)
         {
-            // copy UTF-8 seq
-            output.code[0] = input.keySeq[0];
-            output.code[1] = input.keySeq[1];
-            output.code[2] = input.keySeq[2];
-            output.code[3] = input.keySeq[3];
-            output.code[sizeof(output.code)-1] = '\0';
-            #if TWINS_USE_KEY_NAMES
-            output.name = output.code;
-            #endif
+            int cmp = strcmp(input.keySeq + 1, esc_keys_map[i].seq);
+            if (cmp == 0)
+            {
+                output.key = esc_keys_map[i].key;
+                output.mod_all = esc_keys_map[i].mod | KEY_MOD_SPECIAL;
+                #if TWINS_USE_KEY_NAMES
+                output.name = esc_keys_map[i].name;
+                #endif
+                break;
+            }
         }
+    }
+    else
+    {
+        // copy UTF-8 seq
+        output.utf8[0] = input.keySeq[0];
+        output.utf8[1] = input.keySeq[1];
+        output.utf8[2] = input.keySeq[2];
+        output.utf8[3] = input.keySeq[3];
+        output.utf8[sizeof(output.utf8)-1] = '\0';
+        #if TWINS_USE_KEY_NAMES
+        output.name = output.utf8;
+        #endif
     }
 }
 

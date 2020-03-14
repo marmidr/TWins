@@ -3,6 +3,7 @@
  * @author  Mariusz Midor
  *          https://bitbucket.org/mmidor/twins
  * @note    This file is based on terminal_codes.h (c) NXP
+ *          and https://en.m.wikipedia.org/wiki/ANSI_escape_code
  ******************************************************************************/
 
 #pragma once
@@ -25,10 +26,10 @@
 
 // -----------------------------------------------------------------------------
 
-#define ANSI_ESC(x)     "\033" x
-#define ANSI_CSI(x)     ANSI_ESC("[" x)
-#define ANSI_OSC(x)     ANSI_ESC("]" x)
-#define ANSI_ST(x)      ANSI_ESC("\\" x)
+#define ANSI_ESC(x)     "\033" x          //
+#define ANSI_CSI(x)     ANSI_ESC("[" x)   // Control Sequence Introducer
+#define ANSI_OSC(x)     ANSI_ESC("]" x)   // Operating System Command
+#define ANSI_ST(x)      ANSI_ESC("\\" x)  // String Terminator
 
 /*******************************************************************************
  * @name Text Display Modifier Escape Sequences
@@ -47,9 +48,8 @@
 #define ESC_UNDERLINE_ON                ANSI_CSI("4m")
 #define ESC_UNDERLINE_OFF               ANSI_CSI("24m")
 
-// if not blinks, the bg color may be lighter
-#define ESC_BLINK_SLOW                  ANSI_CSI("5m")
-#define ESC_BLINK_FAST                  ANSI_CSI("6m")
+#define ESC_BLINK_SLOW                  ANSI_CSI("5m") // if not blinks, the bg color may be lighter
+#define ESC_BLINK_FAST                  ANSI_CSI("6m") // Not widely supported
 #define ESC_BLINK_OFF                   ANSI_CSI("25m")
 
 #define ESC_INVERSE_ON                  ANSI_CSI("7m")
@@ -94,8 +94,9 @@
 #define ESC_FG_WHITE                    ANSI_CSI("37m")
 #define ESC_FG_WHITE_INTENSE            ANSI_CSI("97m")
 
+#define ESC_FG_RGB(r,g,b)               ANSI_CSI("38;2;" #r ";" #g ";" #b ";m") // r,g,b: 0..255
+#define ESC_FG_GRAY(n)                  ANSI_CSI("38;5;" #n "m")                // n: 232 (black) .. 255 (white)
 #define ESC_FG_DEFAULT                  ANSI_CSI("39m")
-#define ESC_FG_RGB(r,g,b)               ANSI_CSI("38;2;" #r ";" #g ";" #b ";m")
 
 
 #define ESC_BG_BLACK                    ANSI_CSI("40m")
@@ -115,8 +116,9 @@
 #define ESC_BG_WHITE                    ANSI_CSI("47m")
 #define ESC_BG_WHITE_INTENSE            ANSI_CSI("107m")
 
+#define ESC_BG_RGB(r,g,b)               ANSI_CSI("48;2;" #r ";" #g ";" #b ";m") // r,g,b: 0..255
+#define ESC_BG_GRAY(n)                  ANSI_CSI("48;5;" #n "m")                // n: 232 (black) .. 255 (white)
 #define ESC_BG_DEFAULT                  ANSI_CSI("49m")
-#define ESC_BG_RGB(r,g,b)               ANSI_CSI("48;2;" #r ";" #g ";" #b ";m")
 
 /** Put Foreground and Background colors to their defaults */
 #define ESC_COLORS_DEFAULT              ANSI_CSI("0m")
@@ -171,6 +173,13 @@
 /** */
 #define ESC_SCREEN_SAVE                 ANSI_CSI("?47h")
 #define ESC_SCREEN_RESTORE              ANSI_CSI("?47l")
+
+/** Reverse/normal video mode (BG <--> FG) */
+#define ESC_SCREEN_REVERSE_ON           ANSI_CSI("?5h")
+#define ESC_SCREEN_REVERSE_OFF          ANSI_CSI("?5l")
+
+// bash: blink screen until key pressed
+// { while true; do printf \\e[?5h; sleep 0.3; printf \\e[?5l; read -s -n1 -t1 && break; done; }
 
 //@}
 

@@ -83,7 +83,7 @@ const twins::Widget wndMain =
 
     type    : twins::Widget::Window,
     id      : ID_WND,
-    coord   : { 10, 4 },
+    coord   : { 15,  2 },
     size    : { 60, 13 },
     { window : {
         bgColor     : twins::ColorBG::BLUE,

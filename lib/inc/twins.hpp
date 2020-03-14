@@ -92,7 +92,6 @@ enum class FontAttrib : uint8_t
     Italics,
     Underline,
     BlinkSlow,
-    BlinkFast,
     Inverse,
     Invisible,
     StrikeThrough
