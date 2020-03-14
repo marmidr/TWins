@@ -77,7 +77,10 @@ void String::appendFmt(const char *fmt, ...)
         {
             // everything ok
             if (n < freespace)
+            {
+                mSize += n;
                 break;
+            }
 
             // too small buffer
             resize(mCapacity + n + 10);
@@ -110,10 +113,11 @@ void String::trim(uint16_t trimPos, bool addEllipsis)
 
     if (p >= pEnd) return;
     mSize = p - mpBuff;
-    mpBuff[mSize] = '\0';
+    char last = mpBuff[mSize];
 
-    if (addEllipsis)
-        append("…");
+    if (addEllipsis && last == ' ') mSize++;
+    mpBuff[mSize] = '\0';
+    if (addEllipsis && last != ' ') append("…");
 }
 
 void String::clear()

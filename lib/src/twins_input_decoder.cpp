@@ -230,43 +230,6 @@ const CtrlMap ctrl_keys_map[] =
     KEY_DEF(0x1A, "C-Z", 'Z', KEY_MOD_CTRL)
 };
 
-enum class Ansi : uint8_t
-{
-    NUL = 0x00,  // Null
-    SOH = 0x01,  // Start of Header
-    STX = 0x02,  // Start of Text
-    ETX = 0x03,  // End of Text
-    EOT = 0x04,  // End of Transmission
-    ENQ = 0x05,  // Enquiry
-    ACK = 0x06,  // Acknowledgment
-    BEL = 0x07,  // Bell
-    BS  = 0x08,  // Backspace
-    HT  = 0x09,  // Horizontal Tab
-    LF  = 0x0A,  // Line Feed
-    VT  = 0x0B,  // Vertical Tab
-    FF  = 0x0C,  // Form Feed
-    CR  = 0x0D,  // Carriage Return
-    SO  = 0x0E,  // Shift Out
-    SI  = 0x0F,  // Shift In
-    DLE = 0x10,  // Data Link Escape
-    DC1 = 0x11,  // XONDevice Control 1
-    DC2 = 0x12,  // Device Control 2
-    DC3 = 0x13,  // XOFFDevice Control 3
-    DC4 = 0x14,  // Device Control 4
-    NAK = 0x15,  // Negative Ack.
-    SYN = 0x16,  // Synchronous Idle
-    ETB = 0x17,  // End of Trans. Block
-    CAN = 0x18,  // Cancel
-    EM  = 0x19,  // End of Medium
-    SUB = 0x1A,  // Substitute
-    ESC = 0x1B,  // Escape
-    FS  = 0x1C,  // File Separator
-    GS  = 0x1D,  // Group Separator
-    RS  = 0x1E,  // Record Separator
-    US  = 0x1F,  // Unit Separator
-    DEL = 0x7F   // Delete
-};
-
 const CtrlMap ansi_map[] =
 {
     KEY_DEF((char)Ansi::BS,   "Backspace",    Key::Backspace, KEY_MOD_SPECIAL)

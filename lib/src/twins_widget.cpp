@@ -49,15 +49,24 @@ static void drawWidgetInternal(const Widget *pWgt);
 
 // -----------------------------------------------------------------------------
 
-static void coordOffsetBy(Coord &cord, const Coord &offs)
+static void operator += (Coord &cord, const Coord &offs)
 {
     cord.col += offs.col;
     cord.row += offs.row;
 }
 
+static Coord operator + (const Coord &cord1, const Coord &cord2)
+{
+    Coord ret = {
+        uint8_t(cord1.col + cord2.col),
+        uint8_t(cord1.row + cord2.row)
+    };
+    return ret;
+}
+
 static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, ColorFG clFg, const FrameStyle style)
 {
-    moveTo(parentCoord.col + coord.col, parentCoord.row + coord.row);
+    moveTo(coord.col, coord.row);
 
     const char * const * frame = frame_none;
     switch (style)
@@ -99,9 +108,11 @@ static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, ColorF
     writeStr(wgtStr.cstr());
 }
 
+// -----------------------------------------------------------------------------
+
 static void drawWindow(const Widget *pWgt)
 {
-    auto origin_bkp = parentCoord;
+    // TODO: if this is Popup, send SAVE_SCREEN command and RESTORE_SCREEN on hide
     parentCoord = {0, 0};
     drawFrame(pWgt->coord, pWgt->size,
         pWgt->window.bgColor, pWgt->window.fgColor, FrameStyle::Double);
@@ -126,7 +137,6 @@ static void drawWindow(const Widget *pWgt)
             break;
         drawWidgetInternal(&pWgt->window.pChildrens[i]);
     }
-    parentCoord = origin_bkp;
 
     // reset colors set by frame drawer
     popClrBg();
@@ -136,33 +146,30 @@ static void drawWindow(const Widget *pWgt)
 
 static void drawPanel(const Widget *pWgt)
 {
-    drawFrame(pWgt->coord, pWgt->size,
+    const auto my_coord = parentCoord + pWgt->coord;
+
+    drawFrame(my_coord, pWgt->size,
         pWgt->panel.bgColor, pWgt->panel.fgColor, FrameStyle::Single);
 
     // title
     if (pWgt->panel.title)
     {
         auto capt_len = strlen(pWgt->panel.title);
-        moveTo(parentCoord.col + pWgt->coord.col + (pWgt->size.width - capt_len - 2)/2,
-            parentCoord.row + pWgt->coord.row);
-
-        pushClrFg(ColorFG::WhiteIntense);
+        moveTo(my_coord.col + (pWgt->size.width - capt_len - 2)/2, my_coord.row);
         pushAttr(FontAttrib::Bold);
         writeStrFmt(" %s ", pWgt->panel.title);
-        popClrFg();
         popAttr();
     }
 
-    auto origin_bkp = parentCoord;
-    parentCoord.col += pWgt->coord.col;
-    parentCoord.row += pWgt->coord.row;
+    auto coord_bkp = parentCoord;
+    parentCoord = my_coord;
     for (int i = 0; i < pWgt->panel.childCount; i++)
     {
         if (pWgt->panel.pChildrens[i].type == Widget::Type::None)
             break;
         drawWidgetInternal(&pWgt->panel.pChildrens[i]);
     }
-    parentCoord = origin_bkp;
+    parentCoord = coord_bkp;
 
     // reset colors set by frame drawer
     popClrBg();
@@ -190,16 +197,16 @@ static void drawLabel(const Widget *pWgt)
     // count UTF-8 sequences, not bytes
     int n = utf8len(wgtStr.cstr());
     writeChar(' ', max_len - n);
+    // restore colors
     popClrFg();
     popClrBg();
 }
 
 static void drawLed(const Widget *pWgt)
 {
+    auto clbg = pWndState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
     // led text
     moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
-    auto clbg = pWndState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
-    // setup colors
     pushClrBg(clbg);
     pushClrFg(pWgt->led.fgColor);
     writeStr(pWgt->led.text);
@@ -210,12 +217,10 @@ static void drawLed(const Widget *pWgt)
 static void drawCheckbox(const Widget *pWgt)
 {
     const char *s_chk_state = pWndState->getCheckboxChecked(pWgt) ? "[x] " : "[ ] ";
-    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
-
-    // setup colors
     bool focused = pWndState->isFocused(pWgt);
-    if (focused) pushAttr(FontAttrib::Inverse);
 
+    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+    if (focused) pushAttr(FontAttrib::Inverse);
     writeStr(s_chk_state);
     writeStr(pWgt->checkbox.text);
     if (focused) popAttr();
@@ -223,23 +228,70 @@ static void drawCheckbox(const Widget *pWgt)
 
 static void drawButton(const Widget *pWgt)
 {
-    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
     wgtStr.clear();
     wgtStr.append("[ ");
     wgtStr.append(pWgt->button.text);
     wgtStr.trim(pWgt->size.width-2);
     wgtStr.append(" ]");
+
+    bool focused = pWndState->isFocused(pWgt);
+
+    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+    if (focused) pushAttr(FontAttrib::Inverse);
     writeStr(wgtStr.cstr());
+    if (focused) popAttr();
 }
 
 static void drawPageControl(const Widget *pWgt)
 {
-    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+    const auto my_coord = parentCoord + pWgt->coord;
+
+    // draw childrens
+    auto coord_bkp = parentCoord;
+    parentCoord = my_coord;
+    wgtStr.clear();
+    wgtStr.append(" ≡ MENU ≡");
+    wgtStr.append(' ', pWgt->pagectrl.tabWidth - wgtStr.utf8Len());
+    moveTo(my_coord.col, my_coord.row);
+    pushAttr(FontAttrib::Inverse);
+    writeStr(wgtStr.cstr());
+    popAttr();
+
+    for (int i = 0; i < pWgt->pagectrl.childCount; i++)
+    {
+        const auto *p_page = &pWgt->pagectrl.pChildrens[i];
+        if (p_page->type == Widget::Type::None)
+            break;
+
+        // draw page title
+        wgtStr.clear();
+        wgtStr.appendFmt("%c%s", i == 1 ? '*' : ' ', p_page->page.title);
+        wgtStr.append(' ', pWgt->pagectrl.tabWidth - strlen(p_page->page.title) - 1);
+        wgtStr.trim(pWgt->pagectrl.tabWidth-1, true);
+
+        moveTo(my_coord.col, my_coord.row + i + 1);
+        pushClrFg(p_page->page.fgColor);
+        if (i == 1) pushAttr(FontAttrib::Inverse);
+        writeStr(wgtStr.cstr());
+        if (i == 1) popAttr();
+        popClrFg();
+
+        parentCoord.col += pWgt->pagectrl.tabWidth;
+        drawWidgetInternal(p_page);
+        parentCoord.col -= pWgt->pagectrl.tabWidth;
+    }
+    parentCoord = coord_bkp;
 }
 
 static void drawPage(const Widget *pWgt)
 {
-    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+    // draw childrens
+    for (int i = 0; i < pWgt->page.childCount; i++)
+    {
+        if (pWgt->page.pChildrens[i].type == Widget::Type::None)
+            break;
+        drawWidgetInternal(&pWgt->page.pChildrens[i]);
+    }
 }
 
 static void drawProgressBar(const Widget *pWgt)
@@ -254,7 +306,7 @@ static void drawProgressBar(const Widget *pWgt)
     wgtStr.clear();
     int fill = pos * pWgt->size.width / max;
     wgtStr.append("█", fill);
-    wgtStr.append("░", pWgt->size.width - fill);
+    wgtStr.append("▒", pWgt->size.width - fill);
     writeStr(wgtStr.cstr());
 
     // writeStr("░░▒▒▓▓██");
@@ -285,6 +337,22 @@ static void drawWidgetInternal(const Widget *pWgt)
     if (!en) popAttr();
 }
 
+template<typename T>
+const Widget* iterateParent(const T *pParentDetails, const Widget *pParent, const WID widgetId, Coord &widgetCord, const Widget **ppParent)
+{
+    const auto *p = findWidget(pParentDetails->pChildrens, pParentDetails->childCount, widgetId, widgetCord, ppParent);
+    if (p)
+    {
+        *ppParent = pParent;
+        widgetCord += pParent->coord;
+
+        // pages coords == pagecontrol coords + tabs width
+        if (pParent->type == Widget::Type::PageCtrl)
+            widgetCord.col += pParent->pagectrl.tabWidth;
+    }
+    return p;
+}
+
 // recursive function searching for widgetId
 static const Widget *findWidget(const Widget widgets[], const uint16_t widgetsCount,
                                 WID widgetId, Coord &widgetCord, const Widget **ppParent)
@@ -295,40 +363,31 @@ static const Widget *findWidget(const Widget widgets[], const uint16_t widgetsCo
     {
         if (p_wgt->id == widgetId)
         {
-            // coordOffsetBy(widgetScreenCord, p_wgt);
             return p_wgt;
         }
 
         if (p_wgt->type == Widget::Window)
         {
-            const auto *p = findWidget(p_wgt->window.pChildrens, p_wgt->window.childCount, widgetId, widgetCord, ppParent);
-            if (p)
-            {
-                *ppParent = p_wgt;
-                coordOffsetBy(widgetCord, p_wgt->coord);
+            if (const auto *p = iterateParent(&p_wgt->window, p_wgt, widgetId, widgetCord, ppParent))
                 return p;
-            }
         }
 
         if (p_wgt->type == Widget::Panel)
         {
-            const auto *p = findWidget(p_wgt->panel.pChildrens, p_wgt->panel.childCount, widgetId, widgetCord, ppParent);
-            if (p)
-            {
-                *ppParent = p_wgt;
-                coordOffsetBy(widgetCord, p_wgt->coord);
+            if (const auto *p = iterateParent(&p_wgt->panel, p_wgt, widgetId, widgetCord, ppParent))
                 return p;
-            }
         }
 
         if (p_wgt->type == Widget::PageCtrl)
         {
-            // TODO:
+            if (const auto *p = iterateParent(&p_wgt->pagectrl, p_wgt, widgetId, widgetCord, ppParent))
+                return p;
         }
 
         if (p_wgt->type == Widget::Page)
         {
-            // TODO:
+            if (const auto *p = iterateParent(&p_wgt->page, p_wgt, widgetId, widgetCord, ppParent))
+                return p;
         }
 
         p_wgt++;
@@ -345,8 +404,6 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
         {
         case Widget::Window:    return pWgt->window.bgColor; break;
         case Widget::Panel:     return pWgt->panel.bgColor; break;
-        case Widget::PageCtrl:  return pWgt->pagectrl.bgColor; break;
-        case Widget::Page:      return pWgt->page.bgColor; break;
         default: break;
         }
     }

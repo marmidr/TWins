@@ -12,21 +12,25 @@ enum WndMainIDs
 {
     ID_INVALID,
     ID_WND,
-        ID_PANEL_VERSIONS,
-            ID_LABEL_FW_VERSION,
-            ID_LABEL_DATE,
-            ID_LABEL_TIME,
-        ID_PANEL_STATE,
-            ID_LED_PUMP,
-            ID_LED_LOCK,
-            ID_LED_BATTERY,
-        ID_PANEL_KEY,
-            ID_LABEL_KEYSEQ,
-            ID_LABEL_KEYNAME,
-        ID_CHBX_ENBL,
-        ID_BTN_YES,
-        ID_BTN_NO,
-        ID_PRGBAR_1,
+        ID_PGCONTROL,
+            ID_PAGE_1,
+                ID_PANEL_VERSIONS,
+                    ID_LABEL_FW_VERSION,
+                    ID_LABEL_DATE,
+                    ID_LABEL_TIME,
+                ID_PANEL_STATE,
+                    ID_LED_PUMP,
+                    ID_LED_LOCK,
+                    ID_LED_BATTERY,
+                ID_PANEL_KEY,
+                    ID_LABEL_KEYSEQ,
+                    ID_LABEL_KEYNAME,
+                ID_CHBX_ENBL,
+                ID_BTN_YES,
+                ID_BTN_NO,
+                ID_PRGBAR_1,
+            ID_PAGE_2,
+            ID_PAGE_3,
 };
 
 // -----------------------------------------------------------------------------
@@ -73,6 +77,146 @@ const twins::Widget pnlStateChilds[] =
     },
 };
 
+const twins::Widget page1Childs[] =
+{
+    {
+        type    : twins::Widget::Panel,
+        id      : ID_PANEL_VERSIONS,
+        coord   : { 0, 0 },
+        size    : { 21, 5 },
+        { panel : {
+            bgColor     : twins::ColorBG::Green,
+            fgColor     : twins::ColorFG::White,
+            title       : "VER",
+            pChildrens  : (const twins::Widget[])
+            {
+                {
+                    type    : twins::Widget::Label,
+                    id      : ID_LABEL_FW_VERSION,
+                    coord   : { 2, 1 },
+                    size    : { 12, 1 },
+                    { label : {
+                        bgColor : twins::ColorBG::Black,
+                        fgColor : twins::ColorFG::MagentaIntense,
+                        text    : "FwVer: 1.1"
+                    }}
+                },
+                {
+                    type    : twins::Widget::Label,
+                    id      : ID_LABEL_DATE,
+                    coord   : { 2, 2 },
+                    size    : { 16, 1 },
+                    { label : {
+                        bgColor : twins::ColorBG::None,
+                        fgColor : twins::ColorFG::Yellow,
+                        text    : "Date•" __DATE__
+                    }}
+                },
+                {
+                    type    : twins::Widget::Label,
+                    id      : ID_LABEL_TIME,
+                    coord   : { 2, 3 },
+                    size    : { 16, 1 },
+                    { label : {
+                        bgColor : twins::ColorBG::White,
+                        fgColor : twins::ColorFG::Magenta,
+                        text    : "Time≡" __TIME__
+                    }}
+                },
+            },
+            childCount : 3
+        }} // panel
+    },
+    {
+        type    : twins::Widget::Panel,
+        id      : ID_PANEL_STATE,
+        coord   : { 30, 0 },
+        size    : { 25, 3 },
+        { panel : {
+            bgColor     : twins::ColorBG::White,
+            fgColor     : twins::ColorFG::Blue,
+            title       : "STATE: Leds",
+            pChildrens  : pnlStateChilds,
+            childCount  : 3 //twins::arrSize(pnlStateChilds)
+        }} // panel
+    },
+    {
+        type    : twins::Widget::Panel,
+        id      : ID_PANEL_KEY,
+        coord   : { 0, 6 },
+        size    : { 21, 4 },
+        { panel : {
+            bgColor     : twins::ColorBG::Cyan,
+            fgColor     : twins::ColorFG::White,
+            title       : "KEY-CODES",
+            pChildrens  : (const twins::Widget[])
+            {
+                {
+                    type    : twins::Widget::Label,
+                    id      : ID_LABEL_KEYSEQ,
+                    coord   : { 2, 1 },
+                    size    : { 17, 1 },
+                    { label : {
+                        bgColor : twins::ColorBG::White,
+                        fgColor : twins::ColorFG::Red,
+                        text    : nullptr // use callback to get text
+                    }}
+                },
+                {
+                    type    : twins::Widget::Label,
+                    id      : ID_LABEL_KEYNAME,
+                    coord   : { 2, 2 },
+                    size    : { 17, 1 },
+                    { label : {
+                        bgColor : twins::ColorBG::White,
+                        fgColor : twins::ColorFG::Green,
+                        text    : nullptr // use callback to get text
+                    }}
+                },
+            },
+            childCount : 2
+        }} // panel
+    },
+    {
+        type    : twins::Widget::CheckBox,
+        id      : ID_CHBX_ENBL,
+        coord   : { 30, 4 },
+        size    : { 12, 1 },
+        { checkbox : {
+            text    : "Enable "
+        }}
+    },
+    {
+        type    : twins::Widget::Button,
+        id      : ID_BTN_YES,
+        coord   : { 30, 6 },
+        size    : { 8, 1 },
+        { button : {
+            text    : "YES",
+            groupId : 1
+        }}
+    },
+    {
+        type    : twins::Widget::Button,
+        id      : ID_BTN_NO,
+        coord   : { 38, 6 },
+        size    : { 8, 1 },
+        { button : {
+            text    : "NO!",
+            groupId : 1
+        }}
+    },
+    {
+        type    : twins::Widget::ProgressBar,
+        id      : ID_PRGBAR_1,
+        coord   : { 30, 8 },
+        size    : { 25, 1 },
+        { progressbar : {
+            //
+        }}
+    }
+};
+
 const twins::Widget wndMain =
 {
     // NOTE: all members must be initialized, in order they are declared,
@@ -84,7 +228,7 @@ const twins::Widget wndMain =
     type    : twins::Widget::Window,
     id      : ID_WND,
     coord   : { 15,  2 },
-    size    : { 60, 13 },
+    size    : { 80, 13 },
     { window : {
         bgColor     : twins::ColorBG::Blue,
         fgColor     : twins::ColorFG::White,
@@ -93,143 +237,56 @@ const twins::Widget wndMain =
         pChildrens  : (const twins::Widget[])
         {
             {
-                type    : twins::Widget::Panel,
-                id      : ID_PANEL_VERSIONS,
-                coord   : { 2, 2 },
-                size    : { 21, 5 },
-                { panel : {
-                    bgColor     : twins::ColorBG::Green,
-                    fgColor     : twins::ColorFG::White,
-                    title       : "VER",
+                type    : twins::Widget::PageCtrl,
+                id      : ID_PGCONTROL,
+                coord   : { 1,  2 },
+                size    : { 78, 11 },
+                { pagectrl : {
+                    tabWidth    : 12,
                     pChildrens  : (const twins::Widget[])
                     {
                         {
-                            type    : twins::Widget::Label,
-                            id      : ID_LABEL_FW_VERSION,
-                            coord   : { 2, 1 },
-                            size    : { 12, 1 },
-                            { label : {
-                                bgColor : twins::ColorBG::Black,
-                                fgColor : twins::ColorFG::MagentaIntense,
-                                text    : "FwVer: 1.1"
+                            type    : twins::Widget::Page,
+                            id      : ID_PAGE_1,
+                            coord   : {},
+                            size    : {},
+                            { page : {
+                                fgColor     : twins::ColorFG::WhiteIntense,
+                                title       : "Statistics",
+                                pChildrens  : page1Childs,
+                                childCount  : 7
                             }}
                         },
                         {
-                            type    : twins::Widget::Label,
-                            id      : ID_LABEL_DATE,
-                            coord   : { 2, 2 },
-                            size    : { 16, 1 },
-                            { label : {
-                                bgColor : twins::ColorBG::None,
-                                fgColor : twins::ColorFG::Yellow,
-                                text    : "Date•" __DATE__
+                            type    : twins::Widget::Page,
+                            id      : ID_PAGE_2,
+                            coord   : {},
+                            size    : {},
+                            { page : {
+                                fgColor     : twins::ColorFG::Yellow,
+                                title       : "Service",
+                                pChildrens  : {},
+                                childCount  : {}
                             }}
                         },
                         {
-                            type    : twins::Widget::Label,
-                            id      : ID_LABEL_TIME,
-                            coord   : { 2, 3 },
-                            size    : { 16, 1 },
-                            { label : {
-                                bgColor : twins::ColorBG::White,
-                                fgColor : twins::ColorFG::Magenta,
-                                text    : "Time≡" __TIME__
+                            type    : twins::Widget::Page,
+                            id      : ID_PAGE_3,
+                            coord   : {},
+                            size    : {},
+                            { page : {
+                                fgColor     : twins::ColorFG::White,
+                                title       : "Diagnostics",
+                                pChildrens  : {},
+                                childCount  : {}
                             }}
                         },
                     },
-                    childCount : 3
-                }} // panel
-            },
-            {
-                type    : twins::Widget::Panel,
-                id      : ID_PANEL_STATE,
-                coord   : { 30, 2 },
-                size    : { 25, 3 },
-                { panel : {
-                    bgColor     : twins::ColorBG::White,
-                    fgColor     : twins::ColorFG::Blue,
-                    title       : "STATE: Leds",
-                    pChildrens  : pnlStateChilds,
-                    childCount  : 3 //twins::arrSize(pnlStateChilds)
-                }} // panel
-            },
-            {
-                type    : twins::Widget::Panel,
-                id      : ID_PANEL_KEY,
-                coord   : { 2, 8 },
-                size    : { 21, 4 },
-                { panel : {
-                    bgColor     : twins::ColorBG::Cyan,
-                    fgColor     : twins::ColorFG::White,
-                    title       : "KEY-CODES",
-                    pChildrens  : (const twins::Widget[])
-                    {
-                        {
-                            type    : twins::Widget::Label,
-                            id      : ID_LABEL_KEYSEQ,
-                            coord   : { 2, 1 },
-                            size    : { 17, 1 },
-                            { label : {
-                                bgColor : twins::ColorBG::White,
-                                fgColor : twins::ColorFG::Red,
-                                text    : nullptr // use callback to get text
-                            }}
-                        },
-                        {
-                            type    : twins::Widget::Label,
-                            id      : ID_LABEL_KEYNAME,
-                            coord   : { 2, 2 },
-                            size    : { 17, 1 },
-                            { label : {
-                                bgColor : twins::ColorBG::White,
-                                fgColor : twins::ColorFG::Green,
-                                text    : nullptr // use callback to get text
-                            }}
-                        },
-                    },
-                    childCount : 2
-                }} // panel
-            },
-            {
-                type    : twins::Widget::CheckBox,
-                id      : ID_CHBX_ENBL,
-                coord   : { 30, 6 },
-                size    : { 12, 1 },
-                { checkbox : {
-                    text    : "Enable "
-                }}
-            },
-            {
-                type    : twins::Widget::Button,
-                id      : ID_BTN_YES,
-                coord   : { 30, 8 },
-                size    : { 8, 1 },
-                { button : {
-                    text    : "YES",
-                    groupId : 1
-                }}
-            },
-            {
-                type    : twins::Widget::Button,
-                id      : ID_BTN_NO,
-                coord   : { 38, 8 },
-                size    : { 8, 1 },
-                { button : {
-                    text    : "NO!",
-                    groupId : 1
-                }}
-            },
-            {
-                type    : twins::Widget::ProgressBar,
-                id      : ID_PRGBAR_1,
-                coord   : { 30, 10 },
-                size    : { 20, 1 },
-                { progressbar : {
-                    //
-                }}
+                    childCount  : 3
+                }},
             },
         },
-        childCount : 7,
+        childCount : 1,
     }} // window
 };
 

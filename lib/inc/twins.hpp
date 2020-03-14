@@ -216,14 +216,13 @@ struct Widget
 
         struct
         {
-            ColorBG         bgColor;
-            const Widget *  pPages;
-            uint16_t        pageCount;
+            uint8_t         tabWidth;
+            const Widget *  pChildrens; // only Pages
+            uint16_t        childCount;
         } pagectrl;
 
         struct
         {
-            ColorBG         bgColor;
             ColorFG         fgColor;
             const char *    title;
             const Widget *  pChildrens;

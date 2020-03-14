@@ -50,8 +50,7 @@ public:
 
         if (pWgt->id == ID_LABEL_KEYSEQ)
         {
-            // out.appendFmt("SEQ[%zu]:", strlen(lblKeycodeSeq));
-            out.append("SEQ:");
+            out.appendFmt("SEQ[%zu]:", strlen(lblKeycodeSeq));
 
             for (unsigned i = 0; i < sizeof(lblKeycodeSeq); i++)
             {
@@ -60,16 +59,14 @@ public:
 
                 if (c < ' ')
                     out.appendFmt("\\x%02x", c);
-                else
+                else if (c != (char)twins::Ansi::DEL)
                     out.append(c);
             }
         }
 
         if (pWgt->id == ID_LABEL_KEYNAME)
         {
-            // out.appendFmt("KEY[%zu]:", strlen(lblKeyName));
-            out.append("KEY:");
-            out.append(lblKeyName);
+            out.appendFmt("KEY[%zu]:%s", strlen(lblKeyName), lblKeyName);
         }
     }
     void getEditText(const twins::Widget*, twins::String &out) override
