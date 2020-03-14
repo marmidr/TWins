@@ -22,8 +22,8 @@ const IOs *pIOs;
 static twins::String lineBuff;
 
 /** @brief Current font colors and attributes */
-static ColorFG currentClFg = ColorFG::DEFAULT;
-static ColorBG currentClBg = ColorBG::DEFAULT;
+static ColorFG currentClFg = ColorFG::Default;
+static ColorBG currentClBg = ColorBG::Default;
 
 /** @brief Font colors and attribute stacks */
 static Stack<ColorFG> stackClFg;

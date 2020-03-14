@@ -33,48 +33,48 @@ struct Size
 /** @brief Foreground colors */
 enum class ColorFG : uint8_t
 {
-    NONE,       // means 'no change'
-    DEFAULT,    // reset do terminal default
-    BLACK,
-    BLACK_INTENSE,
-    RED,
-    RED_INTENSE,
-    GREEN,
-    GREEN_INTENSE,
-    YELLOW,
-    YELLOW_INTENSE,
-    BLUE,
-    BLUE_INTENSE,
-    MAGENTA,
-    MAGENTA_INTENSE,
-    CYAN,
-    CYAN_INTENSE,
-    WHITE,
-    WHITE_INTENSE
+    None,       // Means 'No Change'
+    Default,    // Reset Do Terminal Default
+    Black,
+    BlackIntense,
+    Red,
+    RedIntense,
+    Green,
+    GreenIntense,
+    Yellow,
+    YellowIntense,
+    Blue,
+    BlueIntense,
+    Magenta,
+    MagentaIntense,
+    Cyan,
+    CyanIntense,
+    White,
+    WhiteIntense
 };
 
 
 /** @brief Background colors */
 enum class ColorBG : uint8_t
 {
-    NONE,       // means 'no change'
-    DEFAULT,    // reset do terminal default
-    BLACK,
-    BLACK_INTENSE,
-    RED,
-    RED_INTENSE,
-    GREEN,
-    GREEN_INTENSE,
-    YELLOW,
-    YELLOW_INTENSE,
-    BLUE,
-    BLUE_INTENSE,
-    MAGENTA,
-    MAGENTA_INTENSE,
-    CYAN,
-    CYAN_INTENSE,
-    WHITE,
-    WHITE_INTENSE
+    None,       // Means 'No Change'
+    Default,    // Reset Do Terminal Default
+    Black,
+    BlackIntense,
+    Red,
+    RedIntense,
+    Green,
+    GreenIntense,
+    Yellow,
+    YellowIntense,
+    Blue,
+    BlueIntense,
+    Magenta,
+    MagentaIntense,
+    Cyan,
+    CyanIntense,
+    White,
+    WhiteIntense
 };
 
 /** @brief Convert color identifier to ASCII ESC code */
@@ -216,6 +216,7 @@ struct Widget
 
         struct
         {
+            ColorBG         bgColor;
             const Widget *  pPages;
             uint16_t        pageCount;
         } pagectrl;

@@ -112,7 +112,7 @@ static void drawWindow(const Widget *pWgt)
         auto capt_len = strlen(pWgt->window.title);
         moveTo(pWgt->coord.col + (pWgt->size.width - capt_len - 4)/2,
             pWgt->coord.row);
-        pushClrFg(ColorFG::YELLOW);
+        pushClrFg(ColorFG::Yellow);
         pushAttr(FontAttrib::Bold);
         writeStrFmt("╡ %s ╞", pWgt->window.title);
         popAttr();
@@ -146,7 +146,7 @@ static void drawPanel(const Widget *pWgt)
         moveTo(parentCoord.col + pWgt->coord.col + (pWgt->size.width - capt_len - 2)/2,
             parentCoord.row + pWgt->coord.row);
 
-        pushClrFg(ColorFG::WHITE_INTENSE);
+        pushClrFg(ColorFG::WhiteIntense);
         pushAttr(FontAttrib::Bold);
         writeStrFmt(" %s ", pWgt->panel.title);
         popClrFg();
@@ -345,13 +345,13 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
         {
         case Widget::Window:    return pWgt->window.bgColor; break;
         case Widget::Panel:     return pWgt->panel.bgColor; break;
-        case Widget::PageCtrl:  // TODO:
-        case Widget::Page:      // TODO:
+        case Widget::PageCtrl:  return pWgt->pagectrl.bgColor; break;
+        case Widget::Page:      return pWgt->page.bgColor; break;
         default: break;
         }
     }
 
-    return ColorBG::NONE;
+    return ColorBG::None;
 }
 
 // -----------------------------------------------------------------------------

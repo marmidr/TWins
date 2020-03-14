@@ -41,9 +41,9 @@ const twins::Widget pnlStateChilds[] =
         coord   : { 2, 1 },
         size    : { 6, 1 },
         { led : {
-            bgColorOff  : twins::ColorBG::WHITE,
-            bgColorOn   : twins::ColorBG::MAGENTA,
-            fgColor     : twins::ColorFG::BLACK,
+            bgColorOff  : twins::ColorBG::White,
+            bgColorOn   : twins::ColorBG::Magenta,
+            fgColor     : twins::ColorFG::Black,
             text        : "(BATT)"
         }}
     },
@@ -53,9 +53,9 @@ const twins::Widget pnlStateChilds[] =
         coord   : { 9, 1 },
         size    : { 6, 1 },
         { led : {
-            bgColorOff  : twins::ColorBG::WHITE,
-            bgColorOn   : twins::ColorBG::GREEN,
-            fgColor     : twins::ColorFG::BLACK,
+            bgColorOff  : twins::ColorBG::White,
+            bgColorOn   : twins::ColorBG::Green,
+            fgColor     : twins::ColorFG::Black,
             text        : "(LOCK)"
         }}
     },
@@ -65,9 +65,9 @@ const twins::Widget pnlStateChilds[] =
         coord   : { 16, 1 },
         size    : { 6, 1 },
         { led : {
-            bgColorOff  : twins::ColorBG::WHITE,
-            bgColorOn   : twins::ColorBG::YELLOW,
-            fgColor     : twins::ColorFG::BLACK,
+            bgColorOff  : twins::ColorBG::White,
+            bgColorOn   : twins::ColorBG::Yellow,
+            fgColor     : twins::ColorFG::Black,
             text        : "(PUMP)"
         }}
     },
@@ -86,8 +86,8 @@ const twins::Widget wndMain =
     coord   : { 15,  2 },
     size    : { 60, 13 },
     { window : {
-        bgColor     : twins::ColorBG::BLUE,
-        fgColor     : twins::ColorFG::WHITE,
+        bgColor     : twins::ColorBG::Blue,
+        fgColor     : twins::ColorFG::White,
         title       : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
         getState    : getWind1State,
         pChildrens  : (const twins::Widget[])
@@ -98,8 +98,8 @@ const twins::Widget wndMain =
                 coord   : { 2, 2 },
                 size    : { 21, 5 },
                 { panel : {
-                    bgColor     : twins::ColorBG::GREEN,
-                    fgColor     : twins::ColorFG::WHITE,
+                    bgColor     : twins::ColorBG::Green,
+                    fgColor     : twins::ColorFG::White,
                     title       : "VER",
                     pChildrens  : (const twins::Widget[])
                     {
@@ -109,8 +109,8 @@ const twins::Widget wndMain =
                             coord   : { 2, 1 },
                             size    : { 12, 1 },
                             { label : {
-                                bgColor : twins::ColorBG::BLACK,
-                                fgColor : twins::ColorFG::MAGENTA_INTENSE,
+                                bgColor : twins::ColorBG::Black,
+                                fgColor : twins::ColorFG::MagentaIntense,
                                 text    : "FwVer: 1.1"
                             }}
                         },
@@ -120,8 +120,8 @@ const twins::Widget wndMain =
                             coord   : { 2, 2 },
                             size    : { 16, 1 },
                             { label : {
-                                bgColor : twins::ColorBG::NONE,
-                                fgColor : twins::ColorFG::YELLOW,
+                                bgColor : twins::ColorBG::None,
+                                fgColor : twins::ColorFG::Yellow,
                                 text    : "Date•" __DATE__
                             }}
                         },
@@ -131,8 +131,8 @@ const twins::Widget wndMain =
                             coord   : { 2, 3 },
                             size    : { 16, 1 },
                             { label : {
-                                bgColor : twins::ColorBG::WHITE,
-                                fgColor : twins::ColorFG::MAGENTA,
+                                bgColor : twins::ColorBG::White,
+                                fgColor : twins::ColorFG::Magenta,
                                 text    : "Time≡" __TIME__
                             }}
                         },
@@ -146,8 +146,8 @@ const twins::Widget wndMain =
                 coord   : { 30, 2 },
                 size    : { 25, 3 },
                 { panel : {
-                    bgColor     : twins::ColorBG::WHITE,
-                    fgColor     : twins::ColorFG::BLUE,
+                    bgColor     : twins::ColorBG::White,
+                    fgColor     : twins::ColorFG::Blue,
                     title       : "STATE: Leds",
                     pChildrens  : pnlStateChilds,
                     childCount  : 3 //twins::arrSize(pnlStateChilds)
@@ -159,8 +159,8 @@ const twins::Widget wndMain =
                 coord   : { 2, 8 },
                 size    : { 21, 4 },
                 { panel : {
-                    bgColor     : twins::ColorBG::CYAN,
-                    fgColor     : twins::ColorFG::WHITE,
+                    bgColor     : twins::ColorBG::Cyan,
+                    fgColor     : twins::ColorFG::White,
                     title       : "KEY-CODES",
                     pChildrens  : (const twins::Widget[])
                     {
@@ -170,8 +170,8 @@ const twins::Widget wndMain =
                             coord   : { 2, 1 },
                             size    : { 17, 1 },
                             { label : {
-                                bgColor : twins::ColorBG::WHITE,
-                                fgColor : twins::ColorFG::RED,
+                                bgColor : twins::ColorBG::White,
+                                fgColor : twins::ColorFG::Red,
                                 text    : nullptr // use callback to get text
                             }}
                         },
@@ -181,8 +181,8 @@ const twins::Widget wndMain =
                             coord   : { 2, 2 },
                             size    : { 17, 1 },
                             { label : {
-                                bgColor : twins::ColorBG::WHITE,
-                                fgColor : twins::ColorFG::GREEN,
+                                bgColor : twins::ColorBG::White,
+                                fgColor : twins::ColorFG::Green,
                                 text    : nullptr // use callback to get text
                             }}
                         },
