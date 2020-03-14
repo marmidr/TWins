@@ -322,7 +322,7 @@ inline void clrScreenRestore()     { writeStr(ESC_SCREEN_RESTORE); }
 /**
  * @brief Decode given ANSI sequence and produce readable Key Code
  */
-void decodeInputSeq(KeySequence &input, KeyCode &output);
+void decodeInputSeq(AnsiSequence &input, KeyCode &output);
 
 //void quit();
 

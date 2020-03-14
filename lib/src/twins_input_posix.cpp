@@ -25,21 +25,20 @@ static int         ttyFileNo;
 static char        termEOFcode;
 static termios     termIOs;
 static uint16_t    termKeyTimeoutMs;
-static KeySequence *pKeySeq;
 
 // -----------------------------------------------------------------------------
 
-static void readKey()
+static void readKey(AnsiSequence &seq)
 {
     // read up to 8 bytes
-    int nb = read(ttyFileNo, pKeySeq->keySeq, sizeof(pKeySeq->keySeq)-1);
+    int nb = read(ttyFileNo, seq.data, sizeof(seq.data)-1);
     if (nb == -1) nb = 0;
-    pKeySeq->seqLen = nb;
-    pKeySeq->keySeq[pKeySeq->seqLen] = '\0';
+    seq.len = nb;
+    seq.data[seq.len] = '\0';
     errno = 0;
 }
 
-static void waitForKey()
+static void waitForKey(AnsiSequence &seq)
 {
     fd_set read_set;
     FD_ZERO(&read_set);
@@ -52,7 +51,7 @@ static void waitForKey()
     int rc = select(ttyFileNo + 1, &read_set, NULL, NULL, &tv);
 
     if (rc > 0)
-        readKey();
+        readKey(seq);
 }
 
 static void checkErrNo(int line)
@@ -94,21 +93,17 @@ void inputPosixFree()
     close(ttyFileNo);
 }
 
-void inputPosixCheckKeys(twins::KeySequence &output, bool &quitRequested)
+void inputPosixRead(AnsiSequence &output, bool &quitRequested)
 {
-    pKeySeq = &output;
-    output.seqLen = 0;
-    waitForKey();
+    output.len = 0;
+    waitForKey(output);
 
-    if (pKeySeq->seqLen == 1 && pKeySeq->keySeq[0] == termEOFcode)
+    if (output.len == 1 && output.data[0] == termEOFcode)
     {
         quitRequested = true;
         return;
     }
 }
-
-// -----------------------------------------------------------------------------
-
 
 // -----------------------------------------------------------------------------
 

@@ -16,7 +16,7 @@
  *  ANSI terminal compatible escape sequences. These escape sequences are designed to be concatenated with existing
  *  strings to modify their display on a compatible terminal application.
  *
- *  @code
+ *  @code.c
  *      printf("Normal String, "
  *             ESC_ATTR_BOLD "Bold String, "
  *             ESC_UNDERLINE_ON "Bold and Underlined String, "
@@ -61,7 +61,7 @@
 #define ESC_STRIKETHROUGH_ON            ANSI_CSI("9m")
 #define ESC_STRIKETHROUGH_OFF           ANSI_CSI("29m")
 
-#define ESC_FONT(id)                    ANSI_CSI("1" #id "m")
+#define ESC_FONT(id)                    ANSI_CSI("1" #id "m") // id: 1..9
 #define ESC_FONT_DEFAULT                ANSI_CSI("10m")
 
 #define ESC_ATTRIBUTES_DEFAULT          ANSI_CSI("10;22;23;24;25;27;28;29m")
@@ -182,7 +182,3 @@
 // { while true; do printf \\e[?5h; sleep 0.3; printf \\e[?5l; read -s -n1 -t1 && break; done; }
 
 //@}
-
-#define ESC_BELL                        "\007"
-
-// TODO: add keyboard codes

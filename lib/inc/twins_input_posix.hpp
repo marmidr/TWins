@@ -13,10 +13,16 @@
 namespace twins
 {
 
-/** @brief Template returning length of array of type T */
+/** @brief Initialze keyboard device reader */
 void inputPosixInit(uint16_t timeoutMs);
+
+/** @brief Free keyboard device reader resources */
 void inputPosixFree();
-void inputPosixCheckKeys(twins::KeySequence &output, bool &quitRequested);
+
+/** @brief Read codes from keyboard and store in \p output; check \p output.len if anything was read.
+  *        If \p quitRequested is set, application is requested to end
+  */
+void inputPosixRead(AnsiSequence &output, bool &quitRequested);
 
 // -----------------------------------------------------------------------------
 

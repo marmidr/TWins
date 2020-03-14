@@ -12,7 +12,10 @@
 
 // -----------------------------------------------------------------------------
 
-#define TWINS_USE_KEY_NAMES 1
+#ifndef TWINS_USE_KEY_NAMES
+# define TWINS_USE_KEY_NAMES 1
+#endif
+
 
 #if TWINS_USE_KEY_NAMES
 # define KEY_DEF(seq, name, code, mod)   seq, name, (Key)code, mod,
@@ -37,7 +40,7 @@ struct SeqMap
 
 struct CtrlMap
 {
-    char        ctrl_code;
+    char        c;
 #if TWINS_USE_KEY_NAMES
     const char *name;
 #endif
@@ -45,12 +48,7 @@ struct CtrlMap
     uint8_t     mod;
 };
 
-const SeqMap keys_map[] =
-{
-    KEY_DEF("\x09",     "Tab",      '\t', 0)
-    KEY_DEF("\x0C",     "Return",   '\n', 0)
-    KEY_DEF("\x1B",     "Esc",      '\e', 0)
-};
+// -----------------------------------------------------------------------------
 
 const SeqMap esc_keys_map[] =
 {
@@ -220,36 +218,32 @@ const SeqMap esc_keys_map[] =
 const CtrlMap ctrl_keys_map[] =
 {
     // KEY_DEF( 0, "C-2", '2', KEY_MOD_CTRL)
-    KEY_DEF( 1, "C-A", 'A', KEY_MOD_CTRL)
-    KEY_DEF( 2, "C-B", 'B', KEY_MOD_CTRL)
-    KEY_DEF( 3, "C-C", 'C', KEY_MOD_CTRL)
-    KEY_DEF( 4, "C-D", 'D', KEY_MOD_CTRL)
-    KEY_DEF( 5, "C-E", 'E', KEY_MOD_CTRL)
-    KEY_DEF( 6, "C-F", 'F', KEY_MOD_CTRL)
-    KEY_DEF( 7, "C-G", 'G', KEY_MOD_CTRL)
-    KEY_DEF( 8, "C-H", 'H', KEY_MOD_CTRL)
-    KEY_DEF( 9, "C-I", 'I', KEY_MOD_CTRL)
-    KEY_DEF(10, "C-J", 'J', KEY_MOD_CTRL)
-    KEY_DEF(11, "C-K", 'K', KEY_MOD_CTRL)
-    KEY_DEF(12, "C-L", 'L', KEY_MOD_CTRL)
-    KEY_DEF(13, "C-M", 'M', KEY_MOD_CTRL)
-    KEY_DEF(14, "C-N", 'N', KEY_MOD_CTRL)
-    KEY_DEF(15, "C-O", 'O', KEY_MOD_CTRL)
-    KEY_DEF(16, "C-P", 'P', KEY_MOD_CTRL)
-    KEY_DEF(17, "C-Q", 'Q', KEY_MOD_CTRL)
-    KEY_DEF(18, "C-R", 'R', KEY_MOD_CTRL)
-    KEY_DEF(19, "C-S", 'S', KEY_MOD_CTRL)
-    KEY_DEF(20, "C-T", 'T', KEY_MOD_CTRL)
-    KEY_DEF(21, "C-U", 'U', KEY_MOD_CTRL)
-    KEY_DEF(22, "C-V", 'V', KEY_MOD_CTRL)
-    KEY_DEF(23, "C-W", 'W', KEY_MOD_CTRL)
-    KEY_DEF(24, "C-X", 'X', KEY_MOD_CTRL)
-    KEY_DEF(25, "C-Y", 'Y', KEY_MOD_CTRL)
-    KEY_DEF(26, "C-Z", 'Z', KEY_MOD_CTRL)
-    // KEY_DEF(27, "C-3", '3', KEY_MOD_CTRL)
-    // KEY_DEF(29, "C-5", '5', KEY_MOD_CTRL)
-    // KEY_DEF(30, "C-6", '6', KEY_MOD_CTRL)
-    // KEY_DEF(31, "C-7", '7', KEY_MOD_CTRL)
+    KEY_DEF(0x01, "C-A", 'A', KEY_MOD_CTRL)
+    KEY_DEF(0x02, "C-B", 'B', KEY_MOD_CTRL)
+    KEY_DEF(0x03, "C-C", 'C', KEY_MOD_CTRL)
+    KEY_DEF(0x04, "C-D", 'D', KEY_MOD_CTRL)
+    KEY_DEF(0x05, "C-E", 'E', KEY_MOD_CTRL)
+    KEY_DEF(0x06, "C-F", 'F', KEY_MOD_CTRL)
+    KEY_DEF(0x07, "C-G", 'G', KEY_MOD_CTRL)
+    KEY_DEF(0x08, "C-H", 'H', KEY_MOD_CTRL) // BS
+    KEY_DEF(0x09, "C-I", 'I', KEY_MOD_CTRL) // HT
+    KEY_DEF(0x0A, "C-J", 'J', KEY_MOD_CTRL) // LF
+    KEY_DEF(0x0B, "C-K", 'K', KEY_MOD_CTRL)
+    KEY_DEF(0x0C, "C-L", 'L', KEY_MOD_CTRL)
+    KEY_DEF(0x0D, "C-M", 'M', KEY_MOD_CTRL) // CR
+    KEY_DEF(0x0E, "C-N", 'N', KEY_MOD_CTRL)
+    KEY_DEF(0x0F, "C-O", 'O', KEY_MOD_CTRL)
+    KEY_DEF(0x10, "C-P", 'P', KEY_MOD_CTRL)
+    KEY_DEF(0x11, "C-Q", 'Q', KEY_MOD_CTRL)
+    KEY_DEF(0x12, "C-R", 'R', KEY_MOD_CTRL)
+    KEY_DEF(0x13, "C-S", 'S', KEY_MOD_CTRL)
+    KEY_DEF(0x14, "C-T", 'T', KEY_MOD_CTRL)
+    KEY_DEF(0x15, "C-U", 'U', KEY_MOD_CTRL)
+    KEY_DEF(0x16, "C-V", 'V', KEY_MOD_CTRL)
+    KEY_DEF(0x17, "C-W", 'W', KEY_MOD_CTRL)
+    KEY_DEF(0x18, "C-X", 'X', KEY_MOD_CTRL)
+    KEY_DEF(0x19, "C-Y", 'Y', KEY_MOD_CTRL)
+    KEY_DEF(0x1A, "C-Z", 'Z', KEY_MOD_CTRL)
 };
 
 enum class Ansi : uint8_t
@@ -289,78 +283,89 @@ enum class Ansi : uint8_t
     DEL = 0x7F   // Delete
 };
 
+const CtrlMap ansi_map[] =
+{
+    KEY_DEF((char)Ansi::BS,   "Backspace",    Key::Backspace, KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::DEL,  "Backspace",    Key::Backspace, KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::HT,   "Tab",          Key::Tab,       KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::LF,   "Enter",        Key::Enter,     KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::ESC,  "Esc",          Key::Esc,       KEY_MOD_SPECIAL)
+};
+
 // -----------------------------------------------------------------------------
 
-void decodeInputSeq(KeySequence &input, KeyCode &output)
+void decodeInputSeq(AnsiSequence &input, KeyCode &output)
 {
     output = {};
 
-    if (input.seqLen == 0)
+    // anything there?
+    if (input.len == 0)
         return;
 
-    if (input.seqLen == 1)
+    // single character: letter, special or control key
+    if (input.len == 1)
     {
-        const char c0 = input.keySeq[0];
-        const char *name = "?";
+        const char c0 = input.data[0];
 
-        switch ((Ansi)c0)
+        // check for ansi key
+        // note: it conflicts with ctrl_keys_map[] but has higher priority
+        for (const auto &km : ansi_map)
         {
-        case Ansi::BS:
-        case Ansi::DEL: output.key = Key::Backspace; name = "Backspace"; break;
-        case Ansi::HT:  output.key = Key::Tab;       name = "Tab"; break;
-        case Ansi::LF:  output.key = Key::Enter;     name = "Enter"; break;
-        case Ansi::ESC: output.key = Key::Esc;       name = "Esc"; break;
-        default: break;
-        }
-
-        if (output.key != Key::None)
-        {
-            output.mod_all = KEY_MOD_SPECIAL;
-            #if TWINS_USE_KEY_NAMES
-            output.name = name;
-            #endif
-            return;
-        }
-
-        for (unsigned i = 0; i < arrSize(ctrl_keys_map); i++)
-        {
-            if (c0 == ctrl_keys_map[i].ctrl_code)
+            if (c0 == km.c)
             {
-                output.utf8[0] = (char)ctrl_keys_map[i].key;
-                output.utf8[1] = '\0';
-                output.mod_all = ctrl_keys_map[i].mod;
+                output.key = km.key;
+                output.mod_all = km.mod;
                 #if TWINS_USE_KEY_NAMES
-                output.name = ctrl_keys_map[i].name;
+                output.name = km.name;
+                #endif
+                return;
+            }
+        }
+
+
+        // check for one of Ctrl+[A..Z]
+        for (const auto &km : ctrl_keys_map)
+        {
+            if (c0 == km.c)
+            {
+                output.utf8[0] = (char)km.key;
+                output.utf8[1] = '\0';
+                output.mod_all = km.mod;
+                #if TWINS_USE_KEY_NAMES
+                output.name = km.name;
                 #endif
                 return;
             }
         }
     }
 
-    if (input.keySeq[0] == (char)Ansi::ESC)
+    // ANSI escape sequence
+    if (input.data[0] == (char)Ansi::ESC)
     {
         // TODO: use sorted list of keys and binary search
-        for (unsigned i = 0; i < arrSize(esc_keys_map); i++)
+        for (const auto &km : esc_keys_map)
         {
-            int cmp = strcmp(input.keySeq + 1, esc_keys_map[i].seq);
+            int cmp = strcmp(input.data + 1, km.seq);
             if (cmp == 0)
             {
-                output.key = esc_keys_map[i].key;
-                output.mod_all = esc_keys_map[i].mod | KEY_MOD_SPECIAL;
+                output.key = km.key;
+                output.mod_all = km.mod | KEY_MOD_SPECIAL;
                 #if TWINS_USE_KEY_NAMES
-                output.name = esc_keys_map[i].name;
+                output.name = km.name;
                 #endif
                 break;
             }
         }
+
+        if (!output.name) output.name = "<?>";
     }
     else
     {
         // copy UTF-8 seq
-        output.utf8[0] = input.keySeq[0];
-        output.utf8[1] = input.keySeq[1];
-        output.utf8[2] = input.keySeq[2];
-        output.utf8[3] = input.keySeq[3];
+        output.utf8[0] = input.data[0];
+        output.utf8[1] = input.data[1];
+        output.utf8[2] = input.data[2];
+        output.utf8[3] = input.data[3];
         output.utf8[sizeof(output.utf8)-1] = '\0';
         #if TWINS_USE_KEY_NAMES
         output.name = output.utf8;

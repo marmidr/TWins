@@ -118,6 +118,9 @@ void String::trim(uint16_t trimPos, bool addEllipsis)
 
 void String::clear()
 {
+    if (mCapacity > 1000)
+        free();
+
     mSize = 0;
     if (mpBuff) *mpBuff = '\0';
 }
@@ -131,9 +134,9 @@ void String::operator=(const char *s)
 void String::operator=(String &&other)
 {
     free();
-    mpBuff      = other.mpBuff;
-    mCapacity   = other.mCapacity;
-    mSize       = other.mSize;
+    mpBuff    = other.mpBuff;
+    mCapacity = other.mCapacity;
+    mSize     = other.mSize;
     other.free();
 }
 

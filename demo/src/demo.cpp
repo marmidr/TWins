@@ -152,16 +152,16 @@ int main()
     for (;;)
     {
         bool quit_req = false;
-        twins::KeySequence key_seq;
-        twins::inputPosixCheckKeys(key_seq, quit_req);
+        twins::AnsiSequence ansi_seq;
+        twins::inputPosixRead(ansi_seq, quit_req);
         if (quit_req) break;
 
-        if (key_seq.seqLen)
+        if (ansi_seq.len)
         {
             twins::KeyCode key_decoded;
-            twins::decodeInputSeq(key_seq, key_decoded);
+            twins::decodeInputSeq(ansi_seq, key_decoded);
 
-            strncpy(wnd1State.lblKeycodeSeq, key_seq.keySeq, sizeof(wnd1State.lblKeycodeSeq));
+            strncpy(wnd1State.lblKeycodeSeq, ansi_seq.data, sizeof(wnd1State.lblKeycodeSeq));
             wnd1State.lblKeyName = key_decoded.name;
 
             twins::drawWidgets(&wndMain, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
