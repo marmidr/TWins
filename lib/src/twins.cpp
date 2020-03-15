@@ -46,6 +46,19 @@ int writeChar(char c, int16_t count)
     return writeStr(lineBuff.cstr());
 }
 
+int writeStr(const char *s, int16_t count)
+{
+    if (!s || count <= 0)
+        return 0;
+
+    if (count == 1)
+        return pIOs->writeStr(s);
+
+    lineBuff.clear();
+    lineBuff.append(s, count);
+    return writeStr(lineBuff.cstr());
+}
+
 int writeStr(const char *s)
 {
     if (!s) return 0;

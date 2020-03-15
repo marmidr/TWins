@@ -33,6 +33,13 @@ const char * const frame_single[] =
     "└", "─", "┘",
 };
 
+const char * const frame_pgcontrol[] =
+{
+    "├", "─", "┐",
+    "│", " ", "│",
+    "├", "─", "┘",
+};
+
 const char * const frame_double[] =
 {
     "╔", "═", "╗",
@@ -64,6 +71,24 @@ static Coord operator + (const Coord &cord1, const Coord &cord2)
     return ret;
 }
 
+// static Size operator + (const Size &sz1, const Size &sz2)
+// {
+//     Size ret = {
+//         uint8_t(sz1.width + sz2.width),
+//         uint8_t(sz1.height + sz2.height)
+//     };
+//     return ret;
+// }
+
+static Size operator - (const Size &sz1, const Size &sz2)
+{
+    Size ret = {
+        uint8_t(sz1.width - sz2.width),
+        uint8_t(sz1.height - sz2.height)
+    };
+    return ret;
+}
+
 static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, ColorFG clFg, const FrameStyle style)
 {
     moveTo(coord.col, coord.row);
@@ -71,14 +96,15 @@ static void drawFrame(const Coord &coord, const Size &size, ColorBG clBg, ColorF
     const char * const * frame = frame_none;
     switch (style)
     {
-    case FrameStyle::Single: frame = frame_single; break;
-    case FrameStyle::Double: frame = frame_double; break;
+    case FrameStyle::Single:    frame = frame_single; break;
+    case FrameStyle::Double:    frame = frame_double; break;
+    case FrameStyle::PgControl: frame = frame_pgcontrol; break;
     default: break;
     }
 
     // background and frame color
-    pushClrBg(clBg);
-    pushClrFg(clFg);
+    if (clBg != ColorBG::None) pushClrBg(clBg);
+    if (clFg != ColorFG::None) pushClrFg(clFg);
 
     // top line
     wgtStr.clear();
@@ -246,40 +272,53 @@ static void drawPageControl(const Widget *pWgt)
 {
     const auto my_coord = parentCoord + pWgt->coord;
 
-    // draw childrens
+    drawFrame(my_coord + Coord{pWgt->pagectrl.tabWidth, 0}, pWgt->size - Size{pWgt->pagectrl.tabWidth, 0},
+        ColorBG::None, ColorFG::None, FrameStyle::PgControl);
+
     auto coord_bkp = parentCoord;
     parentCoord = my_coord;
+    // trad title
     wgtStr.clear();
-    wgtStr.append(" ≡ MENU ≡");
+    wgtStr.append(" ≡ MENU ≡ ");
     wgtStr.append(' ', pWgt->pagectrl.tabWidth - wgtStr.utf8Len());
     moveTo(my_coord.col, my_coord.row);
     pushAttr(FontAttrib::Inverse);
     writeStr(wgtStr.cstr());
     popAttr();
 
+    // draw childrens and left/right borders
+    int pg_idx = pWndState->getPageCtrlPageIndex(pWgt);
+    bool focused = pWndState->isFocused(pWgt);
+
+    moveTo(parentCoord.col + pWgt->coord.col, parentCoord.row + pWgt->coord.row);
+
     for (int i = 0; i < pWgt->pagectrl.childCount; i++)
     {
+        if (i == pWgt->size.height-1)
+            break;
+
         const auto *p_page = &pWgt->pagectrl.pChildrens[i];
         if (p_page->type == Widget::Type::None)
             break;
 
         // draw page title
         wgtStr.clear();
-        wgtStr.appendFmt("%c%s", i == 1 ? '*' : ' ', p_page->page.title);
-        wgtStr.append(' ', pWgt->pagectrl.tabWidth - strlen(p_page->page.title) - 1);
-        wgtStr.trim(pWgt->pagectrl.tabWidth-1, true);
+        wgtStr.appendFmt("%s%s", i == pg_idx ? "►" : " ", p_page->page.title);
+        wgtStr.append(' ', pWgt->pagectrl.tabWidth - utf8len(p_page->page.title));
+        wgtStr.trim(pWgt->pagectrl.tabWidth, true);
 
         moveTo(my_coord.col, my_coord.row + i + 1);
         pushClrFg(p_page->page.fgColor);
-        if (i == 1) pushAttr(FontAttrib::Inverse);
+        if (focused && i == pg_idx) pushAttr(FontAttrib::Inverse);
         writeStr(wgtStr.cstr());
-        if (i == 1) popAttr();
+        if (focused && i == pg_idx) popAttr();
         popClrFg();
 
         parentCoord.col += pWgt->pagectrl.tabWidth;
         drawWidgetInternal(p_page);
         parentCoord.col -= pWgt->pagectrl.tabWidth;
     }
+
     parentCoord = coord_bkp;
 }
 

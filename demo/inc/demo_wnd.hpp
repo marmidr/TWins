@@ -28,6 +28,7 @@ enum WndMainIDs
                 ID_CHBX_ENBL,
                 ID_BTN_YES,
                 ID_BTN_NO,
+                ID_BTN_CANCEL,
                 ID_PRGBAR_1,
             ID_PAGE_2,
             ID_PAGE_3,
@@ -82,7 +83,7 @@ const twins::Widget page1Childs[] =
     {
         type    : twins::Widget::Panel,
         id      : ID_PANEL_VERSIONS,
-        coord   : { 0, 0 },
+        coord   : { 1, 1 },
         size    : { 21, 5 },
         { panel : {
             bgColor     : twins::ColorBG::Green,
@@ -130,7 +131,7 @@ const twins::Widget page1Childs[] =
     {
         type    : twins::Widget::Panel,
         id      : ID_PANEL_STATE,
-        coord   : { 30, 0 },
+        coord   : { 30, 1 },
         size    : { 25, 3 },
         { panel : {
             bgColor     : twins::ColorBG::White,
@@ -143,7 +144,7 @@ const twins::Widget page1Childs[] =
     {
         type    : twins::Widget::Panel,
         id      : ID_PANEL_KEY,
-        coord   : { 0, 6 },
+        coord   : { 1, 7 },
         size    : { 21, 4 },
         { panel : {
             bgColor     : twins::ColorBG::Cyan,
@@ -190,7 +191,7 @@ const twins::Widget page1Childs[] =
         type    : twins::Widget::Button,
         id      : ID_BTN_YES,
         coord   : { 30, 6 },
-        size    : { 8, 1 },
+        size    : {},
         { button : {
             text    : "YES",
             groupId : 1
@@ -200,9 +201,19 @@ const twins::Widget page1Childs[] =
         type    : twins::Widget::Button,
         id      : ID_BTN_NO,
         coord   : { 38, 6 },
-        size    : { 8, 1 },
+        size    : {},
         { button : {
-            text    : "NO!",
+            text    : "NO",
+            groupId : 1
+        }}
+    },
+    {
+        type    : twins::Widget::Button,
+        id      : ID_BTN_CANCEL,
+        coord   : { 45, 6 },
+        size    : {},
+        { button : {
+            text    : "CANCEL",
             groupId : 1
         }}
     },
@@ -228,7 +239,7 @@ const twins::Widget wndMain =
     type    : twins::Widget::Window,
     id      : ID_WND,
     coord   : { 15,  2 },
-    size    : { 80, 13 },
+    size    : { 80, 15 },
     { window : {
         bgColor     : twins::ColorBG::Blue,
         fgColor     : twins::ColorFG::White,
@@ -239,10 +250,10 @@ const twins::Widget wndMain =
             {
                 type    : twins::Widget::PageCtrl,
                 id      : ID_PGCONTROL,
-                coord   : { 1,  2 },
-                size    : { 78, 11 },
+                coord   : { 1,  1 },
+                size    : { 75, 12 },
                 { pagectrl : {
-                    tabWidth    : 12,
+                    tabWidth    : 14,
                     pChildrens  : (const twins::Widget[])
                     {
                         {
@@ -251,10 +262,10 @@ const twins::Widget wndMain =
                             coord   : {},
                             size    : {},
                             { page : {
-                                fgColor     : twins::ColorFG::WhiteIntense,
-                                title       : "Statistics",
+                                fgColor     : twins::ColorFG::Yellow,
+                                title       : "Version",
                                 pChildrens  : page1Childs,
-                                childCount  : 7
+                                childCount  : 8
                             }}
                         },
                         {
@@ -263,8 +274,8 @@ const twins::Widget wndMain =
                             coord   : {},
                             size    : {},
                             { page : {
-                                fgColor     : twins::ColorFG::Yellow,
-                                title       : "Service",
+                                fgColor     : twins::ColorFG::BlackIntense,
+                                title       : "Service ∑",
                                 pChildrens  : {},
                                 childCount  : {}
                             }}
@@ -275,7 +286,7 @@ const twins::Widget wndMain =
                             coord   : {},
                             size    : {},
                             { page : {
-                                fgColor     : twins::ColorFG::White,
+                                fgColor     : twins::ColorFG::Yellow,
                                 title       : "Diagnostics",
                                 pChildrens  : {},
                                 childCount  : {}

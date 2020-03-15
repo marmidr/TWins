@@ -34,6 +34,7 @@ public:
     bool isFocused(const twins::Widget* pWgt) override
     {
         if (pWgt->id == ID_BTN_YES) return true;
+        if (pWgt->id == ID_PGCONTROL) return true;
         return false;
     }
     bool isVisible(const twins::Widget* pWgt) override
@@ -93,7 +94,22 @@ public:
         max = 20;
         if (pgbarPos >= max) pgbarPos = 0;
     }
+    int getPageCtrlPageIndex(const twins::Widget* pWgt) override
+    {
+        if (pgctrlPage < 0)                          pgctrlPage = pWgt->pagectrl.childCount -1;
+        if (pgctrlPage >= pWgt->pagectrl.childCount) pgctrlPage = 0;
 
+        return pgctrlPage;
+    }
+public:
+    void pageUp()
+    {
+        pgctrlPage--;
+    }
+    void pageDown()
+    {
+        pgctrlPage++;
+    }
 public:
     char lblKeycodeSeq[8];
     const char *lblKeyName = "";
@@ -102,6 +118,7 @@ private:
     bool ledLock = false;
     bool ledBatt = false;
     int  pgbarPos = 0;
+    int  pgctrlPage = 0;
 };
 
 // -----------------------------------------------------------------------------
@@ -160,14 +177,26 @@ int main()
 
             strncpy(wnd1State.lblKeycodeSeq, ansi_seq.data, sizeof(wnd1State.lblKeycodeSeq));
             wnd1State.lblKeyName = key_decoded.name;
-
             twins::drawWidgets(&wndMain, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
-        }
 
-        twins::drawWidgets(&wndMain,
-        {
-            ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_CHBX_ENBL, ID_PRGBAR_1, ID_PANEL_VERSIONS
-        });
+            if (key_decoded.mod_all == KEY_MOD_SPECIAL)
+            {
+                bool pgchanged = false;
+                if (key_decoded.key == twins::Key::PgUp)
+                    wnd1State.pageUp(), pgchanged=true;
+                if (key_decoded.key == twins::Key::PgDown)
+                    wnd1State.pageDown(), pgchanged=true;
+                if (pgchanged)
+                    twins::drawWidget(&wndMain, ID_PGCONTROL);
+            }
+            else
+            {
+                twins::drawWidgets(&wndMain,
+                {
+                    ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_CHBX_ENBL, ID_PRGBAR_1, ID_PANEL_VERSIONS
+                });
+            }
+        }
 
         twins::moveToHome();
         // printf("Key: %s\n", keyseq);

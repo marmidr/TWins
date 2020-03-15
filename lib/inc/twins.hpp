@@ -106,7 +106,8 @@ enum class FrameStyle : uint8_t
 {
     None,
     Single,
-    Double
+    Double,
+    PgControl,
 };
 
 /** @brief Forward declaration */
@@ -126,6 +127,7 @@ public:
     virtual void getEditText(const Widget*, String &out) = 0;
     virtual bool getLedLit(const Widget*) = 0;
     virtual void getProgressBarNfo(const Widget*, int &pos, int &max) = 0;
+    virtual int  getPageCtrlPageIndex(const Widget*) = 0;
 };
 
 struct Theme
@@ -250,8 +252,9 @@ void init(const IOs *ios);
 /**
  * @brief Write char or string to the output
  */
-int writeChar(char c, int16_t count);
+int writeChar(char c, int16_t count = 1);
 int writeStr(const char *s);
+int writeStr(const char *s, int16_t count);
 int writeStrFmt(const char *fmt, ...);
 
 /**

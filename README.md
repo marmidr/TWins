@@ -4,7 +4,7 @@
 It provides basic facilities required by interactive applications such as screen and cursor management, keyboard input, keymaps, color codes.
 Additional it allows to define terminal windows and it's widgets in a convenient way as const tree of `twins::Widget` structures.
 
-![example 1](doc/sshot2.png)
+![example 1](doc/sshot3.png)
 
 Wikipedia: [reference color tables for different terminals](https://en.m.wikipedia.org/wiki/ANSI_escape_code)
 
@@ -21,33 +21,34 @@ Implementation is based on examples:
 ## Primary goals
 
 * text properties
-    * foreground and background color codes
-    * attributes (bold, inversion)
+    * [x] foreground and background color codes
+    * [x] attributes (bold, inversion)
 * operations
-    * clear screen
-    * go to home
-    * go to location
+    * [x] clear screen
+    * [x] go to home
+    * [x] go to location
 * reading input
-    * regular characters (a..z)
-    * control codes (Up/Down, Del, Ctrl, Home, ...)
-* two modes: direct terminal output and buffered  
+    * [x] regular characters (a..z)
+    * [x] control codes (Up/Down, Del, Ctrl, Home, ...)
+* [ ] two modes: direct terminal output and buffered  
     buffered mode is required on UART terminals due to slow refresh rate and ugly flickering
-* separation layer to ease porting
-
+* [x] separation layer to ease porting
+* [ ] widgets navigation by Tab key
+* [ ] render focused widget state
 
 ## Secondary goals
 
 Widgets (controls) to implement:
 
-* window
-* panel
-* static label / led
-* check box
-* edit field (text/number)
-* radio group
-* button group
-* page control
-* progress bar
+- [x] window
+- [x] panel
+- [x] static label / led
+- [x] check box
+- [ ] edit field (text/number)
+- [ ] radio group
+- [ ] button group
+- [x] page control
+- [x] progress bar
 
 ---
 
