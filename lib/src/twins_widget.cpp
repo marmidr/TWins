@@ -314,9 +314,12 @@ static void drawPageControl(const Widget *pWgt)
         if (focused && i == pg_idx) popAttr();
         popClrFg();
 
-        parentCoord.col += pWgt->pagectrl.tabWidth;
-        drawWidgetInternal(p_page);
-        parentCoord.col -= pWgt->pagectrl.tabWidth;
+        if (pWndState->isVisible(p_page))
+        {
+            parentCoord.col += pWgt->pagectrl.tabWidth;
+            drawWidgetInternal(p_page);
+            parentCoord.col -= pWgt->pagectrl.tabWidth;
+        }
     }
 
     parentCoord = coord_bkp;
@@ -376,63 +379,77 @@ static void drawWidgetInternal(const Widget *pWgt)
     if (!en) popAttr();
 }
 
-template<typename T>
-const Widget* iterateParent(const T *pParentDetails, const Widget *pParent, const WID widgetId, Coord &widgetCord, const Widget **ppParent)
+struct WidgetInfo
 {
-    const auto *p = findWidget(pParentDetails->pChildrens, pParentDetails->childCount, widgetId, widgetCord, ppParent);
-    if (p)
+    WID   id = {};              // given
+    Coord parentCoord = {};     // expected
+    bool  isVisible = true;     // expected
+    const Widget *pWidget = {}; // expected
+    const Widget *pParent = {}; // expected
+};
+
+template<typename T>
+bool iterateParent(const T *pParentDetails, const Widget *pParent, WidgetInfo &nfo)
+{
+    if (findWidget(pParentDetails->pChildrens, pParentDetails->childCount, nfo))
     {
-        *ppParent = pParent;
-        widgetCord += pParent->coord;
+        nfo.pParent = pParent;
+        nfo.parentCoord += pParent->coord;
+        nfo.isVisible &= pWndState->isVisible(pParent);
 
         // pages coords == pagecontrol coords + tabs width
         if (pParent->type == Widget::Type::PageCtrl)
-            widgetCord.col += pParent->pagectrl.tabWidth;
+            nfo.parentCoord.col += pParent->pagectrl.tabWidth;
+
+        return true;
     }
-    return p;
+
+    return false;
 }
 
+
 // recursive function searching for widgetId
-static const Widget *findWidget(const Widget widgets[], const uint16_t widgetsCount,
-                                WID widgetId, Coord &widgetCord, const Widget **ppParent)
+static bool findWidget(const Widget widgets[], const uint16_t widgetsCount, WidgetInfo &nfo)
 {
     const auto *p_wgt = widgets;
 
     for (uint16_t w = 0; w < widgetsCount; w++)
     {
-        if (p_wgt->id == widgetId)
+        if (p_wgt->id == nfo.id)
         {
-            return p_wgt;
+            nfo.pWidget = p_wgt;
+            nfo.isVisible &= pWndState->isVisible(nfo.pWidget);
+            return true;
         }
 
         if (p_wgt->type == Widget::Window)
         {
-            if (const auto *p = iterateParent(&p_wgt->window, p_wgt, widgetId, widgetCord, ppParent))
-                return p;
+            if (iterateParent(&p_wgt->window, p_wgt, nfo))
+                return true;
         }
 
         if (p_wgt->type == Widget::Panel)
         {
-            if (const auto *p = iterateParent(&p_wgt->panel, p_wgt, widgetId, widgetCord, ppParent))
-                return p;
+            if (iterateParent(&p_wgt->panel, p_wgt, nfo))
+                return true;
         }
 
         if (p_wgt->type == Widget::PageCtrl)
         {
-            if (const auto *p = iterateParent(&p_wgt->pagectrl, p_wgt, widgetId, widgetCord, ppParent))
-                return p;
+            if (iterateParent(&p_wgt->pagectrl, p_wgt, nfo))
+                return true;
         }
 
         if (p_wgt->type == Widget::Page)
         {
-            if (const auto *p = iterateParent(&p_wgt->page, p_wgt, widgetId, widgetCord, ppParent))
-                return p;
+            if (iterateParent(&p_wgt->page, p_wgt, nfo))
+                return true;
         }
 
         p_wgt++;
     }
 
-    return nullptr;
+    return false;
 }
 
 static ColorBG getWidgetBgColor(const Widget *pWgt)
@@ -458,6 +475,7 @@ void drawWidget(const Widget *pWindow, WID widgetId)
     assert(pWindow->type == Widget::Window);
     pWndState = pWindow->window.getState();
     assert(pWndState);
+    cursorHide();
 
     if (widgetId == WIDGET_ID_ALL)
     {
@@ -465,16 +483,20 @@ void drawWidget(const Widget *pWindow, WID widgetId)
     }
     else
     {
-        parentCoord = {0, 0};
-        const Widget *p_parent = pWindow;
+        WidgetInfo nfo;
+        nfo.id = widgetId;
 
         // search window for widget by it's Id
-        if (const auto *p_wgt = findWidget(pWindow, 1, widgetId, parentCoord, &p_parent))
+        if (findWidget(pWindow, 1, nfo))
         {
-            // set parent's background color
-            pushClrBg(getWidgetBgColor(p_parent));
-            drawWidgetInternal(p_wgt);
-            popClrBg();
+            if (nfo.isVisible)
+            {
+                parentCoord = nfo.parentCoord;
+                // set parent's background color
+                pushClrBg(getWidgetBgColor(nfo.pParent));
+                drawWidgetInternal(nfo.pWidget);
+                popClrBg();
+            }
         }
     }
 
@@ -482,6 +504,7 @@ void drawWidget(const Widget *pWindow, WID widgetId)
     resetAttr();
     resetClrBg();
     resetClrFg();
+    cursorShow();
 }
 
 void drawWidgets(const Widget *pWindow, const WID *pWidgetIds, uint16_t count)
@@ -490,19 +513,25 @@ void drawWidgets(const Widget *pWindow, const WID *pWidgetIds, uint16_t count)
     assert(pWindow->type == Widget::Window);
     pWndState = pWindow->window.getState();
     assert(pWndState);
+    cursorHide();
 
     for (unsigned i = 0; i < count; i++)
     {
-        parentCoord = {0, 0};
-        const Widget *p_parent = pWindow;
+        WidgetInfo nfo;
+        nfo.id = pWidgetIds[i];
+        nfo.pParent = pWindow;
 
         // search window for widget by it's Id
-        if (const auto *p_wgt = findWidget(pWindow, 1, pWidgetIds[i], parentCoord, &p_parent))
+        if (findWidget(pWindow, 1, nfo))
         {
-            // set parent's background color
-            pushClrBg(getWidgetBgColor(p_parent));
-            drawWidgetInternal(p_wgt);
-            popClrBg();
+            if (nfo.isVisible)
+            {
+                parentCoord = nfo.parentCoord;
+                // set parent's background color
+                pushClrBg(getWidgetBgColor(nfo.pParent));
+                drawWidgetInternal(nfo.pWidget);
+                popClrBg();
+            }
         }
     }
 
@@ -510,6 +539,7 @@ void drawWidgets(const Widget *pWindow, const WID *pWidgetIds, uint16_t count)
     resetAttr();
     resetClrBg();
     resetClrFg();
+    cursorShow();
 }
 
 // -----------------------------------------------------------------------------

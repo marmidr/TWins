@@ -44,7 +44,7 @@ const twins::Widget pnlStateChilds[] =
         type    : twins::Widget::Led,
         id      : ID_LED_BATTERY,
         coord   : { 2, 1 },
-        size    : { 6, 1 },
+        size    : {},
         { led : {
             bgColorOff  : twins::ColorBG::White,
             bgColorOn   : twins::ColorBG::Magenta,
@@ -56,7 +56,7 @@ const twins::Widget pnlStateChilds[] =
         type    : twins::Widget::Led,
         id      : ID_LED_LOCK,
         coord   : { 9, 1 },
-        size    : { 6, 1 },
+        size    : {},
         { led : {
             bgColorOff  : twins::ColorBG::White,
             bgColorOn   : twins::ColorBG::Green,
@@ -68,7 +68,7 @@ const twins::Widget pnlStateChilds[] =
         type    : twins::Widget::Led,
         id      : ID_LED_PUMP,
         coord   : { 16, 1 },
-        size    : { 6, 1 },
+        size    : {},
         { led : {
             bgColorOff  : twins::ColorBG::White,
             bgColorOn   : twins::ColorBG::Yellow,
