@@ -20,3 +20,6 @@ target_include_directories(${TARGETNAME}
     PUBLIC
         inc
 )
+
+# unit tests
+add_subdirectory(tests)

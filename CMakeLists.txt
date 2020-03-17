@@ -28,7 +28,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # C++ flags
 set(CMAKE_CXX_FLAGS "-Wall")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g")
 
 # https://medium.com/@alasher/colored-c-compiler-output-with-ninja-clang-gcc-10bfe7f2b949
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -39,4 +39,9 @@ endif ()
 
 # add subdirectories recursively
 add_subdirectory(lib)
-add_subdirectory(demo)
+
+option(TWINS_BUILD_DEMO "Build TWins Demo app" OFF)
+
+if (${TWINS_BUILD_DEMO})
+   add_subdirectory(demo)
+endif()

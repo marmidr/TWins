@@ -151,7 +151,11 @@ unsigned String::utf8Len() const
 
 void String::resize(uint16_t newCapacity)
 {
-    if (newCapacity < 31) newCapacity = 31;
+    if (newCapacity < mCapacity)
+        return;
+
+    if (newCapacity - mCapacity < 32)
+        newCapacity += 32 - (newCapacity - mCapacity);
 
     if (!mpBuff)
     {

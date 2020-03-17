@@ -137,9 +137,12 @@ struct Theme
 /**
  * @brief
  */
+using WID = uint16_t;
 
- using WID = uint16_t;
-
+/**
+ * @brief Widget structure as union of members for different types;
+ *        such construction can be const-defined and demands small memory
+ */
 struct Widget
 {
     enum Type

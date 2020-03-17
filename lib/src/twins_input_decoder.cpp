@@ -3,12 +3,17 @@
  * @author  Mariusz Midor
  *          https://bitbucket.org/mmidor/twins
  * @note    Based on Python script : https://wiki.bash-hackers.org/scripting/terminalcodes
+ *          constexpr sorted array based on @stryku example:
+ *              https://stackoverflow.com/questions/19559808/constexpr-initialization-of-array-to-sort-contents
+ *          and https://ideone.com/CeeJUy
  *****************************************************************************/
 
 #include "twins_common.hpp"
 
 #include <stdint.h>
 #include <string.h>
+#include <utility> // std::move
+// #include <stdio.h>
 
 // -----------------------------------------------------------------------------
 
@@ -50,7 +55,70 @@ struct CtrlMap
 
 // -----------------------------------------------------------------------------
 
-const SeqMap esc_keys_map[] =
+/// @brief contexpr array template
+template <typename T, unsigned N>
+struct CexArray
+{
+    constexpr       T& operator[](unsigned i)       { return arr[i]; }
+    constexpr const T& operator[](unsigned i) const { return arr[i]; }
+    constexpr const T* begin()                const { return arr; }
+    constexpr const T* end()                  const { return arr + N; }
+    constexpr unsigned size()                 const { return N; }
+
+    T arr[N];
+};
+
+/// @brief contexpr comparison operator needed for sort function
+constexpr bool operator <(const SeqMap &left, const SeqMap &right)
+{
+    const char *pl = left.seq;
+    const char *pr = right.seq;
+
+    while (*pl == *pr)
+        pl++, pr++;
+    return *pl < *pr;
+}
+
+/// @brief contexpr swap
+template<class T>
+constexpr void cex_swap(T& l, T& r)
+{
+    T tmp = std::move(l);
+    l = std::move(r);
+    r = std::move(tmp);
+}
+
+/// @brief contexpr sort
+template <typename T, unsigned N>
+constexpr void cex_sort_impl(CexArray<T, N> &array, unsigned left, unsigned right)
+{
+    if (left < right)
+    {
+        unsigned m = left;
+
+        for (unsigned i = left + 1; i < right; i++)
+            if (array[i] < array[left])
+                cex_swap(array[++m], array[i]);
+
+        cex_swap(array[left], array[m]);
+
+        cex_sort_impl(array, left, m);
+        cex_sort_impl(array, m + 1, right);
+    }
+}
+
+/// @brief returns contexpr sorted array
+template <typename T, unsigned N>
+constexpr CexArray<T, N> cex_sort_arr(CexArray<T, N> array)
+{
+    auto sorted = array;
+    cex_sort_impl(sorted, 0, N);
+    return sorted;
+}
+
+// -----------------------------------------------------------------------------
+
+constexpr CexArray<SeqMap, 151> esc_keys_map_unsorted
 {
     KEY_DEF("[A",       "Up",           Key::Up,        KEY_MOD_SPECIAL)   // xterm
     KEY_DEF("[B",       "Down",         Key::Down,      KEY_MOD_SPECIAL)   // xterm
@@ -173,6 +241,18 @@ const SeqMap esc_keys_map[] =
     KEY_DEF("[21;6~",   "S-C-F10",      Key::F10,       KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
     KEY_DEF("[23;6~",   "S-C-F11",      Key::F11,       KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
     KEY_DEF("[24;6~",   "S-C-F12",      Key::F12,       KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[23^",     "S-C-F1",       Key::F1,        KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[24^",     "S-C-F2",       Key::F2,        KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[25^",     "S-C-F3",       Key::F3,        KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[26^",     "S-C-F4",       Key::F4,        KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[28^",     "S-C-F5",       Key::F5,        KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[29^",     "S-C-F6",       Key::F6,        KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[31^",     "S-C-F7",       Key::F7,        KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[32^",     "S-C-F8",       Key::F8,        KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[33^",     "S-C-F9",       Key::F9,        KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[34^",     "S-C-F10",      Key::F10,       KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[23@",     "S-C-F11",      Key::F11,       KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
+    KEY_DEF("[24@",     "S-C-F12",      Key::F12,       KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL)
     // + Ctrl + Alt
     KEY_DEF("[1;7A",    "C-M-Up",       Key::Up,        KEY_MOD_SPECIAL | KEY_MOD_CTRL | KEY_MOD_ALT)
     KEY_DEF("[1;7B",    "C-M-Down",     Key::Down,      KEY_MOD_SPECIAL | KEY_MOD_CTRL | KEY_MOD_ALT)
@@ -198,6 +278,9 @@ const SeqMap esc_keys_map[] =
     KEY_DEF("[24;7~",   "C-M-F12",      Key::F12,       KEY_MOD_SPECIAL | KEY_MOD_CTRL | KEY_MOD_ALT)
     // + Shift + Alt
 };
+
+constexpr auto esc_keys_map_sorted = cex_sort_arr(esc_keys_map_unsorted);
+
 
 const CtrlMap ctrl_keys_map[] =
 {
@@ -230,6 +313,7 @@ const CtrlMap ctrl_keys_map[] =
     KEY_DEF(0x1A, "C-Z", 'Z', KEY_MOD_CTRL)
 };
 
+
 const CtrlMap ansi_map[] =
 {
     KEY_DEF((char)Ansi::BS,   "Backspace",    Key::Backspace, KEY_MOD_SPECIAL)
@@ -240,30 +324,67 @@ const CtrlMap ansi_map[] =
 };
 
 // -----------------------------------------------------------------------------
+#define ESC_CURSOR_HOME "\033[H"
+
+/**
+ * @brief fast binary search of key-sequence \p seq in sorted \p map
+ * @return pointer if found, nullptr otherwise
+ */
+static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned mapsize)
+{
+    if (!seq || !*seq || !mapsize)
+        return nullptr;
+
+    short lo = 0;
+    short hi = mapsize - 1;
+    short mid = (hi - lo) / 2;
+    //short steps = 1;
+
+    do
+    {
+        int compare = strcmp(seq, map[mid].seq);
+
+        if (compare == 0)
+        {
+            //printf("%s binar.found in %u steps\n", ESC_CURSOR_HOME, steps);
+            return &map[mid];
+        }
+        else if (compare > 0)
+            lo = mid + 1;
+        else
+            hi = mid - 1;
+
+        mid = lo + ((hi - lo) / 2);
+        //steps++;
+    }
+    while (hi >= lo);
+
+    // seq not found
+    return nullptr;
+}
 
 void decodeInputSeq(AnsiSequence &input, KeyCode &output)
 {
     output = {};
 
-    // anything there?
     if (input.len == 0)
         return;
 
-    // single character: letter, special or control key
+    // single byte: char, special or control key
     if (input.len == 1)
     {
         const char c0 = input.data[0];
 
         // check for ansi key
         // note: it conflicts with ctrl_keys_map[] but has higher priority
-        for (const auto &km : ansi_map)
+        for (const auto &key : ansi_map)
         {
-            if (c0 == km.c)
+            if (c0 == key.c)
             {
-                output.key = km.key;
-                output.mod_all = km.mod;
+                output.key = key.key;
+                output.mod_all = key.mod;
                 #if TWINS_USE_KEY_NAMES
-                output.name = km.name;
+                output.name = key.name;
                 #endif
                 return;
             }
@@ -271,15 +392,15 @@ void decodeInputSeq(AnsiSequence &input, KeyCode &output)
 
 
         // check for one of Ctrl+[A..Z]
-        for (const auto &km : ctrl_keys_map)
+        for (const auto &key : ctrl_keys_map)
         {
-            if (c0 == km.c)
+            if (c0 == key.c)
             {
-                output.utf8[0] = (char)km.key;
+                output.utf8[0] = (char)key.key;
                 output.utf8[1] = '\0';
-                output.mod_all = km.mod;
+                output.mod_all = key.mod;
                 #if TWINS_USE_KEY_NAMES
-                output.name = km.name;
+                output.name = key.name;
                 #endif
                 return;
             }
@@ -289,20 +410,30 @@ void decodeInputSeq(AnsiSequence &input, KeyCode &output)
     // ANSI escape sequence
     if (input.data[0] == (char)Ansi::ESC)
     {
-        // TODO: use sorted list of keys and binary search
-        for (const auto &km : esc_keys_map)
+        // binary search: find key in max 7 steps
+        if (auto *p = binary_search(input.data+1, esc_keys_map_sorted.arr, esc_keys_map_sorted.size()))
         {
-            int cmp = strcmp(input.data + 1, km.seq);
-            if (cmp == 0)
-            {
-                output.key = km.key;
-                output.mod_all = km.mod | KEY_MOD_SPECIAL;
-                #if TWINS_USE_KEY_NAMES
-                output.name = km.name;
-                #endif
-                break;
-            }
+            output.key = p->key;
+            output.mod_all = p->mod | KEY_MOD_SPECIAL;
+            #if TWINS_USE_KEY_NAMES
+            output.name = p->name;
+            #endif
         }
+
+        // old, linear search:
+        // for (const auto &km : esc_keys_map_sorted)
+        // {
+        //     int cmp = strcmp(input.data + 1, km.seq);
+        //     if (cmp == 0)
+        //     {
+        //         output.key = km.key;
+        //         output.mod_all = km.mod | KEY_MOD_SPECIAL;
+        //         #if TWINS_USE_KEY_NAMES
+        //         output.name = km.name;
+        //         #endif
+        //         break;
+        //     }
+        // }
 
         if (!output.name) output.name = "<?>";
     }
