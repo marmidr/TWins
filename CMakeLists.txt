@@ -32,16 +32,25 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g")
 
 # https://medium.com/@alasher/colored-c-compiler-output-with-ninja-clang-gcc-10bfe7f2b949
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-   add_compile_options (-fdiagnostics-color=always)
+    add_compile_options (-fdiagnostics-color=always)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-   add_compile_options (-fcolor-diagnostics)
+    add_compile_options (-fcolor-diagnostics)
 endif ()
 
-# add subdirectories recursively
+#
+option(TWINS_BUILD_UT "Build TWins Unit Tests" ON)
+
+if (${TWINS_BUILD_UT})
+    # enable CTest
+    enable_testing()
+    add_subdirectory(extern/googletest)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+endif()
+
 add_subdirectory(lib)
 
 option(TWINS_BUILD_DEMO "Build TWins Demo app" OFF)
 
 if (${TWINS_BUILD_DEMO})
-   add_subdirectory(demo)
+    add_subdirectory(demo)
 endif()

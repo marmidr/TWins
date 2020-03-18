@@ -4,17 +4,20 @@
  *          https://bitbucket.org/mmidor/twins
  *****************************************************************************/
 
-#include "twins.hpp"
+#include "gtest/gtest.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-// -----------------------------------------------------------------------------
+#include <vector>
+#include <string>
 
 // -----------------------------------------------------------------------------
 
-int main()
+int main(int argc, char **argv)
 {
+    std::vector<char*> vargs(argv, argv+argc);
+    auto arg1 = std::string("--gtest_color=yes");
+    vargs.push_back((char*)arg1.c_str());
+    argc = vargs.size();
 
+    testing::InitGoogleTest(&argc, vargs.data());
+    return RUN_ALL_TESTS();
 }

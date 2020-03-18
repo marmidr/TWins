@@ -366,6 +366,7 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
 void decodeInputSeq(AnsiSequence &input, KeyCode &output)
 {
     output = {};
+    output.name = "<?>";
 
     if (input.len == 0)
         return;
@@ -434,8 +435,6 @@ void decodeInputSeq(AnsiSequence &input, KeyCode &output)
         //         break;
         //     }
         // }
-
-        if (!output.name) output.name = "<?>";
     }
     else
     {

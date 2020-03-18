@@ -20,8 +20,8 @@ namespace twins
 
 String::~String()
 {
-    pIOs->mfree(mpBuff);
-    mpBuff = nullptr;
+    if (mpBuff)
+        pIOs->mfree(mpBuff);
 }
 
 void String::append(const char *s)
@@ -141,6 +141,8 @@ void String::operator=(String &&other)
     mpBuff    = other.mpBuff;
     mCapacity = other.mCapacity;
     mSize     = other.mSize;
+
+    other.mpBuff = nullptr;
     other.free();
 }
 
@@ -154,24 +156,29 @@ void String::resize(uint16_t newCapacity)
     if (newCapacity < mCapacity)
         return;
 
+    newCapacity++;  // extra byte for NUL
+
     if (newCapacity - mCapacity < 32)
+    {
+        // avoid allocating every time 1-byte more
         newCapacity += 32 - (newCapacity - mCapacity);
+    }
 
     if (!mpBuff)
     {
-        mCapacity = newCapacity+1;
-        mpBuff = (char*)pIOs->malloc(mCapacity);
+        // first-time buffer allocation
+        mpBuff = (char*)pIOs->malloc(newCapacity);
+        mCapacity = newCapacity;
         *mpBuff = '\0';
+        mSize = 0;
         return;
     }
 
     if (newCapacity > mCapacity)
     {
-        char *pnew = (char*)pIOs->malloc(newCapacity+1);
-        if (pnew == mpBuff)
-            return;
-
-        mCapacity = newCapacity+1;
+        // reallocation needed
+        char *pnew = (char*)pIOs->malloc(newCapacity);
+        mCapacity = newCapacity;
         memcpy(pnew, mpBuff, mSize+1);
         pIOs->mfree(mpBuff);
         mpBuff = pnew;
@@ -180,7 +187,7 @@ void String::resize(uint16_t newCapacity)
 
 void String::free()
 {
-    pIOs->mfree(mpBuff);
+    if (mpBuff) pIOs->mfree(mpBuff);
     mpBuff = nullptr;
     mCapacity = 0;
     mSize = 0;
