@@ -25,6 +25,7 @@ struct IOs
 {
     int     (*writeStr)(const char *s);
     int     (*writeStrFmt)(const char *fmt, va_list ap);
+    void    (*flush)();
     void *  (*malloc)(uint32_t sz);
     void    (*mfree)(void *ptr);
 };

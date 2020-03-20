@@ -4,7 +4,7 @@
 #   https://bitbucket.org/mmidor/twins/
 ################################################################################
 
-set(TARGETNAME twins_ut)
+set(TARGETNAME TWinsUT)
 
 add_executable(${TARGETNAME}
     src/test_main.cpp

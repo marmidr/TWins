@@ -178,6 +178,10 @@ static const twins::IOs tios =
     {
         return vprintf(fmt, ap);
     },
+    flush : []()
+    {
+        fflush(stdout);
+    },
     malloc : [](uint32_t sz)
     {
         return malloc(sz);

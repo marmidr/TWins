@@ -52,6 +52,30 @@ Implementation is based on examples:
 - notifications
     - [ ] notify event per widget type (button clicked, checkbox toggled)
 
+## How to build
+
+Project is CMake-based and contains two targets: *TWinsDemo* and *TWinsUT*.  
+Demo is enabled by default, unit tests has to be enabled in commandline or in `ccmake`.
+
+```bash
+mkdir build && cd build
+cmake -DTWINS_BUILD_UT=ON ..
+make -j
+ctest -V
+```
+
+Run demo:
+
+```bash
+./bin/TWinsDemo
+```
+
+If you have `gcovr` installed you can generate test coverage HTML report
+
+```bash
+make cov_only
+```
+
 ---
 
 Hope I'll deal with it :)

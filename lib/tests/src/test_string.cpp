@@ -27,6 +27,10 @@ static twins::IOs ios =
     {
         return vprintf(fmt, ap);
     },
+    flush : []()
+    {
+        fflush(stdout);
+    },
     malloc : [](uint32_t sz)
     {
         ios_stat.chunks ++;
