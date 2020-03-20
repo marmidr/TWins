@@ -10,7 +10,7 @@
 
 enum WndMainIDs
 {
-    ID_INVALID,
+    ID_INVALID, // value 0 is reserved to WIDGET_ID_NONE
     ID_WND,
         ID_PGCONTROL,
             ID_PAGE_1,
@@ -36,7 +36,7 @@ enum WndMainIDs
 
 // -----------------------------------------------------------------------------
 
-extern twins::IWindowState * getWind1State();
+extern twins::IWindowState * getWindMainState();
 
 const twins::Widget pnlStateChilds[] =
 {
@@ -244,7 +244,7 @@ const twins::Widget wndMain =
         bgColor     : twins::ColorBG::Blue,
         fgColor     : twins::ColorFG::White,
         title       : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
-        getState    : getWind1State,
+        getState    : getWindMainState,
         pChildrens  : (const twins::Widget[])
         {
             {

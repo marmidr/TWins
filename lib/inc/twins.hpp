@@ -88,19 +88,19 @@ const char* encodeCl(ColorBG cl);
  */
 enum class FontAttrib : uint8_t
 {
-    None,
-    Bold,
-    Faint,
-    Italics,
-    Underline,
-    BlinkSlow,
-    Inverse,
-    Invisible,
-    StrikeThrough
+    None,           ///< normal style
+    Bold,           ///< excludes faint
+    Faint,          ///< excludes bold
+    Italics,        ///<
+    Underline,      ///<
+    BlinkSlow,      ///<
+    Inverse,        ///<
+    Invisible,      ///<
+    StrikeThrough   ///<
 };
 
 /**
- * @brief
+ * @brief Window, panel and page control frame styles
  */
 enum class FrameStyle : uint8_t
 {
@@ -110,6 +110,11 @@ enum class FrameStyle : uint8_t
     PgControl,
 };
 
+/**
+ * @brief Unique Widget-ID
+ */
+using WID = int16_t;
+
 /** @brief Forward declaration */
 struct Widget;
 
@@ -118,10 +123,19 @@ class IWindowState
 {
 public:
     virtual ~IWindowState() = default;
+    // events
     virtual bool onDraw(const Widget*) = 0;
+    virtual void onButtonClick(const twins::Widget* pWgt) = 0;
+    virtual void onEditChange(const twins::Widget* pWgt, twins::String &str) = 0;
+    virtual void onCheckboxToggle(const twins::Widget* pWgt) = 0;
+    virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) = 0;
+    virtual void onInvalidate(twins::WID id) = 0;
+    //virtual void onKey(const twins::KeyCode &key) = 0;
+    // state queries
     virtual bool isEnabled(const Widget*) = 0;
     virtual bool isFocused(const Widget*) = 0;
     virtual bool isVisible(const Widget*) = 0;
+    virtual WID& getFocusedID() = 0;
     virtual bool getCheckboxChecked(const Widget*) = 0;
     virtual void getLabelText(const Widget*, String &out) = 0;
     virtual void getEditText(const Widget*, String &out) = 0;
@@ -133,11 +147,6 @@ public:
 struct Theme
 {
 };
-
-/**
- * @brief
- */
-using WID = uint16_t;
 
 /**
  * @brief Widget structure as union of members for different types;
@@ -242,8 +251,8 @@ struct Widget
 
 };
 
-static constexpr WID WIDGET_ID_ALL = (-1);
-
+static constexpr WID WIDGET_ID_NONE = 0;    // convenient, any id by default points to nothing
+static constexpr WID WIDGET_ID_ALL = -1;
 
 // -----------------------------------------------------------------------------
 
@@ -280,6 +289,11 @@ inline void drawWidgets(const Widget *pWindow, const std::initializer_list<WID> 
 {
     drawWidgets(pWindow, ids.begin(), ids.size());
 }
+
+/**
+ * @brief Return widget type as string
+ */
+const char * toString(Widget::Type type);
 
 /**
  * @brief Foreground color stack
@@ -329,6 +343,11 @@ inline void clrScreenRestore()     { writeStr(ESC_SCREEN_RESTORE); }
  * @brief Decode given ANSI sequence and produce readable Key Code
  */
 void decodeInputSeq(AnsiSequence &input, KeyCode &output);
+
+/**
+ * @brief Process keyboard signal received by console
+ */
+void processKey(const Widget *pWindow, const KeyCode &kc);
 
 //void quit();
 

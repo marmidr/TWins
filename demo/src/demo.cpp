@@ -13,14 +13,48 @@
 
 // -----------------------------------------------------------------------------
 
-class Wnd1State : public twins::IWindowState
+class WndMainState : public twins::IWindowState
 {
 public:
+    // --- events ---
+
     bool onDraw(const twins::Widget* pWgt) override
     {
         // render default
         return false;
     }
+
+    void onButtonClick(const twins::Widget* pWgt) override
+    {
+    }
+
+    void onEditChange(const twins::Widget* pWgt, twins::String &str) override
+    {
+    }
+
+    void onCheckboxToggle(const twins::Widget* pWgt) override
+    {
+    }
+
+    void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) override
+    {
+        // change page control page id
+        if (pWgt->id == ID_PGCONTROL)
+        {
+            pgcPage = newPageIdx;
+
+            //onInvalidated() is the next call
+            //twins::drawWidget(&wndMain, ID_PGCONTROL);
+        }
+    }
+
+    void onInvalidate(twins::WID id) override
+    {
+        // state or focus changed - widget must be repainted
+        twins::drawWidget(&wndMain, id);
+    }
+
+    // --- widgets state queries ---
 
     bool isEnabled(const twins::Widget* pWgt) override
     {
@@ -35,18 +69,21 @@ public:
 
     bool isFocused(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_BTN_YES) return ledLock;
-        if (pWgt->id == ID_PGCONTROL) return true;
-        return false;
+        return pWgt->id == focusedId[pgcPage];
     }
 
     bool isVisible(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_PAGE_1) return pgctrlPage == 0;
-        if (pWgt->id == ID_PAGE_2) return pgctrlPage == 1;
-        if (pWgt->id == ID_PAGE_3) return pgctrlPage == 2;
+        if (pWgt->id == ID_PAGE_1) return pgcPage == 0;
+        if (pWgt->id == ID_PAGE_2) return pgcPage == 1;
+        if (pWgt->id == ID_PAGE_3) return pgcPage == 2;
 
         return true;
+    }
+
+    twins::WID& getFocusedID() override
+    {
+        return focusedId[pgcPage];
     }
 
     bool getCheckboxChecked(const twins::Widget* pWgt) override
@@ -109,21 +146,7 @@ public:
 
     int getPageCtrlPageIndex(const twins::Widget* pWgt) override
     {
-        if (pgctrlPage < 0)                          pgctrlPage = pWgt->pagectrl.childCount -1;
-        if (pgctrlPage >= pWgt->pagectrl.childCount) pgctrlPage = 0;
-
-        return pgctrlPage;
-    }
-
-public:
-    void pageUp()
-    {
-        pgctrlPage--;
-    }
-
-    void pageDown()
-    {
-        pgctrlPage++;
+        return pgcPage;
     }
 
 public:
@@ -135,13 +158,15 @@ private:
     bool ledLock = false;
     bool ledBatt = false;
     int  pgbarPos = 0;
-    int  pgctrlPage = 0;
+    int  pgcPage = 0;
+    // focused WID separate for each page
+    twins::WID focusedId[3] {};
 };
 
 // -----------------------------------------------------------------------------
 
-static Wnd1State wnd1State;
-twins::IWindowState * getWind1State() { return &wnd1State; }
+static WndMainState wndMainState;
+twins::IWindowState * getWindMainState() { return &wndMainState; }
 
 static const twins::IOs tios =
 {
@@ -191,22 +216,14 @@ int main()
         {
             twins::KeyCode key_decoded;
             twins::decodeInputSeq(ansi_seq, key_decoded);
+            twins::processKey(&wndMain, key_decoded);
 
-            strncpy(wnd1State.lblKeycodeSeq, ansi_seq.data, sizeof(wnd1State.lblKeycodeSeq));
-            wnd1State.lblKeyName = key_decoded.name;
+            // display key code
+            strncpy(wndMainState.lblKeycodeSeq, ansi_seq.data, sizeof(wndMainState.lblKeycodeSeq));
+            wndMainState.lblKeyName = key_decoded.name;
             twins::drawWidgets(&wndMain, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
 
-            if (key_decoded.mod_all == KEY_MOD_SPECIAL)
-            {
-                bool pgchanged = false;
-                if (key_decoded.key == twins::Key::PgUp)
-                    wnd1State.pageUp(), pgchanged=true;
-                if (key_decoded.key == twins::Key::PgDown)
-                    wnd1State.pageDown(), pgchanged=true;
-                if (pgchanged)
-                    twins::drawWidget(&wndMain, ID_PGCONTROL);
-            }
-            else
+            if (key_decoded.mod_all != KEY_MOD_SPECIAL)
             {
                 twins::drawWidgets(&wndMain,
                 {
