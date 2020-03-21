@@ -28,6 +28,7 @@ struct IOs
     void    (*flush)();
     void *  (*malloc)(uint32_t sz);
     void    (*mfree)(void *ptr);
+    uint16_t(*getLogsRow)();
 };
 
 // pointer set by init()
@@ -144,10 +145,10 @@ struct KeyCode
         uint8_t mod_all;    // KEY_MOD_CTRL | KEY_MOD_SHIFT
         struct
         {
-            uint8_t ctrl  : 1;
-            uint8_t alt   : 1;
-            uint8_t shift : 1;
-            uint8_t spec  : 1;
+            uint8_t m_ctrl  : 1; // KEY_MOD_CTRL
+            uint8_t m_alt   : 1; // KEY_MOD_ALT
+            uint8_t m_shift : 1; // KEY_MOD_SHIFT
+            uint8_t m_spec  : 1; // KEY_MOD_SPECIAL
         };
     };
 

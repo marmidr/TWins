@@ -13,6 +13,10 @@
 
 // -----------------------------------------------------------------------------
 
+#define TWINS_LOG(...)   twins::log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
+
+// -----------------------------------------------------------------------------
+
 namespace twins
 {
 
@@ -124,13 +128,10 @@ class IWindowState
 public:
     virtual ~IWindowState() = default;
     // events
-    virtual bool onDraw(const Widget*) = 0;
     virtual void onButtonClick(const twins::Widget* pWgt) = 0;
     virtual void onEditChange(const twins::Widget* pWgt, twins::String &str) = 0;
     virtual void onCheckboxToggle(const twins::Widget* pWgt) = 0;
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) = 0;
-    virtual void onInvalidate(twins::WID id) = 0;
-    //virtual void onKey(const twins::KeyCode &key) = 0;
     // state queries
     virtual bool isEnabled(const Widget*) = 0;
     virtual bool isFocused(const Widget*) = 0;
@@ -142,6 +143,8 @@ public:
     virtual bool getLedLit(const Widget*) = 0;
     virtual void getProgressBarNfo(const Widget*, int &pos, int &max) = 0;
     virtual int  getPageCtrlPageIndex(const Widget*) = 0;
+    // requests
+    virtual void invalidate(twins::WID id) = 0;
 };
 
 struct Theme
@@ -166,7 +169,8 @@ struct Widget
         Led,
         PageCtrl,
         Page,
-        ProgressBar
+        ProgressBar,
+        DropDownList,
     };
 
     Type    type = {};
@@ -247,6 +251,11 @@ struct Widget
         {
 
         } progressbar;
+
+        struct
+        {
+
+        } dropdownlist;
     };
 
 };
@@ -260,6 +269,11 @@ static constexpr WID WIDGET_ID_ALL = -1;
  * @brief Initialize TWins
  */
 void init(const IOs *ios);
+
+/**
+ *
+ */
+void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
 
 /**
  * @brief Write char or string to the output

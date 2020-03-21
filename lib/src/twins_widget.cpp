@@ -31,11 +31,9 @@ static struct
 
 // -----------------------------------------------------------------------------
 
-#define LOG(...)   log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
-
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
 {
-    uint16_t row = g.pWnd ? g.pWnd->coord.row + g.pWnd->size.height + 1 : 0;
+    uint16_t row = pIOs->getLogsRow();
     moveTo(1, row);
     writeStr("\033[1L"); // insert line
 
@@ -516,6 +514,20 @@ static bool findWidget(const Widget widgets[], const uint16_t widgetsCount, Widg
     return false;
 }
 
+static const Widget* findWidget(const WID widgetId)
+{
+    if (!g.pWnd || widgetId == WIDGET_ID_NONE)
+        return nullptr;
+
+    WidgetSearchStruct wss { searchedID : widgetId };
+
+    // search window for widget by it's Id
+    if (findWidget(g.pWnd, 1, wss))
+        return wss.pWidget;
+
+    return nullptr;
+}
+
 static ColorBG getWidgetBgColor(const Widget *pWgt)
 {
     if (pWgt)
@@ -594,34 +606,34 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
             if (idx >= 0 && idx < pParent->pagectrl.childCount)
             {
                 pParent = &pParent->pagectrl.pChildrens[idx];
-                LOG("search pgctrl page %d", idx);
+                //TWINS_LOG("search pgctrl page %d", idx);
                 p_childs =  pParent->page.pChildrens;
                 child_cnt = pParent->page.childCount;
             }
         }
         break;
     default:
-        LOG("not parent widget");
+        TWINS_LOG("-E- no-parent widget");
         return nullptr;
     }
 
 
     if (focusedID == WIDGET_ID_NONE)
     {
-        LOG("Search * in %s items[%d]", toString(pParent->type), child_cnt);
+        //TWINS_LOG("Search * in %s items[%d]", toString(pParent->type), child_cnt);
 
         // give me first focusable
         for (uint16_t i = 0; i < child_cnt; i++)
         {
             const auto *p_wgt = &p_childs[i];
-            LOG("  %s(%d)", toString(p_wgt->type), p_wgt->id);
+            //TWINS_LOG("  %s(%d)", toString(p_wgt->type), p_wgt->id);
 
             if (isFocusable(p_wgt))
                 return p_wgt;
 
             if (isParent(p_wgt))
             {
-                LOG("Search parent %s(%d)", toString(p_wgt->type), p_wgt->id);
+                //TWINS_LOG("Search parent %s(%d)", toString(p_wgt->type), p_wgt->id);
                 if ((p_wgt = getNextFocusable(p_wgt, focusedID)))
                     return p_wgt;
             }
@@ -638,7 +650,7 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
 
         if (p_wgt)
         {
-            LOG("Search in %s childs[%d]", toString(pParent->type), child_cnt);
+            //TWINS_LOG("Search in %s childs[%d]", toString(pParent->type), child_cnt);
 
             // iterate until focusable found
             for (uint16_t i = 0; i < child_cnt; i++)
@@ -646,14 +658,14 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
                 if (p_wgt == p_childs + child_cnt)
                     p_wgt = p_childs;
 
-                LOG("  %s(%d)", toString(p_wgt->type), p_wgt->id);
+                //TWINS_LOG("  %s(%d)", toString(p_wgt->type), p_wgt->id);
 
                 if (isFocusable(p_wgt))
                     return p_wgt;
 
                 if (isParent(p_wgt))
                 {
-                    LOG("Search parent %s(%d)", toString(p_wgt->type), p_wgt->id);
+                    //TWINS_LOG("Search parent %s(%d)", toString(p_wgt->type), p_wgt->id);
                     if (const auto *p = getNextFocusable(p_wgt, focusedID))
                         return p;
                 }
@@ -674,20 +686,20 @@ static WID focusNext(const Widget *pWindow, const WID focusedID)
     // search window for widget by it's Id
     if (!findWidget(pWindow, 1, wss))
     {
-        LOG("findWidget() failed");
+        //TWINS_LOG("findWidget() failed");
         wss.pParent = pWindow;
     }
 
-    LOG("wgt %d parent %s(%d)", wss.searchedID, toString(wss.pParent->type), wss.pParent->id);
+    //TWINS_LOG("wgt %d parent %s(%d)", wss.searchedID, toString(wss.pParent->type), wss.pParent->id);
 
     // use the parent to get next widget
-    if (auto *pSibling = getNextFocusable(wss.pParent, focusedID))
+    if (auto *p_next = getNextFocusable(wss.pParent, focusedID))
     {
-        LOG("found sibling %d", pSibling->id);
-        return pSibling->id;
+        //TWINS_LOG("found %d", p_next->id);
+        return p_next->id;
     }
 
-    LOG("ret WIDGET_ID_NONE");
+    //TWINS_LOG("ret WIDGET_ID_NONE");
     return WIDGET_ID_NONE;
 }
 
@@ -705,17 +717,20 @@ static WID focusParent(const Widget *pWindow, WID focusedID)
     if (findWidget(pWindow, 1, wss))
     {
         if (wss.pParent)
-        {
-            LOG("ret nfo.pParent->id=%d", wss.pParent->id);
             return wss.pParent->id;
-        }
 
-        LOG("ret pWindow->id=%d", pWindow->id);
         return pWindow->id;
     }
 
-    LOG("ret WIDGET_ID_NONE");
+    //TWINS_LOG("ret WIDGET_ID_NONE");
     return WIDGET_ID_NONE;
+}
+
+static void processEditKey(const Widget *pEdit, const KeyCode &kc)
+{
+    // TODO: implement
+    g.pWndState->onEditChange(pEdit, g.str);
+    g.pWndState->invalidate(pEdit->id);
 }
 
 // -----------------------------------------------------------------------------
@@ -802,26 +817,28 @@ void processKey(const Widget *pWindow, const KeyCode &kc)
     g.pWndState = pWindow->window.getState();
     assert(g.pWndState);
 
-    LOG("---");
+    //TWINS_LOG("---");
 
-    if (kc.spec)
+    if (kc.m_spec)
     {
         switch (kc.key)
         {
         case Key::Esc:
         {
-            // TODO:if edit mode - exit
-            // else - focus parent control
             auto &curr_id = g.pWndState->getFocusedID();
+            const Widget* p_wgt = findWidget(curr_id);
+            if (p_wgt && p_wgt->type == Widget::Edit)
+                processEditKey(p_wgt, kc);
+
             auto new_id = focusParent(pWindow, curr_id);
-            LOG("ESC: %d -> %d", curr_id, new_id);
+            //TWINS_LOG("ESC: %d -> %d", curr_id, new_id);
 
             if (new_id != curr_id)
             {
                 auto prev_id = curr_id;
                 curr_id = new_id;
-                g.pWndState->onInvalidate(prev_id);
-                g.pWndState->onInvalidate(new_id);
+                g.pWndState->invalidate(prev_id);
+                g.pWndState->invalidate(new_id);
             }
             break;
         }
@@ -830,14 +847,14 @@ void processKey(const Widget *pWindow, const KeyCode &kc)
             // TODO: if in edit mode - cancel
             auto &curr_id = g.pWndState->getFocusedID();
             auto new_id = focusNext(pWindow, curr_id);
-            LOG("TAB: %d -> %d", curr_id, new_id);
+            //TWINS_LOG("TAB: %d -> %d", curr_id, new_id);
 
             if (new_id != curr_id)
             {
                 auto prev_id = curr_id;
                 curr_id = new_id;
-                g.pWndState->onInvalidate(prev_id);
-                g.pWndState->onInvalidate(new_id);
+                g.pWndState->invalidate(prev_id);
+                g.pWndState->invalidate(new_id);
             }
             break;
         }
@@ -857,18 +874,78 @@ void processKey(const Widget *pWindow, const KeyCode &kc)
                     if (idx < 0)                           idx = p_wgt->pagectrl.childCount -1;
                     if (idx >= p_wgt->pagectrl.childCount) idx = 0;
 
-                    LOG("PG.UP/DWN: newPage%d", idx);
+                    //TWINS_LOG("PG.UP/DWN: newPage%d", idx);
                     g.pWndState->onPageControlPageChange(p_wgt, idx);
-                    g.pWndState->onInvalidate(p_wgt->id);
+                    g.pWndState->invalidate(p_wgt->id);
                 }
             }
         }
         case Key::Enter:
         {
+            auto curr_id = g.pWndState->getFocusedID();
+            if (const Widget* p_wgt = findWidget(curr_id))
+            {
+                switch (p_wgt->type)
+                {
+                case Widget::Edit:
+                    processEditKey(p_wgt, kc);
+                    break;
+                case Widget::CheckBox:
+                    g.pWndState->onCheckboxToggle(p_wgt);
+                    g.pWndState->invalidate(p_wgt->id);
+                    break;
+                case Widget::Button:
+                    g.pWndState->onButtonClick(p_wgt);
+                    g.pWndState->invalidate(p_wgt->id);
+                    break;
+                default:
+                    break;
+                }
+            }
+            break;
+        }
+        case Key::Backspace:
+        case Key::Delete:
+        case Key::Left:
+        case Key::Right:
+        case Key::Home:
+        case Key::End:
+        {
+            auto curr_id = g.pWndState->getFocusedID();
+            const Widget* p_wgt = findWidget(curr_id);
+            if (p_wgt && p_wgt->type == Widget::Edit)
+                processEditKey(p_wgt, kc);
             break;
         }
         default:
             break;
+        }
+    }
+    else if (kc.mod_all == KEY_MOD_NONE)
+    {
+        auto curr_id = g.pWndState->getFocusedID();
+        if (const Widget* p_wgt = findWidget(curr_id))
+        {
+            if (kc.utf8[0] == ' ')
+            {
+                switch (p_wgt->type)
+                {
+                case Widget::CheckBox:
+                    g.pWndState->onCheckboxToggle(p_wgt);
+                    g.pWndState->invalidate(p_wgt->id);
+                    break;
+                case Widget::DropDownList:
+                    // show popup-list
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            if (p_wgt->type == Widget::Edit)
+            {
+                processEditKey(p_wgt, kc);
+            }
         }
     }
 }

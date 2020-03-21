@@ -18,40 +18,27 @@ class WndMainState : public twins::IWindowState
 public:
     // --- events ---
 
-    bool onDraw(const twins::Widget* pWgt) override
-    {
-        // render default
-        return false;
-    }
-
     void onButtonClick(const twins::Widget* pWgt) override
     {
+        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
+        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
+        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("BTN_CANCEL");
     }
 
     void onEditChange(const twins::Widget* pWgt, twins::String &str) override
     {
+        TWINS_LOG("value:%s", str.cstr());
     }
 
     void onCheckboxToggle(const twins::Widget* pWgt) override
     {
+        if (pWgt->id == ID_CHBX_ENBL) TWINS_LOG("CHBX_ENBL"), chbxEnabled = !chbxEnabled;
+        if (pWgt->id == ID_CHBX_LOCK) TWINS_LOG("CHBX_LOCK"), chbxLocked = !chbxLocked;
     }
 
     void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) override
     {
-        // change page control page id
-        if (pWgt->id == ID_PGCONTROL)
-        {
-            pgcPage = newPageIdx;
-
-            //onInvalidated() is the next call
-            //twins::drawWidget(&wndMain, ID_PGCONTROL);
-        }
-    }
-
-    void onInvalidate(twins::WID id) override
-    {
-        // state or focus changed - widget must be repainted
-        twins::drawWidget(&wndMain, id);
+        if (pWgt->id == ID_PGCONTROL) pgcPage = newPageIdx;
     }
 
     // --- widgets state queries ---
@@ -88,7 +75,9 @@ public:
 
     bool getCheckboxChecked(const twins::Widget* pWgt) override
     {
-        return ledBatt;
+        if (pWgt->id == ID_CHBX_ENBL) return chbxEnabled;
+        if (pWgt->id == ID_CHBX_LOCK) return chbxLocked;
+        return false;
     }
 
     void getLabelText(const twins::Widget* pWgt, twins::String &out) override
@@ -149,6 +138,15 @@ public:
         return pgcPage;
     }
 
+    // --- requests ---
+
+    void invalidate(twins::WID id) override
+    {
+        // state or focus changed - widget must be repainted
+        // note: drawing here is lazy solution
+        twins::drawWidget(&wndMain, id);
+    }
+
 public:
     char lblKeycodeSeq[8];
     const char *lblKeyName = "";
@@ -157,6 +155,8 @@ private:
     bool pnlVerEnabled = false;
     bool ledLock = false;
     bool ledBatt = false;
+    bool chbxEnabled = false;
+    bool chbxLocked = true;
     int  pgbarPos = 0;
     int  pgcPage = 0;
     // focused WID separate for each page
@@ -189,6 +189,10 @@ static const twins::IOs tios =
     mfree : [](void *ptr)
     {
         free(ptr);
+    },
+    getLogsRow : []() -> uint16_t
+    {
+        return wndMain.coord.row + wndMain.size.height + 1;
     }
 };
 
@@ -201,10 +205,8 @@ int main()
     // printf("Win1 controls: %u" "\n", wndMain.window.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
 
-    puts(ESC_CURSOR_HOME);
-    puts(ESC_SCREEN_ERASE_ALL);
-
     twins::init(&tios);
+    twins::clrScreenAll();
     twins::drawWidget(&wndMain);
     twins::inputPosixInit(500);
     fflush(stdout);
@@ -231,8 +233,7 @@ int main()
             {
                 twins::drawWidgets(&wndMain,
                 {
-                    ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_CHBX_ENBL, ID_PRGBAR_1,
-                    ID_PANEL_VERSIONS, ID_BTN_YES
+                    ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
                 });
             }
         }
