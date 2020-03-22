@@ -6,6 +6,7 @@
 
 #include "demo_wnd.hpp"
 #include "twins.hpp"
+#include "twins_ringbuffer.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,14 +14,35 @@
 
 // -----------------------------------------------------------------------------
 
-class Wnd1State : public twins::IWindowState
+class WndMainState : public twins::IWindowState
 {
 public:
-    bool onDraw(const twins::Widget* pWgt) override
+    // --- events ---
+
+    void onButtonClick(const twins::Widget* pWgt) override
     {
-        // render default
-        return false;
+        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
+        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
+        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("BTN_CANCEL");
     }
+
+    void onEditChange(const twins::Widget* pWgt, twins::String &str) override
+    {
+        TWINS_LOG("value:%s", str.cstr());
+    }
+
+    void onCheckboxToggle(const twins::Widget* pWgt) override
+    {
+        if (pWgt->id == ID_CHBX_ENBL) TWINS_LOG("CHBX_ENBL"), chbxEnabled = !chbxEnabled;
+        if (pWgt->id == ID_CHBX_LOCK) TWINS_LOG("CHBX_LOCK"), chbxLocked = !chbxLocked;
+    }
+
+    void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) override
+    {
+        if (pWgt->id == ID_PGCONTROL) pgcPage = newPageIdx;
+    }
+
+    // --- widgets state queries ---
 
     bool isEnabled(const twins::Widget* pWgt) override
     {
@@ -35,23 +57,28 @@ public:
 
     bool isFocused(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_BTN_YES) return ledLock;
-        if (pWgt->id == ID_PGCONTROL) return true;
-        return false;
+        return pWgt->id == focusedId[pgcPage];
     }
 
     bool isVisible(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_PAGE_1) return pgctrlPage == 0;
-        if (pWgt->id == ID_PAGE_2) return pgctrlPage == 1;
-        if (pWgt->id == ID_PAGE_3) return pgctrlPage == 2;
+        if (pWgt->id == ID_PAGE_1) return pgcPage == 0;
+        if (pWgt->id == ID_PAGE_2) return pgcPage == 1;
+        if (pWgt->id == ID_PAGE_3) return pgcPage == 2;
 
         return true;
     }
 
+    twins::WID& getFocusedID() override
+    {
+        return focusedId[pgcPage];
+    }
+
     bool getCheckboxChecked(const twins::Widget* pWgt) override
     {
-        return ledBatt;
+        if (pWgt->id == ID_CHBX_ENBL) return chbxEnabled;
+        if (pWgt->id == ID_CHBX_LOCK) return chbxLocked;
+        return false;
     }
 
     void getLabelText(const twins::Widget* pWgt, twins::String &out) override
@@ -109,39 +136,39 @@ public:
 
     int getPageCtrlPageIndex(const twins::Widget* pWgt) override
     {
-        if (pgctrlPage < 0)                          pgctrlPage = pWgt->pagectrl.childCount -1;
-        if (pgctrlPage >= pWgt->pagectrl.childCount) pgctrlPage = 0;
+        return pgcPage;
+    }
 
-        return pgctrlPage;
+    // --- requests ---
+
+    void invalidate(twins::WID id) override
+    {
+        // state or focus changed - widget must be repainted
+        // note: drawing here is lazy solution
+        twins::drawWidget(&wndMain, id);
     }
 
 public:
-    void pageUp()
-    {
-        pgctrlPage--;
-    }
-
-    void pageDown()
-    {
-        pgctrlPage++;
-    }
-
-public:
-    char lblKeycodeSeq[8];
+    char lblKeycodeSeq[10];
     const char *lblKeyName = "";
 
 private:
     bool pnlVerEnabled = false;
     bool ledLock = false;
     bool ledBatt = false;
+    bool chbxEnabled = false;
+    bool chbxLocked = true;
     int  pgbarPos = 0;
-    int  pgctrlPage = 0;
+    int  pgcPage = 0;
+    // focused WID separate for each page
+    twins::WID focusedId[3] {};
 };
 
 // -----------------------------------------------------------------------------
 
-static Wnd1State wnd1State;
-twins::IWindowState * getWind1State() { return &wnd1State; }
+static WndMainState wndMainState;
+twins::IWindowState * getWindMainState() { return &wndMainState; }
+twins::RingBuff<char> rbKeybInput;
 
 static const twins::IOs tios =
 {
@@ -153,6 +180,10 @@ static const twins::IOs tios =
     {
         return vprintf(fmt, ap);
     },
+    flush : []()
+    {
+        fflush(stdout);
+    },
     malloc : [](uint32_t sz)
     {
         return malloc(sz);
@@ -160,6 +191,10 @@ static const twins::IOs tios =
     mfree : [](void *ptr)
     {
         free(ptr);
+    },
+    getLogsRow : []() -> uint16_t
+    {
+        return wndMain.coord.row + wndMain.size.height + 1;
     }
 };
 
@@ -172,47 +207,51 @@ int main()
     // printf("Win1 controls: %u" "\n", wndMain.window.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
 
-    puts(ESC_CURSOR_HOME);
-    puts(ESC_SCREEN_ERASE_ALL);
-
     twins::init(&tios);
+    twins::clrScreenAll();
     twins::drawWidget(&wndMain);
-    twins::inputPosixInit(500);
+    twins::inputPosixInit(100);
+    rbKeybInput.init(20);
     fflush(stdout);
 
     for (;;)
     {
         bool quit_req = false;
-        twins::AnsiSequence ansi_seq;
-        twins::inputPosixRead(ansi_seq, quit_req);
+        const char *posix_inp = twins::inputPosixRead(quit_req);
         if (quit_req) break;
+        rbKeybInput.write(posix_inp);
 
-        if (ansi_seq.len)
+        if (rbKeybInput.size())
         {
-            twins::KeyCode key_decoded;
-            twins::decodeInputSeq(ansi_seq, key_decoded);
+            TWINS_LOG("decode");
+            // display input buffer
+            memset(wndMainState.lblKeycodeSeq, 0, sizeof(wndMainState.lblKeycodeSeq));
+            rbKeybInput.copy(wndMainState.lblKeycodeSeq, sizeof(wndMainState.lblKeycodeSeq)-1);
+            wndMainState.lblKeycodeSeq[sizeof(wndMainState.lblKeycodeSeq)-1] = '\0';
 
-            strncpy(wnd1State.lblKeycodeSeq, ansi_seq.data, sizeof(wnd1State.lblKeycodeSeq));
-            wnd1State.lblKeyName = key_decoded.name;
-            twins::drawWidgets(&wndMain, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+            twins::KeyCode kc;
+            twins::decodeInputSeq(rbKeybInput, kc);
+            twins::processKey(&wndMain, kc);
 
-            if (key_decoded.mod_all == KEY_MOD_SPECIAL)
+            // display decoded key
+            wndMainState.lblKeyName = kc.name;
+
+            if (kc.m_spec && kc.key == twins::Key::F5)
             {
-                bool pgchanged = false;
-                if (key_decoded.key == twins::Key::PgUp)
-                    wnd1State.pageUp(), pgchanged=true;
-                if (key_decoded.key == twins::Key::PgDown)
-                    wnd1State.pageDown(), pgchanged=true;
-                if (pgchanged)
-                    twins::drawWidget(&wndMain, ID_PGCONTROL);
+                twins::clrScreenAll();
+                twins::drawWidget(&wndMain);
             }
             else
             {
-                twins::drawWidgets(&wndMain,
+                twins::drawWidgets(&wndMain, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+
+                if (kc.mod_all != KEY_MOD_SPECIAL)
                 {
-                    ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_CHBX_ENBL, ID_PRGBAR_1,
-                    ID_PANEL_VERSIONS, ID_BTN_YES
-                });
+                    twins::drawWidgets(&wndMain,
+                    {
+                        ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
+                    });
+                }
             }
         }
 

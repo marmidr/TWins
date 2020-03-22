@@ -25,23 +25,14 @@ struct IOs
 {
     int     (*writeStr)(const char *s);
     int     (*writeStrFmt)(const char *fmt, va_list ap);
+    void    (*flush)();
     void *  (*malloc)(uint32_t sz);
     void    (*mfree)(void *ptr);
+    uint16_t(*getLogsRow)();
 };
 
 // pointer set by init()
 extern const IOs *pIOs;
-
-/**
- * @brief RAW terminal keyboard keys sequence
- */
-struct AnsiSequence
-{
-    /** ANSI key sequence, up to 8 characters, NUL terminated */
-    char    data[9];  // 'A', '\x1B[A~', u8'Ź'
-    /** sequence length */
-    uint8_t len;
-};
 
 /**
  * @brief ANSI codes
@@ -134,23 +125,23 @@ struct KeyCode
 {
     union
     {
-        char    utf8[5];// UTF-8 code: 'a', '4', 'Ł'
-        Key     key;    // 'F1', 'Enter'
+        char    utf8[5];    // UTF-8 code: 'a', '4', 'Ł'
+        Key     key = {};   // 'F1', 'Enter'
     };
 
     union
     {
-        uint8_t mod_all;    // KEY_MOD_CTRL | KEY_MOD_SHIFT
+        uint8_t mod_all = 0;    // KEY_MOD_CTRL | KEY_MOD_SHIFT
         struct
         {
-            uint8_t ctrl  : 1;
-            uint8_t alt   : 1;
-            uint8_t shift : 1;
-            uint8_t spec  : 1;
+            uint8_t m_ctrl  : 1; // KEY_MOD_CTRL
+            uint8_t m_alt   : 1; // KEY_MOD_ALT
+            uint8_t m_shift : 1; // KEY_MOD_SHIFT
+            uint8_t m_spec  : 1; // KEY_MOD_SPECIAL
         };
     };
 
-    const char *name;
+    const char *name = nullptr;
 };
 
 // -----------------------------------------------------------------------------

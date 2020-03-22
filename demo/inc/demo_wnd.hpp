@@ -10,7 +10,7 @@
 
 enum WndMainIDs
 {
-    ID_INVALID,
+    ID_INVALID, // value 0 is reserved to WIDGET_ID_NONE
     ID_WND,
         ID_PGCONTROL,
             ID_PAGE_1,
@@ -26,6 +26,7 @@ enum WndMainIDs
                     ID_LABEL_KEYSEQ,
                     ID_LABEL_KEYNAME,
                 ID_CHBX_ENBL,
+                ID_CHBX_LOCK,
                 ID_BTN_YES,
                 ID_BTN_NO,
                 ID_BTN_CANCEL,
@@ -36,7 +37,7 @@ enum WndMainIDs
 
 // -----------------------------------------------------------------------------
 
-extern twins::IWindowState * getWind1State();
+extern twins::IWindowState * getWindMainState();
 
 const twins::Widget pnlStateChilds[] =
 {
@@ -145,7 +146,7 @@ const twins::Widget page1Childs[] =
         type    : twins::Widget::Panel,
         id      : ID_PANEL_KEY,
         coord   : { 1, 7 },
-        size    : { 21, 4 },
+        size    : { 26, 4 },
         { panel : {
             bgColor     : twins::ColorBG::Cyan,
             fgColor     : twins::ColorFG::White,
@@ -156,7 +157,7 @@ const twins::Widget page1Childs[] =
                     type    : twins::Widget::Label,
                     id      : ID_LABEL_KEYSEQ,
                     coord   : { 2, 1 },
-                    size    : { 17, 1 },
+                    size    : { 22, 1 },
                     { label : {
                         bgColor : twins::ColorBG::White,
                         fgColor : twins::ColorFG::Red,
@@ -181,16 +182,25 @@ const twins::Widget page1Childs[] =
     {
         type    : twins::Widget::CheckBox,
         id      : ID_CHBX_ENBL,
-        coord   : { 30, 4 },
-        size    : { 12, 1 },
+        coord   : { 30, 5 },
+        size    : { },
         { checkbox : {
             text    : "Enable "
         }}
     },
     {
+        type    : twins::Widget::CheckBox,
+        id      : ID_CHBX_LOCK,
+        coord   : { 45, 5 },
+        size    : { },
+        { checkbox : {
+            text    : "Lock "
+        }}
+    },
+    {
         type    : twins::Widget::Button,
         id      : ID_BTN_YES,
-        coord   : { 30, 6 },
+        coord   : { 30, 7 },
         size    : {},
         { button : {
             text    : "YES",
@@ -200,7 +210,7 @@ const twins::Widget page1Childs[] =
     {
         type    : twins::Widget::Button,
         id      : ID_BTN_NO,
-        coord   : { 38, 6 },
+        coord   : { 38, 7 },
         size    : {},
         { button : {
             text    : "NO",
@@ -210,7 +220,7 @@ const twins::Widget page1Childs[] =
     {
         type    : twins::Widget::Button,
         id      : ID_BTN_CANCEL,
-        coord   : { 45, 6 },
+        coord   : { 45, 7 },
         size    : {},
         { button : {
             text    : "CANCEL",
@@ -220,7 +230,7 @@ const twins::Widget page1Childs[] =
     {
         type    : twins::Widget::ProgressBar,
         id      : ID_PRGBAR_1,
-        coord   : { 30, 8 },
+        coord   : { 30, 9 },
         size    : { 25, 1 },
         { progressbar : {
             //
@@ -244,7 +254,7 @@ const twins::Widget wndMain =
         bgColor     : twins::ColorBG::Blue,
         fgColor     : twins::ColorFG::White,
         title       : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
-        getState    : getWind1State,
+        getState    : getWindMainState,
         pChildrens  : (const twins::Widget[])
         {
             {
@@ -265,7 +275,7 @@ const twins::Widget wndMain =
                                 fgColor     : twins::ColorFG::Yellow,
                                 title       : "Version",
                                 pChildrens  : page1Childs,
-                                childCount  : 8
+                                childCount  : 9
                             }}
                         },
                         {

@@ -20,35 +20,61 @@ Implementation is based on examples:
 
 ## Primary goals
 
-* text properties
-    * [x] foreground and background color codes
-    * [x] attributes (bold, inversion)
-* operations
-    * [x] clear screen
-    * [x] go to home
-    * [x] go to location
-* reading input
-    * [x] regular characters (a..z)
-    * [x] control codes (Up/Down, Del, Ctrl, Home, ...)
-* [ ] two modes: direct terminal output and buffered  
+- text properties
+    - [x] foreground and background color codes
+    - [x] attributes (bold, inversion)
+- operations
+    - [x] clear screen
+    - [x] go to home
+    - [x] go to location
+- reading input
+    - [x] regular characters (a..z)
+    - [x] control codes (Up/Down, Del, Ctrl, Home, ...)
+- [ ] two modes: direct terminal output and buffered  
     buffered mode is required on UART terminals due to slow refresh rate and ugly flickering
-* [x] separation layer to ease porting
-* [ ] widgets navigation by Tab key
-* [ ] render focused widget state
+- [x] separation layer to ease porting
 
 ## Secondary goals
 
-Widgets (controls) to implement:
+- widgets (controls) to implement
+    - [x] window
+    - [x] panel
+    - [x] static label / led
+    - [x] check box
+    - [ ] edit field (text/number)
+    - [ ] radio group
+    - [ ] button group
+    - [x] page control
+    - [x] progress bar
+- navigation
+    - [ ] widgets navigation by Tab/Esc key
+    - [ ] render focused widget state
+- notifications
+    - [ ] notify event per widget type (button clicked, checkbox toggled)
 
-- [x] window
-- [x] panel
-- [x] static label / led
-- [x] check box
-- [ ] edit field (text/number)
-- [ ] radio group
-- [ ] button group
-- [x] page control
-- [x] progress bar
+## How to build
+
+Project is CMake-based and contains two targets: *TWinsDemo* and *TWinsUT*.  
+Demo is enabled by default, unit tests has to be enabled in commandline or in `ccmake`.
+
+```bash
+mkdir build && cd build
+cmake -DTWINS_BUILD_UT=ON ..
+make -j
+ctest -V
+```
+
+Run demo:
+
+```bash
+./bin/TWinsDemo
+```
+
+If you have `gcovr` installed you can generate test coverage HTML report
+
+```bash
+make cov_only
+```
 
 ---
 
