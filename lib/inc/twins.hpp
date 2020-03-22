@@ -8,6 +8,7 @@
 #include "twins_common.hpp"
 #include "twins_esc_codes.hpp"
 #include "twins_string.hpp"
+#include "twins_ringbuffer.hpp"
 
 #include <initializer_list>
 
@@ -356,7 +357,7 @@ inline void clrScreenRestore()     { writeStr(ESC_SCREEN_RESTORE); }
 /**
  * @brief Decode given ANSI sequence and produce readable Key Code
  */
-void decodeInputSeq(AnsiSequence &input, KeyCode &output);
+void decodeInputSeq(RingBuff<char> &input, KeyCode &output);
 
 /**
  * @brief Process keyboard signal received by console

@@ -6,6 +6,7 @@
 
 #include "demo_wnd.hpp"
 #include "twins.hpp"
+#include "twins_ringbuffer.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -148,7 +149,7 @@ public:
     }
 
 public:
-    char lblKeycodeSeq[8];
+    char lblKeycodeSeq[10];
     const char *lblKeyName = "";
 
 private:
@@ -167,6 +168,7 @@ private:
 
 static WndMainState wndMainState;
 twins::IWindowState * getWindMainState() { return &wndMainState; }
+twins::RingBuff<char> rbKeybInput;
 
 static const twins::IOs tios =
 {
@@ -208,7 +210,8 @@ int main()
     twins::init(&tios);
     twins::clrScreenAll();
     twins::drawWidget(&wndMain);
-    twins::inputPosixInit(500);
+    twins::inputPosixInit(100);
+    rbKeybInput.init(20);
     fflush(stdout);
 
     for (;;)
@@ -217,24 +220,39 @@ int main()
         twins::AnsiSequence ansi_seq;
         twins::inputPosixRead(ansi_seq, quit_req);
         if (quit_req) break;
+        rbKeybInput.write(ansi_seq.data, ansi_seq.len);
 
-        if (ansi_seq.len)
+        if (rbKeybInput.size())
         {
-            twins::KeyCode key_decoded;
-            twins::decodeInputSeq(ansi_seq, key_decoded);
-            twins::processKey(&wndMain, key_decoded);
+            TWINS_LOG("decode");
+            // display input buffer
+            memset(wndMainState.lblKeycodeSeq, 0, sizeof(wndMainState.lblKeycodeSeq));
+            rbKeybInput.copy(wndMainState.lblKeycodeSeq, sizeof(wndMainState.lblKeycodeSeq)-1);
+            wndMainState.lblKeycodeSeq[sizeof(wndMainState.lblKeycodeSeq)-1] = '\0';
 
-            // display key code
-            strncpy(wndMainState.lblKeycodeSeq, ansi_seq.data, sizeof(wndMainState.lblKeycodeSeq));
-            wndMainState.lblKeyName = key_decoded.name;
-            twins::drawWidgets(&wndMain, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+            twins::KeyCode kc;
+            twins::decodeInputSeq(rbKeybInput, kc);
+            twins::processKey(&wndMain, kc);
 
-            if (key_decoded.mod_all != KEY_MOD_SPECIAL)
+            // display decoded key
+            wndMainState.lblKeyName = kc.name;
+
+            if (kc.m_spec && kc.key == twins::Key::F5)
             {
-                twins::drawWidgets(&wndMain,
+                twins::clrScreenAll();
+                twins::drawWidget(&wndMain);
+            }
+            else
+            {
+                twins::drawWidgets(&wndMain, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+
+                if (kc.mod_all != KEY_MOD_SPECIAL)
                 {
-                    ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
-                });
+                    twins::drawWidgets(&wndMain,
+                    {
+                        ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
+                    });
+                }
             }
         }
 

@@ -817,6 +817,9 @@ void processKey(const Widget *pWindow, const KeyCode &kc)
     g.pWndState = pWindow->window.getState();
     assert(g.pWndState);
 
+    if (kc.key == Key::None)
+        return;
+
     //TWINS_LOG("---");
 
     if (kc.m_spec)

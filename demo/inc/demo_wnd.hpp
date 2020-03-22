@@ -146,7 +146,7 @@ const twins::Widget page1Childs[] =
         type    : twins::Widget::Panel,
         id      : ID_PANEL_KEY,
         coord   : { 1, 7 },
-        size    : { 21, 4 },
+        size    : { 26, 4 },
         { panel : {
             bgColor     : twins::ColorBG::Cyan,
             fgColor     : twins::ColorFG::White,
@@ -157,7 +157,7 @@ const twins::Widget page1Childs[] =
                     type    : twins::Widget::Label,
                     id      : ID_LABEL_KEYSEQ,
                     coord   : { 2, 1 },
-                    size    : { 17, 1 },
+                    size    : { 22, 1 },
                     { label : {
                         bgColor : twins::ColorBG::White,
                         fgColor : twins::ColorFG::Red,

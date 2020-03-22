@@ -47,7 +47,7 @@ static void waitForKey(AnsiSequence &seq)
     // wait for key
     timeval tv;
     tv.tv_sec = 0;
-    tv.tv_usec = termKeyTimeoutMs * 1000'000;
+    tv.tv_usec = termKeyTimeoutMs * 1000;
     int rc = select(ttyFileNo + 1, &read_set, NULL, NULL, &tv);
 
     if (rc > 0)

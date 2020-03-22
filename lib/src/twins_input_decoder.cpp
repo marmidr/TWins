@@ -9,11 +9,12 @@
  *****************************************************************************/
 
 #include "twins_common.hpp"
+#include "twins_ringbuffer.hpp"
+#include "twins_utf8str.hpp"
 
 #include <stdint.h>
 #include <string.h>
 #include <utility> // std::move
-// #include <stdio.h>
 
 // -----------------------------------------------------------------------------
 
@@ -23,9 +24,9 @@
 
 
 #if TWINS_USE_KEY_NAMES
-# define KEY_DEF(seq, name, code, mod)   seq, name, (Key)code, mod,
+# define KEY_DEF(seq, name, code, mod)   seq, name, (Key)code, mod, (sizeof(seq)-1),
 #else
-# define KEY_DEF(seq, name, code, mod)   seq,       (Key)code, mod,
+# define KEY_DEF(seq, name, code, mod)   seq,       (Key)code, mod, (sizeof(seq)-1),
 #endif
 
 // -----------------------------------------------------------------------------
@@ -35,12 +36,18 @@ namespace twins
 
 struct SeqMap
 {
+    // ESC sequence
     const char *seq;
 #if TWINS_USE_KEY_NAMES
+    // keyboard key name mapped to sequence
     const char *name;
 #endif
+    // keyboard special key code
     Key         key;
+    // key modifiers, like Shift
     uint8_t     mod;
+    // seq strlen()
+    uint8_t     seqlen;
 };
 
 struct CtrlMap
@@ -51,6 +58,7 @@ struct CtrlMap
 #endif
     Key         key;
     uint8_t     mod;
+    uint8_t     _; // required by macro, unused
 };
 
 // -----------------------------------------------------------------------------
@@ -314,7 +322,7 @@ const CtrlMap ctrl_keys_map[] =
 };
 
 
-const CtrlMap ansi_map[] =
+const CtrlMap special_keys_map[] =
 {
     KEY_DEF((char)Ansi::BS,   "Backspace",    Key::Backspace, KEY_MOD_SPECIAL)
     KEY_DEF((char)Ansi::DEL,  "Backspace",    Key::Backspace, KEY_MOD_SPECIAL)
@@ -324,7 +332,6 @@ const CtrlMap ansi_map[] =
 };
 
 // -----------------------------------------------------------------------------
-#define ESC_CURSOR_HOME "\033[H"
 
 /**
  * @brief fast binary search of key-sequence \p seq in sorted \p map
@@ -342,11 +349,12 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
 
     do
     {
-        int compare = strcmp(seq, map[mid].seq);
+        // map[mid].seq must not necessary be equal to seq, but be at the beginning of it
+        int compare = strncmp(seq, map[mid].seq, map[mid].seqlen);
 
         if (compare == 0)
         {
-            //printf("%s binar.found in %u steps\n", ESC_CURSOR_HOME, steps);
+            //printf("binar.found in %u steps\n", steps);
             return &map[mid];
         }
         else if (compare > 0)
@@ -363,90 +371,146 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
     return nullptr;
 }
 
-void decodeInputSeq(AnsiSequence &input, KeyCode &output)
+void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
 {
     output = {};
     output.name = "<?>";
-
-    if (input.len == 0)
+    if (input.size() == 0)
         return;
 
-    // single byte: char, special or control key
-    if (input.len == 1)
-    {
-        const char c0 = input.data[0];
+    static uint8_t decode_failed = 0;
 
-        // check for ansi key
-        // note: it conflicts with ctrl_keys_map[] but has higher priority
-        for (const auto &key : ansi_map)
+    constexpr uint8_t esc_max_len = 7;
+    char seq[esc_max_len+1];
+
+    while (input.size())
+    {
+        auto seq_sz = input.copy(seq, esc_max_len);
+        seq[seq_sz] = '\0';
+        const char c0 = seq[0];
+
+        // 1. ANSI escape sequence
+        //    check for two following ESC characters to avoid lock
+        if (seq_sz > 1 && c0 == (char)Ansi::ESC && seq[1] != (char)Ansi::ESC)
         {
-            if (c0 == key.c)
+            if (seq_sz < 3) // sequence too short
+                return;
+
+            // binary search: find key map in max 7 steps
+            if (auto *p_km = binary_search(seq+1, esc_keys_map_sorted.arr, esc_keys_map_sorted.size()))
             {
-                output.key = key.key;
-                output.mod_all = key.mod;
+                output.key = p_km->key;
+                output.mod_all = p_km->mod;
                 #if TWINS_USE_KEY_NAMES
-                output.name = key.name;
+                output.name = p_km->name;
                 #endif
+                input.skip(1 + p_km->seqlen); // +1 for ESC
                 return;
             }
-        }
 
+            // old, linear search:
+            // for (const auto &km : esc_keys_map_sorted)
+            // {
+            //     int cmp = strncmp(seq, km.seq, km.seqlen);
+            //     if (cmp == 0)
+            //     {
+            //         output.key = km.key;
+            //         output.mod_all = km.mod | KEY_MOD_SPECIAL;
+            //         #if TWINS_USE_KEY_NAMES
+            //         output.name = km.name;
+            //         #endif
+            //         break;
+            //     }
+            // }
 
-        // check for one of Ctrl+[A..Z]
-        for (const auto &key : ctrl_keys_map)
-        {
-            if (c0 == key.c)
+            // ESC sequence invalid or unknown?
+            if (seq_sz > 3) // 3 is mimimum ESC seq len
             {
-                output.utf8[0] = (char)key.key;
-                output.utf8[1] = '\0';
-                output.mod_all = key.mod;
+                bool esc_found = false;
+                // data is long enough to store ESC sequence
+                for (int i = 1; i < seq_sz; i++)
+                {
+                    if (seq[i] == (char)Ansi::ESC)
+                    {
+                        esc_found = true;
+                        // found next ESC, current seq is unknown
+                        input.skip(i);
+                        break;
+                    }
+                }
+
+                if (esc_found)
+                    continue;
+            }
+
+            if (++decode_failed == 3)
+            {
+                decode_failed = 0;
+                input.clear();
+            }
+
+            return;
+        }
+        else
+        {
+            // 2. check for special key
+            // note: it conflicts with ctrl_keys_map[] but has higher priority
+            for (const auto &km : special_keys_map)
+            {
+                if (c0 == km.c)
+                {
+                    output.key = km.key;
+                    output.mod_all = km.mod;
+                    #if TWINS_USE_KEY_NAMES
+                    output.name = km.name;
+                    #endif
+                    input.skip(1);
+                    return;
+                }
+            }
+
+            // 3. check for one of Ctrl+[A..Z]
+            for (const auto &km : ctrl_keys_map)
+            {
+                if (c0 == km.c)
+                {
+                    output.utf8[0] = (char)km.key;
+                    output.utf8[1] = '\0';
+                    output.mod_all = km.mod;
+                    #if TWINS_USE_KEY_NAMES
+                    output.name = km.name;
+                    #endif
+                    input.skip(1);
+                    return;
+                }
+            }
+
+            // 4. regular ASCII character or UTF-8 sequence
+            int sl = utf8seqlen(seq);
+            if (sl > 0)
+            {
+                // copy UTF-8 seq
+                output.utf8[0] = seq[0];
+                output.utf8[1] = seq[1];
+                output.utf8[2] = seq[2];
+                output.utf8[3] = seq[3];
+                output.utf8[sl] = '\0';
                 #if TWINS_USE_KEY_NAMES
-                output.name = key.name;
+                output.name = output.utf8;
                 #endif
+
+                input.skip(sl);
                 return;
             }
+            else
+            {
+                // invalid/incomplete sequence?
+                if (seq_sz >= 4)    // data is long enough to store UTF8 sequence
+                    input.skip(1);  // skip one byte to prevent locking
+                else
+                    return;         // try next time with more data
+            }
         }
-    }
-
-    // ANSI escape sequence
-    if (input.data[0] == (char)Ansi::ESC)
-    {
-        // binary search: find key in max 7 steps
-        if (auto *p = binary_search(input.data+1, esc_keys_map_sorted.arr, esc_keys_map_sorted.size()))
-        {
-            output.key = p->key;
-            output.mod_all = p->mod | KEY_MOD_SPECIAL;
-            #if TWINS_USE_KEY_NAMES
-            output.name = p->name;
-            #endif
-        }
-
-        // old, linear search:
-        // for (const auto &km : esc_keys_map_sorted)
-        // {
-        //     int cmp = strcmp(input.data + 1, km.seq);
-        //     if (cmp == 0)
-        //     {
-        //         output.key = km.key;
-        //         output.mod_all = km.mod | KEY_MOD_SPECIAL;
-        //         #if TWINS_USE_KEY_NAMES
-        //         output.name = km.name;
-        //         #endif
-        //         break;
-        //     }
-        // }
-    }
-    else
-    {
-        // copy UTF-8 seq
-        output.utf8[0] = input.data[0];
-        output.utf8[1] = input.data[1];
-        output.utf8[2] = input.data[2];
-        output.utf8[3] = input.data[3];
-        output.utf8[sizeof(output.utf8)-1] = '\0';
-        #if TWINS_USE_KEY_NAMES
-        output.name = output.utf8;
-        #endif
     }
 }
 

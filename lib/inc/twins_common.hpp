@@ -136,13 +136,13 @@ struct KeyCode
 {
     union
     {
-        char    utf8[5];// UTF-8 code: 'a', '4', 'Ł'
-        Key     key;    // 'F1', 'Enter'
+        char    utf8[5];    // UTF-8 code: 'a', '4', 'Ł'
+        Key     key = {};   // 'F1', 'Enter'
     };
 
     union
     {
-        uint8_t mod_all;    // KEY_MOD_CTRL | KEY_MOD_SHIFT
+        uint8_t mod_all = 0;    // KEY_MOD_CTRL | KEY_MOD_SHIFT
         struct
         {
             uint8_t m_ctrl  : 1; // KEY_MOD_CTRL
@@ -152,7 +152,7 @@ struct KeyCode
         };
     };
 
-    const char *name;
+    const char *name = nullptr;
 };
 
 // -----------------------------------------------------------------------------
