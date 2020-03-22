@@ -11,6 +11,11 @@
 
 // -----------------------------------------------------------------------------
 
+namespace twins
+{
+void decodeInputSeqReset();
+}
+
 static char rbBuffer[15];
 
 TEST(INPUTDECODER, empty)
@@ -96,8 +101,61 @@ TEST(INPUTDECODER, Ctrl_F1)
     EXPECT_STRNE("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, Ctrl_F1_incomplete)
+TEST(INPUTDECODER, UnknownSeq__Ctrl_Home)
 {
+    twins::decodeInputSeqReset();
+    twins::RingBuff<char> input(rbBuffer);
+    twins::KeyCode kc;
+
+    input.write("\033*42~");
+    input.write("\033[1;5H@");
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(KEY_MOD_SPECIAL | KEY_MOD_CTRL, kc.mod_all);
+    EXPECT_EQ(twins::Key::Home, kc.key);
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(KEY_MOD_NONE, kc.mod_all);
+    EXPECT_STREQ("@", kc.utf8);
+}
+
+TEST(INPUTDECODER, LoongUnknownSeq__Ctrl_Home)
+{
+    twins::decodeInputSeqReset();
+    twins::RingBuff<char> input(rbBuffer);
+    twins::KeyCode kc;
+
+    // next ESC is more that 7 bytes further,
+    // so entire buffer will be cleared
+    input.write("\033*123456789~");
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::None, kc.key);
+
+    input.write("\033[1;5H");
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::None, kc.key);
+
+    input.write("+");
+    decodeInputSeq(input, kc); // 3rd try - abandon
+    EXPECT_EQ(twins::Key::None, kc.key);
+    EXPECT_EQ(0, input.size());
+}
+
+TEST(INPUTDECODER, NUL_InInput)
+{
+    twins::decodeInputSeqReset();
+    twins::RingBuff<char> input(rbBuffer);
+    twins::KeyCode kc;
+
+    input.write('\0');
+    input.write("\t");
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::None, kc.key);
+}
+
+TEST(INPUTDECODER, Ctrl_F1__incomplete)
+{
+    twins::decodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
@@ -126,6 +184,7 @@ TEST(INPUTDECODER, Ctrl_F1_incomplete)
 
 TEST(INPUTDECODER, L__S_C_UP__O)
 {
+    twins::decodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 

@@ -25,20 +25,20 @@ static int         ttyFileNo;
 static char        termEOFcode;
 static termios     termIOs;
 static uint16_t    termKeyTimeoutMs;
+static char        termBuff[8];
 
 // -----------------------------------------------------------------------------
 
-static void readKey(AnsiSequence &seq)
+static void readKey()
 {
     // read up to 8 bytes
-    int nb = read(ttyFileNo, seq.data, sizeof(seq.data)-1);
+    int nb = read(ttyFileNo, termBuff, sizeof(termBuff)-1);
     if (nb == -1) nb = 0;
-    seq.len = nb;
-    seq.data[seq.len] = '\0';
+    termBuff[nb] = '\0';
     errno = 0;
 }
 
-static void waitForKey(AnsiSequence &seq)
+static void waitForKey()
 {
     fd_set read_set;
     FD_ZERO(&read_set);
@@ -51,7 +51,7 @@ static void waitForKey(AnsiSequence &seq)
     int rc = select(ttyFileNo + 1, &read_set, NULL, NULL, &tv);
 
     if (rc > 0)
-        readKey(seq);
+        readKey();
 }
 
 static void checkErrNo(int line)
@@ -93,16 +93,15 @@ void inputPosixFree()
     close(ttyFileNo);
 }
 
-void inputPosixRead(AnsiSequence &output, bool &quitRequested)
+const char* inputPosixRead(bool &quitRequested)
 {
-    output.len = 0;
-    waitForKey(output);
+    termBuff[0] = '\0';
+    waitForKey();
 
-    if (output.len == 1 && output.data[0] == termEOFcode)
-    {
+    if (termBuff[1] == '\0' && termBuff[0] == termEOFcode)
         quitRequested = true;
-        return;
-    }
+
+    return termBuff;
 }
 
 // -----------------------------------------------------------------------------

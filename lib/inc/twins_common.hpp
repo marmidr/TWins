@@ -35,17 +35,6 @@ struct IOs
 extern const IOs *pIOs;
 
 /**
- * @brief RAW terminal keyboard keys sequence
- */
-struct AnsiSequence
-{
-    /** ANSI key sequence, up to 8 characters, NUL terminated */
-    char    data[9];  // 'A', '\x1B[A~', u8'Ź'
-    /** sequence length */
-    uint8_t len;
-};
-
-/**
  * @brief ANSI codes
  */
 enum class Ansi : uint8_t

@@ -217,10 +217,9 @@ int main()
     for (;;)
     {
         bool quit_req = false;
-        twins::AnsiSequence ansi_seq;
-        twins::inputPosixRead(ansi_seq, quit_req);
+        const char *posix_inp = twins::inputPosixRead(quit_req);
         if (quit_req) break;
-        rbKeybInput.write(ansi_seq.data, ansi_seq.len);
+        rbKeybInput.write(posix_inp);
 
         if (rbKeybInput.size())
         {

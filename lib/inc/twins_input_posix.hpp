@@ -19,10 +19,11 @@ void inputPosixInit(uint16_t timeoutMs);
 /** @brief Free keyboard device reader resources */
 void inputPosixFree();
 
-/** @brief Read codes from keyboard and store in \p output; check \p output.len if anything was read.
+/** @brief Read codes from keyboard and returns pointer to nul-terminated buffer
   *        If \p quitRequested is set, application is requested to end
+  * @return nul-terminated C-string
   */
-void inputPosixRead(AnsiSequence &output, bool &quitRequested);
+const char * inputPosixRead(bool &quitRequested);
 
 // -----------------------------------------------------------------------------
 

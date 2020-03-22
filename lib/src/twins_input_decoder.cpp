@@ -371,14 +371,23 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
     return nullptr;
 }
 
+
+static uint8_t decodeFailCtr = 0;
+
+void decodeInputSeqReset()
+{
+    // for testing
+    decodeFailCtr = 0;
+}
+
 void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
 {
-    output = {};
+    output.key = Key::None;
+    output.mod_all = 0;
     output.name = "<?>";
+
     if (input.size() == 0)
         return;
-
-    static uint8_t decode_failed = 0;
 
     constexpr uint8_t esc_max_len = 7;
     char seq[esc_max_len+1];
@@ -443,9 +452,9 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                     continue;
             }
 
-            if (++decode_failed == 3)
+            if (++decodeFailCtr == 3)
             {
-                decode_failed = 0;
+                decodeFailCtr = 0;
                 input.clear();
             }
 
