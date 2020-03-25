@@ -63,20 +63,7 @@ struct CtrlMap
 
 // -----------------------------------------------------------------------------
 
-/// @brief contexpr array template
-template <typename T, unsigned N>
-struct CexArray
-{
-    constexpr       T& operator[](unsigned i)       { return arr[i]; }
-    constexpr const T& operator[](unsigned i) const { return arr[i]; }
-    constexpr const T* begin()                const { return arr; }
-    constexpr const T* end()                  const { return arr + N; }
-    constexpr unsigned size()                 const { return N; }
-
-    T arr[N];
-};
-
-/// @brief contexpr comparison operator needed for sort function
+/// @brief constexpr comparison operator needed for sort function
 constexpr bool operator <(const SeqMap &left, const SeqMap &right)
 {
     const char *pl = left.seq;
@@ -87,18 +74,18 @@ constexpr bool operator <(const SeqMap &left, const SeqMap &right)
     return *pl < *pr;
 }
 
-/// @brief contexpr swap
+/// @brief constexpr swap
 template<class T>
-constexpr void cex_swap(T& l, T& r)
+constexpr void cex_swap(T& lho, T& rho)
 {
-    T tmp = std::move(l);
-    l = std::move(r);
-    r = std::move(tmp);
+    T tmp = std::move(lho);
+    lho = std::move(rho);
+    rho = std::move(tmp);
 }
 
-/// @brief contexpr sort
+/// @brief constexpr sort
 template <typename T, unsigned N>
-constexpr void cex_sort_impl(CexArray<T, N> &array, unsigned left, unsigned right)
+constexpr void cex_sort_impl(Array<T, N> &array, unsigned left, unsigned right)
 {
     if (left < right)
     {
@@ -115,18 +102,18 @@ constexpr void cex_sort_impl(CexArray<T, N> &array, unsigned left, unsigned righ
     }
 }
 
-/// @brief returns contexpr sorted array
+/// @brief returns constexpr sorted array
 template <typename T, unsigned N>
-constexpr CexArray<T, N> cex_sort_arr(CexArray<T, N> array)
+constexpr Array<T, N> cex_sort_arr(Array<T, N> array)
 {
-    auto sorted = array;
-    cex_sort_impl(sorted, 0, N);
-    return sorted;
+    auto sorted_array = array;
+    cex_sort_impl(sorted_array, 0, N);
+    return sorted_array;
 }
 
 // -----------------------------------------------------------------------------
 
-constexpr CexArray<SeqMap, 151> esc_keys_map_unsorted
+constexpr Array<SeqMap, 151> esc_keys_map_unsorted
 {
     KEY_DEF("[A",       "Up",           Key::Up,        KEY_MOD_SPECIAL)   // xterm
     KEY_DEF("[B",       "Down",         Key::Down,      KEY_MOD_SPECIAL)   // xterm
@@ -410,7 +397,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 return;
 
             // binary search: find key map in max 7 steps
-            if (auto *p_km = binary_search(seq+1, esc_keys_map_sorted.arr, esc_keys_map_sorted.size()))
+            if (auto *p_km = binary_search(seq+1, esc_keys_map_sorted.begin(), esc_keys_map_sorted.size()))
             {
                 output.key = p_km->key;
                 output.mod_all = p_km->mod;

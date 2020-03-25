@@ -17,6 +17,18 @@ namespace twins
 template<unsigned N, typename T>
 unsigned arrSize(const T (&arr)[N]) { return N; }
 
+/// @brief array template usefull in const expressions
+template <typename T, unsigned N>
+struct Array
+{
+    constexpr       T& operator[](unsigned i)       { return data[i]; }
+    constexpr const T& operator[](unsigned i) const { return data[i]; }
+    constexpr const T* begin()                const { return data; }
+    constexpr const T* end()                  const { return data + N; }
+    constexpr unsigned size()                 const { return N; }
+
+    T data[N] = {};
+};
 
 /**
  * @brief I/O layer for easy porting

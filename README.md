@@ -49,11 +49,11 @@ Implementation is based on examples:
     - [ ] list
     - [ ] drop down list
 - navigation
-- navigation
     - [x] widgets navigation by Tab/Esc key
     - [ ] render focused widget state
 - notifications
     - [x] notify event per widget type (button clicked, checkbox toggled)
+- [ ] color theme for window
 
 ## How to build
 

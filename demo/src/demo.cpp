@@ -208,7 +208,7 @@ int main()
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
 
     twins::init(&tios);
-    twins::clrScreenAll();
+    twins::screenClrAll();
     twins::drawWidget(&wndMain);
     twins::inputPosixInit(100);
     rbKeybInput.init(20);
@@ -237,7 +237,7 @@ int main()
 
             if (kc.m_spec && kc.key == twins::Key::F5)
             {
-                twins::clrScreenAll();
+                twins::screenClrAll();
                 twins::drawWidget(&wndMain);
             }
             else

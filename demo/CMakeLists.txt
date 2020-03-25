@@ -8,6 +8,7 @@ set(TARGETNAME TWinsDemo)
 
 add_executable(${TARGETNAME}
     src/demo.cpp
+    src/demo_wnd.cpp
 )
 
 target_include_directories(${TARGETNAME}

@@ -359,12 +359,12 @@ void resetAttr();
 void moveTo(uint16_t col, uint16_t row);
 void moveToCol(uint16_t col);
 void moveBy(int16_t cols, int16_t rows);
-inline void moveToHome()           { writeStr(ESC_CURSOR_HOME); }
+inline void moveToHome()            { writeStr(ESC_CURSOR_HOME); }
 
-inline void cursorSavePos()        { writeStr(ESC_CURSOR_POS_SAVE); }
-inline void cursorRestorePos()     { writeStr(ESC_CURSOR_POS_RESTORE); }
-inline void cursorHide()           { writeStr(ESC_CURSOR_HIDE); }
-inline void cursorShow()           { writeStr(ESC_CURSOR_SHOW); }
+inline void cursorSavePos()         { writeStr(ESC_CURSOR_POS_SAVE); }
+inline void cursorRestorePos()      { writeStr(ESC_CURSOR_POS_RESTORE); }
+inline void cursorHide()            { writeStr(ESC_CURSOR_HIDE); }
+inline void cursorShow()            { writeStr(ESC_CURSOR_SHOW); }
 
 /**
  * @brief Lines manipulation
@@ -374,12 +374,12 @@ inline void insertLines(uint16_t count) { writeStrFmt(ESC_LINE_INSERT_FMT, count
 /**
  * @brief Screen manipulation
  */
-inline void clrScreenAbove()       { writeStr(ESC_SCREEN_ERASE_ABOVE); }
-inline void clrScreenBelow()       { writeStr(ESC_SCREEN_ERASE_BELOW); }
-inline void clrScreenAll()         { writeStr(ESC_SCREEN_ERASE_ALL); }
+inline void screenClrAbove()        { writeStr(ESC_SCREEN_ERASE_ABOVE); }
+inline void screenClrBelow()        { writeStr(ESC_SCREEN_ERASE_BELOW); }
+inline void screenClrAll()          { writeStr(ESC_SCREEN_ERASE_ALL); }
 
-inline void clrScreenSave()        { writeStr(ESC_SCREEN_SAVE); }
-inline void clrScreenRestore()     { writeStr(ESC_SCREEN_RESTORE); }
+inline void screenSave()            { writeStr(ESC_SCREEN_SAVE); }
+inline void screenRestore()         { writeStr(ESC_SCREEN_RESTORE); }
 
 /**
  * @brief Decode given ANSI sequence and produce readable Key Code
