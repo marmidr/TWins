@@ -171,6 +171,7 @@ struct Widget
         PageCtrl,
         Page,
         ProgressBar,
+        List,
         DropDownList,
     };
 
@@ -258,6 +259,11 @@ struct Widget
         struct
         {
 
+        } list;
+
+        struct
+        {
+
         } dropdownlist;
     };
 
@@ -329,16 +335,16 @@ const char * toString(Widget::Type type);
 /**
  * @brief Foreground color stack
  */
-void pushClrFg(ColorFG cl);
-void popClrFg(int n = 1);
-void resetClrFg();
+void pushClFg(ColorFG cl);
+void popClFg(int n = 1);
+void resetClFg();
 
 /**
  * @brief Background color stack
  */
-void pushClrBg(ColorBG cl);
-void popClrBg(int n = 1);
-void resetClrBg();
+void pushClBg(ColorBG cl);
+void popClBg(int n = 1);
+void resetClBg();
 
 /**
  * @brief Font attributes stack
@@ -359,6 +365,11 @@ inline void cursorSavePos()        { writeStr(ESC_CURSOR_POS_SAVE); }
 inline void cursorRestorePos()     { writeStr(ESC_CURSOR_POS_RESTORE); }
 inline void cursorHide()           { writeStr(ESC_CURSOR_HIDE); }
 inline void cursorShow()           { writeStr(ESC_CURSOR_SHOW); }
+
+/**
+ * @brief Lines manipulation
+ */
+inline void insertLines(uint16_t count) { writeStrFmt(ESC_LINE_INSERT_FMT, count); }
 
 /**
  * @brief Screen manipulation

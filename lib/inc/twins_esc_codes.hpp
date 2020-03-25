@@ -160,15 +160,23 @@
 
 //@{
 
-/** Erases the entire display, returning the cursor to the top left. */
-#define ESC_SCREEN_ERASE_ALL           ANSI_CSI("2J")
-#define ESC_SCREEN_ERASE_BELOW         ANSI_CSI("0J")
-#define ESC_SCREEN_ERASE_ABOVE         ANSI_CSI("1J")
+/** Repeat last character \p n times - not fully supported */
+#define ESC_REPEAT_LAST_CHAR(n)         ANSI_CSI(#n "b")
+#define ESC_REPEAT_LAST_CHAR_FMT        ESC_REPEAT_LAST_CHAR(%u)
 
 /** Erases the current line, returning the cursor to the far left. */
 #define ESC_LINE_ERASE_ALL              ANSI_CSI("2K")
 #define ESC_LINE_ERASE_RIGHT            ANSI_CSI("0K")
 #define ESC_LINE_ERASE_LEFT             ANSI_CSI("1K")
+
+/** Insert line */
+#define ESC_LINE_INSERT(n)              ANSI_CSI(#n "L")
+#define ESC_LINE_INSERT_FMT             ESC_LINE_INSERT(%u)
+
+/** Erases the entire display, returning the cursor to the top left. */
+#define ESC_SCREEN_ERASE_ALL            ANSI_CSI("2J")
+#define ESC_SCREEN_ERASE_BELOW          ANSI_CSI("0J")
+#define ESC_SCREEN_ERASE_ABOVE          ANSI_CSI("1J")
 
 /** */
 #define ESC_SCREEN_SAVE                 ANSI_CSI("?47h")
@@ -177,6 +185,12 @@
 /** Reverse/normal video mode (BG <--> FG) */
 #define ESC_SCREEN_REVERSE_ON           ANSI_CSI("?5h")
 #define ESC_SCREEN_REVERSE_OFF          ANSI_CSI("?5l")
+
+/** Scrool screen  */
+#define ESC_SCREEN_SCROLL_UP(n)         ANSI_CSI(#n "S")
+#define ESC_SCREEN_SCROLL_DOWN(n)       ANSI_CSI(#n "T")
+#define ESC_SCREEN_SCROLL_UP_FMT        ESC_SCREEN_SCROLL_UP(%u)
+#define ESC_SCREEN_SCROLL_DOWN_FMT      ESC_SCREEN_SCROLL_DOWN(%u)
 
 // bash: blink screen until key pressed
 // { while true; do printf \\e[?5h; sleep 0.3; printf \\e[?5l; read -s -n1 -t1 && break; done; }

@@ -185,7 +185,8 @@ const twins::Widget page1Childs[] =
         coord   : { 30, 5 },
         size    : { },
         { checkbox : {
-            text    : "Enable "
+            text    : "Enable ",
+            fgColor : twins::ColorFG::Green
         }}
     },
     {
@@ -214,7 +215,8 @@ const twins::Widget page1Childs[] =
         size    : {},
         { button : {
             text    : "NO",
-            groupId : 1
+            groupId : 1,
+            fgColor : twins::ColorFG::Red
         }}
     },
     {
@@ -233,7 +235,7 @@ const twins::Widget page1Childs[] =
         coord   : { 30, 9 },
         size    : { 25, 1 },
         { progressbar : {
-            //
+            fgColor : twins::ColorFG::Yellow
         }}
     }
 };

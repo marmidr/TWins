@@ -33,9 +33,13 @@ static struct
 
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
 {
+    FontMemento _m;
+    twins::pushClBg(ColorBG::Default);
+    twins::pushClFg(ColorFG::White);
+
     uint16_t row = pIOs->getLogsRow();
     moveTo(1, row);
-    writeStr("\033[1L"); // insert line
+    insertLines(1);
 
     // display only file name, trim the path
     if (const char *delim = strrchr(file, '/'))
@@ -43,9 +47,11 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
 
     time_t t = time(NULL);
     struct tm *p_stm = localtime(&t);
-    writeStrFmt("[%2d:%2d:%02d] %s() %s:%u: ",
+    writeStrFmt("[%2d:%02d:%02d] %s() %s:%u: ",
         p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec,
         func, file, line);
+
+    twins::pushClFg(ColorFG::WhiteIntense);
 
     va_list ap;
     va_start(ap, fmt);
@@ -162,8 +168,8 @@ static void drawArea(const Coord &coord, const Size &size, ColorBG clBg, ColorFG
     }
 
     // background and frame color
-    if (clBg != ColorBG::None) pushClrBg(clBg);
-    if (clFg != ColorFG::None) pushClrFg(clFg);
+    if (clBg != ColorBG::None) pushClBg(clBg);
+    if (clFg != ColorFG::None) pushClFg(clFg);
 
     // top line
     g.str.clear();
@@ -208,11 +214,11 @@ static void drawWindow(const Widget *pWgt)
         auto capt_len = strlen(pWgt->window.title);
         moveTo(pWgt->coord.col + (pWgt->size.width - capt_len - 4)/2,
             pWgt->coord.row);
-        pushClrFg(ColorFG::Yellow);
+        pushClFg(ColorFG::Yellow);
         pushAttr(FontAttrib::Bold);
         writeStrFmt("╡ %s ╞", pWgt->window.title);
         popAttr();
-        popClrFg();
+        popClFg();
     }
 
     g.parentCoord = pWgt->coord;
@@ -224,8 +230,8 @@ static void drawWindow(const Widget *pWgt)
     }
 
     // reset colors set by frame drawer
-    popClrBg();
-    popClrFg();
+    popClBg();
+    popClFg();
     moveTo(0, pWgt->coord.row + pWgt->size.height);
 }
 
@@ -257,8 +263,8 @@ static void drawPanel(const Widget *pWgt)
     g.parentCoord = coord_bkp;
 
     // reset colors set by frame drawer
-    popClrBg();
-    popClrFg();
+    popClBg();
+    popClFg();
 }
 
 static void drawLabel(const Widget *pWgt)
@@ -274,8 +280,8 @@ static void drawLabel(const Widget *pWgt)
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     // setup colors
-    pushClrBg(pWgt->label.bgColor);
-    pushClrFg(pWgt->label.fgColor);
+    pushClBg(pWgt->label.bgColor);
+    pushClFg(pWgt->label.fgColor);
     // print label
     writeStr(g.str.cstr());
     // fill remaining space with spaces;
@@ -283,20 +289,20 @@ static void drawLabel(const Widget *pWgt)
     int n = utf8len(g.str.cstr());
     writeChar(' ', max_len - n);
     // restore colors
-    popClrFg();
-    popClrBg();
+    popClFg();
+    popClBg();
 }
 
 static void drawLed(const Widget *pWgt)
 {
-    auto clbg = g.pWndState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
+    auto bgCl = g.pWndState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
     // led text
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-    pushClrBg(clbg);
-    pushClrFg(pWgt->led.fgColor);
+    pushClBg(bgCl);
+    pushClFg(pWgt->led.fgColor);
     writeStr(pWgt->led.text);
-    popClrFg();
-    popClrBg();
+    popClFg();
+    popClBg();
 }
 
 static void drawCheckbox(const Widget *pWgt)
@@ -306,8 +312,10 @@ static void drawCheckbox(const Widget *pWgt)
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Inverse);
+    pushClFg(pWgt->checkbox.fgColor == ColorFG::None ? ColorFG::Default : pWgt->checkbox.fgColor);
     writeStr(s_chk_state);
     writeStr(pWgt->checkbox.text);
+    popClFg();
     if (focused) popAttr();
 }
 
@@ -323,7 +331,9 @@ static void drawButton(const Widget *pWgt)
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Inverse);
+    pushClFg(pWgt->button.fgColor == ColorFG::None ? ColorFG::Default : pWgt->button.fgColor);
     writeStr(g.str.cstr());
+    popClFg();
     if (focused) popAttr();
 }
 
@@ -365,11 +375,11 @@ static void drawPageControl(const Widget *pWgt)
         g.str.trim(pWgt->pagectrl.tabWidth, true);
 
         moveTo(my_coord.col, my_coord.row + i + 1);
-        pushClrFg(p_page->page.fgColor);
+        pushClFg(p_page->page.fgColor);
         if (i == pg_idx) pushAttr(FontAttrib::Inverse);
         writeStr(g.str.cstr());
         if (i == pg_idx) popAttr();
-        popClrFg();
+        popClFg();
 
         if (g.pWndState->isVisible(p_page))
         {
@@ -406,7 +416,10 @@ static void drawProgressBar(const Widget *pWgt)
     int fill = pos * pWgt->size.width / max;
     g.str.append("█", fill);
     g.str.append("▒", pWgt->size.width - fill);
+
+    pushClFg(pWgt->progressbar.fgColor);
     writeStr(g.str.cstr());
+    popClFg();
 
     // writeStr("░░▒▒▓▓██");
     // writeStr("████░░░░░░░░░░░░");
@@ -466,7 +479,6 @@ bool iterateParent(const T *pParentDetails, const Widget *pParent, WidgetSearchS
 
     return false;
 }
-
 
 // recursive function searching for widgetId
 static bool findWidget(const Widget widgets[], const uint16_t widgetsCount, WidgetSearchStruct &wss)
@@ -536,7 +548,17 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
         {
         case Widget::Window:    return pWgt->window.bgColor; break;
         case Widget::Panel:     return pWgt->panel.bgColor; break;
-        default: break;
+        case Widget::Page:
+        case Widget::PageCtrl:
+        {
+            // TODO: find parent Window
+
+            // WidgetSearchStruct wss { searchedID : widgetId };
+            // if (findWidget(pWindow, 1, wss))
+            break;
+        }
+        default:
+            break;
         }
     }
 
@@ -759,16 +781,16 @@ void drawWidget(const Widget *pWindow, WID widgetId)
             {
                 g.parentCoord = wss.parentCoord;
                 // set parent's background color
-                pushClrBg(getWidgetBgColor(wss.pParent));
+                pushClBg(getWidgetBgColor(wss.pParent));
                 drawWidgetInternal(wss.pWidget);
-                popClrBg();
+                popClBg();
             }
         }
     }
 
     resetAttr();
-    resetClrBg();
-    resetClrFg();
+    resetClBg();
+    resetClFg();
     cursorShow();
 }
 
@@ -794,16 +816,16 @@ void drawWidgets(const Widget *pWindow, const WID *pWidgetIds, uint16_t count)
             {
                 g.parentCoord = wss.parentCoord;
                 // set parent's background color
-                pushClrBg(getWidgetBgColor(wss.pParent));
+                pushClBg(getWidgetBgColor(wss.pParent));
                 drawWidgetInternal(wss.pWidget);
-                popClrBg();
+                popClBg();
             }
         }
     }
 
     resetAttr();
-    resetClrBg();
-    resetClrFg();
+    resetClBg();
+    resetClFg();
     cursorShow();
 }
 

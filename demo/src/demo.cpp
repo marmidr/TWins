@@ -223,7 +223,6 @@ int main()
 
         if (rbKeybInput.size())
         {
-            TWINS_LOG("decode");
             // display input buffer
             memset(wndMainState.lblKeycodeSeq, 0, sizeof(wndMainState.lblKeycodeSeq));
             rbKeybInput.copy(wndMainState.lblKeycodeSeq, sizeof(wndMainState.lblKeycodeSeq)-1);

@@ -42,8 +42,8 @@ FontMemento::FontMemento()
 
 FontMemento::~FontMemento()
 {
-    popClrFg(stackClFg.size() - szFg);
-    popClrBg(stackClBg.size() - szBg);
+    popClFg(stackClFg.size() - szFg);
+    popClBg(stackClBg.size() - szBg);
     popAttr(stackAttr.size() - szAttr);
 }
 
@@ -125,23 +125,22 @@ void moveBy(int16_t cols, int16_t rows)
 
 // -----------------------------------------------------------------------------
 
-void pushClrFg(ColorFG cl)
+void pushClFg(ColorFG cl)
 {
     stackClFg.push(currentClFg);
     currentClFg = cl;
     pIOs->writeStr(encodeCl(currentClFg));
 }
 
-void popClrFg(int n)
+void popClFg(int n)
 {
-    if (stackClFg.size())
-    {
+    while (stackClFg.size() && n-- > 0)
         currentClFg = *stackClFg.pop();
-        pIOs->writeStr(encodeCl(currentClFg));
-    }
+
+    pIOs->writeStr(encodeCl(currentClFg));
 }
 
-void resetClrFg()
+void resetClFg()
 {
     stackClFg.clear();
     pIOs->writeStr(ESC_FG_DEFAULT);
@@ -149,23 +148,22 @@ void resetClrFg()
 
 // -----------------------------------------------------------------------------
 
-void pushClrBg(ColorBG cl)
+void pushClBg(ColorBG cl)
 {
     stackClBg.push(currentClBg);
     currentClBg = cl;
     pIOs->writeStr(encodeCl(currentClBg));
 }
 
-void popClrBg(int n)
+void popClBg(int n)
 {
-    if (stackClBg.size())
-    {
+    while (stackClBg.size() && n-- > 0)
         currentClBg = *stackClBg.pop();
-        pIOs->writeStr(encodeCl(currentClBg));
-    }
+
+    pIOs->writeStr(encodeCl(currentClBg));
 }
 
-void resetClrBg()
+void resetClBg()
 {
     stackClBg.clear();
     pIOs->writeStr(ESC_BG_DEFAULT);
@@ -195,7 +193,9 @@ void pushAttr(FontAttrib attr)
 
 void popAttr(int n)
 {
-    if (auto *pAttr = stackAttr.pop())
+    auto *pAttr = stackAttr.pop();
+
+    while (pAttr && n-- > 0)
     {
         switch (*pAttr)
         {
@@ -209,6 +209,8 @@ void popAttr(int n)
         case FontAttrib::StrikeThrough: pIOs->writeStr(ESC_STRIKETHROUGH_OFF); break;
         default: break;
         }
+
+        pAttr = stackAttr.pop();
     }
 }
 
