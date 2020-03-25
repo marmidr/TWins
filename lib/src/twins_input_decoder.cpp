@@ -324,11 +324,12 @@ const CtrlMap ctrl_keys_map[] =
 
 const CtrlMap special_keys_map[] =
 {
-    KEY_DEF((char)Ansi::BS,   "Backspace",    Key::Backspace, KEY_MOD_SPECIAL)
-    KEY_DEF((char)Ansi::DEL,  "Backspace",    Key::Backspace, KEY_MOD_SPECIAL)
-    KEY_DEF((char)Ansi::HT,   "Tab",          Key::Tab,       KEY_MOD_SPECIAL)
-    KEY_DEF((char)Ansi::LF,   "Enter",        Key::Enter,     KEY_MOD_SPECIAL)
-    KEY_DEF((char)Ansi::ESC,  "Esc",          Key::Esc,       KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::BS,   "Backspace",  Key::Backspace, KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::DEL,  "Backspace",  Key::Backspace, KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::HT,   "Tab",        Key::Tab,       KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::LF,   "Enter",      Key::Enter,     KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::CR,   "Enter",      Key::Enter,     KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::ESC,  "Esc",        Key::Esc,       KEY_MOD_SPECIAL)
 };
 
 // -----------------------------------------------------------------------------
@@ -373,11 +374,13 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
 
 
 static uint8_t decodeFailCtr = 0;
+static uint8_t prevCR = 0;
 
 void decodeInputSeqReset()
 {
     // for testing
     decodeFailCtr = 0;
+    prevCR = 0;
 }
 
 void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
@@ -397,6 +400,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
         auto seq_sz = input.copy(seq, esc_max_len);
         seq[seq_sz] = '\0';
         const char c0 = seq[0];
+        prevCR >>= 1; // set = 2 and then shift is faster than: if(prevCR) prevCR--;
 
         // 1. ANSI escape sequence
         //    check for two following ESC characters to avoid lock
@@ -416,21 +420,6 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 input.skip(1 + p_km->seqlen); // +1 for ESC
                 return;
             }
-
-            // old, linear search:
-            // for (const auto &km : esc_keys_map_sorted)
-            // {
-            //     int cmp = strncmp(seq, km.seq, km.seqlen);
-            //     if (cmp == 0)
-            //     {
-            //         output.key = km.key;
-            //         output.mod_all = km.mod | KEY_MOD_SPECIAL;
-            //         #if TWINS_USE_KEY_NAMES
-            //         output.name = km.name;
-            //         #endif
-            //         break;
-            //     }
-            // }
 
             // ESC sequence invalid or unknown?
             if (seq_sz > 3) // 3 is mimimum ESC seq len
@@ -462,12 +451,29 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
         }
         else
         {
+            bool skip = false;
+
             // 2. check for special key
             // note: it conflicts with ctrl_keys_map[] but has higher priority
             for (const auto &km : special_keys_map)
             {
                 if (c0 == km.c)
                 {
+                    if (c0 == (char)Ansi::CR)
+                    {
+                        // CR   -> treat as LF
+                        // CRLF -> ignore LF
+                        //   LF -> LF
+                        prevCR = 2;
+                    }
+                    else if (c0 == (char)Ansi::LF && prevCR)
+                    {
+                        input.skip(1);
+                        prevCR = 0;
+                        skip = true;
+                        break;
+                    }
+
                     output.key = km.key;
                     output.mod_all = km.mod;
                     #if TWINS_USE_KEY_NAMES
@@ -477,6 +483,8 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                     return;
                 }
             }
+
+            if (skip) continue;
 
             // 3. check for one of Ctrl+[A..Z]
             for (const auto &km : ctrl_keys_map)

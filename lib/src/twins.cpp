@@ -32,6 +32,23 @@ static Stack<FontAttrib> stackAttr;
 
 // -----------------------------------------------------------------------------
 
+/** */
+FontMemento::FontMemento()
+{
+    szFg = stackClFg.size();
+    szBg = stackClBg.size();
+    szAttr = stackAttr.size();
+}
+
+FontMemento::~FontMemento()
+{
+    popClrFg(stackClFg.size() - szFg);
+    popClrBg(stackClBg.size() - szBg);
+    popAttr(stackAttr.size() - szAttr);
+}
+
+// -----------------------------------------------------------------------------
+
 void init(const IOs *ios)
 {
     pIOs = ios;
@@ -115,7 +132,7 @@ void pushClrFg(ColorFG cl)
     pIOs->writeStr(encodeCl(currentClFg));
 }
 
-void popClrFg()
+void popClrFg(int n)
 {
     if (stackClFg.size())
     {
@@ -139,7 +156,7 @@ void pushClrBg(ColorBG cl)
     pIOs->writeStr(encodeCl(currentClBg));
 }
 
-void popClrBg()
+void popClrBg(int n)
 {
     if (stackClBg.size())
     {
@@ -176,7 +193,7 @@ void pushAttr(FontAttrib attr)
     }
 }
 
-void popAttr()
+void popAttr(int n)
 {
     if (auto *pAttr = stackAttr.pop())
     {

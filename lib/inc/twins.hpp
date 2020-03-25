@@ -217,12 +217,14 @@ struct Widget
         struct
         {
             const char *text;
+            ColorFG     fgColor;
         } checkbox;
 
         struct
         {
             const char *text;
             uint8_t     groupId;
+            ColorFG     fgColor;
         } button;
 
         struct
@@ -250,7 +252,7 @@ struct Widget
 
         struct
         {
-
+            ColorFG         fgColor;
         } progressbar;
 
         struct
@@ -263,6 +265,20 @@ struct Widget
 
 static constexpr WID WIDGET_ID_NONE = 0;    // convenient, any id by default points to nothing
 static constexpr WID WIDGET_ID_ALL = -1;
+
+/** @brief Object remembers terminal font colors and attribute,
+ *         to restore them upon destruction
+ */
+struct FontMemento
+{
+    FontMemento();
+    ~FontMemento();
+
+private:
+    uint8_t szFg;
+    uint8_t szBg;
+    uint8_t szAttr;
+};
 
 // -----------------------------------------------------------------------------
 
@@ -314,21 +330,21 @@ const char * toString(Widget::Type type);
  * @brief Foreground color stack
  */
 void pushClrFg(ColorFG cl);
-void popClrFg();
+void popClrFg(int n = 1);
 void resetClrFg();
 
 /**
  * @brief Background color stack
  */
 void pushClrBg(ColorBG cl);
-void popClrBg();
+void popClrBg(int n = 1);
 void resetClrBg();
 
 /**
  * @brief Font attributes stack
  */
 void pushAttr(FontAttrib attr);
-void popAttr();
+void popAttr(int n = 1);
 void resetAttr();
 
 /**
