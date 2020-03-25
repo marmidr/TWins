@@ -16,6 +16,10 @@
 
 #define TWINS_LOG(...)   twins::log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
 
+#ifndef __TWINS_LINK_SECRET
+#define __TWINS_LINK_SECRET void*_
+#endif
+
 // -----------------------------------------------------------------------------
 
 namespace twins
@@ -180,7 +184,22 @@ struct Widget
     Coord   coord;
     Size    size;
 
-    /** */
+    /** parent <- this -> childs linking */
+    union
+    {
+        __TWINS_LINK_SECRET;
+        //
+        struct
+        {
+            /** in constexpr the pointer cannot be calculated, thus,
+              * we use flat Widgets array index instead */
+            uint8_t parentIdx;  /// set in compile-time
+            uint8_t childsIdx;  /// set in compile-time
+            uint8_t childsCnt;  /// set in compile-time
+        };
+    } link;
+
+    /** In this union each type of Widget has it's own space */
     union
     {
         struct
@@ -189,17 +208,13 @@ struct Widget
             ColorFG         fgColor;
             const char *    title;
             IWindowState *  (*getState)();
-            const Widget *  pChildrens;
-            uint16_t        childCount;
         } window;
 
         struct
         {
-            ColorBG         bgColor;
-            ColorFG         fgColor;
-            const char *    title;
-            const Widget *  pChildrens;
-            uint16_t        childCount;
+            ColorBG     bgColor;
+            ColorFG     fgColor;
+            const char *title;
         } panel;
 
         struct
@@ -238,22 +253,18 @@ struct Widget
 
         struct
         {
-            uint8_t         tabWidth;
-            const Widget *  pChildrens; // only Pages
-            uint16_t        childCount;
+            uint8_t     tabWidth;
         } pagectrl;
 
         struct
         {
-            ColorFG         fgColor;
-            const char *    title;
-            const Widget *  pChildrens;
-            uint16_t        childCount;
+            ColorFG     fgColor;
+            const char *title;
         } page;
 
         struct
         {
-            ColorFG         fgColor;
+            ColorFG     fgColor;
         } progressbar;
 
         struct

@@ -145,7 +145,7 @@ public:
     {
         // state or focus changed - widget must be repainted
         // note: drawing here is lazy solution
-        twins::drawWidget(&wndMain, id);
+        twins::drawWidget(pWndMainArray, id);
     }
 
 public:
@@ -194,7 +194,7 @@ static const twins::IOs tios =
     },
     getLogsRow : []() -> uint16_t
     {
-        return wndMain.coord.row + wndMain.size.height + 1;
+        return pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1;
     }
 };
 
@@ -209,7 +209,7 @@ int main()
 
     twins::init(&tios);
     twins::screenClrAll();
-    twins::drawWidget(&wndMain);
+    twins::drawWidget(pWndMainArray);
     twins::inputPosixInit(100);
     rbKeybInput.init(20);
     fflush(stdout);
@@ -230,7 +230,7 @@ int main()
 
             twins::KeyCode kc;
             twins::decodeInputSeq(rbKeybInput, kc);
-            twins::processKey(&wndMain, kc);
+            twins::processKey(pWndMainArray, kc);
 
             // display decoded key
             wndMainState.lblKeyName = kc.name;
@@ -238,15 +238,15 @@ int main()
             if (kc.m_spec && kc.key == twins::Key::F5)
             {
                 twins::screenClrAll();
-                twins::drawWidget(&wndMain);
+                twins::drawWidget(pWndMainArray);
             }
             else
             {
-                twins::drawWidgets(&wndMain, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+                twins::drawWidgets(pWndMainArray, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
 
                 if (kc.mod_all != KEY_MOD_SPECIAL)
                 {
-                    twins::drawWidgets(&wndMain,
+                    twins::drawWidgets(pWndMainArray,
                     {
                         ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
                     });
@@ -259,7 +259,8 @@ int main()
         fflush(stdout);
     }
 
-    twins::moveTo(0, wndMain.coord.row + wndMain.size.height + 1);
+    // Window is always at [0]
+    twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
     // twins::writeStr();
     twins::inputPosixFree();
 }

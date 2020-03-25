@@ -9,6 +9,7 @@
 
 // -----------------------------------------------------------------------------
 
+/** Main window widgets unique id's */
 enum WndMainIDs
 {
     ID_INVALID, // value 0 is reserved to WIDGET_ID_NONE
@@ -39,4 +40,4 @@ enum WndMainIDs
 // -----------------------------------------------------------------------------
 
 extern twins::IWindowState * getWindMainState();
-extern const twins::Widget wndMain;
+extern const twins::Widget * pWndMainArray;
