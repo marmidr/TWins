@@ -320,22 +320,22 @@ int writeStrFmt(const char *fmt, ...);
 /**
  * @brief Draw single widget or entire window
  */
-void drawWidget(const Widget *pWindow, WID widgetId = WIDGET_ID_ALL);
+void drawWidget(const Widget *pWindowArray, WID widgetId = WIDGET_ID_ALL);
 
 /**
  * @brief Draw selected widgets
  */
-void drawWidgets(const Widget *pWindow, const WID *pWidgetIds, uint16_t count);
+void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t count);
 
 template<int N>
-inline void drawWidgets(const Widget *pWindow, const WID (&widgetIds)[N])
+inline void drawWidgets(const Widget *pWindowArray, const WID (&widgetIds)[N])
 {
-    drawWidgets(pWindow, widgetIds, N);
+    drawWidgets(pWindowArray, widgetIds, N);
 }
 
-inline void drawWidgets(const Widget *pWindow, const std::initializer_list<WID> &ids)
+inline void drawWidgets(const Widget *pWindowArray, const std::initializer_list<WID> &ids)
 {
-    drawWidgets(pWindow, ids.begin(), ids.size());
+    drawWidgets(pWindowArray, ids.begin(), ids.size());
 }
 
 /**

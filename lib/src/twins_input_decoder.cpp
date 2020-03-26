@@ -311,12 +311,15 @@ const CtrlMap ctrl_keys_map[] =
 
 const CtrlMap special_keys_map[] =
 {
-    KEY_DEF((char)Ansi::BS,   "Backspace",  Key::Backspace, KEY_MOD_SPECIAL)
     KEY_DEF((char)Ansi::DEL,  "Backspace",  Key::Backspace, KEY_MOD_SPECIAL)
     KEY_DEF((char)Ansi::HT,   "Tab",        Key::Tab,       KEY_MOD_SPECIAL)
     KEY_DEF((char)Ansi::LF,   "Enter",      Key::Enter,     KEY_MOD_SPECIAL)
     KEY_DEF((char)Ansi::CR,   "Enter",      Key::Enter,     KEY_MOD_SPECIAL)
     KEY_DEF((char)Ansi::ESC,  "Esc",        Key::Esc,       KEY_MOD_SPECIAL)
+    // KEY_DEF((char)0x17,       "C-Bspc",     Key::Backspace, KEY_MOD_SPECIAL | KEY_MOD_CTRL) // VSCode
+    // KEY_DEF((char)0x08,       "S-Bspc",     Key::Backspace, KEY_MOD_SPECIAL | KEY_MOD_SHIFT) // VSCode
+    KEY_DEF((char)0x1E,       "C-Enter",    Key::Enter,     KEY_MOD_SPECIAL | KEY_MOD_CTRL) // mintty
+    KEY_DEF((char)0x1F,       "C-Bspc",     Key::Backspace, KEY_MOD_SPECIAL | KEY_MOD_CTRL) // mintty
 };
 
 // -----------------------------------------------------------------------------
