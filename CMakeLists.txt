@@ -43,7 +43,9 @@ option(TWINS_BUILD_UT "Build TWins Unit Tests" ON)
 if (${TWINS_BUILD_UT})
     # enable CTest
     enable_testing()
-    add_subdirectory(extern/googletest)
+    if (NOT TARGET gtest)
+        add_subdirectory(extern/googletest)
+    endif()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 endif()
 

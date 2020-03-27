@@ -302,7 +302,7 @@ private:
 /**
  * @brief Initialize TWins
  */
-void init(const IOs *ios);
+void init(IOs *ios);
 
 /**
  *

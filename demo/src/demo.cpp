@@ -7,9 +7,10 @@
 #include "demo_wnd.hpp"
 #include "twins.hpp"
 #include "twins_ringbuffer.hpp"
+#include "twins_ios_defimpl.hpp"
 
 #include <stdio.h>
-#include <stdlib.h>
+// #include <stdlib.h>
 #include <string.h>
 
 // -----------------------------------------------------------------------------
@@ -170,33 +171,15 @@ static WndMainState wndMainState;
 twins::IWindowState * getWindMainState() { return &wndMainState; }
 twins::RingBuff<char> rbKeybInput;
 
-static const twins::IOs tios =
+struct DemoIOs : twins::DefaultIOs
 {
-    writeStr : [](const char *s)
-    {
-        return printf("%s", s);
-    },
-    writeStrFmt : [](const char *fmt, va_list ap)
-    {
-        return vprintf(fmt, ap);
-    },
-    flush : []()
-    {
-        fflush(stdout);
-    },
-    malloc : [](uint32_t sz)
-    {
-        return malloc(sz);
-    },
-    mfree : [](void *ptr)
-    {
-        free(ptr);
-    },
-    getLogsRow : []() -> uint16_t
+    uint16_t getLogsRow() override
     {
         return pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1;
     }
 };
+
+static DemoIOs demo_ios;
 
 // -----------------------------------------------------------------------------
 
@@ -207,7 +190,7 @@ int main()
     // printf("Win1 controls: %u" "\n", wndMain.window.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
 
-    twins::init(&tios);
+    twins::init(&demo_ios);
     twins::screenClrAll();
     twins::drawWidget(pWndMainArray);
     twins::inputPosixInit(100);
@@ -263,4 +246,8 @@ int main()
     twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
     // twins::writeStr();
     twins::inputPosixFree();
+
+    printf("Memory stats: max chunks: %d, max memory: %d B \n",
+        demo_ios.stats.memChunksMax, demo_ios.stats.memAllocatedMax
+    );
 }

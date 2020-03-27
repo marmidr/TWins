@@ -24,7 +24,7 @@ public:
     ~Stack()
     {
         destroyContent();
-        pIOs->mfree(mpItems);
+        pIOs->memFree(mpItems);
     }
 
     void push(T item)
@@ -55,7 +55,7 @@ public:
         if (mCapacity * sizeof(T) >= 128)
         {
             destroyContent();
-            pIOs->mfree(mpItems);
+            pIOs->memFree(mpItems);
             mpItems = nullptr;
             mCapacity = 0;
         }
@@ -70,10 +70,10 @@ private:
         if (mSize == mCapacity)
         {
             mCapacity += 10;
-            T* p_new = (T*)pIOs->malloc(mCapacity * sizeof(T));
+            T* p_new = (T*)pIOs->memAlloc(mCapacity * sizeof(T));
             moveContent(p_new, mpItems, mSize);
             initContent(p_new+mSize, mCapacity-mSize);
-            pIOs->mfree(mpItems);
+            pIOs->memFree(mpItems);
             mpItems = p_new;
         }
     }

@@ -13,6 +13,8 @@
 namespace twins
 {
 
+class String;
+
 /** @brief Template returning length of array of type T */
 template<unsigned N, typename T>
 unsigned arrSize(const T (&arr)[N]) { return N; }
@@ -31,20 +33,32 @@ struct Array
 };
 
 /**
- * @brief I/O layer for easy porting
+ * @brief Interface for I/O layer for easy porting
  */
 struct IOs
 {
-    int     (*writeStr)(const char *s);
-    int     (*writeStrFmt)(const char *fmt, va_list ap);
-    void    (*flush)();
-    void *  (*malloc)(uint32_t sz);
-    void    (*mfree)(void *ptr);
-    uint16_t(*getLogsRow)();
+    struct Stats
+    {
+        uint16_t memChunks;
+        uint16_t memChunksMax;
+        int32_t  memAllocated;
+        int32_t  memAllocatedMax;
+    };
+
+    virtual ~IOs() = default;
+    virtual int   writeStr(const char *s) = 0;
+    virtual int   writeStrAsync(twins::String &&str) = 0;
+    virtual int   writeStrFmt(const char *fmt, va_list ap) = 0;
+    virtual void  flushBuff() = 0;
+    virtual void *memAlloc(uint32_t sz) = 0;
+    virtual void  memFree(void *ptr) = 0;
+    virtual uint16_t getLogsRow() = 0;
 };
 
 // pointer set by init()
-extern const IOs *pIOs;
+extern IOs *pIOs;
+
+
 
 /**
  * @brief ANSI codes

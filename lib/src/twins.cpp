@@ -16,7 +16,7 @@ namespace twins
 {
 
 /** @brief TWins I/O structure */
-const IOs *pIOs;
+IOs *pIOs;
 
 /** @brief Line buffer to avoid printing single chars */
 static twins::String lineBuff;
@@ -49,7 +49,7 @@ FontMemento::~FontMemento()
 
 // -----------------------------------------------------------------------------
 
-void init(const IOs *ios)
+void init(IOs *ios)
 {
     pIOs = ios;
 }

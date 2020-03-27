@@ -35,10 +35,10 @@ public:
     ~RingBuff()
     {
         if (mpBuff && !mStaticBuff)
-            pIOs->mfree(mpBuff);
+            pIOs->memFree(mpBuff);
     }
 
-    /** @brief Initialize the internal buffer using twins::IOS malloc() */
+    /** @brief Initialize the internal buffer using twins::IOS memAlloc() */
     void init(uint16_t bufferSize)
     {
         // if static buffer given or already initialized - exit
@@ -46,7 +46,7 @@ public:
             return;
 
         assert(pIOs);
-        mpBuff = (T*)pIOs->malloc(bufferSize * sizeof(T));
+        mpBuff = (T*)pIOs->memAlloc(bufferSize * sizeof(T));
         mCapacity = bufferSize;
     }
 

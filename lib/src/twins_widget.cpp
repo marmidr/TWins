@@ -56,7 +56,7 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
     va_list ap;
     va_start(ap, fmt);
     pIOs->writeStrFmt(fmt, ap);
-    pIOs->flush();
+    pIOs->flushBuff();
     va_end(ap);
 }
 
