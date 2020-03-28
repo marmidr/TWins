@@ -63,20 +63,7 @@ struct CtrlMap
 
 // -----------------------------------------------------------------------------
 
-/// @brief contexpr array template
-template <typename T, unsigned N>
-struct CexArray
-{
-    constexpr       T& operator[](unsigned i)       { return arr[i]; }
-    constexpr const T& operator[](unsigned i) const { return arr[i]; }
-    constexpr const T* begin()                const { return arr; }
-    constexpr const T* end()                  const { return arr + N; }
-    constexpr unsigned size()                 const { return N; }
-
-    T arr[N];
-};
-
-/// @brief contexpr comparison operator needed for sort function
+/// @brief constexpr comparison operator needed for sort function
 constexpr bool operator <(const SeqMap &left, const SeqMap &right)
 {
     const char *pl = left.seq;
@@ -87,18 +74,18 @@ constexpr bool operator <(const SeqMap &left, const SeqMap &right)
     return *pl < *pr;
 }
 
-/// @brief contexpr swap
+/// @brief constexpr swap
 template<class T>
-constexpr void cex_swap(T& l, T& r)
+constexpr void cex_swap(T& lho, T& rho)
 {
-    T tmp = std::move(l);
-    l = std::move(r);
-    r = std::move(tmp);
+    T tmp = std::move(lho);
+    lho = std::move(rho);
+    rho = std::move(tmp);
 }
 
-/// @brief contexpr sort
+/// @brief constexpr sort
 template <typename T, unsigned N>
-constexpr void cex_sort_impl(CexArray<T, N> &array, unsigned left, unsigned right)
+constexpr void cex_sort_impl(Array<T, N> &array, unsigned left, unsigned right)
 {
     if (left < right)
     {
@@ -115,18 +102,18 @@ constexpr void cex_sort_impl(CexArray<T, N> &array, unsigned left, unsigned righ
     }
 }
 
-/// @brief returns contexpr sorted array
+/// @brief returns constexpr sorted array
 template <typename T, unsigned N>
-constexpr CexArray<T, N> cex_sort_arr(CexArray<T, N> array)
+constexpr Array<T, N> cex_sort_arr(Array<T, N> array)
 {
-    auto sorted = array;
-    cex_sort_impl(sorted, 0, N);
-    return sorted;
+    auto sorted_array = array;
+    cex_sort_impl(sorted_array, 0, N);
+    return sorted_array;
 }
 
 // -----------------------------------------------------------------------------
 
-constexpr CexArray<SeqMap, 151> esc_keys_map_unsorted
+constexpr Array<SeqMap, 151> esc_keys_map_unsorted
 {
     KEY_DEF("[A",       "Up",           Key::Up,        KEY_MOD_SPECIAL)   // xterm
     KEY_DEF("[B",       "Down",         Key::Down,      KEY_MOD_SPECIAL)   // xterm
@@ -324,11 +311,15 @@ const CtrlMap ctrl_keys_map[] =
 
 const CtrlMap special_keys_map[] =
 {
-    KEY_DEF((char)Ansi::BS,   "Backspace",    Key::Backspace, KEY_MOD_SPECIAL)
-    KEY_DEF((char)Ansi::DEL,  "Backspace",    Key::Backspace, KEY_MOD_SPECIAL)
-    KEY_DEF((char)Ansi::HT,   "Tab",          Key::Tab,       KEY_MOD_SPECIAL)
-    KEY_DEF((char)Ansi::LF,   "Enter",        Key::Enter,     KEY_MOD_SPECIAL)
-    KEY_DEF((char)Ansi::ESC,  "Esc",          Key::Esc,       KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::DEL,  "Backspace",  Key::Backspace, KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::HT,   "Tab",        Key::Tab,       KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::LF,   "Enter",      Key::Enter,     KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::CR,   "Enter",      Key::Enter,     KEY_MOD_SPECIAL)
+    KEY_DEF((char)Ansi::ESC,  "Esc",        Key::Esc,       KEY_MOD_SPECIAL)
+    // KEY_DEF((char)0x17,       "C-Bspc",     Key::Backspace, KEY_MOD_SPECIAL | KEY_MOD_CTRL) // VSCode
+    // KEY_DEF((char)0x08,       "S-Bspc",     Key::Backspace, KEY_MOD_SPECIAL | KEY_MOD_SHIFT) // VSCode
+    KEY_DEF((char)0x1E,       "C-Enter",    Key::Enter,     KEY_MOD_SPECIAL | KEY_MOD_CTRL) // mintty
+    KEY_DEF((char)0x1F,       "C-Bspc",     Key::Backspace, KEY_MOD_SPECIAL | KEY_MOD_CTRL) // mintty
 };
 
 // -----------------------------------------------------------------------------
@@ -373,11 +364,13 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
 
 
 static uint8_t decodeFailCtr = 0;
+static uint8_t prevCR = 0;
 
 void decodeInputSeqReset()
 {
     // for testing
     decodeFailCtr = 0;
+    prevCR = 0;
 }
 
 void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
@@ -397,6 +390,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
         auto seq_sz = input.copy(seq, esc_max_len);
         seq[seq_sz] = '\0';
         const char c0 = seq[0];
+        prevCR >>= 1; // set = 2 and then shift is faster than: if(prevCR) prevCR--;
 
         // 1. ANSI escape sequence
         //    check for two following ESC characters to avoid lock
@@ -406,7 +400,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 return;
 
             // binary search: find key map in max 7 steps
-            if (auto *p_km = binary_search(seq+1, esc_keys_map_sorted.arr, esc_keys_map_sorted.size()))
+            if (auto *p_km = binary_search(seq+1, esc_keys_map_sorted.begin(), esc_keys_map_sorted.size()))
             {
                 output.key = p_km->key;
                 output.mod_all = p_km->mod;
@@ -416,21 +410,6 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 input.skip(1 + p_km->seqlen); // +1 for ESC
                 return;
             }
-
-            // old, linear search:
-            // for (const auto &km : esc_keys_map_sorted)
-            // {
-            //     int cmp = strncmp(seq, km.seq, km.seqlen);
-            //     if (cmp == 0)
-            //     {
-            //         output.key = km.key;
-            //         output.mod_all = km.mod | KEY_MOD_SPECIAL;
-            //         #if TWINS_USE_KEY_NAMES
-            //         output.name = km.name;
-            //         #endif
-            //         break;
-            //     }
-            // }
 
             // ESC sequence invalid or unknown?
             if (seq_sz > 3) // 3 is mimimum ESC seq len
@@ -462,12 +441,29 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
         }
         else
         {
+            bool skip = false;
+
             // 2. check for special key
             // note: it conflicts with ctrl_keys_map[] but has higher priority
             for (const auto &km : special_keys_map)
             {
                 if (c0 == km.c)
                 {
+                    if (c0 == (char)Ansi::CR)
+                    {
+                        // CR   -> treat as LF
+                        // CRLF -> ignore LF
+                        //   LF -> LF
+                        prevCR = 2;
+                    }
+                    else if (c0 == (char)Ansi::LF && prevCR)
+                    {
+                        input.skip(1);
+                        prevCR = 0;
+                        skip = true;
+                        break;
+                    }
+
                     output.key = km.key;
                     output.mod_all = km.mod;
                     #if TWINS_USE_KEY_NAMES
@@ -477,6 +473,8 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                     return;
                 }
             }
+
+            if (skip) continue;
 
             // 3. check for one of Ctrl+[A..Z]
             for (const auto &km : ctrl_keys_map)

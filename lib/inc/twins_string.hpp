@@ -20,7 +20,9 @@ class String
 {
 public:
     // avoid memory allocation in constructor
+    String(const char*) = delete;
     String() = default;
+    String(String &&other);
     ~String();
 
     /** @brief Append new string or character or number of given characters */
@@ -40,11 +42,9 @@ public:
     /** @brief Return C-style string buffer */
     const char *cstr() const { return mpBuff ? mpBuff : ""; }
     /** @brief Convenient assign operators */
-    void operator=(const char *s);
-    void operator=(const String &other) { *this = other.cstr(); }
-    void operator=(String &&other);
-    /** @brief Releases string content, used with move assign operator=(String&&) */
-    String&& release() { return (String&&)*this; }
+    String& operator=(const char *s);
+    String& operator=(const String &other) { *this = other.cstr(); return *this; }
+    String& operator=(String &&other);
 
 private:
     void resize(uint16_t newCapacity);

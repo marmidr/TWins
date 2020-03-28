@@ -8,74 +8,49 @@
 #include "gmock/gmock.h"
 
 #include "twins.hpp"
+#include "twins_ios_defimpl.hpp"
 
 // -----------------------------------------------------------------------------
 
-struct test_ios_t
+struct STRING_Test : public testing::Test
 {
-    int chunks = 0;
-    int chunks_max = 0;
-} ios_stat;
-
-static twins::IOs ios =
-{
-    writeStr : [](const char *s)
+    void SetUp() override
     {
-        return printf("%s", s);
-    },
-    writeStrFmt : [](const char *fmt, va_list ap)
-    {
-        return vprintf(fmt, ap);
-    },
-    flush : []()
-    {
-        fflush(stdout);
-    },
-    malloc : [](uint32_t sz)
-    {
-        ios_stat.chunks ++;
-        if (ios_stat.chunks > ios_stat.chunks_max)
-            ios_stat.chunks_max = ios_stat.chunks;
-
-        return malloc(sz);
-    },
-    mfree : [](void *ptr)
-    {
-        ios_stat.chunks --;
-        free(ptr);
+        tios.stats = {};
     }
+
+    void TearDown() override
+    {
+        EXPECT_EQ(0, tios.stats.memChunks);
+    }
+
+    twins::DefaultIOs& tios = (twins::DefaultIOs&)*twins::pIOs;
 };
 
 // -----------------------------------------------------------------------------
 
-TEST(STRING, clear)
+TEST_F(STRING_Test, clear)
 {
-    ios_stat = {};
-    twins::init(&ios);
-
     {
         twins::String s;
 
         EXPECT_STREQ("", s.cstr());
         EXPECT_EQ(0, s.size());
         EXPECT_EQ(0, s.utf8Len());
-        EXPECT_EQ(0, ios_stat.chunks);
+        EXPECT_EQ(0, tios.stats.memChunks);
 
         s.clear();
         EXPECT_EQ("", s.cstr());
         EXPECT_EQ(0, s.size());
         EXPECT_EQ(0, s.utf8Len());
-        EXPECT_EQ(0, ios_stat.chunks);
+        EXPECT_EQ(0, tios.stats.memChunks);
     }
 
-    EXPECT_EQ(0, ios_stat.chunks_max);
+    EXPECT_EQ(0, tios.stats.memChunksMax);
 }
 
-TEST(STRING, append_1)
+TEST_F(STRING_Test, append_1)
 {
-    ios_stat = {};
-    twins::init(&ios);
-
     {
         twins::String s;
         s.append(nullptr);
@@ -85,23 +60,19 @@ TEST(STRING, append_1)
         EXPECT_STREQ("Cześć", s.cstr());
         EXPECT_EQ(7, s.size());
         EXPECT_EQ(5, s.utf8Len());
-        EXPECT_EQ(1, ios_stat.chunks);
+        EXPECT_EQ(1, tios.stats.memChunks);
 
         s.clear();
-        EXPECT_EQ(1, ios_stat.chunks);
+        EXPECT_EQ(1, tios.stats.memChunks);
         EXPECT_EQ(0, s.size());
         EXPECT_EQ(0, s.utf8Len());
     }
 
-    EXPECT_EQ(0, ios_stat.chunks);
-    EXPECT_EQ(1, ios_stat.chunks_max);
+    EXPECT_EQ(1, tios.stats.memChunksMax);
 }
 
-TEST(STRING, append_2)
+TEST_F(STRING_Test, append_2)
 {
-    ios_stat = {};
-    twins::init(&ios);
-
     {
         twins::String s;
         s.append("12345");
@@ -109,25 +80,21 @@ TEST(STRING, append_2)
 
         EXPECT_EQ(35, s.size());
         EXPECT_EQ(35, s.utf8Len());
-        EXPECT_EQ(1, ios_stat.chunks);
+        EXPECT_EQ(1, tios.stats.memChunks);
 
         s.clear();
         s.append('X', -5);
         s.append('X');
-        EXPECT_EQ(1, ios_stat.chunks);
+        EXPECT_EQ(1, tios.stats.memChunks);
         EXPECT_EQ(1, s.size());
         EXPECT_EQ(1, s.utf8Len());
     }
 
-    EXPECT_EQ(0, ios_stat.chunks);
-    EXPECT_EQ(2, ios_stat.chunks_max);
+    EXPECT_EQ(2, tios.stats.memChunksMax);
 }
 
-TEST(STRING, append_fmt__fits_in_buffer)
+TEST_F(STRING_Test, append_fmt__fits_in_buffer)
 {
-    ios_stat = {};
-    twins::init(&ios);
-
     {
         twins::String s;
         s.append("12345");
@@ -137,18 +104,14 @@ TEST(STRING, append_fmt__fits_in_buffer)
         s.appendFmt("%s:%4u", "Fun()", 2048);
         EXPECT_EQ(15, s.size());
         EXPECT_TRUE(strstr(s.cstr(), ":2048"));
-        EXPECT_EQ(1, ios_stat.chunks);
+        EXPECT_EQ(1, tios.stats.memChunks);
     }
 
-    EXPECT_EQ(0, ios_stat.chunks);
-    EXPECT_EQ(1, ios_stat.chunks_max);
+    EXPECT_EQ(1, tios.stats.memChunksMax);
 }
 
-TEST(STRING, append_fmt__buffer_to_small)
+TEST_F(STRING_Test, append_fmt__buffer_to_small)
 {
-    ios_stat = {};
-    twins::init(&ios);
-
     {
         twins::String s;
         s.append("12345", 6);
@@ -157,18 +120,14 @@ TEST(STRING, append_fmt__buffer_to_small)
         s.appendFmt("%s:%4u", "Fun()", 2048); // buffer must be expanded
         EXPECT_TRUE(strstr(s.cstr(), ":2048"));
         EXPECT_EQ(40, s.size());
-        EXPECT_EQ(1, ios_stat.chunks);
+        EXPECT_EQ(1, tios.stats.memChunks);
     }
 
-    EXPECT_EQ(0, ios_stat.chunks);
-    EXPECT_EQ(2, ios_stat.chunks_max);
+    EXPECT_EQ(2, tios.stats.memChunksMax);
 }
 
-TEST(STRING, trim_no_ellipsis)
+TEST_F(STRING_Test, trim_no_ellipsis)
 {
-    ios_stat = {};
-    twins::init(&ios);
-
     {
         twins::String s;
         s.append("► Service Menu");
@@ -183,15 +142,10 @@ TEST(STRING, trim_no_ellipsis)
         EXPECT_EQ(10, s.utf8Len());
         EXPECT_STREQ("► Service ", s.cstr());
     }
-
-    EXPECT_EQ(0, ios_stat.chunks);
 }
 
-TEST(STRING, trim_ellipsis_1)
+TEST_F(STRING_Test, trim_ellipsis_1)
 {
-    ios_stat = {};
-    twins::init(&ios);
-
     {
         twins::String s;
         s = "► Service Menu";
@@ -199,15 +153,10 @@ TEST(STRING, trim_ellipsis_1)
         EXPECT_EQ(10, s.utf8Len()); // trimmed at apace - no ellipsis added
         EXPECT_STREQ("► Service ", s.cstr());
     }
-
-    EXPECT_EQ(0, ios_stat.chunks);
 }
 
-TEST(STRING, trim_ellipsis_2)
+TEST_F(STRING_Test, trim_ellipsis_2)
 {
-    ios_stat = {};
-    twins::init(&ios);
-
     {
         twins::String s;
         s = "► Service Menu";
@@ -215,25 +164,22 @@ TEST(STRING, trim_ellipsis_2)
         EXPECT_EQ(12, s.utf8Len());
         EXPECT_STREQ("► Service M…", s.cstr());
     }
-
-    EXPECT_EQ(0, ios_stat.chunks);
 }
 
-TEST(STRING, move_assign)
+TEST_F(STRING_Test, move_assign)
 {
-    ios_stat = {};
-    twins::init(&ios);
-
     {
         twins::String s1;
-        s1.append("Menu");
+        s1 = "Menu";
 
         twins::String s2;
         s2 = std::move(s1);
 
         EXPECT_EQ(0, s1.size());
         EXPECT_EQ(4, s2.size());
-    }
 
-    EXPECT_EQ(0, ios_stat.chunks);
+        twins::String s3 = std::move(s2);
+        EXPECT_EQ(0, s2.size());
+        EXPECT_EQ(4, s3.size());
+    }
 }

@@ -206,3 +206,66 @@ TEST(INPUTDECODER, L__S_C_UP__O)
     // remains '*'
     EXPECT_EQ(1, input.size());
 }
+
+TEST(INPUTDECODER, CR)
+{
+    twins::decodeInputSeqReset();
+    twins::RingBuff<char> input(rbBuffer);
+    twins::KeyCode kc;
+
+    input.write("\r\r\t");
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Enter, kc.key);
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Enter, kc.key);
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Tab, kc.key);
+}
+
+TEST(INPUTDECODER, LF)
+{
+    twins::decodeInputSeqReset();
+    twins::RingBuff<char> input(rbBuffer);
+    twins::KeyCode kc;
+
+    input.write("\n\n\t");
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Enter, kc.key);
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Enter, kc.key);
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Tab, kc.key);
+}
+
+TEST(INPUTDECODER, CR_LF_CR)
+{
+    twins::decodeInputSeqReset();
+    twins::RingBuff<char> input(rbBuffer);
+    twins::KeyCode kc;
+
+    input.write("\n\r\n\t\n\r\t");
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Enter, kc.key);
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Enter, kc.key);
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Tab, kc.key);
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Enter, kc.key);
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Enter, kc.key);
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::Tab, kc.key);
+}

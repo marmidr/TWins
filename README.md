@@ -46,11 +46,14 @@ Implementation is based on examples:
     - [ ] button group
     - [x] page control
     - [x] progress bar
+    - [ ] list
+    - [ ] drop down list
 - navigation
-    - [ ] widgets navigation by Tab/Esc key
+    - [x] widgets navigation by Tab/Esc key
     - [ ] render focused widget state
 - notifications
-    - [ ] notify event per widget type (button clicked, checkbox toggled)
+    - [x] notify event per widget type (button clicked, checkbox toggled)
+- [ ] color theme for window
 
 ## How to build
 

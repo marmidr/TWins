@@ -7,9 +7,10 @@
 #include "demo_wnd.hpp"
 #include "twins.hpp"
 #include "twins_ringbuffer.hpp"
+#include "twins_ios_defimpl.hpp"
 
 #include <stdio.h>
-#include <stdlib.h>
+// #include <stdlib.h>
 #include <string.h>
 
 // -----------------------------------------------------------------------------
@@ -145,7 +146,7 @@ public:
     {
         // state or focus changed - widget must be repainted
         // note: drawing here is lazy solution
-        twins::drawWidget(&wndMain, id);
+        twins::drawWidget(pWndMainArray, id);
     }
 
 public:
@@ -170,33 +171,15 @@ static WndMainState wndMainState;
 twins::IWindowState * getWindMainState() { return &wndMainState; }
 twins::RingBuff<char> rbKeybInput;
 
-static const twins::IOs tios =
+struct DemoIOs : twins::DefaultIOs
 {
-    writeStr : [](const char *s)
+    uint16_t getLogsRow() override
     {
-        return printf("%s", s);
-    },
-    writeStrFmt : [](const char *fmt, va_list ap)
-    {
-        return vprintf(fmt, ap);
-    },
-    flush : []()
-    {
-        fflush(stdout);
-    },
-    malloc : [](uint32_t sz)
-    {
-        return malloc(sz);
-    },
-    mfree : [](void *ptr)
-    {
-        free(ptr);
-    },
-    getLogsRow : []() -> uint16_t
-    {
-        return wndMain.coord.row + wndMain.size.height + 1;
+        return pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1;
     }
 };
+
+static DemoIOs demo_ios;
 
 // -----------------------------------------------------------------------------
 
@@ -207,9 +190,9 @@ int main()
     // printf("Win1 controls: %u" "\n", wndMain.window.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
 
-    twins::init(&tios);
-    twins::clrScreenAll();
-    twins::drawWidget(&wndMain);
+    twins::init(&demo_ios);
+    twins::screenClrAll();
+    twins::drawWidget(pWndMainArray);
     twins::inputPosixInit(100);
     rbKeybInput.init(20);
     fflush(stdout);
@@ -223,7 +206,6 @@ int main()
 
         if (rbKeybInput.size())
         {
-            TWINS_LOG("decode");
             // display input buffer
             memset(wndMainState.lblKeycodeSeq, 0, sizeof(wndMainState.lblKeycodeSeq));
             rbKeybInput.copy(wndMainState.lblKeycodeSeq, sizeof(wndMainState.lblKeycodeSeq)-1);
@@ -231,23 +213,23 @@ int main()
 
             twins::KeyCode kc;
             twins::decodeInputSeq(rbKeybInput, kc);
-            twins::processKey(&wndMain, kc);
+            twins::processKey(pWndMainArray, kc);
 
             // display decoded key
             wndMainState.lblKeyName = kc.name;
 
             if (kc.m_spec && kc.key == twins::Key::F5)
             {
-                twins::clrScreenAll();
-                twins::drawWidget(&wndMain);
+                twins::screenClrAll();
+                twins::drawWidget(pWndMainArray);
             }
             else
             {
-                twins::drawWidgets(&wndMain, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+                twins::drawWidgets(pWndMainArray, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
 
                 if (kc.mod_all != KEY_MOD_SPECIAL)
                 {
-                    twins::drawWidgets(&wndMain,
+                    twins::drawWidgets(pWndMainArray,
                     {
                         ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
                     });
@@ -260,7 +242,12 @@ int main()
         fflush(stdout);
     }
 
-    twins::moveTo(0, wndMain.coord.row + wndMain.size.height + 1);
+    // Window is always at [0]
+    twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
     // twins::writeStr();
     twins::inputPosixFree();
+
+    printf("Memory stats: max chunks: %d, max memory: %d B \n",
+        demo_ios.stats.memChunksMax, demo_ios.stats.memAllocatedMax
+    );
 }

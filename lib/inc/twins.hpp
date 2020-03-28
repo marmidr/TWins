@@ -16,6 +16,10 @@
 
 #define TWINS_LOG(...)   twins::log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
 
+#ifndef __TWINS_LINK_SECRET
+#define __TWINS_LINK_SECRET void*_
+#endif
+
 // -----------------------------------------------------------------------------
 
 namespace twins
@@ -171,6 +175,7 @@ struct Widget
         PageCtrl,
         Page,
         ProgressBar,
+        List,
         DropDownList,
     };
 
@@ -179,7 +184,22 @@ struct Widget
     Coord   coord;
     Size    size;
 
-    /** */
+    /** parent <- this -> childs linking */
+    union
+    {
+        __TWINS_LINK_SECRET;
+        //
+        struct
+        {
+            /** in constexpr the pointer cannot be calculated, thus,
+              * we use flat Widgets array index instead */
+            uint8_t parentIdx;  /// set in compile-time
+            uint8_t childsIdx;  /// set in compile-time
+            uint8_t childsCnt;  /// set in compile-time
+        };
+    } link;
+
+    /** In this union each type of Widget has it's own space */
     union
     {
         struct
@@ -188,17 +208,13 @@ struct Widget
             ColorFG         fgColor;
             const char *    title;
             IWindowState *  (*getState)();
-            const Widget *  pChildrens;
-            uint16_t        childCount;
         } window;
 
         struct
         {
-            ColorBG         bgColor;
-            ColorFG         fgColor;
-            const char *    title;
-            const Widget *  pChildrens;
-            uint16_t        childCount;
+            ColorBG     bgColor;
+            ColorFG     fgColor;
+            const char *title;
         } panel;
 
         struct
@@ -217,12 +233,14 @@ struct Widget
         struct
         {
             const char *text;
+            ColorFG     fgColor;
         } checkbox;
 
         struct
         {
             const char *text;
             uint8_t     groupId;
+            ColorFG     fgColor;
         } button;
 
         struct
@@ -235,23 +253,24 @@ struct Widget
 
         struct
         {
-            uint8_t         tabWidth;
-            const Widget *  pChildrens; // only Pages
-            uint16_t        childCount;
+            uint8_t     tabWidth;
         } pagectrl;
 
         struct
         {
-            ColorFG         fgColor;
-            const char *    title;
-            const Widget *  pChildrens;
-            uint16_t        childCount;
+            ColorFG     fgColor;
+            const char *title;
         } page;
 
         struct
         {
-
+            ColorFG     fgColor;
         } progressbar;
+
+        struct
+        {
+
+        } list;
 
         struct
         {
@@ -264,12 +283,26 @@ struct Widget
 static constexpr WID WIDGET_ID_NONE = 0;    // convenient, any id by default points to nothing
 static constexpr WID WIDGET_ID_ALL = -1;
 
+/** @brief Object remembers terminal font colors and attribute,
+ *         to restore them upon destruction
+ */
+struct FontMemento
+{
+    FontMemento();
+    ~FontMemento();
+
+private:
+    uint8_t szFg;
+    uint8_t szBg;
+    uint8_t szAttr;
+};
+
 // -----------------------------------------------------------------------------
 
 /**
  * @brief Initialize TWins
  */
-void init(const IOs *ios);
+void init(IOs *ios);
 
 /**
  *
@@ -287,22 +320,22 @@ int writeStrFmt(const char *fmt, ...);
 /**
  * @brief Draw single widget or entire window
  */
-void drawWidget(const Widget *pWindow, WID widgetId = WIDGET_ID_ALL);
+void drawWidget(const Widget *pWindowArray, WID widgetId = WIDGET_ID_ALL);
 
 /**
  * @brief Draw selected widgets
  */
-void drawWidgets(const Widget *pWindow, const WID *pWidgetIds, uint16_t count);
+void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t count);
 
 template<int N>
-inline void drawWidgets(const Widget *pWindow, const WID (&widgetIds)[N])
+inline void drawWidgets(const Widget *pWindowArray, const WID (&widgetIds)[N])
 {
-    drawWidgets(pWindow, widgetIds, N);
+    drawWidgets(pWindowArray, widgetIds, N);
 }
 
-inline void drawWidgets(const Widget *pWindow, const std::initializer_list<WID> &ids)
+inline void drawWidgets(const Widget *pWindowArray, const std::initializer_list<WID> &ids)
 {
-    drawWidgets(pWindow, ids.begin(), ids.size());
+    drawWidgets(pWindowArray, ids.begin(), ids.size());
 }
 
 /**
@@ -313,22 +346,22 @@ const char * toString(Widget::Type type);
 /**
  * @brief Foreground color stack
  */
-void pushClrFg(ColorFG cl);
-void popClrFg();
-void resetClrFg();
+void pushClFg(ColorFG cl);
+void popClFg(int n = 1);
+void resetClFg();
 
 /**
  * @brief Background color stack
  */
-void pushClrBg(ColorBG cl);
-void popClrBg();
-void resetClrBg();
+void pushClBg(ColorBG cl);
+void popClBg(int n = 1);
+void resetClBg();
 
 /**
  * @brief Font attributes stack
  */
 void pushAttr(FontAttrib attr);
-void popAttr();
+void popAttr(int n = 1);
 void resetAttr();
 
 /**
@@ -337,22 +370,27 @@ void resetAttr();
 void moveTo(uint16_t col, uint16_t row);
 void moveToCol(uint16_t col);
 void moveBy(int16_t cols, int16_t rows);
-inline void moveToHome()           { writeStr(ESC_CURSOR_HOME); }
+inline void moveToHome()            { writeStr(ESC_CURSOR_HOME); }
 
-inline void cursorSavePos()        { writeStr(ESC_CURSOR_POS_SAVE); }
-inline void cursorRestorePos()     { writeStr(ESC_CURSOR_POS_RESTORE); }
-inline void cursorHide()           { writeStr(ESC_CURSOR_HIDE); }
-inline void cursorShow()           { writeStr(ESC_CURSOR_SHOW); }
+inline void cursorSavePos()         { writeStr(ESC_CURSOR_POS_SAVE); }
+inline void cursorRestorePos()      { writeStr(ESC_CURSOR_POS_RESTORE); }
+inline void cursorHide()            { writeStr(ESC_CURSOR_HIDE); }
+inline void cursorShow()            { writeStr(ESC_CURSOR_SHOW); }
+
+/**
+ * @brief Lines manipulation
+ */
+inline void insertLines(uint16_t count) { writeStrFmt(ESC_LINE_INSERT_FMT, count); }
 
 /**
  * @brief Screen manipulation
  */
-inline void clrScreenAbove()       { writeStr(ESC_SCREEN_ERASE_ABOVE); }
-inline void clrScreenBelow()       { writeStr(ESC_SCREEN_ERASE_BELOW); }
-inline void clrScreenAll()         { writeStr(ESC_SCREEN_ERASE_ALL); }
+inline void screenClrAbove()        { writeStr(ESC_SCREEN_ERASE_ABOVE); }
+inline void screenClrBelow()        { writeStr(ESC_SCREEN_ERASE_BELOW); }
+inline void screenClrAll()          { writeStr(ESC_SCREEN_ERASE_ALL); }
 
-inline void clrScreenSave()        { writeStr(ESC_SCREEN_SAVE); }
-inline void clrScreenRestore()     { writeStr(ESC_SCREEN_RESTORE); }
+inline void screenSave()            { writeStr(ESC_SCREEN_SAVE); }
+inline void screenRestore()         { writeStr(ESC_SCREEN_RESTORE); }
 
 /**
  * @brief Decode given ANSI sequence and produce readable Key Code

@@ -16,7 +16,7 @@ namespace twins
 {
 
 /** @brief TWins I/O structure */
-const IOs *pIOs;
+IOs *pIOs;
 
 /** @brief Line buffer to avoid printing single chars */
 static twins::String lineBuff;
@@ -32,11 +32,30 @@ static Stack<FontAttrib> stackAttr;
 
 // -----------------------------------------------------------------------------
 
-void init(const IOs *ios)
+/** */
+FontMemento::FontMemento()
+{
+    szFg = stackClFg.size();
+    szBg = stackClBg.size();
+    szAttr = stackAttr.size();
+}
+
+FontMemento::~FontMemento()
+{
+    popClFg(stackClFg.size() - szFg);
+    popClBg(stackClBg.size() - szBg);
+    popAttr(stackAttr.size() - szAttr);
+}
+
+// -----------------------------------------------------------------------------
+
+void init(IOs *ios)
 {
     pIOs = ios;
 }
 
+// TODO: these writeX functions duplicates twins::String;
+// make lineBuff work harder and use more buffering and asynchronous flush
 int writeChar(char c, int16_t count)
 {
     if (count <= 0)
@@ -76,10 +95,11 @@ int writeStrFmt(const char *fmt, ...)
 }
 
 // TODO: implement full buffering
-void flush()
+void flushBuffer()
 {
-    writeStr(lineBuff.cstr());
-    lineBuff.clear();
+    // give the line buffer to the HAL so it can asynchronicaly send it and release
+    //writeStr(std::move(lineBuff));
+    //lineBuff.clear();
 }
 
 void moveTo(uint16_t col, uint16_t row)
@@ -108,23 +128,22 @@ void moveBy(int16_t cols, int16_t rows)
 
 // -----------------------------------------------------------------------------
 
-void pushClrFg(ColorFG cl)
+void pushClFg(ColorFG cl)
 {
     stackClFg.push(currentClFg);
     currentClFg = cl;
     pIOs->writeStr(encodeCl(currentClFg));
 }
 
-void popClrFg()
+void popClFg(int n)
 {
-    if (stackClFg.size())
-    {
+    while (stackClFg.size() && n-- > 0)
         currentClFg = *stackClFg.pop();
-        pIOs->writeStr(encodeCl(currentClFg));
-    }
+
+    pIOs->writeStr(encodeCl(currentClFg));
 }
 
-void resetClrFg()
+void resetClFg()
 {
     stackClFg.clear();
     pIOs->writeStr(ESC_FG_DEFAULT);
@@ -132,23 +151,22 @@ void resetClrFg()
 
 // -----------------------------------------------------------------------------
 
-void pushClrBg(ColorBG cl)
+void pushClBg(ColorBG cl)
 {
     stackClBg.push(currentClBg);
     currentClBg = cl;
     pIOs->writeStr(encodeCl(currentClBg));
 }
 
-void popClrBg()
+void popClBg(int n)
 {
-    if (stackClBg.size())
-    {
+    while (stackClBg.size() && n-- > 0)
         currentClBg = *stackClBg.pop();
-        pIOs->writeStr(encodeCl(currentClBg));
-    }
+
+    pIOs->writeStr(encodeCl(currentClBg));
 }
 
-void resetClrBg()
+void resetClBg()
 {
     stackClBg.clear();
     pIOs->writeStr(ESC_BG_DEFAULT);
@@ -176,9 +194,11 @@ void pushAttr(FontAttrib attr)
     }
 }
 
-void popAttr()
+void popAttr(int n)
 {
-    if (auto *pAttr = stackAttr.pop())
+    auto *pAttr = stackAttr.pop();
+
+    while (pAttr && n-- > 0)
     {
         switch (*pAttr)
         {
@@ -192,6 +212,8 @@ void popAttr()
         case FontAttrib::StrikeThrough: pIOs->writeStr(ESC_STRIKETHROUGH_OFF); break;
         default: break;
         }
+
+        pAttr = stackAttr.pop();
     }
 }
 

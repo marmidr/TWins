@@ -12,16 +12,22 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <utility> //std::swap
 
 // -----------------------------------------------------------------------------
 
 namespace twins
 {
 
+String::String(String &&other)
+{
+    *this = std::move(other);
+}
+
 String::~String()
 {
     if (mpBuff)
-        pIOs->mfree(mpBuff);
+        pIOs->memFree(mpBuff);
 }
 
 void String::append(const char *s)
@@ -129,21 +135,19 @@ void String::clear()
     if (mpBuff) *mpBuff = '\0';
 }
 
-void String::operator=(const char *s)
+String& String::operator=(const char *s)
 {
     clear();
     append(s);
+    return *this;
 }
 
-void String::operator=(String &&other)
+String& String::operator=(String &&other)
 {
-    free();
-    mpBuff    = other.mpBuff;
-    mCapacity = other.mCapacity;
-    mSize     = other.mSize;
-
-    other.mpBuff = nullptr;
-    other.free();
+    std::swap(mpBuff,    other.mpBuff);
+    std::swap(mCapacity, other.mCapacity);
+    std::swap(mSize,     other.mSize);
+    return *this;
 }
 
 unsigned String::utf8Len() const
@@ -167,7 +171,7 @@ void String::resize(uint16_t newCapacity)
     if (!mpBuff)
     {
         // first-time buffer allocation
-        mpBuff = (char*)pIOs->malloc(newCapacity);
+        mpBuff = (char*)pIOs->memAlloc(newCapacity);
         mCapacity = newCapacity;
         *mpBuff = '\0';
         mSize = 0;
@@ -177,17 +181,17 @@ void String::resize(uint16_t newCapacity)
     if (newCapacity > mCapacity)
     {
         // reallocation needed
-        char *pnew = (char*)pIOs->malloc(newCapacity);
+        char *pnew = (char*)pIOs->memAlloc(newCapacity);
         mCapacity = newCapacity;
         memcpy(pnew, mpBuff, mSize+1);
-        pIOs->mfree(mpBuff);
+        pIOs->memFree(mpBuff);
         mpBuff = pnew;
     }
 }
 
 void String::free()
 {
-    if (mpBuff) pIOs->mfree(mpBuff);
+    if (mpBuff) pIOs->memFree(mpBuff);
     mpBuff = nullptr;
     mCapacity = 0;
     mSize = 0;
