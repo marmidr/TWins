@@ -351,7 +351,8 @@ static void drawPageControl(const Widget *pWgt)
     popAttr();
 
     // draw tabs and pages
-    int pg_idx = g.pWndState->getPageCtrlPageIndex(pWgt);
+    const int pg_idx = g.pWndState->getPageCtrlPageIndex(pWgt);
+    const bool focused = g.pWndState->isFocused(pWgt);
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
 
     for (int i = 0; i < pWgt->link.childsCnt; i++)
@@ -369,9 +370,9 @@ static void drawPageControl(const Widget *pWgt)
 
         moveTo(my_coord.col, my_coord.row + i + 1);
         pushClFg(p_page->page.fgColor);
-        if (i == pg_idx) pushAttr(FontAttrib::Inverse);
+        if (/* focused && */ i == pg_idx) pushAttr(FontAttrib::Inverse);
         writeStr(g.str.cstr());
-        if (i == pg_idx) popAttr();
+        if (/* focused && */ i == pg_idx) popAttr();
         popClFg();
 
         if (g.pWndState->isVisible(p_page))
@@ -395,7 +396,7 @@ static void drawPage(const Widget *pWgt)
 static void drawProgressBar(const Widget *pWgt)
 {
     int pos = 0, max = 1;
-    g.pWndState->getProgressBarNfo(pWgt, pos, max);
+    g.pWndState->getProgressBarState(pWgt, pos, max);
 
     if (max <= 0) max = 1;
     if (pos > max) pos = max;
@@ -433,6 +434,8 @@ static void drawWidgetInternal(const Widget *pWgt)
     case Widget::PageCtrl:      drawPageControl(pWgt); break;
     case Widget::Page:          drawPage(pWgt); break;
     case Widget::ProgressBar:   drawProgressBar(pWgt); break;
+    case Widget::List:          break;
+    case Widget::DropDownList:  break;
     default:                    break;
     }
 
@@ -546,6 +549,7 @@ static bool isFocusable(const Widget *pWgt)
     case Widget::Edit:
     case Widget::CheckBox:
     case Widget::Button:
+    //case Widget::PageCtrl:
     case Widget::List:
     case Widget::DropDownList:
         return true;
@@ -581,6 +585,10 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
                 p_childs  = &g.pWndArray[pParent->link.childsIdx];
                 child_cnt = pParent->link.childsCnt;
             }
+            else
+            {
+                return nullptr;
+            }
         }
         break;
     default:
@@ -588,6 +596,7 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
         return nullptr;
     }
 
+    assert(p_childs);
 
     if (focusedID == WIDGET_ID_NONE)
     {
@@ -653,7 +662,7 @@ static WID focusNext(const WID focusedID, bool forward)
 
     if (!findWidget(wss))
     {
-        // here, find may fail only id invalid focusedID is given
+        // here, find may fail only if invalid focusedID was given
         wss.pWidget = g.pWndArray;
     }
 

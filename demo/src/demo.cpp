@@ -128,7 +128,7 @@ public:
         return ledBatt;
     }
 
-    void getProgressBarNfo(const twins::Widget*, int &pos, int &max) override
+    void getProgressBarState(const twins::Widget*, int &pos, int &max) override
     {
         pos = pgbarPos++;
         max = 20;
@@ -211,7 +211,7 @@ int main()
             rbKeybInput.copy(wndMainState.lblKeycodeSeq, sizeof(wndMainState.lblKeycodeSeq)-1);
             wndMainState.lblKeycodeSeq[sizeof(wndMainState.lblKeycodeSeq)-1] = '\0';
 
-            twins::KeyCode kc;
+            twins::KeyCode kc = {};
             twins::decodeInputSeq(rbKeybInput, kc);
             twins::processKey(pWndMainArray, kc);
 

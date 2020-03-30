@@ -196,14 +196,14 @@ void pushAttr(FontAttrib attr)
 
 void popAttr(int n)
 {
-    auto *pAttr = stackAttr.pop();
-
-    while (pAttr && n-- > 0)
+    while (stackAttr.size() && n-- > 0)
     {
+        auto *pAttr = stackAttr.pop();
+
         switch (*pAttr)
         {
         case FontAttrib::Bold:          if (!attrFaint) pIOs->writeStr(ESC_NORMAL); break;
-        case FontAttrib::Faint:         attrFaint--; pIOs->writeStr(ESC_NORMAL); break;
+        case FontAttrib::Faint:         if (!--attrFaint) pIOs->writeStr(ESC_NORMAL); break;
         case FontAttrib::Italics:       pIOs->writeStr(ESC_ITALICS_OFF); break;
         case FontAttrib::Underline:     pIOs->writeStr(ESC_UNDERLINE_OFF); break;
         case FontAttrib::BlinkSlow:     pIOs->writeStr(ESC_BLINK_OFF); break;
@@ -212,8 +212,6 @@ void popAttr(int n)
         case FontAttrib::StrikeThrough: pIOs->writeStr(ESC_STRIKETHROUGH_OFF); break;
         default: break;
         }
-
-        pAttr = stackAttr.pop();
     }
 }
 

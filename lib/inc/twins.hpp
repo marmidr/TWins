@@ -146,7 +146,7 @@ public:
     virtual void getLabelText(const Widget*, String &out) = 0;
     virtual void getEditText(const Widget*, String &out) = 0;
     virtual bool getLedLit(const Widget*) = 0;
-    virtual void getProgressBarNfo(const Widget*, int &pos, int &max) = 0;
+    virtual void getProgressBarState(const Widget*, int &pos, int &max) = 0;
     virtual int  getPageCtrlPageIndex(const Widget*) = 0;
     // requests
     virtual void invalidate(twins::WID id) = 0;

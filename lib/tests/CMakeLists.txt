@@ -29,14 +29,14 @@ target_include_directories(${TARGETNAME}
 
 set(GCOVR_EXCLUDES ".*/googletest/.*")
 
-add_custom_target(cov_only
+add_custom_target(twins_cov_only
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMAND mkdir -p cover_html
     COMMAND gcovr -r ${PROJECT_SOURCE_DIR} -s -e ${GCOVR_EXCLUDES} -b --html-details -o cover_html/cover.html
     COMMAND ln -sf cover_html/cover.html cover.html
 )
 
-add_custom_target(cov_clean
+add_custom_target(twins_cov_clean
     COMMAND find . -name *.gcda -delete
 )
 
