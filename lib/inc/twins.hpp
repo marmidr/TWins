@@ -137,6 +137,8 @@ public:
     virtual void onEditChange(const twins::Widget* pWgt, twins::String &str) = 0;
     virtual void onCheckboxToggle(const twins::Widget* pWgt) = 0;
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) = 0;
+    virtual void onListBoxScrool(const twins::Widget* pWgt, bool up, bool page) = 0;
+    virtual void onListBoxSelect(const twins::Widget* pWgt) = 0;
     // state queries
     virtual bool isEnabled(const Widget*) = 0;
     virtual bool isFocused(const Widget*) = 0;
@@ -148,6 +150,8 @@ public:
     virtual bool getLedLit(const Widget*) = 0;
     virtual void getProgressBarState(const Widget*, int &pos, int &max) = 0;
     virtual int  getPageCtrlPageIndex(const Widget*) = 0;
+    virtual void getListBoxState(const Widget*, int &itemIdx, int &itemsCount) = 0;
+    virtual void getListBoxItem(const Widget*, int itemIdx, String &out) = 0;
     // requests
     virtual void invalidate(twins::WID id) = 0;
 };
@@ -175,7 +179,7 @@ struct Widget
         PageCtrl,
         Page,
         ProgressBar,
-        List,
+        ListBox,
         DropDownList,
     };
 
@@ -270,7 +274,7 @@ struct Widget
         struct
         {
 
-        } list;
+        } listbox;
 
         struct
         {
@@ -308,6 +312,10 @@ void init(IOs *ios);
  *
  */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
+
+/** @brief Control wheather all output is passed to a buffer and then written at once, asynchronously */
+void bufferBegin();
+void bufferEnd();
 
 /**
  * @brief Write char or string to the output

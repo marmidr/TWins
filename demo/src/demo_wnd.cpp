@@ -227,6 +227,21 @@ static constexpr twins::Widget page1Childs[] =
     { /* NUL */ }
 };
 
+static constexpr twins::Widget page2Childs[] =
+{
+    {
+        type    : twins::Widget::ListBox,
+        id      : ID_LISTBOX,
+        coord   : { 2, 2 },
+        size    : { 20, 6 },
+        link    : {},
+        { listbox : {
+            //
+        }}
+    },
+    { /* NUL */ }
+};
+
 static constexpr twins::Widget wndMain =
 {
     // NOTE: all members must be initialized, in order they are declared,
@@ -264,7 +279,7 @@ static constexpr twins::Widget wndMain =
                     id      : ID_PAGE_2,
                     coord   : {},
                     size    : {},
-                    link    : {},
+                    link    : { page2Childs },
                     { page : {
                         fgColor     : twins::ColorFG::BlackIntense,
                         title       : "Service ∑",
@@ -275,7 +290,7 @@ static constexpr twins::Widget wndMain =
                     id      : ID_PAGE_3,
                     coord   : {},
                     size    : {},
-                    link    : {},
+                    link    : { },
                     { page : {
                         fgColor     : twins::ColorFG::Yellow,
                         title       : "Diagnostics",

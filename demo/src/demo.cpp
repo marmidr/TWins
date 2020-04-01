@@ -43,6 +43,24 @@ public:
         if (pWgt->id == ID_PGCONTROL) pgcPage = newPageIdx;
     }
 
+    void onListBoxScrool(const twins::Widget* pWgt, bool up, bool page) override
+    {
+        if (pWgt->id == ID_LISTBOX)
+        {
+            int cnt = listBoxItemsCount;
+            int delta = page ? pWgt->size.height : 1;
+            if (up) delta = -delta;
+            listBoxItemIdx += delta;
+            if (listBoxItemIdx >= cnt) listBoxItemIdx = 0;
+            if (listBoxItemIdx < 0) listBoxItemIdx = cnt - 1;
+        }
+    }
+
+    void onListBoxSelect(const twins::Widget* pWgt) override
+    {
+        if (pWgt->id == ID_LISTBOX) TWINS_LOG("LISTBOX_SELECT");
+    }
+
     // --- widgets state queries ---
 
     bool isEnabled(const twins::Widget* pWgt) override
@@ -132,12 +150,23 @@ public:
     {
         pos = pgbarPos++;
         max = 20;
-        if (pgbarPos >= max) pgbarPos = 0;
+        if (pgbarPos > max) pgbarPos = 0;
     }
 
     int getPageCtrlPageIndex(const twins::Widget* pWgt) override
     {
         return pgcPage;
+    }
+
+    void getListBoxState(const twins::Widget*, int &itemIdx, int &itemsCount) override
+    {
+        itemIdx = listBoxItemIdx;
+        itemsCount = listBoxItemsCount;
+    }
+
+    void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
+    {
+        out.appendFmt("Item %03d", itemIdx);
     }
 
     // --- requests ---
@@ -148,6 +177,7 @@ public:
         // note: drawing here is lazy solution
         twins::drawWidget(pWndMainArray, id);
     }
+
 
 public:
     char lblKeycodeSeq[10];
@@ -161,6 +191,8 @@ private:
     bool chbxLocked = true;
     int  pgbarPos = 0;
     int  pgcPage = 0;
+    int  listBoxItemIdx = 0;
+    int  listBoxItemsCount = 20;
     // focused WID separate for each page
     twins::WID focusedId[3] {};
 };

@@ -134,6 +134,15 @@ static Coord operator + (const Coord &cord1, const Coord &cord2)
     return ret;
 }
 
+static Coord operator + (const Coord &cord, const Size offs)
+{
+    Coord ret = {
+        uint8_t(cord.col + offs.width),
+        uint8_t(cord.row + offs.height)
+    };
+    return ret;
+}
+
 // static Size operator + (const Size &sz1, const Size &sz2)
 // {
 //     Size ret = {
@@ -154,7 +163,7 @@ static Size operator - (const Size &sz1, const Size &sz2)
 
 // -----------------------------------------------------------------------------
 
-static void drawArea(const Coord &coord, const Size &size, ColorBG clBg, ColorFG clFg, const FrameStyle style)
+static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG clFg, const FrameStyle style)
 {
     moveTo(coord.col, coord.row);
 
@@ -197,6 +206,35 @@ static void drawArea(const Coord &coord, const Size &size, ColorBG clBg, ColorFG
     g.str.append(frame[8]);
     moveBy(-size.width, 1);
     writeStr(g.str.cstr());
+}
+
+static void drawScrollBarV(const Coord coord, int height, int max, int pos, int fill = 0)
+{
+    if (pos > max)
+    {
+        TWINS_LOG("pos %d > max %d", pos, max);
+        return;
+    }
+
+    if (fill > max)
+    {
+        TWINS_LOG("fill %d > max %d", fill, max);
+        return;
+    }
+
+    bufferBegin();
+    const int32_t slider_at = height * pos / max;
+    pushClFg(ColorFG::Default);
+    // "▲▴ ▼▾ ◄◂ ►▸ ◘ █";
+
+    for (int i = 0; i < height; i++)
+    {
+        moveTo(coord.col, coord.row + i);
+        pIOs->writeStr(i == slider_at ? "◘" : "▒");
+    }
+
+    popClFg();
+    bufferEnd();
 }
 
 // -----------------------------------------------------------------------------
@@ -352,7 +390,7 @@ static void drawPageControl(const Widget *pWgt)
 
     // draw tabs and pages
     const int pg_idx = g.pWndState->getPageCtrlPageIndex(pWgt);
-    const bool focused = g.pWndState->isFocused(pWgt);
+    // const bool focused = g.pWndState->isFocused(pWgt);
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
 
     for (int i = 0; i < pWgt->link.childsCnt; i++)
@@ -416,6 +454,52 @@ static void drawProgressBar(const Widget *pWgt)
     // proposition: [####.........]
 }
 
+static void drawListBox(const Widget *pWgt)
+{
+    const auto my_coord = g.parentCoord + pWgt->coord;
+
+    // drawArea(my_coord, pWgt->size,
+    //     ColorBG::None, ColorFG::None, FrameStyle::Single);
+
+    int item_idx = 0;
+    int items_cnt = 0;
+    g.pWndState->getListBoxState(pWgt, item_idx, items_cnt);
+    const int items_visible = pWgt->size.height;
+    int topitem = (item_idx / items_visible) * items_visible;
+    const bool focused = g.pWndState->isFocused(pWgt);
+
+    drawScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), 0}, pWgt->size.height, items_cnt, item_idx);
+    String s;
+
+    for (int i = 0; i < items_visible; i++)
+    {
+        bool is_current_item = topitem + i == item_idx;
+        moveTo(my_coord.col, my_coord.row + i);
+
+        s.clear();
+
+        if (topitem + i < items_cnt)
+        {
+            s.append(is_current_item ? "►" : " ");
+            g.pWndState->getListBoxItem(pWgt, topitem + i, s);
+
+            // count UTF-8 sequences, not bytes
+            int n = utf8len(s.cstr());
+            s.append(' ', pWgt->size.width-1 - n);
+            // s.trim(pWgt->size.width-1, true);
+        }
+        else
+        {
+            s.append(' ');
+            s.append('.', pWgt->size.width-2);
+        }
+
+        if (focused && is_current_item) pushAttr(FontAttrib::Inverse);
+        writeStr(s.cstr());
+        if (focused && is_current_item) popAttr();
+    }
+}
+
 // -----------------------------------------------------------------------------
 
 static void drawWidgetInternal(const Widget *pWgt)
@@ -434,7 +518,7 @@ static void drawWidgetInternal(const Widget *pWgt)
     case Widget::PageCtrl:      drawPageControl(pWgt); break;
     case Widget::Page:          drawPage(pWgt); break;
     case Widget::ProgressBar:   drawProgressBar(pWgt); break;
-    case Widget::List:          break;
+    case Widget::ListBox:       drawListBox(pWgt); break;;
     case Widget::DropDownList:  break;
     default:                    break;
     }
@@ -550,7 +634,7 @@ static bool isFocusable(const Widget *pWgt)
     case Widget::CheckBox:
     case Widget::Button:
     //case Widget::PageCtrl:
-    case Widget::List:
+    case Widget::ListBox:
     case Widget::DropDownList:
         return true;
     default:
@@ -853,6 +937,10 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
                     g.pWndState->onButtonClick(p_wgt);
                     g.pWndState->invalidate(p_wgt->id);
                     break;
+                case Widget::ListBox:
+                    g.pWndState->onListBoxSelect(p_wgt);
+                    g.pWndState->invalidate(p_wgt->id);
+                    break;
                 default:
                     break;
                 }
@@ -861,6 +949,8 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
         }
         case Key::Backspace:
         case Key::Delete:
+        case Key::Up:
+        case Key::Down:
         case Key::Left:
         case Key::Right:
         case Key::Home:
@@ -868,8 +958,20 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
         {
             auto curr_id = g.pWndState->getFocusedID();
             const Widget* p_wgt = findWidget(curr_id);
+
             if (p_wgt && p_wgt->type == Widget::Edit)
+            {
                 processEditKey(p_wgt, kc);
+            }
+            else if (p_wgt && p_wgt->type == Widget::ListBox)
+            {
+                if (kc.key == Key::Up)
+                    g.pWndState->onListBoxScrool(p_wgt, true, kc.m_ctrl);
+                else if (kc.key == Key::Down)
+                    g.pWndState->onListBoxScrool(p_wgt, false, kc.m_ctrl);
+
+                g.pWndState->invalidate(p_wgt->id);
+            }
             break;
         }
         default:

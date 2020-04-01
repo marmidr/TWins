@@ -21,6 +21,8 @@ IOs *pIOs;
 /** @brief Line buffer to avoid printing single chars */
 static twins::String lineBuff;
 
+static bool writesBuffered = false;
+
 /** @brief Current font colors and attributes */
 static ColorFG currentClFg = ColorFG::Default;
 static ColorBG currentClBg = ColorBG::Default;
@@ -52,6 +54,17 @@ FontMemento::~FontMemento()
 void init(IOs *ios)
 {
     pIOs = ios;
+}
+
+void bufferBegin()
+{
+    writesBuffered = true;
+}
+
+void bufferEnd()
+{
+    writesBuffered = false;
+    // TODO: flushBuffer()
 }
 
 // TODO: these writeX functions duplicates twins::String;
