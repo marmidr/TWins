@@ -208,7 +208,7 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     writeStr(g.str.cstr());
 }
 
-static void drawScrollBarV(const Coord coord, int height, int max, int pos, int fill = 0)
+static void drawScrollBarV(const Coord coord, int height, int max, int pos)
 {
     if (pos > max)
     {
@@ -216,14 +216,8 @@ static void drawScrollBarV(const Coord coord, int height, int max, int pos, int 
         return;
     }
 
-    if (fill > max)
-    {
-        TWINS_LOG("fill %d > max %d", fill, max);
-        return;
-    }
-
     bufferBegin();
-    const int32_t slider_at = height * pos / max;
+    const int slider_at = ((height-1) * pos) / max;
     pushClFg(ColorFG::Default);
     // "▲▴ ▼▾ ◄◂ ►▸ ◘ █";
 
@@ -302,25 +296,46 @@ static void drawPanel(const Widget *pWgt)
 
 static void drawLabel(const Widget *pWgt)
 {
+    g.str.clear();
+
     // label text
     if (pWgt->label.text)
         g.str = pWgt->label.text;
     else
         g.pWndState->getLabelText(pWgt, g.str);
 
-    auto max_len = pWgt->size.width;
-    g.str.trim(max_len, true);
-
-    moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     // setup colors
     pushClBg(pWgt->label.bgColor);
     pushClFg(pWgt->label.fgColor);
-    // print label
-    writeStr(g.str.cstr());
-    // fill remaining space with spaces;
-    // count UTF-8 sequences, not bytes
-    int n = utf8len(g.str.cstr());
-    writeChar(' ', max_len - n);
+
+    // print all lines
+    const char *p_line = g.str.cstr();
+    String s_line;
+    moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
+
+    for (int line = 0; line < pWgt->size.height; line++)
+    {
+        s_line.clear();
+        const char *p_eol = strchr(p_line, '\n');
+
+        if (p_eol)
+        {
+            // one or 2+ lines
+            s_line.appendl(p_line, p_eol - p_line);
+            p_line = p_eol + 1;
+        }
+        else
+        {
+            // only or last line of text
+            s_line.append(p_line);
+            p_line = " ";
+        }
+
+        s_line.setLength(pWgt->size.width, true);
+        writeStr(s_line.cstr());
+        moveBy(-pWgt->size.width, 1);
+    }
+
     // restore colors
     popClFg();
     popClBg();
@@ -382,7 +397,7 @@ static void drawPageControl(const Widget *pWgt)
     // trad title
     g.str.clear();
     g.str.append(" ≡ MENU ≡ ");
-    g.str.append(' ', pWgt->pagectrl.tabWidth - g.str.utf8Len());
+    g.str.setLength(pWgt->pagectrl.tabWidth);
     moveTo(my_coord.col, my_coord.row);
     pushAttr(FontAttrib::Inverse);
     writeStr(g.str.cstr());
@@ -403,8 +418,7 @@ static void drawPageControl(const Widget *pWgt)
         // draw page title
         g.str.clear();
         g.str.appendFmt("%s%s", i == pg_idx ? "►" : " ", p_page->page.title);
-        g.str.append(' ', pWgt->pagectrl.tabWidth - utf8len(p_page->page.title));
-        g.str.trim(pWgt->pagectrl.tabWidth, true);
+        g.str.setLength(pWgt->pagectrl.tabWidth, true);
 
         moveTo(my_coord.col, my_coord.row + i + 1);
         pushClFg(p_page->page.fgColor);
@@ -449,32 +463,37 @@ static void drawProgressBar(const Widget *pWgt)
     writeStr(g.str.cstr());
     popClFg();
 
-    // writeStr("░░▒▒▓▓██");
-    // writeStr("████░░░░░░░░░░░░");
-    // proposition: [####.........]
+    // ████░░░░░░░░░░░
+    // [####.........]
+    // [■■■■□□□□□□□□□]
 }
 
 static void drawListBox(const Widget *pWgt)
 {
     const auto my_coord = g.parentCoord + pWgt->coord;
+    drawArea(my_coord, pWgt->size,
+        ColorBG::None, ColorFG::None, FrameStyle::Single);
 
-    // drawArea(my_coord, pWgt->size,
-    //     ColorBG::None, ColorFG::None, FrameStyle::Single);
+    if (pWgt->size.height < 3)
+        return;
 
     int item_idx = 0;
     int items_cnt = 0;
     g.pWndState->getListBoxState(pWgt, item_idx, items_cnt);
-    const int items_visible = pWgt->size.height;
-    int topitem = (item_idx / items_visible) * items_visible;
+
+    const uint8_t items_visible = pWgt->size.height - 2;
+    const uint8_t topitem = (item_idx / items_visible) * items_visible;
     const bool focused = g.pWndState->isFocused(pWgt);
 
-    drawScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), 0}, pWgt->size.height, items_cnt, item_idx);
+    if (items_cnt > pWgt->size.height-2)
+        drawScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), 1}, pWgt->size.height-2, items_cnt-1, item_idx);
+
     String s;
 
     for (int i = 0; i < items_visible; i++)
     {
         bool is_current_item = topitem + i == item_idx;
-        moveTo(my_coord.col, my_coord.row + i);
+        moveTo(my_coord.col+1, my_coord.row + i + 1);
 
         s.clear();
 
@@ -482,16 +501,7 @@ static void drawListBox(const Widget *pWgt)
         {
             s.append(is_current_item ? "►" : " ");
             g.pWndState->getListBoxItem(pWgt, topitem + i, s);
-
-            // count UTF-8 sequences, not bytes
-            int n = utf8len(s.cstr());
-            s.append(' ', pWgt->size.width-1 - n);
-            // s.trim(pWgt->size.width-1, true);
-        }
-        else
-        {
-            s.append(' ');
-            s.append('.', pWgt->size.width-2);
+            s.setLength(pWgt->size.width-2, true);
         }
 
         if (focused && is_current_item) pushAttr(FontAttrib::Inverse);

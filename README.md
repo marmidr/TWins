@@ -5,6 +5,7 @@ It provides basic facilities required by interactive applications such as screen
 Additional it allows to define terminal windows and it's widgets in a convenient way as const tree of `twins::Widget` structures.
 
 ![example 1](doc/sshot3.png)
+![example 2](doc/sshot4.png)
 
 Wikipedia: [reference color tables for different terminals](https://en.m.wikipedia.org/wiki/ANSI_escape_code)
 

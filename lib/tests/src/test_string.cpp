@@ -93,6 +93,35 @@ TEST_F(STRING_Test, append_2)
     EXPECT_EQ(2, tios.stats.memChunksMax);
 }
 
+TEST_F(STRING_Test, append_3)
+{
+    twins::String s;
+    s.append("12345ABCDE", 101);
+
+    EXPECT_EQ(1010, s.size());
+    EXPECT_EQ(1010, s.utf8Len());
+
+    s.clear();
+    s.append('X');
+    EXPECT_EQ(1, s.size());
+}
+
+TEST_F(STRING_Test, append_len)
+{
+    twins::String s;
+    s.appendl(nullptr, 3);
+    EXPECT_EQ(0, s.size());
+    s.appendl("ABCDE", -15);
+    EXPECT_EQ(0, s.size());
+
+    s.appendl("ABCDE", 3);
+    s.appendl("123456789", 5);
+
+    EXPECT_EQ(8, s.size());
+    EXPECT_EQ(8, s.utf8Len());
+    EXPECT_STREQ("ABC12345", s.cstr());
+}
+
 TEST_F(STRING_Test, append_fmt__fits_in_buffer)
 {
     {
@@ -128,31 +157,27 @@ TEST_F(STRING_Test, append_fmt__buffer_to_small)
 
 TEST_F(STRING_Test, trim_no_ellipsis)
 {
-    {
-        twins::String s;
-        s.append("► Service Menu");
+    twins::String s;
+    s.append("► Service Menu");
 
-        // beyound text
-        auto sz = s.size();
-        s.trim(s.size());
-        EXPECT_EQ(sz, s.size());
+    // beyound text
+    auto sz = s.size();
+    s.trim(s.size());
+    EXPECT_EQ(sz, s.size());
 
-        // inside text
-        s.trim(10);
-        EXPECT_EQ(10, s.utf8Len());
-        EXPECT_STREQ("► Service ", s.cstr());
-    }
+    // inside text
+    s.trim(10);
+    EXPECT_EQ(10, s.utf8Len());
+    EXPECT_STREQ("► Service ", s.cstr());
 }
 
 TEST_F(STRING_Test, trim_ellipsis_1)
 {
-    {
-        twins::String s;
-        s = "► Service Menu";
-        s.trim(10, true);
-        EXPECT_EQ(10, s.utf8Len()); // trimmed at apace - no ellipsis added
-        EXPECT_STREQ("► Service ", s.cstr());
-    }
+    twins::String s;
+    s = "► Service Menu";
+    s.trim(10, true);
+    EXPECT_EQ(10, s.utf8Len()); // trimmed at apace - no ellipsis added
+    EXPECT_STREQ("► Service ", s.cstr());
 }
 
 TEST_F(STRING_Test, trim_ellipsis_2)
@@ -166,20 +191,50 @@ TEST_F(STRING_Test, trim_ellipsis_2)
     }
 }
 
-TEST_F(STRING_Test, move_assign)
+TEST_F(STRING_Test, set_len)
 {
     {
-        twins::String s1;
-        s1 = "Menu";
-
-        twins::String s2;
-        s2 = std::move(s1);
-
-        EXPECT_EQ(0, s1.size());
-        EXPECT_EQ(4, s2.size());
-
-        twins::String s3 = std::move(s2);
-        EXPECT_EQ(0, s2.size());
-        EXPECT_EQ(4, s3.size());
+        twins::String s;
+        s = "1.";
+        s.setLength(10);
+        EXPECT_STREQ("1.        ", s.cstr());
+        s.setLength(3);
+        EXPECT_STREQ("1. ", s.cstr());
     }
+
+    {
+        twins::String s;
+        s = "12345";
+
+        s.setLength(6);
+        EXPECT_STREQ("12345 ", s.cstr());
+
+        s.setLength(5, false);
+        EXPECT_STREQ("12345", s.cstr());
+
+        s.setLength(5, true);
+        EXPECT_STREQ("12345", s.cstr());
+
+        s.setLength(2, true);
+        EXPECT_STREQ("1…", s.cstr());
+
+        s.setLength(3, true);
+        EXPECT_STREQ("1… ", s.cstr());
+    }
+}
+
+TEST_F(STRING_Test, move_assign)
+{
+    twins::String s1;
+    s1 = "Menu";
+
+    twins::String s2;
+    s2 = std::move(s1);
+
+    EXPECT_EQ(0, s1.size());
+    EXPECT_EQ(4, s2.size());
+
+    twins::String s3 = std::move(s2);
+    EXPECT_EQ(0, s2.size());
+    EXPECT_EQ(4, s3.size());
 }

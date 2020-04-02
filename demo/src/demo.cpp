@@ -166,7 +166,10 @@ public:
 
     void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
     {
-        out.appendFmt("Item %03d", itemIdx);
+        if (itemIdx == 3)
+            out.appendFmt("Item 0034567890123456789*");
+        else
+            out.appendFmt("Item %03d", itemIdx);
     }
 
     // --- requests ---

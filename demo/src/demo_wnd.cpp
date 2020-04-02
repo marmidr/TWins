@@ -80,7 +80,7 @@ static constexpr twins::Widget page1Childs[] =
                 type    : twins::Widget::Label,
                 id      : ID_LABEL_DATE,
                 coord   : { 2, 2 },
-                size    : { 16, 1 },
+                size    : { 15, 1 },
                 link    : {},
                 { label : {
                     bgColor : twins::ColorBG::None,
@@ -230,10 +230,25 @@ static constexpr twins::Widget page1Childs[] =
 static constexpr twins::Widget page2Childs[] =
 {
     {
+        type    : twins::Widget::Label,
+        id      : ID_LABEL_LBHELP,
+        coord   : { 24, 2 },
+        size    : { 35, 4 },
+        link    : {},
+        { label : {
+            bgColor : twins::ColorBG::Green,
+            fgColor : twins::ColorFG::BlueIntense,
+            text    : "  ◦◦◦◦ ListBox ◦◦◦◦ " "\n"
+                      "• Up/Down -> change item" "\n"
+                      "• Ctrl+Up/Down -> scroll page" "\n"
+                      "• Enter -> select the item"
+        }}
+    },
+    {
         type    : twins::Widget::ListBox,
         id      : ID_LISTBOX,
         coord   : { 2, 2 },
-        size    : { 20, 6 },
+        size    : { 20, 8 },
         link    : {},
         { listbox : {
             //
