@@ -59,7 +59,10 @@ enum class ColorFG : uint8_t
     Cyan,
     CyanIntense,
     White,
-    WhiteIntense
+    WhiteIntense,
+    // begin of theme-defined colors
+    ThemeBegin,
+    ThemeEnd = 255
 };
 
 
@@ -83,7 +86,10 @@ enum class ColorBG : uint8_t
     Cyan,
     CyanIntense,
     White,
-    WhiteIntense
+    WhiteIntense,
+    // begin of theme-defined colors
+    ThemeBegin,
+    ThemeEnd = 255
 };
 
 /** @brief Convert color identifier to ASCII ESC code */
@@ -98,13 +104,13 @@ const char* encodeCl(ColorBG cl);
 enum class FontAttrib : uint8_t
 {
     None,           ///< normal style
-    Bold,           ///< excludes faint
-    Faint,          ///< excludes bold
+    Bold,           ///< bold, excludes faint
+    Faint,          ///< faint, excludes bold
     Italics,        ///<
-    Underline,      ///<
-    BlinkSlow,      ///<
-    Inverse,        ///<
-    Invisible,      ///<
+    Underline,      ///< single underline
+    BlinkSlow,      ///< blink
+    Inverse,        ///< fg/bg reversed
+    Invisible,      ///< text invisible
     StrikeThrough   ///<
 };
 
@@ -127,33 +133,35 @@ using WID = int16_t;
 /** @brief Forward declaration */
 struct Widget;
 
-/** @brief Each window uses these callbacks while drawing */
+/** @brief Window state and event handler */
 class IWindowState
 {
 public:
     virtual ~IWindowState() = default;
     // events
-    virtual void onButtonClick(const twins::Widget* pWgt) = 0;
-    virtual void onEditChange(const twins::Widget* pWgt, twins::String &str) = 0;
-    virtual void onCheckboxToggle(const twins::Widget* pWgt) = 0;
-    virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) = 0;
-    virtual void onListBoxScrool(const twins::Widget* pWgt, bool up, bool page) = 0;
-    virtual void onListBoxSelect(const twins::Widget* pWgt) = 0;
-    // state queries
-    virtual bool isEnabled(const Widget*) = 0;
-    virtual bool isFocused(const Widget*) = 0;
-    virtual bool isVisible(const Widget*) = 0;
+    virtual void onButtonClick(const twins::Widget* pWgt) {}
+    virtual void onEditChange(const twins::Widget* pWgt, twins::String &str) {}
+    virtual void onCheckboxToggle(const twins::Widget* pWgt) {}
+    virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
+    virtual void onListBoxScroll(const twins::Widget* pWgt, bool up, bool page) {}
+    virtual void onListBoxSelect(const twins::Widget* pWgt) {}
+    // common state queries
+    virtual bool isEnabled(const Widget*) { return true; }
+    virtual bool isFocused(const Widget*) { return false; }
+    virtual bool isVisible(const Widget*) { return true; }
     virtual WID& getFocusedID() = 0;
-    virtual bool getCheckboxChecked(const Widget*) = 0;
-    virtual void getLabelText(const Widget*, String &out) = 0;
-    virtual void getEditText(const Widget*, String &out) = 0;
-    virtual bool getLedLit(const Widget*) = 0;
-    virtual void getProgressBarState(const Widget*, int &pos, int &max) = 0;
-    virtual int  getPageCtrlPageIndex(const Widget*) = 0;
-    virtual void getListBoxState(const Widget*, int &itemIdx, int &itemsCount) = 0;
-    virtual void getListBoxItem(const Widget*, int itemIdx, String &out) = 0;
+    // widget-specific queries
+    virtual bool getCheckboxChecked(const Widget*) { return false; }
+    virtual void getLabelText(const Widget*, String &out) {}
+    virtual void getEditText(const Widget*, String &out) {}
+    virtual bool getLedLit(const Widget*) { return false; }
+    virtual void getLedText(const Widget*, String &out) {}
+    virtual void getProgressBarState(const Widget*, int &pos, int &max) {}
+    virtual int  getPageCtrlPageIndex(const Widget*) { return 0; }
+    virtual void getListBoxState(const Widget*, int &itemIdx, int &itemsCount) { itemIdx = 0; itemsCount = 0; }
+    virtual void getListBoxItem(const Widget*, int itemIdx, String &out) {}
     // requests
-    virtual void invalidate(twins::WID id) = 0;
+    virtual void invalidate(twins::WID id) {}
 };
 
 struct Theme
@@ -284,7 +292,7 @@ struct Widget
 
 };
 
-static constexpr WID WIDGET_ID_NONE = 0;    // convenient, any id by default points to nothing
+static constexpr WID WIDGET_ID_NONE = 0;    // convenient; default value points to nothing
 static constexpr WID WIDGET_ID_ALL = -1;
 
 /** @brief Object remembers terminal font colors and attribute,
@@ -308,9 +316,7 @@ private:
  */
 void init(IOs *ios);
 
-/**
- *
- */
+/** @brief used by TWINS_LOG() */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
 
 /** @brief Control wheather all output is passed to a buffer and then written at once, asynchronously */

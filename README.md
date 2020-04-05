@@ -43,11 +43,10 @@ Implementation is based on examples:
     - [x] static label / led
     - [x] check box
     - [ ] edit field (text/number)
-    - [ ] radio group
-    - [ ] button group
+    - [ ] radio button
     - [x] page control
     - [x] progress bar
-    - [ ] list
+    - [x] list
     - [ ] drop down list
 - navigation
     - [x] widgets navigation by Tab/Esc key

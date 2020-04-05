@@ -237,7 +237,7 @@ static constexpr twins::Widget page2Childs[] =
         link    : {},
         { label : {
             bgColor : twins::ColorBG::Green,
-            fgColor : twins::ColorFG::BlueIntense,
+            fgColor : twins::ColorFG::YellowIntense,
             text    : "  ◦◦◦◦ ListBox ◦◦◦◦ " "\n"
                       "• Up/Down -> change item" "\n"
                       "• Ctrl+Up/Down -> scroll page" "\n"
@@ -267,7 +267,7 @@ static constexpr twins::Widget wndMain =
 
     type    : twins::Widget::Window,
     id      : ID_WND,
-    coord   : { 15,  2 },
+    coord   : { 15, 1 },
     size    : { 80, 15 },
     link    : { (const twins::Widget[])
     {
@@ -296,7 +296,7 @@ static constexpr twins::Widget wndMain =
                     size    : {},
                     link    : { page2Childs },
                     { page : {
-                        fgColor     : twins::ColorFG::BlackIntense,
+                        fgColor     : twins::ColorFG::MagentaIntense,
                         title       : "Service ∑",
                     }}
                 },

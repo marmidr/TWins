@@ -163,7 +163,7 @@ static Size operator - (const Size &sz1, const Size &sz2)
 
 // -----------------------------------------------------------------------------
 
-static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG clFg, const FrameStyle style)
+static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG clFg, const FrameStyle style, bool filled = true)
 {
     moveTo(coord.col, coord.row);
 
@@ -190,7 +190,10 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     // lines in the middle
     g.str.clear();
     g.str.append(frame[3]);
-    g.str.append(frame[4], size.width - 2);
+    if (filled)
+        g.str.append(frame[4], size.width - 2);
+    else
+        g.str.appendFmt(ESC_CURSOR_FORWARD_FMT, size.width - 2);
     g.str.append(frame[5]);
 
     for (int r = coord.row + 1; r < coord.row + size.height - 1; r++)
@@ -321,7 +324,7 @@ static void drawLabel(const Widget *pWgt)
         if (p_eol)
         {
             // one or 2+ lines
-            s_line.appendl(p_line, p_eol - p_line);
+            s_line.appendLen(p_line, p_eol - p_line);
             p_line = p_eol + 1;
         }
         else
@@ -344,11 +347,18 @@ static void drawLabel(const Widget *pWgt)
 static void drawLed(const Widget *pWgt)
 {
     auto bgCl = g.pWndState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
+    g.str.clear();
+
+    if (pWgt->led.text)
+        g.str = pWgt->led.text;
+    else
+        g.pWndState->getLedText(pWgt, g.str);
+
     // led text
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     pushClBg(bgCl);
     pushClFg(pWgt->led.fgColor);
-    writeStr(pWgt->led.text);
+    writeStr(g.str.cstr());
     popClFg();
     popClBg();
 }
@@ -472,7 +482,7 @@ static void drawListBox(const Widget *pWgt)
 {
     const auto my_coord = g.parentCoord + pWgt->coord;
     drawArea(my_coord, pWgt->size,
-        ColorBG::None, ColorFG::None, FrameStyle::Single);
+        ColorBG::None, ColorFG::None, FrameStyle::Single, false);
 
     if (pWgt->size.height < 3)
         return;
@@ -502,6 +512,10 @@ static void drawListBox(const Widget *pWgt)
             s.append(is_current_item ? "►" : " ");
             g.pWndState->getListBoxItem(pWgt, topitem + i, s);
             s.setLength(pWgt->size.width-2, true);
+        }
+        else
+        {
+            s.setLength(pWgt->size.width-2);
         }
 
         if (focused && is_current_item) pushAttr(FontAttrib::Inverse);
@@ -928,6 +942,7 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
                     g.pWndState->invalidate(p_wgt->id);
                 }
             }
+            break;
         }
         case Key::Enter:
         {
@@ -976,9 +991,9 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
             else if (p_wgt && p_wgt->type == Widget::ListBox)
             {
                 if (kc.key == Key::Up)
-                    g.pWndState->onListBoxScrool(p_wgt, true, kc.m_ctrl);
+                    g.pWndState->onListBoxScroll(p_wgt, true, kc.m_ctrl);
                 else if (kc.key == Key::Down)
-                    g.pWndState->onListBoxScrool(p_wgt, false, kc.m_ctrl);
+                    g.pWndState->onListBoxScroll(p_wgt, false, kc.m_ctrl);
 
                 g.pWndState->invalidate(p_wgt->id);
             }

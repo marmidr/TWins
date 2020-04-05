@@ -43,7 +43,7 @@ void String::append(const char *s, int16_t count)
     mpBuff[mSize] = '\0';
 }
 
-void String::appendl(const char *s, int16_t sLen)
+void String::appendLen(const char *s, int16_t sLen)
 {
     if (sLen <= 0) return;
     if (!s) return;
@@ -163,7 +163,7 @@ String& String::operator=(String &&other)
     return *this;
 }
 
-unsigned String::utf8Len() const
+unsigned String::u8len() const
 {
     return (unsigned)utf8len(mpBuff);
 }

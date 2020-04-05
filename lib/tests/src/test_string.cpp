@@ -36,13 +36,13 @@ TEST_F(STRING_Test, clear)
 
         EXPECT_STREQ("", s.cstr());
         EXPECT_EQ(0, s.size());
-        EXPECT_EQ(0, s.utf8Len());
+        EXPECT_EQ(0, s.u8len());
         EXPECT_EQ(0, tios.stats.memChunks);
 
         s.clear();
         EXPECT_EQ("", s.cstr());
         EXPECT_EQ(0, s.size());
-        EXPECT_EQ(0, s.utf8Len());
+        EXPECT_EQ(0, s.u8len());
         EXPECT_EQ(0, tios.stats.memChunks);
     }
 
@@ -59,13 +59,13 @@ TEST_F(STRING_Test, append_1)
 
         EXPECT_STREQ("Cześć", s.cstr());
         EXPECT_EQ(7, s.size());
-        EXPECT_EQ(5, s.utf8Len());
+        EXPECT_EQ(5, s.u8len());
         EXPECT_EQ(1, tios.stats.memChunks);
 
         s.clear();
         EXPECT_EQ(1, tios.stats.memChunks);
         EXPECT_EQ(0, s.size());
-        EXPECT_EQ(0, s.utf8Len());
+        EXPECT_EQ(0, s.u8len());
     }
 
     EXPECT_EQ(1, tios.stats.memChunksMax);
@@ -79,7 +79,7 @@ TEST_F(STRING_Test, append_2)
         s.append("ABCDE", 6); // force buffer growth
 
         EXPECT_EQ(35, s.size());
-        EXPECT_EQ(35, s.utf8Len());
+        EXPECT_EQ(35, s.u8len());
         EXPECT_EQ(1, tios.stats.memChunks);
 
         s.clear();
@@ -87,7 +87,7 @@ TEST_F(STRING_Test, append_2)
         s.append('X');
         EXPECT_EQ(1, tios.stats.memChunks);
         EXPECT_EQ(1, s.size());
-        EXPECT_EQ(1, s.utf8Len());
+        EXPECT_EQ(1, s.u8len());
     }
 
     EXPECT_EQ(2, tios.stats.memChunksMax);
@@ -99,7 +99,7 @@ TEST_F(STRING_Test, append_3)
     s.append("12345ABCDE", 101);
 
     EXPECT_EQ(1010, s.size());
-    EXPECT_EQ(1010, s.utf8Len());
+    EXPECT_EQ(1010, s.u8len());
 
     s.clear();
     s.append('X');
@@ -109,16 +109,16 @@ TEST_F(STRING_Test, append_3)
 TEST_F(STRING_Test, append_len)
 {
     twins::String s;
-    s.appendl(nullptr, 3);
+    s.appendLen(nullptr, 3);
     EXPECT_EQ(0, s.size());
-    s.appendl("ABCDE", -15);
+    s.appendLen("ABCDE", -15);
     EXPECT_EQ(0, s.size());
 
-    s.appendl("ABCDE", 3);
-    s.appendl("123456789", 5);
+    s.appendLen("ABCDE", 3);
+    s.appendLen("123456789", 5);
 
     EXPECT_EQ(8, s.size());
-    EXPECT_EQ(8, s.utf8Len());
+    EXPECT_EQ(8, s.u8len());
     EXPECT_STREQ("ABC12345", s.cstr());
 }
 
@@ -167,7 +167,7 @@ TEST_F(STRING_Test, trim_no_ellipsis)
 
     // inside text
     s.trim(10);
-    EXPECT_EQ(10, s.utf8Len());
+    EXPECT_EQ(10, s.u8len());
     EXPECT_STREQ("► Service ", s.cstr());
 }
 
@@ -176,7 +176,7 @@ TEST_F(STRING_Test, trim_ellipsis_1)
     twins::String s;
     s = "► Service Menu";
     s.trim(10, true);
-    EXPECT_EQ(10, s.utf8Len()); // trimmed at apace - no ellipsis added
+    EXPECT_EQ(10, s.u8len()); // trimmed at apace - no ellipsis added
     EXPECT_STREQ("► Service ", s.cstr());
 }
 
@@ -186,7 +186,7 @@ TEST_F(STRING_Test, trim_ellipsis_2)
         twins::String s;
         s = "► Service Menu";
         s.trim(12, true); // trim at non-space character
-        EXPECT_EQ(12, s.utf8Len());
+        EXPECT_EQ(12, s.u8len());
         EXPECT_STREQ("► Service M…", s.cstr());
     }
 }

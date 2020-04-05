@@ -43,7 +43,7 @@ public:
         if (pWgt->id == ID_PGCONTROL) pgcPage = newPageIdx;
     }
 
-    void onListBoxScrool(const twins::Widget* pWgt, bool up, bool page) override
+    void onListBoxScroll(const twins::Widget* pWgt, bool up, bool page) override
     {
         if (pWgt->id == ID_LISTBOX)
         {
