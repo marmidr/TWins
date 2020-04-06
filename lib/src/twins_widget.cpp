@@ -113,6 +113,8 @@ const char * toString(Widget::Type type)
     CASE_WGT_STR(PageCtrl)
     CASE_WGT_STR(Page)
     CASE_WGT_STR(ProgressBar)
+    CASE_WGT_STR(ListBox)
+    CASE_WGT_STR(DropDownList)
     default: return "?";
     }
 }
@@ -666,7 +668,7 @@ static bool isFocusable(const Widget *pWgt)
     }
 }
 
-static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID, bool forward = true)
+static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID, bool forward)
 {
     if (!pParent)
         return nullptr;
@@ -689,7 +691,6 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
             if (idx >= 0 && idx < pParent->link.childsCnt)
             {
                 pParent = &g.pWndArray[pParent->link.childsIdx + idx];
-                //TWINS_LOG("search pgctrl page %d", idx);
                 p_childs  = &g.pWndArray[pParent->link.childsIdx];
                 child_cnt = pParent->link.childsCnt;
             }
@@ -722,7 +723,7 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
             if (isParent(p_wgt))
             {
                 //TWINS_LOG("Search parent %s(%d)", toString(p_wgt->type), p_wgt->id);
-                if ((p_wgt = getNextFocusable(p_wgt, focusedID)))
+                if ((p_wgt = getNextFocusable(p_wgt, focusedID, forward)))
                     return p_wgt;
             }
         }
@@ -731,22 +732,38 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
     {
         const Widget *p_wgt = {};
 
-        // find widget next to curent
+        // find widget next (prev) to current
         for (uint16_t i = 0; i < child_cnt && !p_wgt; i++)
+        {
             if (p_childs[i].id == focusedID)
-                p_wgt = &p_childs[i+1];
+            {
+                if (forward)
+                {
+                    if (i + 1 == child_cnt)
+                        p_wgt = &p_childs[0];
+                    else
+                        p_wgt = &p_childs[i+1];
+                }
+                else
+                {
+                    if (i > 0)
+                        p_wgt = &p_childs[i-1];
+                    else
+                        p_wgt = &p_childs[child_cnt-1];
+                }
+
+                break;
+            }
+        }
 
         if (p_wgt)
         {
-            //TWINS_LOG("Search in %s childs[%d]", toString(pParent->type), child_cnt);
+            // TWINS_LOG("Search in %s childs[%d]", toString(pParent->type), child_cnt);
 
             // iterate until focusable found
             for (uint16_t i = 0; i < child_cnt; i++)
             {
-                if (p_wgt == p_childs + child_cnt)
-                    p_wgt = p_childs;
-
-                //TWINS_LOG("  %s(%d)", toString(p_wgt->type), p_wgt->id);
+                // TWINS_LOG("  %s(%d)", toString(p_wgt->type), p_wgt->id);
 
                 if (isFocusable(p_wgt))
                     return p_wgt;
@@ -754,8 +771,21 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
                 if (isParent(p_wgt))
                 {
                     //TWINS_LOG("Search parent %s(%d)", toString(p_wgt->type), p_wgt->id);
-                    if (const auto *p = getNextFocusable(p_wgt, focusedID))
+                    if (const auto *p = getNextFocusable(p_wgt, focusedID, forward))
                         return p;
+                }
+
+                if (forward)
+                {
+                    p_wgt++;
+                    if (p_wgt == p_childs + child_cnt)
+                        p_wgt = p_childs;
+                }
+                else
+                {
+                    p_wgt--;
+                    if (p_wgt < p_childs)
+                        p_wgt = p_childs + child_cnt - 1;
                 }
             }
         }
@@ -775,7 +805,7 @@ static WID focusNext(const WID focusedID, bool forward)
     }
 
     // use the parent to get next widget
-    if (auto *p_next = getNextFocusable(g.pWndArray + wss.pWidget->link.parentIdx, focusedID))
+    if (auto *p_next = getNextFocusable(g.pWndArray + wss.pWidget->link.parentIdx, focusedID, forward))
         return p_next->id;
 
     return WIDGET_ID_NONE;
