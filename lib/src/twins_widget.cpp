@@ -108,6 +108,7 @@ const char * toString(Widget::Type type)
     CASE_WGT_STR(Label)
     CASE_WGT_STR(Edit)
     CASE_WGT_STR(CheckBox)
+    CASE_WGT_STR(Radio)
     CASE_WGT_STR(Button)
     CASE_WGT_STR(Led)
     CASE_WGT_STR(PageCtrl)
@@ -336,7 +337,9 @@ static void drawLabel(const Widget *pWgt)
             p_line = " ";
         }
 
-        s_line.setLength(pWgt->size.width, true);
+        // limit the length only of text is plain (has no ANSI ESC sequences)
+        if (strchr(s_line.cstr(), '\e') == nullptr)
+            s_line.setLength(pWgt->size.width, true);
         writeStr(s_line.cstr());
         moveBy(-pWgt->size.width, 1);
     }
@@ -376,6 +379,18 @@ static void drawCheckbox(const Widget *pWgt)
     writeStr(s_chk_state);
     writeStr(pWgt->checkbox.text);
     popClFg();
+    if (focused) popAttr();
+}
+
+static void drawRadio(const Widget *pWgt)
+{
+    const char *s_radio_state = pWgt->radio.radioId == g.pWndState->getRadioIndex(pWgt) ? "(●) " : "( ) ";
+    bool focused = g.pWndState->isFocused(pWgt);
+
+    moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
+    if (focused) pushAttr(FontAttrib::Inverse);
+    writeStr(s_radio_state);
+    writeStr(pWgt->radio.text);
     if (focused) popAttr();
 }
 
@@ -539,6 +554,7 @@ static void drawWidgetInternal(const Widget *pWgt)
     case Widget::Panel:         drawPanel(pWgt); break;
     case Widget::Label:         drawLabel(pWgt); break;
     case Widget::CheckBox:      drawCheckbox(pWgt); break;
+    case Widget::Radio:         drawRadio(pWgt);  break;
     case Widget::Button:        drawButton(pWgt); break;
     case Widget::Led:           drawLed(pWgt); break;
     case Widget::PageCtrl:      drawPageControl(pWgt); break;
@@ -658,6 +674,7 @@ static bool isFocusable(const Widget *pWgt)
     {
     case Widget::Edit:
     case Widget::CheckBox:
+    case Widget::Radio:
     case Widget::Button:
     //case Widget::PageCtrl:
     case Widget::ListBox:
@@ -811,6 +828,19 @@ static WID focusNext(const WID focusedID, bool forward)
     return WIDGET_ID_NONE;
 }
 
+static void invalidateRadioGroup(const Widget *pRadio)
+{
+    const Widget *p_parent = g.pWndArray + pRadio->link.parentIdx;
+    const auto group_id = pRadio->radio.groupId;
+
+    for (unsigned i = 0; i < p_parent->link.childsCnt; i++)
+    {
+        const auto *p_wgt = g.pWndArray + p_parent->link.childsIdx + i;
+        if (p_wgt->type == Widget::Type::Radio && p_wgt->radio.groupId == group_id)
+            g.pWndState->invalidate(p_wgt->id);
+    }
+}
+
 static WID focusParent(WID focusedID)
 {
     if (focusedID == WIDGET_ID_NONE)
@@ -824,11 +854,12 @@ static WID focusParent(WID focusedID)
     return WIDGET_ID_NONE;
 }
 
-static void processEditKey(const Widget *pEdit, const KeyCode &kc)
+static bool processEditKey(const Widget *pEdit, const KeyCode &kc)
 {
     // TODO: implement
     g.pWndState->onEditChange(pEdit, g.str);
     g.pWndState->invalidate(pEdit->id);
+    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -900,16 +931,17 @@ void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t cou
 
 // -----------------------------------------------------------------------------
 
-void processKey(const Widget *pWindowArray, const KeyCode &kc)
+bool processKey(const Widget *pWindowArray, const KeyCode &kc)
 {
     assert(pWindowArray);
     assert(pWindowArray->type == Widget::Window);
     g.pWndArray = pWindowArray;
     g.pWndState = pWindowArray->window.getState();
     assert(g.pWndState);
+    bool key_processed = false;
 
     if (kc.key == Key::None)
-        return;
+        return true;
 
     //TWINS_LOG("---");
 
@@ -922,7 +954,7 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
             auto &curr_id = g.pWndState->getFocusedID();
             const Widget* p_wgt = findWidget(curr_id);
             if (p_wgt && p_wgt->type == Widget::Edit)
-                processEditKey(p_wgt, kc);
+                key_processed = processEditKey(p_wgt, kc);
 
             auto new_id = focusParent(curr_id);
             //TWINS_LOG("ESC: %d -> %d", curr_id, new_id);
@@ -933,6 +965,7 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
                 curr_id = new_id;
                 g.pWndState->invalidate(prev_id);
                 g.pWndState->invalidate(new_id);
+                key_processed = true;
             }
             break;
         }
@@ -948,6 +981,7 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
                 curr_id = new_id;
                 g.pWndState->invalidate(prev_id);
                 g.pWndState->invalidate(new_id);
+                key_processed = true;
             }
             break;
         }
@@ -970,6 +1004,7 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
                     //TWINS_LOG("PG.UP/DWN: newPage%d", idx);
                     g.pWndState->onPageControlPageChange(p_wgt, idx);
                     g.pWndState->invalidate(p_wgt->id);
+                    key_processed = true;
                 }
             }
             break;
@@ -988,6 +1023,10 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
                     g.pWndState->onCheckboxToggle(p_wgt);
                     g.pWndState->invalidate(p_wgt->id);
                     break;
+                case Widget::Radio:
+                    g.pWndState->onRadioSelect(p_wgt);
+                    invalidateRadioGroup(p_wgt);
+                    break;
                 case Widget::Button:
                     g.pWndState->onButtonClick(p_wgt);
                     g.pWndState->invalidate(p_wgt->id);
@@ -999,6 +1038,8 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
                 default:
                     break;
                 }
+
+                key_processed = true;
             }
             break;
         }
@@ -1016,7 +1057,7 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
 
             if (p_wgt && p_wgt->type == Widget::Edit)
             {
-                processEditKey(p_wgt, kc);
+                key_processed = processEditKey(p_wgt, kc);
             }
             else if (p_wgt && p_wgt->type == Widget::ListBox)
             {
@@ -1026,6 +1067,7 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
                     g.pWndState->onListBoxScroll(p_wgt, false, kc.m_ctrl);
 
                 g.pWndState->invalidate(p_wgt->id);
+                key_processed = true;
             }
             break;
         }
@@ -1045,6 +1087,12 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
                 case Widget::CheckBox:
                     g.pWndState->onCheckboxToggle(p_wgt);
                     g.pWndState->invalidate(p_wgt->id);
+                    key_processed = true;
+                    break;
+                case Widget::Radio:
+                    g.pWndState->onRadioSelect(p_wgt);
+                    invalidateRadioGroup(p_wgt);
+                    key_processed = true;
                     break;
                 case Widget::DropDownList:
                     // show popup-list
@@ -1056,10 +1104,12 @@ void processKey(const Widget *pWindowArray, const KeyCode &kc)
 
             if (p_wgt->type == Widget::Edit)
             {
-                processEditKey(p_wgt, kc);
+                key_processed = processEditKey(p_wgt, kc);
             }
         }
     }
+
+    return key_processed;
 }
 
 // -----------------------------------------------------------------------------

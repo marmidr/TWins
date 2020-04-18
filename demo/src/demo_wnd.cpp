@@ -254,6 +254,42 @@ static constexpr twins::Widget page2Childs[] =
             //
         }}
     },
+    {
+        type    : twins::Widget::Radio,
+        id      : ID_RADIO_1,
+        coord   : { 25, 7 },
+        size    : {},
+        link    : {},
+        { radio : {
+            text    : "YES",
+            radioId : 0,
+            groupId : 1
+        }}
+    },
+    {
+        type    : twins::Widget::Radio,
+        id      : ID_RADIO_2,
+        coord   : { 35, 7 },
+        size    : {},
+        link    : {},
+        { radio : {
+            text    : "NO",
+            radioId : 1,
+            groupId : 1
+        }}
+    },
+    {
+        type    : twins::Widget::Radio,
+        id      : ID_RADIO_3,
+        coord   : { 44, 7 },
+        size    : {},
+        link    : {},
+        { radio : {
+            text    : "Don't know",
+            radioId : 2,
+            groupId : 1
+        }}
+    },
     { /* NUL */ }
 };
 
@@ -316,6 +352,20 @@ static constexpr twins::Widget wndMain =
             { pagectrl : {
                 tabWidth    : 14,
             }},
+        },
+        {
+            type    : twins::Widget::Label,
+            id      : ID_LABEL_FTR,
+            coord   : { 2, 13 },
+            size    : { 50, 1 },
+            link    : {},
+            { label : {
+                bgColor : {},
+                fgColor : twins::ColorFG::White,
+                text    :  ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_CYAN "Refresh" ESC_BG_BLUE "  "
+                           ESC_BOLD "PgUp/PgDn "    ESC_NORMAL ESC_BG_CYAN "Menu" ESC_BG_BLUE "  "
+                           ESC_BOLD "ESC "          ESC_NORMAL ESC_BG_CYAN "Select parent"
+            }}
         },
         { /* NUL */ }
     }},

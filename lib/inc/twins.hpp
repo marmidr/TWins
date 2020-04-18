@@ -145,6 +145,7 @@ public:
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
     virtual void onListBoxScroll(const twins::Widget* pWgt, bool up, bool page) {}
     virtual void onListBoxSelect(const twins::Widget* pWgt) {}
+    virtual void onRadioSelect(const twins::Widget* pWgt) {}
     // common state queries
     virtual bool isEnabled(const Widget*) { return true; }
     virtual bool isFocused(const Widget*) { return false; }
@@ -160,6 +161,7 @@ public:
     virtual int  getPageCtrlPageIndex(const Widget*) { return 0; }
     virtual void getListBoxState(const Widget*, int &itemIdx, int &itemsCount) { itemIdx = 0; itemsCount = 0; }
     virtual void getListBoxItem(const Widget*, int itemIdx, String &out) {}
+    virtual int  getRadioIndex(const Widget*) { return -1; }
     // requests
     virtual void invalidate(twins::WID id) {}
 };
@@ -182,6 +184,7 @@ struct Widget
         Label,
         Edit,
         CheckBox,
+        Radio,
         Button,
         Led,
         PageCtrl,
@@ -247,6 +250,13 @@ struct Widget
             const char *text;
             ColorFG     fgColor;
         } checkbox;
+
+        struct
+        {
+            const char *text;
+            int8_t      radioId;
+            int8_t      groupId;
+        } radio;
 
         struct
         {
@@ -414,7 +424,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output);
 /**
  * @brief Process keyboard signal received by console
  */
-void processKey(const Widget *pWindow, const KeyCode &kc);
+bool processKey(const Widget *pWindow, const KeyCode &kc);
 
 //void quit();
 

@@ -43,17 +43,20 @@ Implementation is based on examples:
     - [x] static label / led
     - [x] check box
     - [ ] edit field (text/number)
-    - [ ] radio button
+    - [x] radio button
     - [x] page control
     - [x] progress bar
     - [x] list
     - [ ] drop down list
 - navigation
     - [x] widgets navigation by Tab/Esc key
-    - [ ] render focused widget state
+    - [x] render focused widget state
+    - [ ] blinking cursor instead of inversed colors
 - notifications
     - [x] notify event per widget type (button clicked, checkbox toggled)
 - [ ] color theme for window
+- [x] return if keyboard key was handled by active widget
+- [ ] support for mouse click
 
 ## How to build
 
@@ -80,5 +83,3 @@ make cov_only
 ```
 
 ---
-
-Hope I'll deal with it :)

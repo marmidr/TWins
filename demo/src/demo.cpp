@@ -61,6 +61,13 @@ public:
         if (pWgt->id == ID_LISTBOX) TWINS_LOG("LISTBOX_SELECT");
     }
 
+    void onRadioSelect(const twins::Widget* pWgt) override
+    {
+        TWINS_LOG("RADIO_SELECT(%d)", pWgt->radio.radioId);
+        if (pWgt->radio.groupId == 1)
+            radioId = pWgt->radio.radioId;
+    }
+
     // --- widgets state queries ---
 
     bool isEnabled(const twins::Widget* pWgt) override
@@ -172,6 +179,11 @@ public:
             out.appendFmt("Item %03d", itemIdx);
     }
 
+    int getRadioIndex(const twins::Widget* pWgt) override
+    {
+        return radioId;
+    }
+
     // --- requests ---
 
     void invalidate(twins::WID id) override
@@ -196,6 +208,8 @@ private:
     int  pgcPage = 0;
     int  listBoxItemIdx = 0;
     int  listBoxItemsCount = 20;
+    int  radioId = 0;
+
     // focused WID separate for each page
     twins::WID focusedId[3] {};
 };
@@ -248,10 +262,12 @@ int main()
 
             twins::KeyCode kc = {};
             twins::decodeInputSeq(rbKeybInput, kc);
-            twins::processKey(pWndMainArray, kc);
+            bool key_handled = twins::processKey(pWndMainArray, kc);
 
             // display decoded key
             wndMainState.lblKeyName = kc.name;
+            if (kc.key != twins::Key::None)
+                TWINS_LOG("Key: '%s' %s", kc.name, key_handled ? "(handled)" : "");
 
             if (kc.m_spec && kc.key == twins::Key::F5)
             {
@@ -272,13 +288,13 @@ int main()
             }
         }
 
-        twins::moveToHome();
-        // printf("Key: %s\n", keyseq);
+        twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
         fflush(stdout);
     }
 
     // Window is always at [0]
     twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
+    twins::screenClrBelow();
     // twins::writeStr();
     twins::inputPosixFree();
 

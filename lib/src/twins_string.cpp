@@ -131,6 +131,7 @@ void String::setLength(int16_t len, bool addEllipsis)
     if (len < 0)
         return;
 
+    // TODO: do not count ANSI ESC sequences length
     int u8len = utf8len(mpBuff);
 
     if (u8len <= len)
