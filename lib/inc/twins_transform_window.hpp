@@ -28,8 +28,13 @@ constexpr int getWgtsCount(const twins::Widget *w)
     return n;
 }
 
+/**
+ * @brief Recurrent widget transformation function
+ * @par arr Destination array of widgets
+ * @par pWgt Pointer to Window - the root widget
+ */
 template<unsigned N>
-constexpr int copyTransformWidget(twins::Array<twins::Widget, N> &arr, const twins::Widget* pWgt, const int wgtIdx, int freeSlotIdx)
+constexpr int transformWidgetTreeToArray(twins::Array<twins::Widget, N> &arr, const twins::Widget* pWgt, const int wgtIdx, int freeSlotIdx)
 {
     int child_idx = freeSlotIdx;
 
@@ -49,7 +54,7 @@ constexpr int copyTransformWidget(twins::Array<twins::Widget, N> &arr, const twi
     // copy childs
     for (auto *p_child = pWgt->link.pChilds; p_child && p_child->id != twins::WIDGET_ID_NONE; p_child++)
     {
-        freeSlotIdx = copyTransformWidget<N>(arr, p_child, child_idx, freeSlotIdx);
+        freeSlotIdx = transformWidgetTreeToArray<N>(arr, p_child, child_idx, freeSlotIdx);
         arr[child_idx].link.parentIdx = wgtIdx;
         child_idx++;
     }
@@ -62,7 +67,7 @@ constexpr twins::Array<twins::Widget, N> transforWindowDefinition()
 {
     twins::Array<twins::Widget, N> arr;
 
-    copyTransformWidget<N>(arr, pWINDOW, 0, 1);
+    transformWidgetTreeToArray<N>(arr, pWINDOW, 0, 1);
     return arr;
 }
 

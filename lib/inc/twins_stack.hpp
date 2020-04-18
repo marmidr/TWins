@@ -50,6 +50,14 @@ public:
         return nullptr;
     }
 
+    T* top()
+    {
+        if (mSize)
+            return mpItems + mSize;
+
+        return nullptr;
+    }
+
     void clear()
     {
         if (mCapacity * sizeof(T) >= 128)

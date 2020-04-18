@@ -56,6 +56,8 @@ static void waitForKey()
 
 static void checkErrNo(int line)
 {
+    // TODO: always fail if in GDB session
+    //  https://stackoverflow.com/questions/3596781/how-to-detect-if-the-current-process-is-being-run-by-gdb
     if (errno)
     {
         printf("Line:%u ", line);

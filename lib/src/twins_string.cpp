@@ -30,13 +30,26 @@ String::~String()
         pIOs->memFree(mpBuff);
 }
 
-void String::append(const char *s)
+void String::append(const char *s, int16_t count)
 {
+    if (count <= 0) return;
     if (!s) return;
     int s_len = strlen(s);
-    resize(mSize + s_len);
-    strcat(mpBuff, s);
-    mSize += s_len;
+    resize(mSize + count * s_len);
+    char *p = mpBuff + mSize;
+    mSize += count  *s_len;
+    while (count--)
+        p = strcat(p, s);
+    mpBuff[mSize] = '\0';
+}
+
+void String::appendLen(const char *s, int16_t sLen)
+{
+    if (sLen <= 0) return;
+    if (!s) return;
+    resize(mSize + sLen);
+    strncat(mpBuff + mSize, s, sLen);
+    mSize += sLen;
     mpBuff[mSize] = '\0';
 }
 
@@ -48,19 +61,6 @@ void String::append(char c, int16_t count)
     mSize += count;
     while (count--)
         *p++ = c;
-    mpBuff[mSize] = '\0';
-}
-
-void String::append(const char *s, int16_t count)
-{
-    if (count <= 0) return;
-    if (!s) return;
-    int s_len = strlen(s);
-    resize(mSize + count*s_len);
-    char *p = mpBuff + mSize;
-    mSize += count*s_len;
-    while (count--)
-        p = strcat(p, s);
     mpBuff[mSize] = '\0';
 }
 
@@ -100,9 +100,9 @@ void String::appendFmt(const char *fmt, ...)
     } while (retry--);
 }
 
-void String::trim(uint16_t trimPos, bool addEllipsis)
+void String::trim(int16_t trimPos, bool addEllipsis)
 {
-    if (trimPos >= mSize)
+    if (trimPos < 0 || trimPos >= mSize)
         return;
     if (addEllipsis && trimPos > 0)
         trimPos--;
@@ -124,6 +124,20 @@ void String::trim(uint16_t trimPos, bool addEllipsis)
     if (addEllipsis && last == ' ') mSize++;
     mpBuff[mSize] = '\0';
     if (addEllipsis && last != ' ') append("…");
+}
+
+void String::setLength(int16_t len, bool addEllipsis)
+{
+    if (len < 0)
+        return;
+
+    // TODO: do not count ANSI ESC sequences length
+    int u8len = utf8len(mpBuff);
+
+    if (u8len <= len)
+        append(' ', len - u8len);
+    else
+        trim(len, addEllipsis);
 }
 
 void String::clear()
@@ -150,7 +164,7 @@ String& String::operator=(String &&other)
     return *this;
 }
 
-unsigned String::utf8Len() const
+unsigned String::u8len() const
 {
     return (unsigned)utf8len(mpBuff);
 }

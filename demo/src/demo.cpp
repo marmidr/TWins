@@ -43,6 +43,31 @@ public:
         if (pWgt->id == ID_PGCONTROL) pgcPage = newPageIdx;
     }
 
+    void onListBoxScroll(const twins::Widget* pWgt, bool up, bool page) override
+    {
+        if (pWgt->id == ID_LISTBOX)
+        {
+            int cnt = listBoxItemsCount;
+            int delta = page ? pWgt->size.height : 1;
+            if (up) delta = -delta;
+            listBoxItemIdx += delta;
+            if (listBoxItemIdx >= cnt) listBoxItemIdx = 0;
+            if (listBoxItemIdx < 0) listBoxItemIdx = cnt - 1;
+        }
+    }
+
+    void onListBoxSelect(const twins::Widget* pWgt) override
+    {
+        if (pWgt->id == ID_LISTBOX) TWINS_LOG("LISTBOX_SELECT");
+    }
+
+    void onRadioSelect(const twins::Widget* pWgt) override
+    {
+        TWINS_LOG("RADIO_SELECT(%d)", pWgt->radio.radioId);
+        if (pWgt->radio.groupId == 1)
+            radioId = pWgt->radio.radioId;
+    }
+
     // --- widgets state queries ---
 
     bool isEnabled(const twins::Widget* pWgt) override
@@ -128,16 +153,35 @@ public:
         return ledBatt;
     }
 
-    void getProgressBarNfo(const twins::Widget*, int &pos, int &max) override
+    void getProgressBarState(const twins::Widget*, int &pos, int &max) override
     {
         pos = pgbarPos++;
         max = 20;
-        if (pgbarPos >= max) pgbarPos = 0;
+        if (pgbarPos > max) pgbarPos = 0;
     }
 
     int getPageCtrlPageIndex(const twins::Widget* pWgt) override
     {
         return pgcPage;
+    }
+
+    void getListBoxState(const twins::Widget*, int &itemIdx, int &itemsCount) override
+    {
+        itemIdx = listBoxItemIdx;
+        itemsCount = listBoxItemsCount;
+    }
+
+    void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
+    {
+        if (itemIdx == 3)
+            out.appendFmt("Item 0034567890123456789*");
+        else
+            out.appendFmt("Item %03d", itemIdx);
+    }
+
+    int getRadioIndex(const twins::Widget* pWgt) override
+    {
+        return radioId;
     }
 
     // --- requests ---
@@ -148,6 +192,7 @@ public:
         // note: drawing here is lazy solution
         twins::drawWidget(pWndMainArray, id);
     }
+
 
 public:
     char lblKeycodeSeq[10];
@@ -161,6 +206,10 @@ private:
     bool chbxLocked = true;
     int  pgbarPos = 0;
     int  pgcPage = 0;
+    int  listBoxItemIdx = 0;
+    int  listBoxItemsCount = 20;
+    int  radioId = 0;
+
     // focused WID separate for each page
     twins::WID focusedId[3] {};
 };
@@ -211,12 +260,14 @@ int main()
             rbKeybInput.copy(wndMainState.lblKeycodeSeq, sizeof(wndMainState.lblKeycodeSeq)-1);
             wndMainState.lblKeycodeSeq[sizeof(wndMainState.lblKeycodeSeq)-1] = '\0';
 
-            twins::KeyCode kc;
+            twins::KeyCode kc = {};
             twins::decodeInputSeq(rbKeybInput, kc);
-            twins::processKey(pWndMainArray, kc);
+            bool key_handled = twins::processKey(pWndMainArray, kc);
 
             // display decoded key
             wndMainState.lblKeyName = kc.name;
+            if (kc.key != twins::Key::None)
+                TWINS_LOG("Key: '%s' %s", kc.name, key_handled ? "(handled)" : "");
 
             if (kc.m_spec && kc.key == twins::Key::F5)
             {
@@ -237,13 +288,13 @@ int main()
             }
         }
 
-        twins::moveToHome();
-        // printf("Key: %s\n", keyseq);
+        twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
         fflush(stdout);
     }
 
     // Window is always at [0]
     twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
+    twins::screenClrBelow();
     // twins::writeStr();
     twins::inputPosixFree();
 

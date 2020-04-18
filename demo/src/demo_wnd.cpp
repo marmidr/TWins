@@ -80,7 +80,7 @@ static constexpr twins::Widget page1Childs[] =
                 type    : twins::Widget::Label,
                 id      : ID_LABEL_DATE,
                 coord   : { 2, 2 },
-                size    : { 16, 1 },
+                size    : { 15, 1 },
                 link    : {},
                 { label : {
                     bgColor : twins::ColorBG::None,
@@ -227,6 +227,72 @@ static constexpr twins::Widget page1Childs[] =
     { /* NUL */ }
 };
 
+static constexpr twins::Widget page2Childs[] =
+{
+    {
+        type    : twins::Widget::Label,
+        id      : ID_LABEL_LBHELP,
+        coord   : { 24, 2 },
+        size    : { 35, 4 },
+        link    : {},
+        { label : {
+            bgColor : twins::ColorBG::Green,
+            fgColor : twins::ColorFG::YellowIntense,
+            text    : "  ◦◦◦◦ ListBox ◦◦◦◦ " "\n"
+                      "• Up/Down -> change item" "\n"
+                      "• Ctrl+Up/Down -> scroll page" "\n"
+                      "• Enter -> select the item"
+        }}
+    },
+    {
+        type    : twins::Widget::ListBox,
+        id      : ID_LISTBOX,
+        coord   : { 2, 2 },
+        size    : { 20, 8 },
+        link    : {},
+        { listbox : {
+            //
+        }}
+    },
+    {
+        type    : twins::Widget::Radio,
+        id      : ID_RADIO_1,
+        coord   : { 25, 7 },
+        size    : {},
+        link    : {},
+        { radio : {
+            text    : "YES",
+            radioId : 0,
+            groupId : 1
+        }}
+    },
+    {
+        type    : twins::Widget::Radio,
+        id      : ID_RADIO_2,
+        coord   : { 35, 7 },
+        size    : {},
+        link    : {},
+        { radio : {
+            text    : "NO",
+            radioId : 1,
+            groupId : 1
+        }}
+    },
+    {
+        type    : twins::Widget::Radio,
+        id      : ID_RADIO_3,
+        coord   : { 44, 7 },
+        size    : {},
+        link    : {},
+        { radio : {
+            text    : "Don't know",
+            radioId : 2,
+            groupId : 1
+        }}
+    },
+    { /* NUL */ }
+};
+
 static constexpr twins::Widget wndMain =
 {
     // NOTE: all members must be initialized, in order they are declared,
@@ -237,7 +303,7 @@ static constexpr twins::Widget wndMain =
 
     type    : twins::Widget::Window,
     id      : ID_WND,
-    coord   : { 15,  2 },
+    coord   : { 15, 1 },
     size    : { 80, 15 },
     link    : { (const twins::Widget[])
     {
@@ -264,9 +330,9 @@ static constexpr twins::Widget wndMain =
                     id      : ID_PAGE_2,
                     coord   : {},
                     size    : {},
-                    link    : {},
+                    link    : { page2Childs },
                     { page : {
-                        fgColor     : twins::ColorFG::BlackIntense,
+                        fgColor     : twins::ColorFG::MagentaIntense,
                         title       : "Service ∑",
                     }}
                 },
@@ -275,7 +341,7 @@ static constexpr twins::Widget wndMain =
                     id      : ID_PAGE_3,
                     coord   : {},
                     size    : {},
-                    link    : {},
+                    link    : { },
                     { page : {
                         fgColor     : twins::ColorFG::Yellow,
                         title       : "Diagnostics",
@@ -286,6 +352,20 @@ static constexpr twins::Widget wndMain =
             { pagectrl : {
                 tabWidth    : 14,
             }},
+        },
+        {
+            type    : twins::Widget::Label,
+            id      : ID_LABEL_FTR,
+            coord   : { 2, 13 },
+            size    : { 50, 1 },
+            link    : {},
+            { label : {
+                bgColor : {},
+                fgColor : twins::ColorFG::White,
+                text    :  ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_CYAN "Refresh" ESC_BG_BLUE "  "
+                           ESC_BOLD "PgUp/PgDn "    ESC_NORMAL ESC_BG_CYAN "Menu" ESC_BG_BLUE "  "
+                           ESC_BOLD "ESC "          ESC_NORMAL ESC_BG_CYAN "Select parent"
+            }}
         },
         { /* NUL */ }
     }},

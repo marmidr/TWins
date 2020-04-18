@@ -5,6 +5,7 @@ It provides basic facilities required by interactive applications such as screen
 Additional it allows to define terminal windows and it's widgets in a convenient way as const tree of `twins::Widget` structures.
 
 ![example 1](doc/sshot3.png)
+![example 2](doc/sshot4.png)
 
 Wikipedia: [reference color tables for different terminals](https://en.m.wikipedia.org/wiki/ANSI_escape_code)
 
@@ -42,18 +43,20 @@ Implementation is based on examples:
     - [x] static label / led
     - [x] check box
     - [ ] edit field (text/number)
-    - [ ] radio group
-    - [ ] button group
+    - [x] radio button
     - [x] page control
     - [x] progress bar
-    - [ ] list
+    - [x] list
     - [ ] drop down list
 - navigation
     - [x] widgets navigation by Tab/Esc key
-    - [ ] render focused widget state
+    - [x] render focused widget state
+    - [ ] blinking cursor instead of inversed colors
 - notifications
     - [x] notify event per widget type (button clicked, checkbox toggled)
 - [ ] color theme for window
+- [x] return if keyboard key was handled by active widget
+- [ ] support for mouse click
 
 ## How to build
 
@@ -80,5 +83,3 @@ make cov_only
 ```
 
 ---
-
-Hope I'll deal with it :)

@@ -34,7 +34,13 @@ enum WndMainIDs
                 ID_BTN_CANCEL,
                 ID_PRGBAR_1,
             ID_PAGE_2,
+                ID_LABEL_LBHELP,
+                ID_LISTBOX,
+                ID_RADIO_1,
+                ID_RADIO_2,
+                ID_RADIO_3,
             ID_PAGE_3,
+        ID_LABEL_FTR,
 };
 
 // -----------------------------------------------------------------------------
