@@ -403,23 +403,25 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
             // check mouse code
             if (seq_sz >= 6 && seq[1] == '[' && seq[2] == 'M')
             {
-                output.mouse.key = Key::MouseClick;
-                const char mouse_btn = seq[3];
+                output.mouse.key = Key::MouseEvent;
+                const char mouse_btn = seq[3] - ' ';
 
-                switch (mouse_btn & 0x03)
+                switch (mouse_btn & 0x63)
                 {
-                    case 0: output.mouse.btn = MouseBtn::ButtonLeft; break;
-                    case 1: output.mouse.btn = MouseBtn::ButtonMid; break;
-                    case 2: output.mouse.btn = MouseBtn::ButtonRight; break;
-                    case 3: output.mouse.btn = MouseBtn::ButtonReleased; break;
+                    case 0x00: output.mouse.btn = MouseBtn::ButtonLeft; break;
+                    case 0x01: output.mouse.btn = MouseBtn::ButtonMid; break;
+                    case 0x02: output.mouse.btn = MouseBtn::ButtonRight; break;
+                    case 0x03: output.mouse.btn = MouseBtn::ButtonReleased; break;
+                    case 0x40: output.mouse.btn = MouseBtn::WheelUp; break;
+                    case 0x41: output.mouse.btn = MouseBtn::WheelDown; break;
                 }
 
                 if (mouse_btn & 0x04) output.m_shift = 1;
                 if (mouse_btn & 0x08) output.m_alt = 1;
                 if (mouse_btn & 0x10) output.m_ctrl = 1;
 
-                output.mouse.x = seq[4] - '!' + 1;
-                output.mouse.y = seq[5] - '!' + 1;
+                output.mouse.x = seq[4] - ' ';
+                output.mouse.y = seq[5] - ' ';
 
                 #if TWINS_USE_KEY_NAMES
                 output.name = "MouseClk";

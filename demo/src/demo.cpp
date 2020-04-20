@@ -266,10 +266,10 @@ int main()
             wndMainState.lblKeyName = kc.name;
 
             // display decoded key
-            if (kc.key == twins::Key::MouseClick)
+            if (kc.key == twins::Key::MouseEvent)
             {
                 TWINS_LOG("B%c %c%c%c %03d:%03d",
-                    '1' - 1 + (char)kc.mouse.btn,
+                    '0' + (char)kc.mouse.btn,
                     kc.m_ctrl ? 'C' : ' ',
                     kc.m_alt ? 'A' : ' ',
                     kc.m_shift ? 'S' : ' ',
@@ -299,10 +299,10 @@ int main()
             }
         }
 
-        if (kc.key == twins::Key::MouseClick)
+        if (kc.key == twins::Key::MouseEvent)
             twins::moveTo(kc.mouse.x, kc.mouse.y);
-        else
-            twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
+        // else
+        //     twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
 
         fflush(stdout);
     }

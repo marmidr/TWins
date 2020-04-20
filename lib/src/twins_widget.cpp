@@ -24,6 +24,7 @@ namespace twins
 static struct
 {
     Coord   parentCoord;            // current widget left-top position
+    Coord   focusedCursorPos;       //
     String  str;                    // common string buff for widget renderers
     const Widget *pWndArray = {};   // array of Window widgets
     IWindowState *pWndState = {};   //
@@ -130,6 +131,12 @@ static void operator += (Coord &cord, const Coord &offs)
 {
     cord.col += offs.col;
     cord.row += offs.row;
+}
+
+static void operator -= (Coord &cord, const Coord &offs)
+{
+    cord.col -= offs.col;
+    cord.row -= offs.row;
 }
 
 static Coord operator + (const Coord &cord1, const Coord &cord2)
@@ -574,6 +581,19 @@ static void drawWidgetInternal(const Widget *pWgt)
     if (!en) popAttr();
 }
 
+static void invalidateRadioGroup(const Widget *pRadio)
+{
+    const Widget *p_parent = g.pWndArray + pRadio->link.parentIdx;
+    const auto group_id = pRadio->radio.groupId;
+
+    for (unsigned i = 0; i < p_parent->link.childsCnt; i++)
+    {
+        const auto *p_wgt = g.pWndArray + p_parent->link.childsIdx + i;
+        if (p_wgt->type == Widget::Type::Radio && p_wgt->radio.groupId == group_id)
+            g.pWndState->invalidate(p_wgt->id);
+    }
+}
+
 struct WidgetSearchStruct
 {
     WID   searchedID = {};      // given
@@ -817,6 +837,39 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
     return nullptr;
 }
 
+/*
+static void setCursorAt(const Widget *pWgt)
+{
+    if (!pWgt)
+     return;
+
+    g.focusedCursorPos = g.parentCoord + pWgt->coord;
+
+    switch (pWgt->type)
+    {
+    case Widget::Edit:
+        break;
+    case Widget::CheckBox:
+        g.focusedCursorPos.col += 1;
+        break;
+    case Widget::Radio:
+        g.focusedCursorPos.col += 1;
+        break;
+    case Widget::Button:
+        g.focusedCursorPos.col += 2;
+        g.focusedCursorPos.row += 2;
+        break;
+    case Widget::ListBox:
+        g.focusedCursorPos.col += 1;
+        g.focusedCursorPos.row += 1;
+        break;
+    case Widget::DropDownList:
+    default:
+        break;
+    }
+}
+*/
+
 static WID focusNext(const WID focusedID, bool forward)
 {
     WidgetSearchStruct wss { searchedID : focusedID };
@@ -829,22 +882,12 @@ static WID focusNext(const WID focusedID, bool forward)
 
     // use the parent to get next widget
     if (auto *p_next = getNextFocusable(g.pWndArray + wss.pWidget->link.parentIdx, focusedID, forward))
+    {
+        // setCursorAt(p_next);
         return p_next->id;
+    }
 
     return WIDGET_ID_NONE;
-}
-
-static void invalidateRadioGroup(const Widget *pRadio)
-{
-    const Widget *p_parent = g.pWndArray + pRadio->link.parentIdx;
-    const auto group_id = pRadio->radio.groupId;
-
-    for (unsigned i = 0; i < p_parent->link.childsCnt; i++)
-    {
-        const auto *p_wgt = g.pWndArray + p_parent->link.childsIdx + i;
-        if (p_wgt->type == Widget::Type::Radio && p_wgt->radio.groupId == group_id)
-            g.pWndState->invalidate(p_wgt->id);
-    }
 }
 
 static WID focusParent(WID focusedID)
@@ -855,7 +898,12 @@ static WID focusParent(WID focusedID)
     WidgetSearchStruct wss { searchedID : focusedID };
 
     if (findWidget(wss))
-        return g.pWndArray[wss.pWidget->link.parentIdx].id;
+    {
+        const auto *p_wgt = &g.pWndArray[wss.pWidget->link.parentIdx];
+        g.parentCoord -= wss.pWidget->coord;
+        // setCursorAt(p_wgt);
+        return p_wgt->id;
+    }
 
     return WIDGET_ID_NONE;
 }
@@ -903,6 +951,7 @@ void drawWidget(const Widget *pWindowArray, WID widgetId)
     resetAttr();
     resetClBg();
     resetClFg();
+    // moveTo(g.focusedCursorPos.col, g.focusedCursorPos.row);
     cursorShow();
 }
 
@@ -932,6 +981,7 @@ void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t cou
     resetAttr();
     resetClBg();
     resetClFg();
+    // moveTo(g.focusedCursorPos.col, g.focusedCursorPos.row);
     cursorShow();
 }
 
@@ -951,7 +1001,11 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
 
     //TWINS_LOG("---");
 
-    if (kc.m_spec)
+    if (kc.key == Key::MouseEvent)
+    {
+        // TODO: locate widget at x:y
+    }
+    else if (kc.m_spec)
     {
         switch (kc.key)
         {
@@ -962,16 +1016,19 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
             if (p_wgt && p_wgt->type == Widget::Edit)
                 key_processed = processEditKey(p_wgt, kc);
 
-            auto new_id = focusParent(curr_id);
-            //TWINS_LOG("ESC: %d -> %d", curr_id, new_id);
-
-            if (new_id != curr_id)
+            if (!key_processed)
             {
-                auto prev_id = curr_id;
-                curr_id = new_id;
-                g.pWndState->invalidate(prev_id);
-                g.pWndState->invalidate(new_id);
-                key_processed = true;
+                auto new_id = focusParent(curr_id);
+                //TWINS_LOG("ESC: %d -> %d", curr_id, new_id);
+
+                if (new_id != curr_id)
+                {
+                    auto prev_id = curr_id;
+                    curr_id = new_id;
+                    g.pWndState->invalidate(prev_id);
+                    g.pWndState->invalidate(new_id);
+                    key_processed = true;
+                }
             }
             break;
         }
@@ -994,24 +1051,31 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
         case Key::PgUp:
         case Key::PgDown:
         {
-            // assume only one page control on window, so PgUp, PgDown
-            // will always be assigned to this control
-            for (unsigned i = 0; i < pWindowArray->link.childsCnt; i++)
+            // Ctrl+PgUp/PgDown will be directed to window's first PageControl widget
+            if (kc.m_ctrl)
             {
-                const auto *p_wgt = &g.pWndArray[pWindowArray->link.childsIdx + i];
-
-                if (p_wgt->type == Widget::PageCtrl)
+                for (unsigned i = 0; i < pWindowArray->link.childsCnt; i++)
                 {
-                    int idx = g.pWndState->getPageCtrlPageIndex(p_wgt);
-                    idx += kc.key == Key::PgDown ? 1 : -1;
-                    if (idx < 0)                      idx = p_wgt->link.childsCnt -1;
-                    if (idx >= p_wgt->link.childsCnt) idx = 0;
+                    const auto *p_wgt = &g.pWndArray[pWindowArray->link.childsIdx + i];
 
-                    //TWINS_LOG("PG.UP/DWN: newPage%d", idx);
-                    g.pWndState->onPageControlPageChange(p_wgt, idx);
-                    g.pWndState->invalidate(p_wgt->id);
-                    key_processed = true;
+                    if (p_wgt->type == Widget::PageCtrl)
+                    {
+                        int idx = g.pWndState->getPageCtrlPageIndex(p_wgt);
+                        idx += kc.key == Key::PgDown ? 1 : -1;
+                        if (idx < 0)                      idx = p_wgt->link.childsCnt -1;
+                        if (idx >= p_wgt->link.childsCnt) idx = 0;
+
+                        //TWINS_LOG("PG.UP/DWN: newPage%d", idx);
+                        g.pWndState->onPageControlPageChange(p_wgt, idx);
+                        g.pWndState->invalidate(p_wgt->id);
+                        key_processed = true;
+                        break;
+                    }
                 }
+            }
+            else
+            {
+
             }
             break;
         }
@@ -1115,6 +1179,7 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
         }
     }
 
+    // moveTo(g.focusedCursorPos.col, g.focusedCursorPos.row);
     return key_processed;
 }
 

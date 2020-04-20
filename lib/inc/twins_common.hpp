@@ -135,7 +135,7 @@ enum class Key : uint8_t
     F11,
     F12,
     //
-    MouseClick
+    MouseEvent
 };
 
 /** Mouse button click events */
@@ -145,7 +145,9 @@ enum class MouseBtn : uint8_t
     ButtonLeft,
     ButtonMid,
     ButtonRight,
-    ButtonReleased
+    ButtonReleased,
+    WheelUp,
+    WheelDown
 };
 
 /** Key modifiers */

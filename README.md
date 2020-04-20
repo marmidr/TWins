@@ -53,6 +53,7 @@ Implementation is based on examples:
     - [x] widgets navigation by Tab/Esc key
     - [x] render focused widget state
     - [ ] blinking cursor instead of inversed colors
+    - [ ] select widget by mouse
 - notifications
     - [x] notify event per widget type (button clicked, checkbox toggled)
 - [ ] color theme for window

@@ -332,7 +332,7 @@ static constexpr twins::Widget wndMain =
                     size    : {},
                     link    : { page2Childs },
                     { page : {
-                        fgColor     : twins::ColorFG::MagentaIntense,
+                        fgColor     : twins::ColorFG::White,
                         title       : "Service ∑",
                     }}
                 },

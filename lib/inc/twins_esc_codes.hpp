@@ -189,6 +189,7 @@
 /** Scrool screen  */
 #define ESC_SCREEN_SCROLL_UP(n)         ANSI_CSI(#n "S")
 #define ESC_SCREEN_SCROLL_DOWN(n)       ANSI_CSI(#n "T")
+
 #define ESC_SCREEN_SCROLL_UP_FMT        ESC_SCREEN_SCROLL_UP(%u)
 #define ESC_SCREEN_SCROLL_DOWN_FMT      ESC_SCREEN_SCROLL_DOWN(%u)
 
@@ -198,7 +199,7 @@
 // Mode1: only click
 #define ESC_MOUSE_REPORTING_M1_ON       ANSI_CSI("?9h")
 #define ESC_MOUSE_REPORTING_M1_OFF      ANSI_CSI("?9l")
-// Mode2: click + release + Ctrl/Alt/Shift
+// Mode2: click + release + wheel + Ctrl/Alt/Shift
 #define ESC_MOUSE_REPORTING_M2_ON       ANSI_CSI("?1000h")
 #define ESC_MOUSE_REPORTING_M2_OFF      ANSI_CSI("?1000l")
 
