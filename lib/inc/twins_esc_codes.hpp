@@ -192,6 +192,20 @@
 #define ESC_SCREEN_SCROLL_UP_FMT        ESC_SCREEN_SCROLL_UP(%u)
 #define ESC_SCREEN_SCROLL_DOWN_FMT      ESC_SCREEN_SCROLL_DOWN(%u)
 
+/** Mouse */
+// https://www.systutorials.com/docs/linux/man/4-console_codes/#lbAF
+
+// Mode1: only click
+#define ESC_MOUSE_REPORTING_M1_ON       ANSI_CSI("?9h")
+#define ESC_MOUSE_REPORTING_M1_OFF      ANSI_CSI("?9l")
+// Mode2: click + release + Ctrl/Alt/Shift
+#define ESC_MOUSE_REPORTING_M2_ON       ANSI_CSI("?1000h")
+#define ESC_MOUSE_REPORTING_M2_OFF      ANSI_CSI("?1000l")
+
+/** Encoding */
+#define ESC_ENCODING_ISO8858_1          ANSI_ESC("%@")
+#define ESC_ENCODING_UTF8               ANSI_ESC("%G")
+
 // bash: blink screen until key pressed
 // { while true; do printf \\e[?5h; sleep 0.3; printf \\e[?5l; read -s -n1 -t1 && break; done; }
 

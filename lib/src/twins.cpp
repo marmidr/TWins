@@ -54,6 +54,7 @@ FontMemento::~FontMemento()
 void init(IOs *ios)
 {
     pIOs = ios;
+    writeStr(ESC_MOUSE_REPORTING_M2_ON);
 }
 
 void bufferBegin()

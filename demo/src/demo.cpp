@@ -249,6 +249,7 @@ int main()
     for (;;)
     {
         bool quit_req = false;
+        twins::KeyCode kc = {};
         const char *posix_inp = twins::inputPosixRead(quit_req);
         if (quit_req) break;
         rbKeybInput.write(posix_inp);
@@ -260,14 +261,24 @@ int main()
             rbKeybInput.copy(wndMainState.lblKeycodeSeq, sizeof(wndMainState.lblKeycodeSeq)-1);
             wndMainState.lblKeycodeSeq[sizeof(wndMainState.lblKeycodeSeq)-1] = '\0';
 
-            twins::KeyCode kc = {};
             twins::decodeInputSeq(rbKeybInput, kc);
             bool key_handled = twins::processKey(pWndMainArray, kc);
+            wndMainState.lblKeyName = kc.name;
 
             // display decoded key
-            wndMainState.lblKeyName = kc.name;
-            if (kc.key != twins::Key::None)
+            if (kc.key == twins::Key::MouseClick)
+            {
+                TWINS_LOG("B%c %c%c%c %03d:%03d",
+                    '1' - 1 + (char)kc.mouse.btn,
+                    kc.m_ctrl ? 'C' : ' ',
+                    kc.m_alt ? 'A' : ' ',
+                    kc.m_shift ? 'S' : ' ',
+                    kc.mouse.x, kc.mouse.y);
+            }
+            else if (kc.key != twins::Key::None)
+            {
                 TWINS_LOG("Key: '%s' %s", kc.name, key_handled ? "(handled)" : "");
+            }
 
             if (kc.m_spec && kc.key == twins::Key::F5)
             {
@@ -288,7 +299,11 @@ int main()
             }
         }
 
-        twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
+        if (kc.key == twins::Key::MouseClick)
+            twins::moveTo(kc.mouse.x, kc.mouse.y);
+        else
+            twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
+
         fflush(stdout);
     }
 

@@ -135,6 +135,17 @@ enum class Key : uint8_t
     F11,
     F12,
     //
+    MouseClick
+};
+
+/** Mouse button click events */
+enum class MouseBtn : uint8_t
+{
+    None,
+    ButtonLeft,
+    ButtonMid,
+    ButtonRight,
+    ButtonReleased
 };
 
 /** Key modifiers */
@@ -151,8 +162,18 @@ struct KeyCode
 {
     union
     {
+        /** used for regular text input */
         char    utf8[5];    // UTF-8 code: 'a', '4', 'Ł'
+        /** used for special keys */
         Key     key = {};   // 'F1', 'Enter'
+        /** used for mouse events (when key == Key::MouseClick) */
+        struct
+        {
+            Key      key;
+            MouseBtn btn;
+            uint8_t  x;
+            uint8_t  y;
+        } mouse;
     };
 
     union

@@ -362,6 +362,7 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
     return nullptr;
 }
 
+// -----------------------------------------------------------------------------
 
 static uint8_t decodeFailCtr = 0;
 static uint8_t prevCR = 0;
@@ -398,6 +399,35 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
         {
             if (seq_sz < 3) // sequence too short
                 return;
+
+            // check mouse code
+            if (seq_sz >= 6 && seq[1] == '[' && seq[2] == 'M')
+            {
+                output.mouse.key = Key::MouseClick;
+                const char mouse_btn = seq[3];
+
+                switch (mouse_btn & 0x03)
+                {
+                    case 0: output.mouse.btn = MouseBtn::ButtonLeft; break;
+                    case 1: output.mouse.btn = MouseBtn::ButtonMid; break;
+                    case 2: output.mouse.btn = MouseBtn::ButtonRight; break;
+                    case 3: output.mouse.btn = MouseBtn::ButtonReleased; break;
+                }
+
+                if (mouse_btn & 0x04) output.m_shift = 1;
+                if (mouse_btn & 0x08) output.m_alt = 1;
+                if (mouse_btn & 0x10) output.m_ctrl = 1;
+
+                output.mouse.x = seq[4] - '!' + 1;
+                output.mouse.y = seq[5] - '!' + 1;
+
+                #if TWINS_USE_KEY_NAMES
+                output.name = "MouseClk";
+                #endif
+
+                input.skip(6);
+                return;
+            }
 
             // binary search: find key map in max 7 steps
             if (auto *p_km = binary_search(seq+1, esc_keys_map_sorted.begin(), esc_keys_map_sorted.size()))

@@ -34,6 +34,8 @@ static struct
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
 {
     FontMemento _m;
+    cursorSavePos();
+
     twins::pushClBg(ColorBG::Default);
     twins::pushClFg(ColorFG::White);
 
@@ -58,6 +60,8 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
     pIOs->writeStrFmt(fmt, ap);
     pIOs->flushBuff();
     va_end(ap);
+
+    cursorRestorePos();
 }
 
 // -----------------------------------------------------------------------------
@@ -416,12 +420,14 @@ static void drawPageControl(const Widget *pWgt)
 {
     const auto my_coord = g.parentCoord + pWgt->coord;
 
+    // TODO: set colors because color after terminal is used frequently
+
     drawArea(my_coord + Coord{pWgt->pagectrl.tabWidth, 0}, pWgt->size - Size{pWgt->pagectrl.tabWidth, 0},
         ColorBG::None, ColorFG::None, FrameStyle::PgControl);
 
     auto coord_bkp = g.parentCoord;
     g.parentCoord = my_coord;
-    // trad title
+    // tabs title
     g.str.clear();
     g.str.append(" ≡ MENU ≡ ");
     g.str.setLength(pWgt->pagectrl.tabWidth);

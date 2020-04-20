@@ -147,21 +147,21 @@ public:
     virtual void onListBoxSelect(const twins::Widget* pWgt) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
     // common state queries
-    virtual bool isEnabled(const Widget*) { return true; }
-    virtual bool isFocused(const Widget*) { return false; }
-    virtual bool isVisible(const Widget*) { return true; }
+    virtual bool isEnabled(const twins::Widget*) { return true; }
+    virtual bool isFocused(const twins::Widget*) { return false; }
+    virtual bool isVisible(const twins::Widget*) { return true; }
     virtual WID& getFocusedID() = 0;
     // widget-specific queries
-    virtual bool getCheckboxChecked(const Widget*) { return false; }
-    virtual void getLabelText(const Widget*, String &out) {}
-    virtual void getEditText(const Widget*, String &out) {}
-    virtual bool getLedLit(const Widget*) { return false; }
-    virtual void getLedText(const Widget*, String &out) {}
-    virtual void getProgressBarState(const Widget*, int &pos, int &max) {}
-    virtual int  getPageCtrlPageIndex(const Widget*) { return 0; }
-    virtual void getListBoxState(const Widget*, int &itemIdx, int &itemsCount) { itemIdx = 0; itemsCount = 0; }
-    virtual void getListBoxItem(const Widget*, int itemIdx, String &out) {}
-    virtual int  getRadioIndex(const Widget*) { return -1; }
+    virtual bool getCheckboxChecked(const twins::Widget*) { return false; }
+    virtual void getLabelText(const twins::Widget*, twins::String &out) {}
+    virtual void getEditText(const twins::Widget*, twins::String &out) {}
+    virtual bool getLedLit(const twins::Widget*) { return false; }
+    virtual void getLedText(const twins::Widget*, twins::String &out) {}
+    virtual void getProgressBarState(const twins::Widget*, int &pos, int &max) {}
+    virtual int  getPageCtrlPageIndex(const twins::Widget*) { return 0; }
+    virtual void getListBoxState(const twins::Widget*, int &itemIdx, int &itemsCount) { itemIdx = 0; itemsCount = 0; }
+    virtual void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) {}
+    virtual int  getRadioIndex(const twins::Widget*) { return -1; }
     // requests
     virtual void invalidate(twins::WID id) {}
 };
