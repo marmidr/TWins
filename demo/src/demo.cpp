@@ -10,7 +10,6 @@
 #include "twins_ios_defimpl.hpp"
 
 #include <stdio.h>
-// #include <stdlib.h>
 #include <string.h>
 
 // -----------------------------------------------------------------------------
@@ -18,6 +17,16 @@
 class WndMainState : public twins::IWindowState
 {
 public:
+    WndMainState()
+    {
+        pFocusedId = new twins::WID[wndMainNumPages];
+    }
+
+    ~WndMainState()
+    {
+        delete []pFocusedId;
+    }
+
     // --- events ---
 
     void onButtonClick(const twins::Widget* pWgt) override
@@ -83,7 +92,7 @@ public:
 
     bool isFocused(const twins::Widget* pWgt) override
     {
-        return pWgt->id == focusedId[pgcPage];
+        return pWgt->id == pFocusedId[pgcPage];
     }
 
     bool isVisible(const twins::Widget* pWgt) override
@@ -97,7 +106,7 @@ public:
 
     twins::WID& getFocusedID() override
     {
-        return focusedId[pgcPage];
+        return pFocusedId[pgcPage];
     }
 
     bool getCheckboxChecked(const twins::Widget* pWgt) override
@@ -211,7 +220,7 @@ private:
     int  radioId = 0;
 
     // focused WID separate for each page
-    twins::WID focusedId[3] {};
+    twins::WID *pFocusedId = nullptr;
 };
 
 // -----------------------------------------------------------------------------
@@ -222,6 +231,14 @@ twins::RingBuff<char> rbKeybInput;
 
 struct DemoIOs : twins::DefaultIOs
 {
+    DemoIOs()
+    {
+    }
+
+    ~DemoIOs()
+    {
+    }
+
     uint16_t getLogsRow() override
     {
         return pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1;

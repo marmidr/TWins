@@ -47,3 +47,4 @@ enum WndMainIDs
 
 extern twins::IWindowState * getWindMainState();
 extern const twins::Widget * pWndMainArray;
+extern const uint16_t wndMainNumPages;

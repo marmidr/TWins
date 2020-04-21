@@ -18,11 +18,27 @@
 namespace twins
 {
 
-constexpr int getWgtsCount(const twins::Widget *w)
+/**
+ * @brief Count all widgets in pointed window (or any other type of widget)
+ */
+constexpr int getWgtsCount(const twins::Widget *pWgt)
 {
     int n = 1;
 
-    for (const auto *ch = w->link.pChilds; ch && ch->id != twins::WIDGET_ID_NONE; ch++)
+    for (const auto *ch = pWgt->link.pChilds; ch && ch->id != twins::WIDGET_ID_NONE; ch++)
+        n += getWgtsCount(ch);
+
+    return n;
+}
+
+/**
+ * @brief Count all Pages in pointed window
+ */
+constexpr int getPagesCount(const twins::Widget *pWgt)
+{
+    int n = pWgt->type == twins::Widget::Page;
+
+    for (const auto *ch = pWgt->link.pChilds; ch && ch->id != twins::WIDGET_ID_NONE; ch++)
         n += getWgtsCount(ch);
 
     return n;

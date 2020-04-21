@@ -381,3 +381,4 @@ static constexpr twins::Widget wndMain =
 
 constexpr auto wndMainArray = twins::transforWindowDefinition<&wndMain>();
 const twins::Widget * pWndMainArray = wndMainArray.begin();
+const uint16_t wndMainNumPages = twins::getPagesCount(&wndMain);
