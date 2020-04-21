@@ -285,12 +285,12 @@ int main()
             // display decoded key
             if (kc.key == twins::Key::MouseEvent)
             {
-                TWINS_LOG("B%c %c%c%c %03d:%03d",
-                    '0' + (char)kc.mouse.btn,
-                    kc.m_ctrl ? 'C' : ' ',
-                    kc.m_alt ? 'A' : ' ',
-                    kc.m_shift ? 'S' : ' ',
-                    kc.mouse.x, kc.mouse.y);
+                // TWINS_LOG("B%c %c%c%c %03d:%03d",
+                //     '0' + (char)kc.mouse.btn,
+                //     kc.m_ctrl ? 'C' : ' ',
+                //     kc.m_alt ? 'A' : ' ',
+                //     kc.m_shift ? 'S' : ' ',
+                //     kc.mouse.col, kc.mouse.row);
             }
             else if (kc.key != twins::Key::None)
             {
@@ -304,20 +304,20 @@ int main()
             }
             else
             {
-                twins::drawWidgets(pWndMainArray, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+                // twins::drawWidgets(pWndMainArray, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
 
-                if (kc.mod_all != KEY_MOD_SPECIAL)
-                {
-                    twins::drawWidgets(pWndMainArray,
-                    {
-                        ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
-                    });
-                }
+                // if (kc.mod_all != KEY_MOD_SPECIAL)
+                // {
+                //     twins::drawWidgets(pWndMainArray,
+                //     {
+                //         ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
+                //     });
+                // }
             }
         }
 
-        if (kc.key == twins::Key::MouseEvent)
-            twins::moveTo(kc.mouse.x, kc.mouse.y);
+        // if (kc.key == twins::Key::MouseEvent)
+        //     twins::moveTo(kc.mouse.col, kc.mouse.row);
         // else
         //     twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
 

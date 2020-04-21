@@ -20,6 +20,20 @@
 namespace twins
 {
 
+struct Rect
+{
+    Coord coord;
+    Size  size;
+
+    void setMax()
+    {
+        coord.col = 1;
+        coord.row = 1;
+        size.width = 0xff;
+        size.height = 0xff;
+    }
+};
+
 /** Global state object */
 static struct
 {
@@ -173,6 +187,22 @@ static Size operator - (const Size &sz1, const Size &sz2)
         uint8_t(sz1.height - sz2.height)
     };
     return ret;
+}
+
+static bool isPointWithin(uint8_t col, uint8_t row, const Rect& e)
+{
+    return col >= e.coord.col &&
+           col <  e.coord.col + e.size.width &&
+           row >= e.coord.row &&
+           row <  e.coord.row + e.size.height;
+}
+
+static bool isRectWithin(const Rect& i, const Rect& e)
+{
+    return i.coord.col                 >= e.coord.col &&
+           i.coord.col + i.size.width  <  e.coord.col + e.size.width &&
+           i.coord.row                 >= e.coord.row &&
+           i.coord.row + i.size.height <  e.coord.row + e.size.height;
 }
 
 // -----------------------------------------------------------------------------
@@ -653,6 +683,109 @@ static const Widget* findWidget(const WID widgetId)
     return nullptr;
 }
 
+static Coord getScreenCoord(const Widget *pWgt)
+{
+    Coord coord = pWgt->coord;
+
+    // go up the widgets hierarchy
+    int parent_idx = pWgt->link.parentIdx;
+
+    // if (pWgt->id != 0)
+    {
+        for (;;)
+        {
+            const auto *p_parent = g.pWndArray + parent_idx;
+            coord += p_parent->coord;
+
+            if (p_parent->type == Widget::Type::PageCtrl)
+                coord.col += p_parent->pagectrl.tabWidth;
+
+            if (parent_idx == 0)
+                break;
+
+            parent_idx = p_parent->link.parentIdx;
+        }
+    }
+
+    return coord;
+}
+
+static bool isVisible(const Widget *pWgt)
+{
+    bool vis = g.pWndState->isVisible(pWgt);
+    int parent_idx = pWgt->link.parentIdx;
+
+    for (; vis;)
+    {
+        const auto *p_parent = g.pWndArray + parent_idx;
+        vis &= g.pWndState->isVisible(p_parent);
+
+        if (parent_idx == 0)
+            break;
+
+        parent_idx = p_parent->link.parentIdx;
+    }
+
+    return vis;
+}
+
+static const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
+{
+    const Widget *p_wgt_at = nullptr;
+    Rect best_rect;
+    best_rect.setMax();
+
+    for (unsigned i = 0; g.pWndArray[i].type != Widget::None; i++)
+    {
+        Rect r;
+        const auto *p_wgt = g.pWndArray + i;
+        r.coord = getScreenCoord(p_wgt);
+        r.size = p_wgt->size;
+
+        // correct the widget size
+        switch (p_wgt->type)
+        {
+        case Widget::Edit:
+            break;
+        case Widget::CheckBox:
+            r.size.height = 1;
+            r.size.width = utf8len(p_wgt->checkbox.text);
+            break;
+        case Widget::Radio:
+            r.size.height = 1;
+            r.size.width = 4 + utf8len(p_wgt->radio.text);
+            break;
+        case Widget::Button:
+            r.size.height = 1;
+            r.size.width = 4 + utf8len(p_wgt->button.text);
+            break;
+        case Widget::PageCtrl:
+            r.size.width = p_wgt->pagectrl.tabWidth;
+            break;
+        case Widget::ListBox:
+            break;
+        case Widget::DropDownList:
+            break;
+        default:
+            break;
+        }
+
+        if (isPointWithin(col, row, r))
+        {
+            bool is_visible = isVisible(p_wgt); // controls on tabs? solved
+
+            if (is_visible && isRectWithin(r, best_rect))
+            {
+                p_wgt_at = p_wgt;
+                best_rect = r;
+                wgtRect = r;
+            }
+        }
+    }
+
+    return p_wgt_at;
+}
+
 static ColorBG getWidgetBgColor(const Widget *pWgt)
 {
     if (pWgt)
@@ -908,11 +1041,157 @@ static WID focusParent(WID focusedID)
     return WIDGET_ID_NONE;
 }
 
-static bool processEditKey(const Widget *pEdit, const KeyCode &kc)
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+static bool processKey_Edit(const Widget *pEdit, const KeyCode &kc)
 {
     // TODO: implement
     g.pWndState->onEditChange(pEdit, g.str);
     g.pWndState->invalidate(pEdit->id);
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+static void processMouse_Edit(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+{
+    moveTo(kc.mouse.col, kc.mouse.row);
+
+    if (kc.mouse.btn == MouseBtn::ButtonLeft)
+    {
+        g.pWndState->getFocusedID() = pWgt->id;
+    }
+}
+
+static void processMouse_CheckBox(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+{
+    moveTo(wgtRect.coord.col + 1, wgtRect.coord.row);
+
+    if (kc.mouse.btn == MouseBtn::ButtonLeft)
+    {
+        g.pWndState->getFocusedID() = pWgt->id;
+        g.pWndState->onCheckboxToggle(pWgt);
+        g.pWndState->invalidate(pWgt->id);
+    }
+}
+
+static void processMouse_Radio(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+{
+    moveTo(wgtRect.coord.col + 1, wgtRect.coord.row);
+
+    if (kc.mouse.btn == MouseBtn::ButtonLeft)
+    {
+        g.pWndState->getFocusedID() = pWgt->id;
+        g.pWndState->onRadioSelect(pWgt);
+        invalidateRadioGroup(pWgt);
+    }
+}
+
+static void processMouse_Button(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+{
+    moveTo(wgtRect.coord.col + wgtRect.size.width/2, wgtRect.coord.row);
+
+    if (kc.mouse.btn == MouseBtn::ButtonLeft)
+    {
+        g.pWndState->getFocusedID() = pWgt->id;
+    }
+    else if (kc.mouse.btn == MouseBtn::ButtonReleased)
+    {
+        g.pWndState->onButtonClick(pWgt);
+        g.pWndState->invalidate(pWgt->id);
+    }
+}
+
+static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+{
+    moveTo(wgtRect.coord.col, kc.mouse.row);
+
+    if (kc.mouse.btn == MouseBtn::ButtonLeft)
+    {
+        int idx = kc.mouse.row - wgtRect.coord.row - 1;
+        if (idx >= 0 && idx < pWgt->link.childsCnt)
+        {
+            g.pWndState->onPageControlPageChange(pWgt, idx);
+            g.pWndState->invalidate(pWgt->id);
+        }
+    }
+    else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
+    {
+        int idx = g.pWndState->getPageCtrlPageIndex(pWgt);
+        idx += kc.mouse.btn == MouseBtn::WheelDown ? 1 : -1;
+        if (idx < 0)                     idx = pWgt->link.childsCnt -1;
+        if (idx >= pWgt->link.childsCnt) idx = 0;
+
+        g.pWndState->onPageControlPageChange(pWgt, idx);
+        g.pWndState->invalidate(pWgt->id);
+    }
+}
+
+static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+{
+    moveTo(wgtRect.coord.col+1, kc.mouse.row);
+
+    if (kc.mouse.btn == MouseBtn::ButtonLeft)
+    {
+
+    }
+    else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
+    {
+        if (kc.mouse.btn == MouseBtn::WheelUp)
+            g.pWndState->onListBoxScroll(pWgt, true, kc.m_ctrl);
+        else
+            g.pWndState->onListBoxScroll(pWgt, false, kc.m_ctrl);
+
+        g.pWndState->invalidate(pWgt->id);
+    }
+}
+
+static void processMouse_DropDownList(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+{
+
+}
+
+static bool processMouse(const KeyCode &kc)
+{
+    Rect rct;
+    const Widget *p_wgt = getWidgetAt(kc.mouse.col, kc.mouse.row, rct);
+    if (!p_wgt)
+        return false;
+
+    //TWINS_LOG("WidgetAt(%2d:%2d)=%s ID:%u", kc.mouse.col, kc.mouse.row, toString(p_wgt->type), p_wgt->id);
+
+    switch (p_wgt->type)
+    {
+        case Widget::Edit:
+            processMouse_Edit(p_wgt, rct, kc);
+            break;
+        case Widget::CheckBox:
+            processMouse_CheckBox(p_wgt, rct, kc);
+            break;
+        case Widget::Radio:
+            processMouse_Radio(p_wgt, rct, kc);
+            break;
+        case Widget::Button:
+            processMouse_Button(p_wgt, rct, kc);
+            break;
+        case Widget::PageCtrl:
+            processMouse_PageCtrl(p_wgt, rct, kc);
+            break;
+        case Widget::ListBox:
+            processMouse_ListBox(p_wgt, rct, kc);
+            break;
+        case Widget::DropDownList:
+            processMouse_DropDownList(p_wgt, rct, kc);
+            break;
+        default:
+            moveToHome();
+            return false;
+    }
+
     return true;
 }
 
@@ -1003,7 +1282,7 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
 
     if (kc.key == Key::MouseEvent)
     {
-        // TODO: locate widget at x:y
+        key_processed = processMouse(kc);
     }
     else if (kc.m_spec)
     {
@@ -1014,7 +1293,7 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
             auto &curr_id = g.pWndState->getFocusedID();
             const Widget* p_wgt = findWidget(curr_id);
             if (p_wgt && p_wgt->type == Widget::Edit)
-                key_processed = processEditKey(p_wgt, kc);
+                key_processed = processKey_Edit(p_wgt, kc);
 
             if (!key_processed)
             {
@@ -1054,9 +1333,9 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
             // Ctrl+PgUp/PgDown will be directed to window's first PageControl widget
             if (kc.m_ctrl)
             {
-                for (unsigned i = 0; i < pWindowArray->link.childsCnt; i++)
+                for (unsigned i = 0; i < g.pWndArray[0].link.childsCnt; i++)
                 {
-                    const auto *p_wgt = &g.pWndArray[pWindowArray->link.childsIdx + i];
+                    const auto *p_wgt = &g.pWndArray[g.pWndArray[0].link.childsIdx + i];
 
                     if (p_wgt->type == Widget::PageCtrl)
                     {
@@ -1087,7 +1366,7 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
                 switch (p_wgt->type)
                 {
                 case Widget::Edit:
-                    processEditKey(p_wgt, kc);
+                    processKey_Edit(p_wgt, kc);
                     break;
                 case Widget::CheckBox:
                     g.pWndState->onCheckboxToggle(p_wgt);
@@ -1127,7 +1406,7 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
 
             if (p_wgt && p_wgt->type == Widget::Edit)
             {
-                key_processed = processEditKey(p_wgt, kc);
+                key_processed = processKey_Edit(p_wgt, kc);
             }
             else if (p_wgt && p_wgt->type == Widget::ListBox)
             {
@@ -1174,7 +1453,7 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
 
             if (p_wgt->type == Widget::Edit)
             {
-                key_processed = processEditKey(p_wgt, kc);
+                key_processed = processKey_Edit(p_wgt, kc);
             }
         }
     }

@@ -420,8 +420,8 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 if (mouse_btn & 0x08) output.m_alt = 1;
                 if (mouse_btn & 0x10) output.m_ctrl = 1;
 
-                output.mouse.x = seq[4] - ' ';
-                output.mouse.y = seq[5] - ' ';
+                output.mouse.col = seq[4] - ' ';
+                output.mouse.row = seq[5] - ' ';
 
                 #if TWINS_USE_KEY_NAMES
                 output.name = "MouseClk";
