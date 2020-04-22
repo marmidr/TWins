@@ -52,22 +52,13 @@ public:
         if (pWgt->id == ID_PGCONTROL) pgcPage = newPageIdx;
     }
 
-    void onListBoxScroll(const twins::Widget* pWgt, bool up, bool page) override
+    void onListBoxSelect(const twins::Widget* pWgt, uint16_t newIdx) override
     {
         if (pWgt->id == ID_LISTBOX)
         {
-            int cnt = listBoxItemsCount;
-            int delta = page ? pWgt->size.height : 1;
-            if (up) delta = -delta;
-            listBoxItemIdx += delta;
-            if (listBoxItemIdx >= cnt) listBoxItemIdx = 0;
-            if (listBoxItemIdx < 0) listBoxItemIdx = cnt - 1;
+            listBoxItemIdx = newIdx;
+            TWINS_LOG("LISTBOX_SELECT");
         }
-    }
-
-    void onListBoxSelect(const twins::Widget* pWgt) override
-    {
-        if (pWgt->id == ID_LISTBOX) TWINS_LOG("LISTBOX_SELECT");
     }
 
     void onRadioSelect(const twins::Widget* pWgt) override

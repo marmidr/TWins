@@ -143,8 +143,7 @@ public:
     virtual void onEditChange(const twins::Widget* pWgt, twins::String &str) {}
     virtual void onCheckboxToggle(const twins::Widget* pWgt) {}
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
-    virtual void onListBoxScroll(const twins::Widget* pWgt, bool up, bool page) {}
-    virtual void onListBoxSelect(const twins::Widget* pWgt) {}
+    virtual void onListBoxSelect(const twins::Widget* pWgt, uint16_t newIdx) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
     // common state queries
     virtual bool isEnabled(const twins::Widget*) { return true; }
