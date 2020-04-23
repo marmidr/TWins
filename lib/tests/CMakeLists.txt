@@ -7,7 +7,7 @@
 set(TARGETNAME TWinsUT)
 
 add_executable(${TARGETNAME}
-    src/t_main.cpp
+    src/test_main.cpp
     src/test_input_decoder.cpp
     src/test_string.cpp
     src/test_twins.cpp

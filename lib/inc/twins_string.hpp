@@ -35,6 +35,10 @@ public:
     void appendFmt(const char *fmt, ...);
     /** @brief Trim string that is too long to fit; optionally append ellipsis ... at the \p trimPos */
     void trim(int16_t trimPos, bool addEllipsis = false);
+    /** @brief Erase \p len characters from string at \p pos */
+    void erase(int16_t pos, int16_t len = 1);
+    /** @brief Insert string \p s at \p pos */
+    void insert(int16_t pos, const char *s);
     /** @brief If shorter than len - add spaces; if longer - calls trim */
     void setLength(int16_t len, bool addEllipsis = false);
     /** @brief Set size to zero; does not release buffer memory */

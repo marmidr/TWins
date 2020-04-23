@@ -108,22 +108,91 @@ void String::trim(int16_t trimPos, bool addEllipsis)
         trimPos--;
 
     char *p = mpBuff;
-    char *pEnd = mpBuff + mSize;
 
-    for (int pos = 0; pos < trimPos; pos++)
+    for (int i = 0; i < trimPos; i++)
     {
         int seqLen = utf8seqlen(p);
         if (seqLen <= 0) break;
         p += seqLen;
     }
 
-    if (p >= pEnd) return;
+    if (p >= mpBuff + mSize) return;
     mSize = p - mpBuff;
     char last = mpBuff[mSize];
 
     if (addEllipsis && last == ' ') mSize++;
     mpBuff[mSize] = '\0';
     if (addEllipsis && last != ' ') append("…");
+}
+
+void String::erase(int16_t pos, int16_t len)
+{
+    if (pos < 0 || pos >= mSize)
+        return;
+    if (len <= 0)
+        return;
+
+    char *p = mpBuff;
+
+    for (int i = 0; i < pos; i++)
+    {
+        int seqLen = utf8seqlen(p);
+        if (seqLen <= 0) break;
+        p += seqLen;
+    }
+
+    if (p >= mpBuff + mSize) return;
+
+    char *erase_at = p;
+    unsigned bytes_to_erase = 0;
+
+    for (int i = 0; i < len; i++)
+    {
+        int seqLen = utf8seqlen(p);
+        if (seqLen <= 0) break;
+        bytes_to_erase += seqLen;
+        p += seqLen;
+        if (p >= mpBuff + mSize)
+            break;
+    }
+
+    memcpy(erase_at, erase_at + bytes_to_erase, mSize - (erase_at - mpBuff));
+    mSize -= bytes_to_erase;
+    mpBuff[mSize] = '\0';
+}
+
+void String::insert(int16_t pos, const char *s)
+{
+    if (pos < 0)
+        return;
+    if (!s || !*s)
+        return;
+
+    if ((unsigned)pos >= u8len())
+    {
+        append(s);
+        return;
+    }
+
+    char *p = mpBuff;
+
+    for (int i = 0; i < pos; i++)
+    {
+        int seqLen = utf8seqlen(p);
+        if (seqLen <= 0) break;
+        p += seqLen;
+    }
+
+    if (p >= mpBuff + mSize) return;
+
+    char *insert_at = p;
+    unsigned bytes_to_insert = strlen(s);
+
+    resize(mSize + bytes_to_insert);
+    memcpy(insert_at + bytes_to_insert, insert_at, mSize - (insert_at - mpBuff));
+    memcpy(insert_at, s, bytes_to_insert);
+    mSize += bytes_to_insert;
+    mpBuff[mSize] = '\0';
 }
 
 void String::setLength(int16_t len, bool addEllipsis)

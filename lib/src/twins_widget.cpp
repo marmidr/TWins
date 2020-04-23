@@ -11,9 +11,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
-
 #include <stdarg.h>
 #include <time.h>
+#include <utility> //std::swap
 
 // -----------------------------------------------------------------------------
 
@@ -36,8 +36,9 @@ struct Rect
 
 struct EditState
 {
+    const Widget *pWgt = nullptr;
     uint8_t cursorCol;
-    String  txt;
+    String  str;
 };
 
 /** Global state object */
@@ -47,6 +48,7 @@ static struct
     String  str;                    // common string buff for widget renderers
     const Widget *pWndArray = {};   // array of Window widgets
     IWindowState *pWndState = {};   //
+    const Widget *pFocusedWgt = {}; //
     EditState editState;            // state of Edit being modified
     int listboxHighlightIdx;        // focused Listbox index of highlighted row
 } g;
@@ -397,6 +399,28 @@ static void drawLabel(const Widget *pWgt)
     popClBg();
 }
 
+static void drawEdit(const Widget *pWgt)
+{
+    g.str.clear();
+
+    if (g.editState.pWgt)
+        g.str = g.editState.str;
+    else
+        g.pWndState->getEditText(pWgt, g.str);
+
+    g.str.setLength(pWgt->size.width-3, true);
+    g.str.append("[^]");
+
+    bufferBegin();
+    moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
+    pushClBg(pWgt->edit.bgColor);
+    pushClFg(pWgt->edit.fgColor);
+    writeStr(g.str.cstr());
+    popClFg();
+    popClBg();
+    bufferEnd();
+}
+
 static void drawLed(const Widget *pWgt)
 {
     auto bgCl = g.pWndState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
@@ -604,6 +628,7 @@ static void drawWidgetInternal(const Widget *pWgt)
     case Widget::Window:        drawWindow(pWgt); break;
     case Widget::Panel:         drawPanel(pWgt); break;
     case Widget::Label:         drawLabel(pWgt); break;
+    case Widget::Edit:          drawEdit(pWgt); break;
     case Widget::CheckBox:      drawCheckbox(pWgt); break;
     case Widget::Radio:         drawRadio(pWgt);  break;
     case Widget::Button:        drawButton(pWgt); break;
@@ -985,6 +1010,14 @@ static void setCursorAt(const Widget *pWgt)
     switch (pWgt->type)
     {
     case Widget::Edit:
+        if (g.editState.pWgt)
+        {
+            coord.col += g.editState.cursorCol;
+        }
+        else
+        {
+            coord.col += pWgt->size.width-1;
+        }
         break;
     case Widget::CheckBox:
         coord.col += 1;
@@ -993,7 +1026,7 @@ static void setCursorAt(const Widget *pWgt)
         coord.col += 1;
         break;
     case Widget::Button:
-        coord.col += 2;
+        coord.col += (utf8len(pWgt->button.text) + 4) / 2;
         break;
     case Widget::ListBox:
         coord.col += 1;
@@ -1069,6 +1102,7 @@ static bool changeFocusTo(WID newID)
         g.pWndState->invalidate(prev_id);
         g.pWndState->invalidate(newID);
         setCursorAt(wss.pWidget);
+        g.pFocusedWgt = wss.pWidget;
         return true;
     }
 
@@ -1083,31 +1117,94 @@ static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
 {
     bool key_handled = false;
 
-    if (kc.m_spec)
+    // TODO: solve cursor beyound control for long strings
+    if (g.editState.pWgt)
     {
-        switch (kc.key)
+        if (kc.m_spec)
         {
-        case Key::Enter:
-            g.pWndState->onEditChange(pWgt, g.str);
+            switch (kc.key)
+            {
+            case Key::Esc:
+                // cancel editing
+                g.editState.pWgt = nullptr;
+                g.pWndState->invalidate(pWgt->id);
+                key_handled = true;
+                break;
+            case Key::Enter:
+                // finish editing
+                g.pWndState->onEditChange(pWgt, std::move(g.editState.str));
+                g.editState.pWgt = nullptr;
+                g.pWndState->invalidate(pWgt->id);
+                key_handled = true;
+                break;
+            case Key::Backspace:
+                if (g.editState.cursorCol > 0)
+                {
+                    if (kc.m_ctrl)
+                    {
+                        g.editState.str.erase(0, g.editState.cursorCol);
+                        g.editState.cursorCol = 0;
+                    }
+                    else
+                    {
+                        g.editState.str.erase(g.editState.cursorCol-1);
+                        g.editState.cursorCol--;
+                    }
+                    g.pWndState->invalidate(pWgt->id);
+                }
+                break;
+            case Key::Delete:
+                if (kc.m_ctrl)
+                    g.editState.str.trim(g.editState.cursorCol);
+                else
+                    g.editState.str.erase(g.editState.cursorCol);
+
+                g.pWndState->invalidate(pWgt->id);
+                break;
+            case Key::Up:
+            case Key::Down:
+                break;
+            case Key::Left:
+                if (g.editState.cursorCol > 0)
+                {
+                    g.editState.cursorCol --;
+                    g.pWndState->invalidate(pWgt->id);
+                }
+                break;
+            case Key::Right:
+                if (g.editState.cursorCol < g.editState.str.u8len())
+                {
+                    g.editState.cursorCol++;
+                    g.pWndState->invalidate(pWgt->id);
+                }
+                break;
+            case Key::Home:
+                g.editState.cursorCol = 0;
+                g.pWndState->invalidate(pWgt->id);
+                break;
+            case Key::End:
+                g.editState.cursorCol = g.editState.str.u8len();
+                g.pWndState->invalidate(pWgt->id);
+                break;
+            default:
+                break;
+            }
+        }
+        else
+        {
+            g.editState.str.insert(g.editState.cursorCol, kc.utf8);
+            g.editState.cursorCol++;
             g.pWndState->invalidate(pWgt->id);
-            key_handled = true;
-            break;
-        case Key::Backspace:
-        case Key::Delete:
-        case Key::Up:
-        case Key::Down:
-        case Key::Left:
-        case Key::Right:
-        case Key::Home:
-        case Key::End:
-            break;
-        default:
-            break;
         }
     }
-    else
+    else if (kc.key == Key::Enter)
     {
-        /* append char code */
+        // enter editit mode
+        g.editState.pWgt = pWgt;
+        g.pWndState->getEditText(pWgt, g.editState.str);
+        g.editState.cursorCol = g.editState.str.u8len();
+        g.pWndState->invalidate(pWgt->id);
+        key_handled = true;
     }
 
     return key_handled;
@@ -1346,17 +1443,14 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
     {
         int idx, cnt;
         g.pWndState->getListBoxState(pWgt, idx, cnt);
+        int delta = kc.mouse.btn == MouseBtn::WheelUp ? -1 : 1;
+        if (kc.m_ctrl) delta *= pWgt->size.height-2;
 
-        if (kc.mouse.btn == MouseBtn::WheelUp)
-        {
-            if (--g.listboxHighlightIdx < 0)
-                g.listboxHighlightIdx = cnt - 1;
-        }
-        else
-        {
-            if (++g.listboxHighlightIdx == cnt)
-                g.listboxHighlightIdx = 0;
-        }
+        if (g.listboxHighlightIdx < 0)
+            g.listboxHighlightIdx = cnt - 1;
+
+        if (g.listboxHighlightIdx >= cnt)
+            g.listboxHighlightIdx = 0;
 
         g.pWndState->invalidate(pWgt->id);
     }
@@ -1384,30 +1478,30 @@ static bool processMouse(const KeyCode &kc)
 
     switch (p_wgt->type)
     {
-        case Widget::Edit:
-            processMouse_Edit(p_wgt, rct, kc);
-            break;
-        case Widget::CheckBox:
-            processMouse_CheckBox(p_wgt, rct, kc);
-            break;
-        case Widget::Radio:
-            processMouse_Radio(p_wgt, rct, kc);
-            break;
-        case Widget::Button:
-            processMouse_Button(p_wgt, rct, kc);
-            break;
-        case Widget::PageCtrl:
-            processMouse_PageCtrl(p_wgt, rct, kc);
-            break;
-        case Widget::ListBox:
-            processMouse_ListBox(p_wgt, rct, kc);
-            break;
-        case Widget::DropDownList:
-            processMouse_DropDownList(p_wgt, rct, kc);
-            break;
-        default:
-            moveToHome();
-            return false;
+    case Widget::Edit:
+        processMouse_Edit(p_wgt, rct, kc);
+        break;
+    case Widget::CheckBox:
+        processMouse_CheckBox(p_wgt, rct, kc);
+        break;
+    case Widget::Radio:
+        processMouse_Radio(p_wgt, rct, kc);
+        break;
+    case Widget::Button:
+        processMouse_Button(p_wgt, rct, kc);
+        break;
+    case Widget::PageCtrl:
+        processMouse_PageCtrl(p_wgt, rct, kc);
+        break;
+    case Widget::ListBox:
+        processMouse_ListBox(p_wgt, rct, kc);
+        break;
+    case Widget::DropDownList:
+        processMouse_DropDownList(p_wgt, rct, kc);
+        break;
+    default:
+        moveToHome();
+        return false;
     }
 
     return true;
@@ -1448,7 +1542,7 @@ void drawWidget(const Widget *pWindowArray, WID widgetId)
     resetAttr();
     resetClBg();
     resetClFg();
-    // moveTo(g.focusedCursorPos.col, g.focusedCursorPos.row);
+    setCursorAt(g.pFocusedWgt);
     cursorShow();
 }
 
@@ -1478,7 +1572,7 @@ void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t cou
     resetAttr();
     resetClBg();
     resetClFg();
-    // moveTo(g.focusedCursorPos.col, g.focusedCursorPos.row);
+    setCursorAt(g.pFocusedWgt);
     cursorShow();
 }
 

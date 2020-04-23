@@ -36,8 +36,9 @@ public:
         if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("BTN_CANCEL");
     }
 
-    void onEditChange(const twins::Widget* pWgt, twins::String &str) override
+    void onEditChange(const twins::Widget* pWgt, twins::String &&str) override
     {
+        edtText = std::move(str);
         TWINS_LOG("value:%s", str.cstr());
     }
 
@@ -135,7 +136,7 @@ public:
 
     void getEditText(const twins::Widget*, twins::String &out) override
     {
-        out = "Name:";
+        out = edtText;
     }
 
     bool getLedLit(const twins::Widget* pWgt) override
@@ -212,6 +213,7 @@ private:
 
     // focused WID separate for each page
     twins::WID *pFocusedId = nullptr;
+    twins::String edtText;
 };
 
 // -----------------------------------------------------------------------------
@@ -295,22 +297,19 @@ int main()
             }
             else
             {
-                // twins::drawWidgets(pWndMainArray, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+                twins::cursorSavePos();
+                twins::drawWidgets(pWndMainArray, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
 
-                // if (kc.mod_all != KEY_MOD_SPECIAL)
-                // {
-                //     twins::drawWidgets(pWndMainArray,
-                //     {
-                //         ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
-                //     });
-                // }
+                if (kc.mod_all != KEY_MOD_SPECIAL)
+                {
+                    twins::drawWidgets(pWndMainArray,
+                    {
+                        ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
+                    });
+                }
+                twins::cursorRestorePos();
             }
         }
-
-        // if (kc.key == twins::Key::MouseEvent)
-        //     twins::moveTo(kc.mouse.col, kc.mouse.row);
-        // else
-        //     twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
 
         fflush(stdout);
     }

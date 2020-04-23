@@ -238,3 +238,66 @@ TEST_F(STRING_Test, move_assign)
     EXPECT_EQ(0, s2.size());
     EXPECT_EQ(4, s3.size());
 }
+
+TEST_F(STRING_Test, erase)
+{
+    {
+        twins::String s;
+
+        s = "A";
+        s.erase(-2, 1);
+        EXPECT_STREQ("A", s.cstr());
+        s.erase(0, -1);
+        EXPECT_STREQ("A", s.cstr());
+        s.erase(1, 1);
+        EXPECT_STREQ("A", s.cstr());
+    }
+
+    {
+        twins::String s;
+
+        s = "*ĄBĆDĘ#";
+        s.erase(1, 1);
+        EXPECT_STREQ("*BĆDĘ#", s.cstr());
+        s.erase(3, 2);
+        EXPECT_STREQ("*BĆ#", s.cstr());
+        s.erase(1, 15);
+        EXPECT_STREQ("*", s.cstr());
+    }
+}
+
+TEST_F(STRING_Test, insert)
+{
+    {
+        twins::String s;
+
+        s = "A";
+        s.insert(-2, "*");
+        EXPECT_STREQ("A", s.cstr());
+        s.insert(0, nullptr);
+        EXPECT_STREQ("A", s.cstr());
+        s.insert(0, "");
+        EXPECT_STREQ("A", s.cstr());
+        s.insert(5, ".");
+        EXPECT_STREQ("A.", s.cstr());
+    }
+
+    {
+        twins::String s;
+
+        s = "*ĄBĆDĘ#";
+        s.insert(1, ".");
+        EXPECT_STREQ("*.ĄBĆDĘ#", s.cstr());
+        s.insert(5, "••");
+        EXPECT_STREQ("*.ĄBĆ••DĘ#", s.cstr());
+        s.insert(11, "X");
+        EXPECT_STREQ("*.ĄBĆ••DĘ#X", s.cstr());
+    }
+
+    {
+        twins::String s;
+
+        s.insert(0, "••");
+        EXPECT_STREQ("••", s.cstr());
+    }
+}

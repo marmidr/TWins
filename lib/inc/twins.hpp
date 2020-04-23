@@ -140,7 +140,7 @@ public:
     virtual ~IWindowState() = default;
     // events
     virtual void onButtonClick(const twins::Widget* pWgt) {}
-    virtual void onEditChange(const twins::Widget* pWgt, twins::String &str) {}
+    virtual void onEditChange(const twins::Widget* pWgt, twins::String &&str) {}
     virtual void onCheckboxToggle(const twins::Widget* pWgt) {}
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
     virtual void onListBoxSelect(const twins::Widget* pWgt, uint16_t newIdx) {}

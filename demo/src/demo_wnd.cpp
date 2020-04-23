@@ -72,7 +72,7 @@ static constexpr twins::Widget page1Childs[] =
                 link    : {},
                 { label : {
                     bgColor : twins::ColorBG::Black,
-                    fgColor : twins::ColorFG::MagentaIntense,
+                    fgColor : twins::ColorFG::YellowIntense,
                     text    : "FwVer: 1.1"
                 }}
             },
@@ -84,7 +84,7 @@ static constexpr twins::Widget page1Childs[] =
                 link    : {},
                 { label : {
                     bgColor : twins::ColorBG::None,
-                    fgColor : twins::ColorFG::Yellow,
+                    fgColor : twins::ColorFG::Black,
                     text    : "Date•" __DATE__
                 }}
             },
@@ -341,7 +341,21 @@ static constexpr twins::Widget wndMain =
                     id      : ID_PAGE_3,
                     coord   : {},
                     size    : {},
-                    link    : { },
+                    link    : { (const twins::Widget[])
+                    {
+                        {
+                            type    : twins::Widget::Edit,
+                            id      : ID_EDT_1,
+                            coord   : { 2, 1 },
+                            size    : { 30, 1 },
+                            link    : {},
+                            { edit : {
+                                bgColor     : twins::ColorBG::White,
+                                fgColor     : twins::ColorFG::Black,
+                            }}
+                        },
+                        { /* NUL */ }
+                    }},
                     { page : {
                         fgColor     : twins::ColorFG::Yellow,
                         title       : "Diagnostics",

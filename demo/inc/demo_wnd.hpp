@@ -40,6 +40,7 @@ enum WndMainIDs
                 ID_RADIO_2,
                 ID_RADIO_3,
             ID_PAGE_3,
+                ID_EDT_1,
         ID_LABEL_FTR,
 };
 
