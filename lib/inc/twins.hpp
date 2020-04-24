@@ -43,7 +43,7 @@ struct Size
 enum class ColorFG : uint8_t
 {
     None,       // Means 'No Change'
-    Default,    // Reset Do Terminal Default
+    Default,    // Reset to Terminal Default
     Black,
     BlackIntense,
     Red,
@@ -70,7 +70,7 @@ enum class ColorFG : uint8_t
 enum class ColorBG : uint8_t
 {
     None,       // Means 'No Change'
-    Default,    // Reset Do Terminal Default
+    Default,    // Reset to Terminal Default
     Black,
     BlackIntense,
     Red,
@@ -233,7 +233,6 @@ struct Widget
 
         struct
         {
-            ColorBG     bgColor;
             ColorFG     fgColor;
             const char *text;
         } label;
@@ -305,7 +304,7 @@ static constexpr WID WIDGET_ID_NONE = 0;    // convenient; default value points 
 static constexpr WID WIDGET_ID_ALL = -1;
 
 /** @brief Object remembers terminal font colors and attribute,
- *         to restore them upon destruction
+ *         to restore them on destruction
  */
 struct FontMemento
 {
@@ -328,7 +327,7 @@ void init(IOs *ios);
 /** @brief used by TWINS_LOG() */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
 
-/** @brief Control wheather all output is passed to a buffer and then written at once, asynchronously */
+/** @brief Control wheather all succesive write are stored in a buffer and then written at once, asynchronously */
 void bufferBegin();
 void bufferEnd();
 

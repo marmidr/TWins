@@ -361,7 +361,6 @@ static void drawLabel(const Widget *pWgt)
         g.pWndState->getLabelText(pWgt, g.str);
 
     // setup colors
-    pushClBg(pWgt->label.bgColor);
     pushClFg(pWgt->label.fgColor);
 
     // print all lines
@@ -396,7 +395,6 @@ static void drawLabel(const Widget *pWgt)
 
     // restore colors
     popClFg();
-    popClBg();
 }
 
 static void drawEdit(const Widget *pWgt)
@@ -780,7 +778,7 @@ static const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
             break;
         case Widget::CheckBox:
             r.size.height = 1;
-            r.size.width = utf8len(p_wgt->checkbox.text);
+            r.size.width = 4 + utf8len(p_wgt->checkbox.text);
             break;
         case Widget::Radio:
             r.size.height = 1;

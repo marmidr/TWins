@@ -71,7 +71,6 @@ static constexpr twins::Widget page1Childs[] =
                 size    : { 12, 1 },
                 link    : {},
                 { label : {
-                    bgColor : twins::ColorBG::Black,
                     fgColor : twins::ColorFG::YellowIntense,
                     text    : "FwVer: 1.1"
                 }}
@@ -83,7 +82,6 @@ static constexpr twins::Widget page1Childs[] =
                 size    : { 15, 1 },
                 link    : {},
                 { label : {
-                    bgColor : twins::ColorBG::None,
                     fgColor : twins::ColorFG::Black,
                     text    : "Date•" __DATE__
                 }}
@@ -95,7 +93,6 @@ static constexpr twins::Widget page1Childs[] =
                 size    : { 16, 1 },
                 link    : {},
                 { label : {
-                    bgColor : twins::ColorBG::White,
                     fgColor : twins::ColorFG::Magenta,
                     text    : "Time≡" __TIME__
                 }}
@@ -134,8 +131,7 @@ static constexpr twins::Widget page1Childs[] =
                 size    : { 22, 1 },
                 link    : {},
                 { label : {
-                    bgColor : twins::ColorBG::White,
-                    fgColor : twins::ColorFG::Red,
+                    fgColor : twins::ColorFG::Blue,
                     text    : nullptr // use callback to get text
                 }}
             },
@@ -146,8 +142,7 @@ static constexpr twins::Widget page1Childs[] =
                 size    : { 17, 1 },
                 link    : {},
                 { label : {
-                    bgColor : twins::ColorBG::White,
-                    fgColor : twins::ColorFG::Green,
+                    fgColor : twins::ColorFG::White,
                     text    : nullptr // use callback to get text
                 }}
             },
@@ -166,7 +161,7 @@ static constexpr twins::Widget page1Childs[] =
         size    : {},
         link    : {},
         { checkbox : {
-            text    : "Enable ",
+            text    : "Enable",
             fgColor : twins::ColorFG::Green
         }}
     },
@@ -177,7 +172,7 @@ static constexpr twins::Widget page1Childs[] =
         size    : {},
         link    : {},
         { checkbox : {
-            text    : "Lock "
+            text    : "Lock"
         }}
     },
     {
@@ -236,7 +231,6 @@ static constexpr twins::Widget page2Childs[] =
         size    : { 35, 4 },
         link    : {},
         { label : {
-            bgColor : twins::ColorBG::Green,
             fgColor : twins::ColorFG::YellowIntense,
             text    : "  ◦◦◦◦ ListBox ◦◦◦◦ " "\n"
                       "• Up/Down -> change item" "\n"
@@ -374,7 +368,6 @@ static constexpr twins::Widget wndMain =
             size    : { 50, 1 },
             link    : {},
             { label : {
-                bgColor : {},
                 fgColor : twins::ColorFG::White,
                 text    :  ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_CYAN "Refresh" ESC_BG_BLUE "  "
                            ESC_BOLD "PgUp/PgDn "    ESC_NORMAL ESC_BG_CYAN "Menu" ESC_BG_BLUE "  "
