@@ -497,7 +497,8 @@ static void drawPageControl(const Widget *pWgt)
     g.parentCoord = my_coord;
     // tabs title
     g.str.clear();
-    g.str.append(" ≡ MENU ≡ ");
+    g.str.append(' ', (pWgt->pagectrl.tabWidth-8) / 2);
+    g.str.append("≡ MENU ≡");
     g.str.setLength(pWgt->pagectrl.tabWidth);
     moveTo(my_coord.col, my_coord.row);
     pushAttr(FontAttrib::Inverse);
@@ -1270,6 +1271,7 @@ static bool processKey_PageCtrl(const Widget *pWgt, const KeyCode &kc)
         if (idx >= pWgt->link.childsCnt) idx = 0;
 
         //TWINS_LOG("PG.UP/DWN: newPage%d", idx);
+        changeFocusTo(pWgt->id);
         g.pWndState->onPageControlPageChange(pWgt, idx);
         g.pWndState->invalidate(pWgt->id);
         return true;
@@ -1357,8 +1359,6 @@ static bool processKey(const KeyCode &kc)
 
 static void processMouse_Edit(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
-    moveTo(kc.mouse.col, kc.mouse.row);
-
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
@@ -1367,8 +1367,6 @@ static void processMouse_Edit(const Widget *pWgt, const Rect &wgtRect, const Key
 
 static void processMouse_CheckBox(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
-    moveTo(wgtRect.coord.col + 1, wgtRect.coord.row);
-
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
@@ -1379,8 +1377,6 @@ static void processMouse_CheckBox(const Widget *pWgt, const Rect &wgtRect, const
 
 static void processMouse_Radio(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
-    moveTo(wgtRect.coord.col + 1, wgtRect.coord.row);
-
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
@@ -1391,8 +1387,6 @@ static void processMouse_Radio(const Widget *pWgt, const Rect &wgtRect, const Ke
 
 static void processMouse_Button(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
-    moveTo(wgtRect.coord.col + wgtRect.size.width/2, wgtRect.coord.row);
-
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
@@ -1406,8 +1400,6 @@ static void processMouse_Button(const Widget *pWgt, const Rect &wgtRect, const K
 
 static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
-    moveTo(wgtRect.coord.col, kc.mouse.row);
-
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
@@ -1426,6 +1418,7 @@ static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const
         if (idx < 0)                     idx = pWgt->link.childsCnt -1;
         if (idx >= pWgt->link.childsCnt) idx = 0;
 
+        changeFocusTo(pWgt->id);
         g.pWndState->onPageControlPageChange(pWgt, idx);
         g.pWndState->invalidate(pWgt->id);
     }
@@ -1433,8 +1426,6 @@ static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const
 
 static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
-    moveTo(wgtRect.coord.col+1, kc.mouse.row);
-
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
@@ -1445,6 +1436,7 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
         g.pWndState->getListBoxState(pWgt, idx, cnt);
         int delta = kc.mouse.btn == MouseBtn::WheelUp ? -1 : 1;
         if (kc.m_ctrl) delta *= pWgt->size.height-2;
+        g.listboxHighlightIdx += delta;
 
         if (g.listboxHighlightIdx < 0)
             g.listboxHighlightIdx = cnt - 1;
@@ -1452,14 +1444,13 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
         if (g.listboxHighlightIdx >= cnt)
             g.listboxHighlightIdx = 0;
 
+        changeFocusTo(pWgt->id);
         g.pWndState->invalidate(pWgt->id);
     }
 }
 
 static void processMouse_DropDownList(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
-    moveTo(wgtRect.coord.col, kc.mouse.row);
-
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);

@@ -8,8 +8,7 @@
  *          and https://ideone.com/CeeJUy
  *****************************************************************************/
 
-#include "twins_common.hpp"
-#include "twins_ringbuffer.hpp"
+#include "twins.hpp"
 #include "twins_utf8str.hpp"
 
 #include <stdint.h>
@@ -412,9 +411,13 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                     case 0x01: output.mouse.btn = MouseBtn::ButtonMid; break;
                     case 0x02: output.mouse.btn = MouseBtn::ButtonRight; break;
                     case 0x03: output.mouse.btn = MouseBtn::ButtonReleased; break;
+                    case 0x80: output.mouse.btn = MouseBtn::ButtonGoBack; break;
+                    case 0x81: output.mouse.btn = MouseBtn::ButtonGoForward; break;
                     case 0x40: output.mouse.btn = MouseBtn::WheelUp; break;
                     case 0x41: output.mouse.btn = MouseBtn::WheelDown; break;
                 }
+
+                //TWINS_LOG("MouseBtn:0x%x", (unsigned)mouse_btn);
 
                 if (mouse_btn & 0x04) output.m_shift = 1;
                 if (mouse_btn & 0x08) output.m_alt = 1;

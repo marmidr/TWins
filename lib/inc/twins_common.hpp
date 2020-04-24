@@ -146,8 +146,10 @@ enum class MouseBtn : uint8_t
     ButtonMid,
     ButtonRight,
     ButtonReleased,
+    ButtonGoBack,
+    ButtonGoForward,
     WheelUp,
-    WheelDown
+    WheelDown,
 };
 
 /** Key modifiers */
