@@ -348,6 +348,17 @@ static constexpr twins::Widget wndMain =
                                 fgColor     : twins::ColorFG::Black,
                             }}
                         },
+                        {
+                            type    : twins::Widget::Edit,
+                            id      : ID_EDT_2,
+                            coord   : { 2, 3 },
+                            size    : { 30, 1 },
+                            link    : {},
+                            { edit : {
+                                bgColor     : twins::ColorBG::White,
+                                fgColor     : twins::ColorFG::Black,
+                            }}
+                        },
                         { /* NUL */ }
                     }},
                     { page : {

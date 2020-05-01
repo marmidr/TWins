@@ -207,6 +207,7 @@ struct Widget
         {
             /** in constexpr the pointer cannot be calculated, thus,
               * we use flat Widgets array index instead */
+            uint8_t ownIdx;     /// set in compile-time
             uint8_t parentIdx;  /// set in compile-time
             uint8_t childsIdx;  /// set in compile-time
             uint8_t childsCnt;  /// set in compile-time

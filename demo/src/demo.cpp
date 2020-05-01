@@ -38,7 +38,12 @@ public:
 
     void onEditChange(const twins::Widget* pWgt, twins::String &&str) override
     {
-        edtText = std::move(str);
+        switch (pWgt->id)
+        {
+            case ID_EDT_1: edt1Text = std::move(str); break;
+            case ID_EDT_2: edt2Text = std::move(str); break;
+            default: break;
+        }
         TWINS_LOG("value:%s", str.cstr());
     }
 
@@ -134,9 +139,14 @@ public:
         }
     }
 
-    void getEditText(const twins::Widget*, twins::String &out) override
+    void getEditText(const twins::Widget* pWgt, twins::String &out) override
     {
-        out = edtText;
+        switch (pWgt->id)
+        {
+            case ID_EDT_1: out = edt1Text; break;
+            case ID_EDT_2: out = edt2Text; break;
+            default: break;
+        }
     }
 
     bool getLedLit(const twins::Widget* pWgt) override
@@ -213,7 +223,8 @@ private:
 
     // focused WID separate for each page
     twins::WID *pFocusedId = nullptr;
-    twins::String edtText;
+    twins::String edt1Text;
+    twins::String edt2Text;
 };
 
 // -----------------------------------------------------------------------------

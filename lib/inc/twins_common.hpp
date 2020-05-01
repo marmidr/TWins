@@ -15,11 +15,15 @@ namespace twins
 
 class String;
 
-/** @brief Template returning length of array of type T */
+/**
+ * @brief Template returning length of array of type T
+ */
 template<unsigned N, typename T>
 unsigned arrSize(const T (&arr)[N]) { return N; }
 
-/// @brief array template usefull in const expressions
+/**
+ * @brief array template usefull in const expressions
+ */
 template <typename T, unsigned N>
 struct Array
 {

@@ -10,6 +10,7 @@ add_library(${TARGETNAME}
     src/twins.cpp
     src/twins_colors.cpp
     src/twins_widget.cpp
+    src/twins_widget_draw.cpp
     src/twins_utf8str.cpp
     src/twins_string.cpp
     src/twins_input_posix.cpp

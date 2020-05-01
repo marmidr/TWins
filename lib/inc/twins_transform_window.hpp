@@ -57,6 +57,7 @@ constexpr int transformWidgetTreeToArray(twins::Array<twins::Widget, N> &arr, co
     // copy widget
     arr[wgtIdx] = *pWgt;
     arr[wgtIdx].link = {};
+    arr[wgtIdx].link.ownIdx = wgtIdx;
 
     // count the childs
     int n_childs = 0;
@@ -81,6 +82,7 @@ constexpr int transformWidgetTreeToArray(twins::Array<twins::Widget, N> &arr, co
 template<const twins::Widget *pWINDOW, unsigned N = getWgtsCount(pWINDOW) + 1>
 constexpr twins::Array<twins::Widget, N> transforWindowDefinition()
 {
+    static_assert(N < 255, "Limit of widgets per window reached");
     twins::Array<twins::Widget, N> arr;
 
     transformWidgetTreeToArray<N>(arr, pWINDOW, 0, 1);

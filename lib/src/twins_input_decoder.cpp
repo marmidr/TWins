@@ -405,7 +405,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 output.mouse.key = Key::MouseEvent;
                 const char mouse_btn = seq[3] - ' ';
 
-                switch (mouse_btn & 0x63)
+                switch (mouse_btn & 0xE3)
                 {
                     case 0x00: output.mouse.btn = MouseBtn::ButtonLeft; break;
                     case 0x01: output.mouse.btn = MouseBtn::ButtonMid; break;
