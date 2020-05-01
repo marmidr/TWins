@@ -43,6 +43,7 @@ struct Glob
     const Widget *pWndArray = {};   // array of Window widgets
     IWindowState *pWndState = {};   //
     const Widget *pFocusedWgt = {}; //
+    const Widget *pMouseDownWgt = {}; //
     EditState editState;            // state of Edit being modified
     int listboxHighlightIdx;        // focused Listbox index of highlighted row
 };

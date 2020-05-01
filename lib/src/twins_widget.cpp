@@ -168,10 +168,20 @@ void setCursorAt(const Widget *pWgt)
     case Widget::Button:
         coord.col += (utf8len(pWgt->button.text) + 4) / 2;
         break;
+    case Widget::PageCtrl:
+        coord.row += 1;
+        coord.row += g.pWndState->getPageCtrlPageIndex(pWgt);
+        break;
     case Widget::ListBox:
         {
+            int idx, cnt;
+            g.pWndState->getListBoxState(pWgt, idx, cnt);
+
+            int page_size = pWgt->size.height-2;
+            int row = g.listboxHighlightIdx % page_size;
+
             coord.col += 1;
-            coord.row += 1;
+            coord.row += 1 + row;
         }
         break;
     case Widget::DropDownList:
@@ -782,7 +792,22 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
 {
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
+        int idx, cnt;
+        g.pWndState->getListBoxState(pWgt, idx, cnt);
+
+        int page_size = pWgt->size.height-2;
+        int page = g.listboxHighlightIdx / page_size;
+        g.listboxHighlightIdx = page * page_size;
+        g.listboxHighlightIdx += (int)kc.mouse.row - wgtRect.coord.row - 1;
+
+        if (g.listboxHighlightIdx < 0)
+            g.listboxHighlightIdx = cnt - 1;
+
+        if (g.listboxHighlightIdx >= cnt)
+            g.listboxHighlightIdx = 0;
+
         changeFocusTo(pWgt->id);
+        g.pWndState->invalidate(pWgt->id);
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
     {
@@ -809,6 +834,11 @@ static void processMouse_DropDownList(const Widget *pWgt, const Rect &wgtRect, c
     {
         changeFocusTo(pWgt->id);
     }
+}
+
+static void processMouse_Canvas(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+{
+    g.pWndState->onCanvasClick(pWgt, kc);
 }
 
 static bool processMouse(const KeyCode &kc)
@@ -843,6 +873,9 @@ static bool processMouse(const KeyCode &kc)
         break;
     case Widget::DropDownList:
         processMouse_DropDownList(p_wgt, rct, kc);
+        break;
+    case Widget::Canvas:
+        processMouse_Canvas(p_wgt, rct, kc);
         break;
     default:
         moveToHome();
@@ -1003,6 +1036,7 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
         }
     }
 
+    g.pWndArray = nullptr; g.pWndState = nullptr;
     return key_processed;
 }
 

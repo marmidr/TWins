@@ -74,6 +74,23 @@ public:
             radioId = pWgt->radio.radioId;
     }
 
+    void onCanvasDraw(const twins::Widget* pWgt) override
+    {
+        auto coord = twins::getScreenCoord(pWgt);
+        auto sz = pWgt->size;
+
+        twins::moveTo(coord.col, coord.row);
+        twins::writeChar('-', sz.width);
+        twins::moveTo(coord.col, coord.row + sz.height);
+        twins::writeChar('-', sz.width);
+    }
+
+    void onCanvasClick(const twins::Widget* pWgt, const twins::KeyCode &kc) override
+    {
+        twins::moveTo(kc.mouse.col, kc.mouse.row);
+        twins::writeChar('0' + (int)kc.mouse.btn);
+    }
+
     // --- widgets state queries ---
 
     bool isEnabled(const twins::Widget* pWgt) override

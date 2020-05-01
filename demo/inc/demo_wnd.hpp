@@ -44,6 +44,7 @@ enum WndMainIDs
             ID_PAGE_3,
                 ID_EDT_1,
                 ID_EDT_2,
+                ID_CANVAS,
                 ID_PAGE_3_END,
         ID_LABEL_FTR,
 };

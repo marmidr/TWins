@@ -146,7 +146,7 @@ public:
     virtual void onListBoxSelect(const twins::Widget* pWgt, uint16_t newIdx) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
     virtual void onCanvasDraw(const twins::Widget* pWgt) {}
-    virtual void onCanvasClick(const twins::Widget* pWgt, twins::Coord clickCoord, twins::MouseBtn btn) {}
+    virtual void onCanvasClick(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
     // common state queries
     virtual bool isEnabled(const twins::Widget*) { return true; }
     virtual bool isFocused(const twins::Widget*) { return false; }

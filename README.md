@@ -49,7 +49,7 @@ Implementation is based on examples:
     - [x] progress bar
     - [x] list
     - [ ] drop down list
-    - [ ] canvas
+    - [x] canvas
 - navigation
     - [x] widgets navigation by Tab/Esc key
     - [x] render focused widget state

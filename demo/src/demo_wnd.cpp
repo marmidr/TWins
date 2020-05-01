@@ -359,6 +359,13 @@ static constexpr twins::Widget wndMain =
                                 fgColor     : twins::ColorFG::Black,
                             }}
                         },
+                        {
+                            type    : twins::Widget::Canvas,
+                            id      : ID_CANVAS,
+                            coord   : { 2, 5 },
+                            size    : { 30, 5 },
+                            link    : {},
+                        },
                         { /* NUL */ }
                     }},
                     { page : {

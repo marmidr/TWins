@@ -510,6 +510,7 @@ static void drawWidgetInternal(const Widget *pWgt)
 
 void drawWidget(const Widget *pWindowArray, WID widgetId)
 {
+    // bool glob_clear = !(g.pWndArray || g.pWndState);
     assert(pWindowArray);
     assert(pWindowArray->type == Widget::Window);
     g.pWndArray = pWindowArray;
@@ -536,6 +537,7 @@ void drawWidget(const Widget *pWindowArray, WID widgetId)
         }
     }
 
+    // if (glob_clear) g.pWndArray = nullptr, g.pWndState = nullptr;
     resetAttr();
     resetClBg();
     resetClFg();
@@ -545,6 +547,7 @@ void drawWidget(const Widget *pWindowArray, WID widgetId)
 
 void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t count)
 {
+    // bool glob_clear = !(g.pWndArray || g.pWndState);
     assert(pWindowArray);
     assert(pWindowArray->type == Widget::Window);
     g.pWndArray = pWindowArray;
@@ -566,6 +569,7 @@ void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t cou
         }
     }
 
+    // if (glob_clear) g.pWndArray = nullptr, g.pWndState = nullptr;
     resetAttr();
     resetClBg();
     resetClFg();
