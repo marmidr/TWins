@@ -13,45 +13,48 @@
 
 namespace twins
 {
-void decodeInputSeqReset();
+void ansiDecodeInputSeqReset();
 }
 
 static char rbBuffer[15];
 
-TEST(INPUTDECODER, empty)
+
+// -----------------------------------------------------------------------------
+
+TEST(ANSI_INPUTDECODER, empty)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     ASSERT_EQ(0, input.size());
     ASSERT_EQ(sizeof(rbBuffer), input.capacity());
-    decodeInputSeq(input, kc);
+    twins::ansiDecodeInputSeq(input, kc);
 
     EXPECT_EQ(KEY_MOD_NONE, kc.mod_all);
     EXPECT_EQ(twins::Key::None, kc.key);
     EXPECT_STREQ("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, unknown)
+TEST(ANSI_INPUTDECODER, unknown)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     input.write("\033[1234");
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
 
     EXPECT_EQ(KEY_MOD_NONE, kc.mod_all);
     EXPECT_EQ(twins::Key::None, kc.key);
     EXPECT_STREQ("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, u8_character)
+TEST(ANSI_INPUTDECODER, u8_character)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     input.write("Ź");
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
 
     EXPECT_EQ(KEY_MOD_NONE, kc.mod_all);
     EXPECT_STREQ("Ź", kc.utf8);
@@ -59,13 +62,13 @@ TEST(INPUTDECODER, u8_character)
     EXPECT_STRNE("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, Esc)
+TEST(ANSI_INPUTDECODER, Esc)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     input.write((char)twins::Ansi::ESC);
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
 
     EXPECT_EQ(KEY_MOD_SPECIAL, kc.mod_all);
     EXPECT_EQ(twins::Key::Esc, kc.key);
@@ -73,13 +76,13 @@ TEST(INPUTDECODER, Esc)
     EXPECT_STRNE("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, Ctrl_S)
+TEST(ANSI_INPUTDECODER, Ctrl_S)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     input.write((char)0x13);
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
 
     EXPECT_EQ(KEY_MOD_CTRL, kc.mod_all);
     EXPECT_STREQ("S", kc.utf8);
@@ -87,13 +90,13 @@ TEST(INPUTDECODER, Ctrl_S)
     EXPECT_STRNE("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, Ctrl_F1)
+TEST(ANSI_INPUTDECODER, Ctrl_F1)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     input.write("\033[1;5H");
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
 
     EXPECT_EQ(KEY_MOD_SPECIAL | KEY_MOD_CTRL, kc.mod_all);
     EXPECT_EQ(twins::Key::Home, kc.key);
@@ -101,67 +104,67 @@ TEST(INPUTDECODER, Ctrl_F1)
     EXPECT_STRNE("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, UnknownSeq__Ctrl_Home)
+TEST(ANSI_INPUTDECODER, UnknownSeq__Ctrl_Home)
 {
-    twins::decodeInputSeqReset();
+    twins::ansiDecodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     input.write("\033*42~");
     input.write("\033[1;5H@");
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(KEY_MOD_SPECIAL | KEY_MOD_CTRL, kc.mod_all);
     EXPECT_EQ(twins::Key::Home, kc.key);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(KEY_MOD_NONE, kc.mod_all);
     EXPECT_STREQ("@", kc.utf8);
 }
 
-TEST(INPUTDECODER, LoongUnknownSeq__Ctrl_Home)
+TEST(ANSI_INPUTDECODER, LoongUnknownSeq__Ctrl_Home)
 {
-    twins::decodeInputSeqReset();
+    twins::ansiDecodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     // next ESC is more that 7 bytes further,
     // so entire buffer will be cleared
     input.write("\033*123456789~");
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::None, kc.key);
 
     input.write("\033[1;5H");
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::None, kc.key);
 
     input.write("+");
-    decodeInputSeq(input, kc); // 3rd try - abandon
+    ansiDecodeInputSeq(input, kc); // 3rd try - abandon
     EXPECT_EQ(twins::Key::None, kc.key);
     EXPECT_EQ(0, input.size());
 }
 
-TEST(INPUTDECODER, NUL_InInput)
+TEST(ANSI_INPUTDECODER, NUL_InInput)
 {
-    twins::decodeInputSeqReset();
+    twins::ansiDecodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     input.write('\0');
     input.write("\t");
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::None, kc.key);
 }
 
-TEST(INPUTDECODER, Ctrl_F1__incomplete)
+TEST(ANSI_INPUTDECODER, Ctrl_F1__incomplete)
 {
-    twins::decodeInputSeqReset();
+    twins::ansiDecodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     EXPECT_TRUE(input.write("\033["));
     EXPECT_EQ(2, input.size());
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
 
     EXPECT_EQ(2, input.size());
     EXPECT_EQ(KEY_MOD_NONE, kc.mod_all);
@@ -170,36 +173,36 @@ TEST(INPUTDECODER, Ctrl_F1__incomplete)
     // write rest of previous sequence and additional one key
     EXPECT_TRUE(input.write("1;5H\033"));
     EXPECT_EQ(7, input.size());
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(1, input.size());
     EXPECT_EQ(KEY_MOD_SPECIAL | KEY_MOD_CTRL, kc.mod_all);
     EXPECT_EQ(twins::Key::Home, kc.key);
 
     // decode rest of the input
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(0, input.size());
     EXPECT_EQ(KEY_MOD_SPECIAL, kc.mod_all);
     EXPECT_EQ(twins::Key::Esc, kc.key);
 }
 
-TEST(INPUTDECODER, L__S_C_UP__O)
+TEST(ANSI_INPUTDECODER, L__S_C_UP__O)
 {
-    twins::decodeInputSeqReset();
+    twins::ansiDecodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     // write rest of previous sequence and additional one key
     EXPECT_TRUE(input.write("Ł\033[1;6AÓ*"));
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(KEY_MOD_NONE, kc.mod_all);
     EXPECT_STREQ("Ł", kc.utf8);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(KEY_MOD_SPECIAL | KEY_MOD_SHIFT | KEY_MOD_CTRL, kc.mod_all);
     EXPECT_EQ(twins::Key::Up, kc.key);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(KEY_MOD_NONE, kc.mod_all);
     EXPECT_STREQ("Ó", kc.utf8);
 
@@ -207,65 +210,89 @@ TEST(INPUTDECODER, L__S_C_UP__O)
     EXPECT_EQ(1, input.size());
 }
 
-TEST(INPUTDECODER, CR)
+TEST(ANSI_INPUTDECODER, CR)
 {
-    twins::decodeInputSeqReset();
+    twins::ansiDecodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     input.write("\r\r\t");
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Enter, kc.key);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Enter, kc.key);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Tab, kc.key);
 }
 
-TEST(INPUTDECODER, LF)
+TEST(ANSI_INPUTDECODER, LF)
 {
-    twins::decodeInputSeqReset();
+    twins::ansiDecodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     input.write("\n\n\t");
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Enter, kc.key);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Enter, kc.key);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Tab, kc.key);
 }
 
-TEST(INPUTDECODER, CR_LF_CR)
+TEST(ANSI_INPUTDECODER, CR_LF_CR)
 {
-    twins::decodeInputSeqReset();
+    twins::ansiDecodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     input.write("\n\r\n\t\n\r\t");
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Enter, kc.key);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Enter, kc.key);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Tab, kc.key);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Enter, kc.key);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Enter, kc.key);
 
-    decodeInputSeq(input, kc);
+    ansiDecodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Tab, kc.key);
+}
+
+// -----------------------------------------------------------------------------
+
+TEST(ANSI_ESC_LEN, SeqLen)
+{
+    EXPECT_EQ(0, twins::ansiEscSeqLen(nullptr));
+    EXPECT_EQ(0, twins::ansiEscSeqLen(""));
+    // Up
+    EXPECT_EQ(0, twins::ansiEscSeqLen("x\e[A"));
+    EXPECT_EQ(3, twins::ansiEscSeqLen("\e[A"));
+}
+
+TEST(ANSI_ESC_LEN, TextLenNoEsc)
+{
+    EXPECT_EQ(0, twins::ansiUtf8LenNoEsc(nullptr));
+    EXPECT_EQ(0, twins::ansiUtf8LenNoEsc(""));
+
+    EXPECT_EQ(3, twins::ansiUtf8LenNoEsc("ABC"));
+    EXPECT_EQ(3, twins::ansiUtf8LenNoEsc("ĄBĆ"));
+
+    EXPECT_EQ(3, twins::ansiUtf8LenNoEsc("ĄBĆ\e[A"));
+    EXPECT_EQ(3, twins::ansiUtf8LenNoEsc("\e[AĄBĆ"));
+    EXPECT_EQ(4, twins::ansiUtf8LenNoEsc("Ą\e[ABĆ\e[1;2AĘ"));
 }

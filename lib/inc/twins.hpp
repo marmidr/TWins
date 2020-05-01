@@ -108,7 +108,7 @@ enum class FontAttrib : uint8_t
     Faint,          ///< faint, excludes bold
     Italics,        ///<
     Underline,      ///< single underline
-    BlinkSlow,      ///< blink
+    Blink,      ///< blink
     Inverse,        ///< fg/bg reversed
     Invisible,      ///< text invisible
     StrikeThrough   ///<
@@ -397,9 +397,19 @@ inline void screenRestore()         { writeStr(ESC_SCREEN_RESTORE); }
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Decode given ANSI sequence and produce readable Key Code
+ * @brief Decode ANSI keyboard/mouse sequence from \p input and produce readable Key Code \p output
  */
-void decodeInputSeq(RingBuff<char> &input, KeyCode &output);
+void ansiDecodeInputSeq(RingBuff<char> &input, KeyCode &output);
+
+/**
+ * @brief Return length of ANSI ESC sequence (booth input and output) starting at \p str or 0
+ */
+unsigned ansiEscSeqLen(const char *str);
+
+/**
+ * @brief Calculate string \p str UTF-8 length skipping all ESC sequences inside it
+ */
+unsigned ansiUtf8LenNoEsc(const char *str);
 
 // -----------------------------------------------------------------------------
 
@@ -435,7 +445,7 @@ const char * toString(Widget::Type type);
 Coord getScreenCoord(const Widget *pWgt);
 
 /**
- * @brief Process keyboard signal received by console
+ * @brief Process keyboard/mouse signal received by console
  */
 bool processKey(const Widget *pWindow, const KeyCode &kc);
 

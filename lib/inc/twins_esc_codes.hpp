@@ -48,8 +48,8 @@
 #define ESC_UNDERLINE_ON                ANSI_CSI("4m")
 #define ESC_UNDERLINE_OFF               ANSI_CSI("24m")
 
-#define ESC_BLINK_SLOW                  ANSI_CSI("5m") // if not blinks, the bg color may be lighter
-#define ESC_BLINK_FAST                  ANSI_CSI("6m") // Not widely supported
+// if not blinks, the bg color may be lighter
+#define ESC_BLINK                       ANSI_CSI("5m")
 #define ESC_BLINK_OFF                   ANSI_CSI("25m")
 
 #define ESC_INVERSE_ON                  ANSI_CSI("7m")
@@ -72,7 +72,7 @@
 //@}
 
 /*******************************************************************************
- * @name Text Colour Control Sequences
+ * @name Text Color Control Sequences
  */
 
 //@{

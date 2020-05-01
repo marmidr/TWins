@@ -8,7 +8,7 @@ set(TARGETNAME TWinsUT)
 
 add_executable(${TARGETNAME}
     src/test_main.cpp
-    src/test_input_decoder.cpp
+    src/test_ansi_esc_decoder.cpp
     src/test_string.cpp
     src/test_twins.cpp
     src/test_widget.cpp

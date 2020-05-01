@@ -1,5 +1,5 @@
 /******************************************************************************
- * @brief   TWins - key sequence decoder
+ * @brief   TWins - ANSI ESC sequence decoder
  * @author  Mariusz Midor
  *          https://bitbucket.org/mmidor/twins
  * @note    Based on Python script : https://wiki.bash-hackers.org/scripting/terminalcodes
@@ -32,6 +32,8 @@
 
 namespace twins
 {
+
+constexpr unsigned ESC_MaxSeqLen = 7; // not including leading '\e'
 
 struct SeqMap
 {
@@ -366,14 +368,14 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
 static uint8_t decodeFailCtr = 0;
 static uint8_t prevCR = 0;
 
-void decodeInputSeqReset()
+void ansiDecodeInputSeqReset()
 {
     // for testing
     decodeFailCtr = 0;
     prevCR = 0;
 }
 
-void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
+void ansiDecodeInputSeq(RingBuff<char> &input, KeyCode &output)
 {
     output.key = Key::None;
     output.mod_all = 0;
@@ -382,12 +384,11 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
     if (input.size() == 0)
         return;
 
-    constexpr uint8_t esc_max_len = 7;
-    char seq[esc_max_len+1];
+    char seq[ESC_MaxSeqLen+1];
 
     while (input.size())
     {
-        auto seq_sz = input.copy(seq, esc_max_len);
+        auto seq_sz = input.copy(seq, ESC_MaxSeqLen);
         seq[seq_sz] = '\0';
         const char c0 = seq[0];
         prevCR >>= 1; // set = 2 and then shift is faster than: if(prevCR) prevCR--;
@@ -554,6 +555,81 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
             }
         }
     }
+}
+
+unsigned ansiEscSeqLen(const char *str)
+{
+    // ESC sequence always ends with:
+    // - A..Z
+    // - a..z
+    // - @, ^, ~
+    if (str && *str == '\e')
+    {
+        unsigned n = 1;
+        while (n < ESC_MaxSeqLen)
+        {
+            const char c = str[n];
+
+            switch (c)
+            {
+            case '\0':
+                return 0;
+            case '@':
+            case '^':
+            case '~':
+                return n+1;
+            default:
+                break;
+            }
+
+            if (c >= 'A' && c <= 'Z')
+                return n+1;
+
+            if (c >= 'a' && c <= 'z')
+                return n+1;
+
+            n++;
+        }
+    }
+
+    return 0;
+}
+
+unsigned ansiUtf8LenNoEsc(const char *str)
+{
+    if (!str || !*str)
+        return 0;
+
+    const char *str_end = str + strlen(str);
+    unsigned len = 0;
+
+    while (str < str_end)
+    {
+        unsigned esc_len = ansiEscSeqLen(str);
+        bool seq_found = esc_len > 0;
+
+        for (; esc_len && (str < str_end); )
+        {
+            str += esc_len;
+            esc_len = ansiEscSeqLen(str);
+        }
+
+        if (str < str_end)
+        {
+            if (int u8_len = utf8seqlen(str))
+            {
+                seq_found = true;
+                len++;
+                str += u8_len;
+            }
+        }
+
+        // nothing recognized? - string illformed
+        if (!seq_found)
+            break;
+    }
+
+    return len;
 }
 
 // -----------------------------------------------------------------------------

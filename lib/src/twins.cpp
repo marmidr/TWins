@@ -200,7 +200,7 @@ void pushAttr(FontAttrib attr)
     case FontAttrib::Faint:         attrFaint++; pIOs->writeStr(ESC_FAINT); break;
     case FontAttrib::Italics:       pIOs->writeStr(ESC_ITALICS_ON); break;
     case FontAttrib::Underline:     pIOs->writeStr(ESC_UNDERLINE_ON); break;
-    case FontAttrib::BlinkSlow:     pIOs->writeStr(ESC_BLINK_SLOW); break;
+    case FontAttrib::Blink:         pIOs->writeStr(ESC_BLINK); break;
     case FontAttrib::Inverse:       pIOs->writeStr(ESC_INVERSE_ON); break;
     case FontAttrib::Invisible:     pIOs->writeStr(ESC_INVISIBLE_ON); break;
     case FontAttrib::StrikeThrough: pIOs->writeStr(ESC_STRIKETHROUGH_ON); break;
@@ -220,7 +220,7 @@ void popAttr(int n)
         case FontAttrib::Faint:         if (!--attrFaint) pIOs->writeStr(ESC_NORMAL); break;
         case FontAttrib::Italics:       pIOs->writeStr(ESC_ITALICS_OFF); break;
         case FontAttrib::Underline:     pIOs->writeStr(ESC_UNDERLINE_OFF); break;
-        case FontAttrib::BlinkSlow:     pIOs->writeStr(ESC_BLINK_OFF); break;
+        case FontAttrib::Blink:         pIOs->writeStr(ESC_BLINK_OFF); break;
         case FontAttrib::Inverse:       pIOs->writeStr(ESC_INVERSE_OFF); break;
         case FontAttrib::Invisible:     pIOs->writeStr(ESC_INVISIBLE_OFF); break;
         case FontAttrib::StrikeThrough: pIOs->writeStr(ESC_STRIKETHROUGH_OFF); break;
