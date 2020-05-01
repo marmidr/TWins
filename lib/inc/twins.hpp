@@ -145,6 +145,8 @@ public:
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
     virtual void onListBoxSelect(const twins::Widget* pWgt, uint16_t newIdx) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
+    virtual void onCanvasDraw(const twins::Widget* pWgt) {}
+    virtual void onCanvasClick(const twins::Widget* pWgt, twins::Coord clickCoord, twins::MouseBtn btn) {}
     // common state queries
     virtual bool isEnabled(const twins::Widget*) { return true; }
     virtual bool isFocused(const twins::Widget*) { return false; }
@@ -191,6 +193,7 @@ struct Widget
         ProgressBar,
         ListBox,
         DropDownList,
+        Canvas,
     };
 
     Type    type = {};
@@ -290,13 +293,15 @@ struct Widget
 
         struct
         {
-
         } listbox;
 
         struct
         {
-
         } dropdownlist;
+
+        struct
+        {
+        } canvas;
     };
 
 };
@@ -339,32 +344,6 @@ int writeChar(char c, int16_t count = 1);
 int writeStr(const char *s);
 int writeStr(const char *s, int16_t count);
 int writeStrFmt(const char *fmt, ...);
-
-/**
- * @brief Draw single widget or entire window
- */
-void drawWidget(const Widget *pWindowArray, WID widgetId = WIDGET_ID_ALL);
-
-/**
- * @brief Draw selected widgets
- */
-void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t count);
-
-template<int N>
-inline void drawWidgets(const Widget *pWindowArray, const WID (&widgetIds)[N])
-{
-    drawWidgets(pWindowArray, widgetIds, N);
-}
-
-inline void drawWidgets(const Widget *pWindowArray, const std::initializer_list<WID> &ids)
-{
-    drawWidgets(pWindowArray, ids.begin(), ids.size());
-}
-
-/**
- * @brief Return widget type as string
- */
-const char * toString(Widget::Type type);
 
 /**
  * @brief Foreground color stack
@@ -415,17 +394,51 @@ inline void screenClrAll()          { writeStr(ESC_SCREEN_ERASE_ALL); }
 inline void screenSave()            { writeStr(ESC_SCREEN_SAVE); }
 inline void screenRestore()         { writeStr(ESC_SCREEN_RESTORE); }
 
+// -----------------------------------------------------------------------------
+
 /**
  * @brief Decode given ANSI sequence and produce readable Key Code
  */
 void decodeInputSeq(RingBuff<char> &input, KeyCode &output);
+
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief Draw single widget or entire window
+ */
+void drawWidget(const Widget *pWindowArray, WID widgetId = WIDGET_ID_ALL);
+
+/**
+ * @brief Draw selected widgets
+ */
+void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t count);
+
+template<int N>
+inline void drawWidgets(const Widget *pWindowArray, const WID (&widgetIds)[N])
+{
+    drawWidgets(pWindowArray, widgetIds, N);
+}
+
+inline void drawWidgets(const Widget *pWindowArray, const std::initializer_list<WID> &ids)
+{
+    drawWidgets(pWindowArray, ids.begin(), ids.size());
+}
+
+/**
+ * @brief Return widget type as string
+ */
+const char * toString(Widget::Type type);
+
+/**
+ * @brief Return widget terminal screen based coordinates
+ */
+Coord getScreenCoord(const Widget *pWgt);
 
 /**
  * @brief Process keyboard signal received by console
  */
 bool processKey(const Widget *pWindow, const KeyCode &kc);
 
-//void quit();
 
 // -----------------------------------------------------------------------------
 

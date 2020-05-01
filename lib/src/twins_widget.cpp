@@ -87,29 +87,6 @@ const Widget* getParent(const Widget *pWgt)
     return p_parent;
 }
 
-Coord getScreenCoord(const Widget *pWgt)
-{
-    Coord coord = pWgt->coord;
-
-    // go up the widgets hierarchy
-    const auto *p_parent = getParent(pWgt);// g.pWndArray + parent_idx;
-
-    for (;;)
-    {
-        coord += p_parent->coord;
-
-        if (p_parent->type == Widget::Type::PageCtrl)
-            coord.col += p_parent->pagectrl.tabWidth;
-
-        if (p_parent->link.ownIdx == 0)
-            break;
-
-        p_parent = getParent(p_parent);
-    }
-
-    return coord;
-}
-
 const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
 {
     const Widget *p_wgt_at = nullptr;
@@ -910,6 +887,54 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
     va_end(ap);
 
     cursorRestorePos();
+}
+
+const char * toString(Widget::Type type)
+{
+    #define CASE_WGT_STR(t)     case Widget::t: return #t;
+
+    switch (type)
+    {
+    CASE_WGT_STR(None)
+    CASE_WGT_STR(Window)
+    CASE_WGT_STR(Panel)
+    CASE_WGT_STR(Label)
+    CASE_WGT_STR(Edit)
+    CASE_WGT_STR(CheckBox)
+    CASE_WGT_STR(Radio)
+    CASE_WGT_STR(Button)
+    CASE_WGT_STR(Led)
+    CASE_WGT_STR(PageCtrl)
+    CASE_WGT_STR(Page)
+    CASE_WGT_STR(ProgressBar)
+    CASE_WGT_STR(ListBox)
+    CASE_WGT_STR(DropDownList)
+    CASE_WGT_STR(Canvas)
+    default: return "?";
+    }
+}
+
+Coord getScreenCoord(const Widget *pWgt)
+{
+    Coord coord = pWgt->coord;
+
+    // go up the widgets hierarchy
+    const auto *p_parent = getParent(pWgt);// g.pWndArray + parent_idx;
+
+    for (;;)
+    {
+        coord += p_parent->coord;
+
+        if (p_parent->type == Widget::Type::PageCtrl)
+            coord.col += p_parent->pagectrl.tabWidth;
+
+        if (p_parent->link.ownIdx == 0)
+            break;
+
+        p_parent = getParent(p_parent);
+    }
+
+    return coord;
 }
 
 bool processKey(const Widget *pWindowArray, const KeyCode &kc)

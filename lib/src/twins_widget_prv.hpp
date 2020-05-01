@@ -62,7 +62,6 @@ struct WidgetSearchStruct
 // require g.pWndArray set
 bool findWidget(WidgetSearchStruct &wss);
 const Widget* findWidget(const WID widgetId);
-Coord getScreenCoord(const Widget *pWgt);
 const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect);
 void setCursorAt(const Widget *pWgt);
 

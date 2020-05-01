@@ -125,7 +125,6 @@ static void drawScrollBarV(const Coord coord, int height, int max, int pos)
         return;
     }
 
-    bufferBegin();
     const int slider_at = ((height-1) * pos) / max;
     pushClFg(ColorFG::Default);
     // "▲▴ ▼▾ ◄◂ ►▸ ◘ █";
@@ -137,7 +136,6 @@ static void drawScrollBarV(const Coord coord, int height, int max, int pos)
     }
 
     popClFg();
-    bufferEnd();
 }
 
 static void drawWindow(const Widget *pWgt)
@@ -260,14 +258,12 @@ static void drawEdit(const Widget *pWgt)
     g.str.setLength(pWgt->size.width-3, true);
     g.str.append("[^]");
 
-    bufferBegin();
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     pushClBg(pWgt->edit.bgColor);
     pushClFg(pWgt->edit.fgColor);
     writeStr(g.str.cstr());
     popClFg();
     popClBg();
-    bufferEnd();
 }
 
 static void drawLed(const Widget *pWgt)
@@ -470,10 +466,17 @@ static void drawDropDownList(const Widget *pWgt)
 {
 }
 
+static void drawCanvas(const Widget *pWgt)
+{
+    g.pWndState->onCanvasDraw(pWgt);
+}
+
 // -----------------------------------------------------------------------------
 
 static void drawWidgetInternal(const Widget *pWgt)
 {
+    bufferBegin();
+
     bool en = g.pWndState->isEnabled(pWgt);
     if (!en) pushAttr(FontAttrib::Faint);
 
@@ -492,10 +495,13 @@ static void drawWidgetInternal(const Widget *pWgt)
     case Widget::ProgressBar:   drawProgressBar(pWgt); break;
     case Widget::ListBox:       drawListBox(pWgt); break;;
     case Widget::DropDownList:  drawDropDownList(pWgt); break;
+    case Widget::Canvas:        drawCanvas(pWgt); break;
     default:                    break;
     }
 
-    if (!en) popAttr();
+    if (!en)
+        popAttr();
+    bufferEnd();
 }
 
 // -----------------------------------------------------------------------------
