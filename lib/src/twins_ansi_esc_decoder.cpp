@@ -595,7 +595,7 @@ unsigned ansiEscSeqLen(const char *str)
     return 0;
 }
 
-unsigned ansiUtf8LenNoEsc(const char *str)
+unsigned ansiUtf8LenIgnoreEsc(const char *str)
 {
     if (!str || !*str)
         return 0;
@@ -630,6 +630,43 @@ unsigned ansiUtf8LenNoEsc(const char *str)
     }
 
     return len;
+}
+
+const char* ansiUtf8SkipIgnoreEsc(const char *str, unsigned toSkip)
+{
+    if (!str || !*str)
+        return "";
+
+    const char *str_end = str + strlen(str);
+    unsigned skipped = 0;
+
+    while (str < str_end && skipped < toSkip)
+    {
+        unsigned esc_len = ansiEscSeqLen(str);
+        bool seq_found = esc_len > 0;
+
+        for (; esc_len && (str < str_end); )
+        {
+            str += esc_len;
+            esc_len = ansiEscSeqLen(str);
+        }
+
+        if (str < str_end)
+        {
+            if (int u8_len = utf8seqlen(str))
+            {
+                seq_found = true;
+                skipped++;
+                str += u8_len;
+            }
+        }
+
+        // nothing recognized? - string illformed
+        if (!seq_found)
+            break;
+    }
+
+    return str;
 }
 
 // -----------------------------------------------------------------------------

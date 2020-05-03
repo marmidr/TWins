@@ -407,9 +407,14 @@ void ansiDecodeInputSeq(RingBuff<char> &input, KeyCode &output);
 unsigned ansiEscSeqLen(const char *str);
 
 /**
- * @brief Calculate string \p str UTF-8 length skipping all ESC sequences inside it
+ * @brief Calculate \p str UTF-8 length ignoring all ESC sequences inside it
  */
-unsigned ansiUtf8LenNoEsc(const char *str);
+unsigned ansiUtf8LenIgnoreEsc(const char *str);
+
+/**
+ * @brief Returns address of \p str substring after \p toSkip UTF-8 sequences ommited,
+          ignoring all ESC sequences inside it */
+const char* ansiUtf8SkipIgnoreEsc(const char *str, unsigned toSkip);
 
 // -----------------------------------------------------------------------------
 

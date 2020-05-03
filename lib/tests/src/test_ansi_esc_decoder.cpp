@@ -284,15 +284,29 @@ TEST(ANSI_ESC_LEN, SeqLen)
     EXPECT_EQ(3, twins::ansiEscSeqLen("\e[A"));
 }
 
-TEST(ANSI_ESC_LEN, TextLenNoEsc)
+TEST(ANSI_ESC_LEN, TextLen_IgnoreEsc)
 {
-    EXPECT_EQ(0, twins::ansiUtf8LenNoEsc(nullptr));
-    EXPECT_EQ(0, twins::ansiUtf8LenNoEsc(""));
+    EXPECT_EQ(0, twins::ansiUtf8LenIgnoreEsc(nullptr));
+    EXPECT_EQ(0, twins::ansiUtf8LenIgnoreEsc(""));
 
-    EXPECT_EQ(3, twins::ansiUtf8LenNoEsc("ABC"));
-    EXPECT_EQ(3, twins::ansiUtf8LenNoEsc("ĄBĆ"));
+    EXPECT_EQ(3, twins::ansiUtf8LenIgnoreEsc("ABC"));
+    EXPECT_EQ(3, twins::ansiUtf8LenIgnoreEsc("ĄBĆ"));
 
-    EXPECT_EQ(3, twins::ansiUtf8LenNoEsc("ĄBĆ\e[A"));
-    EXPECT_EQ(3, twins::ansiUtf8LenNoEsc("\e[AĄBĆ"));
-    EXPECT_EQ(4, twins::ansiUtf8LenNoEsc("Ą\e[ABĆ\e[1;2AĘ"));
+    EXPECT_EQ(3, twins::ansiUtf8LenIgnoreEsc("ĄBĆ\e[A"));
+    EXPECT_EQ(3, twins::ansiUtf8LenIgnoreEsc("\e[AĄBĆ"));
+    EXPECT_EQ(4, twins::ansiUtf8LenIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ"));
+}
+
+TEST(ANSI_ESC_LEN, Skip_IgnoreEsc)
+{
+    EXPECT_STREQ("", twins::ansiUtf8SkipIgnoreEsc(nullptr, 0));
+    EXPECT_STREQ("", twins::ansiUtf8SkipIgnoreEsc("", 5));
+
+    EXPECT_STREQ("ABC", twins::ansiUtf8SkipIgnoreEsc("ABC", 0));
+    EXPECT_STREQ("C", twins::ansiUtf8SkipIgnoreEsc("ABC", 2));
+    EXPECT_STREQ("", twins::ansiUtf8SkipIgnoreEsc("ABC", 5));
+    EXPECT_STREQ("Ć", twins::ansiUtf8SkipIgnoreEsc("ĄBĆ", 2));
+
+    EXPECT_STREQ("Ć\e[1;2AĘ", twins::ansiUtf8SkipIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ", 2));
+    EXPECT_STREQ("", twins::ansiUtf8SkipIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ", 4));
 }

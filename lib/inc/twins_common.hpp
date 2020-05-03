@@ -177,8 +177,11 @@ struct KeyCode
         /** used for mouse events (when key == Key::MouseClick) */
         struct
         {
+            // same as key above
             Key      key;
+            /** button or wheel event */
             MouseBtn btn;
+            /** 1:1 based terminal coordinates of the event */
             uint8_t  col;
             uint8_t  row;
         } mouse;
