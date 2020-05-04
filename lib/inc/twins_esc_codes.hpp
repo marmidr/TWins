@@ -160,6 +160,9 @@
 
 //@{
 
+/** Terminal reset - clear the screen and scroll buffer */
+#define ESC_TERM_RESET                  ANSI_CSI("c")
+
 /** Repeat last character \p n times - not fully supported */
 #define ESC_REPEAT_LAST_CHAR(n)         ANSI_CSI(#n "b")
 #define ESC_REPEAT_LAST_CHAR_FMT        ESC_REPEAT_LAST_CHAR(%u)

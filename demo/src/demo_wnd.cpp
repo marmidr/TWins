@@ -234,7 +234,7 @@ static constexpr twins::Widget page2Childs[] =
             fgColor : twins::ColorFG::YellowIntense,
             text    : "  ◦◦◦◦ ListBox ◦◦◦◦ " "\n"
                       "• Up/Down -> change item" "\n"
-                      "• Ctrl+Up/Down -> scroll page" "\n"
+                      "• PgUp/PgDown -> scroll page" "\n"
                       "• Enter -> select the item"
         }}
     },

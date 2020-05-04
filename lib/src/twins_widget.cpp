@@ -478,6 +478,25 @@ static bool changeFocusTo(WID newID)
 // ---- TWINS PRIVATE FUNCTIONS ------------------------------------------------
 // -----------------------------------------------------------------------------
 
+static void pgControlChangePage(const Widget *pWgt, bool next)
+{
+    int idx = g.pWndState->getPageCtrlPageIndex(pWgt);
+    idx += next ? 1 : -1;
+    if (idx < 0)                     idx = pWgt->link.childsCnt -1;
+    if (idx >= pWgt->link.childsCnt) idx = 0;
+
+    // changeFocusTo(pWgt->id); // DON'T or separate focus for each Tab will not work
+    g.pWndState->onPageControlPageChange(pWgt, idx);
+    g.pWndState->invalidate(pWgt->id);
+
+    if (const auto *p_wgt = findWidget(g.pWndState->getFocusedID()))
+        setCursorAt(p_wgt);
+    else
+        moveToHome();
+}
+
+// -----------------------------------------------------------------------------
+
 static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
 {
     bool key_handled = false;
@@ -629,15 +648,7 @@ static bool processKey_PageCtrl(const Widget *pWgt, const KeyCode &kc)
 {
     if (kc.key == Key::PgDown || kc.key == Key::PgUp)
     {
-        int idx = g.pWndState->getPageCtrlPageIndex(pWgt);
-        idx += kc.key == Key::PgDown ? 1 : -1;
-        if (idx < 0)                     idx = pWgt->link.childsCnt -1;
-        if (idx >= pWgt->link.childsCnt) idx = 0;
-
-        //TWINS_LOG("PG.UP/DWN: newPage%d", idx);
-        changeFocusTo(pWgt->id);
-        g.pWndState->onPageControlPageChange(pWgt, idx);
-        g.pWndState->invalidate(pWgt->id);
+        pgControlChangePage(pWgt, kc.key == Key::PgDown);
         return true;
     }
 
@@ -646,18 +657,36 @@ static bool processKey_PageCtrl(const Widget *pWgt, const KeyCode &kc)
 
 static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
 {
-    if (kc.key == Key::Enter)
+    int delta = 0;
+
+    switch (kc.key)
+    {
+    case Key::Enter:
     {
         g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
         g.pWndState->invalidate(pWgt->id);
         return true;
     }
-    else if (kc.key == Key::Up || kc.key == Key::Down)
+    case Key::Up:
+        delta = -1;
+        break;
+    case Key::Down:
+        delta = 1;
+        break;
+    case Key::PgUp:
+        delta = -(pWgt->size.height-2);
+        break;
+    case Key::PgDown:
+        delta = pWgt->size.height-2;
+        break;
+    default:
+        break;
+    }
+
+    if (delta != 0)
     {
         int idx, cnt;
         g.pWndState->getListBoxState(pWgt, idx, cnt);
-        int delta = kc.key == Key::Up ? -1 : 1;
-        if (kc.m_ctrl) delta *= pWgt->size.height-2;
         g.listboxHighlightIdx += delta;
 
         if (g.listboxHighlightIdx < 0)
@@ -777,14 +806,7 @@ static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
     {
-        int idx = g.pWndState->getPageCtrlPageIndex(pWgt);
-        idx += kc.mouse.btn == MouseBtn::WheelDown ? 1 : -1;
-        if (idx < 0)                     idx = pWgt->link.childsCnt -1;
-        if (idx >= pWgt->link.childsCnt) idx = 0;
-
-        changeFocusTo(pWgt->id);
-        g.pWndState->onPageControlPageChange(pWgt, idx);
-        g.pWndState->invalidate(pWgt->id);
+        pgControlChangePage(pWgt, kc.mouse.btn == MouseBtn::WheelDown);
     }
 }
 
@@ -952,7 +974,7 @@ Coord getScreenCoord(const Widget *pWgt)
     Coord coord = pWgt->coord;
 
     // go up the widgets hierarchy
-    const auto *p_parent = getParent(pWgt);// g.pWndArray + parent_idx;
+    const auto *p_parent = getParent(pWgt);
 
     for (;;)
     {
@@ -1014,18 +1036,19 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
             case Key::PgDown:
             {
                 // Ctrl+PgUp/PgDown will be directed to window's first PageControl widget
-                if (kc.m_ctrl)
+                for (unsigned i = 0; i < g.pWndArray[0].link.childsCnt; i++)
                 {
-                    for (unsigned i = 0; i < g.pWndArray[0].link.childsCnt; i++)
-                    {
-                        const auto *p_wgt = &g.pWndArray[g.pWndArray[0].link.childsIdx + i];
+                    const auto *p_wgt = &g.pWndArray[g.pWndArray[0].link.childsIdx + i];
 
-                        if (p_wgt->type == Widget::PageCtrl)
+                    if (p_wgt->type == Widget::PageCtrl)
+                    {
+                        auto curr_id = g.pWndState->getFocusedID();
+                        if (kc.m_ctrl || curr_id == p_wgt->id)
                         {
                             processKey_PageCtrl(p_wgt, kc);
                             key_processed = true;
-                            break;
                         }
+                        break;
                     }
                 }
                 break;

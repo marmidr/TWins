@@ -20,6 +20,8 @@ public:
     WndMainState()
     {
         pFocusedId = new twins::WID[wndMainNumPages];
+        for (int i = 0; i < wndMainNumPages; i++)
+            pFocusedId[i] = twins::WIDGET_ID_NONE;
     }
 
     ~WndMainState()
@@ -281,6 +283,7 @@ int main()
     twins::screenClrAll();
     twins::drawWidget(pWndMainArray);
     twins::inputPosixInit(100);
+    twins::writeStr(ESC_MOUSE_REPORTING_M2_ON);
     rbKeybInput.init(20);
     fflush(stdout);
 
@@ -345,7 +348,7 @@ int main()
     // Window is always at [0]
     twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
     twins::screenClrBelow();
-    // twins::writeStr();
+    twins::writeStr(ESC_MOUSE_REPORTING_M2_OFF);
     twins::inputPosixFree();
 
     printf("Memory stats: max chunks: %d, max memory: %d B \n",
