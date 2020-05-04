@@ -34,19 +34,19 @@ public:
     /** @brief Append formatted string */
     void appendFmt(const char *fmt, ...);
     /** @brief Trim string that is too long to fit; optionally append ellipsis ... at the \p trimPos */
-    void trim(int16_t trimPos, bool addEllipsis = false);
+    void trim(int16_t trimPos, bool addEllipsis = false, bool ignoreESC = false);
     /** @brief Erase \p len characters from string at \p pos */
     void erase(int16_t pos, int16_t len = 1);
     /** @brief Insert string \p s at \p pos */
     void insert(int16_t pos, const char *s);
     /** @brief If shorter than len - add spaces; if longer - calls trim */
-    void setLength(int16_t len, bool addEllipsis = false);
+    void setLength(int16_t len, bool addEllipsis = false, bool ignoreESC = false);
     /** @brief Set size to zero; does not release buffer memory */
     void clear();
     /** @brief Return string size, in bytes */
     unsigned size() const { return mSize; }
     /** @brief Return string length, in characters, assuming UTF-8 encoding */
-    unsigned u8len() const;
+    unsigned u8len(bool ignoreESC = false) const;
     /** @brief Return C-style string buffer */
     const char *cstr() const { return mpBuff ? mpBuff : ""; }
     /** @brief Convenient assign operators */

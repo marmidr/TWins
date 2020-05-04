@@ -232,10 +232,10 @@ static constexpr twins::Widget page2Childs[] =
         link    : {},
         { label : {
             fgColor : twins::ColorFG::YellowIntense,
-            text    : "  ◦◦◦◦ ListBox ◦◦◦◦ " "\n"
-                      "• Up/Down -> change item" "\n"
-                      "• PgUp/PgDown -> scroll page" "\n"
-                      "• Enter -> select the item"
+            text    : "  ▫▫▫▫▫ " ESC_INVERSE_ON "ListBox" ESC_INVERSE_OFF " ▫▫▫▫▫" "\n"
+                      "• " ESC_UNDERLINE_ON "Up/Down" ESC_UNDERLINE_OFF " -> change item" "\n"
+                      "• " ESC_UNDERLINE_ON "PgUp/PgDown" ESC_UNDERLINE_OFF " -> scroll page" "\n"
+                      "• " ESC_UNDERLINE_ON "Enter" ESC_UNDERLINE_OFF " -> select the item"
         }}
     },
     {

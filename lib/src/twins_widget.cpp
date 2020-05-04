@@ -674,10 +674,10 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
         delta = 1;
         break;
     case Key::PgUp:
-        delta = -(pWgt->size.height-2);
+        delta = kc.m_ctrl ? 0 : -(pWgt->size.height-2);
         break;
     case Key::PgDown:
-        delta = pWgt->size.height-2;
+        delta = kc.m_ctrl ? 0 :pWgt->size.height-2;
         break;
     default:
         break;

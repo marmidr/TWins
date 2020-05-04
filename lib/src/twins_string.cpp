@@ -19,6 +19,11 @@
 namespace twins
 {
 
+extern unsigned ansiUtf8LenIgnoreEsc(const char *str);
+extern const char* ansiUtf8SkipIgnoreEsc(const char *str, unsigned toSkip);
+
+// -----------------------------------------------------------------------------
+
 String::String(String &&other)
 {
     *this = std::move(other);
@@ -100,7 +105,7 @@ void String::appendFmt(const char *fmt, ...)
     } while (retry--);
 }
 
-void String::trim(int16_t trimPos, bool addEllipsis)
+void String::trim(int16_t trimPos, bool addEllipsis, bool ignoreESC)
 {
     if (trimPos < 0 || trimPos >= mSize)
         return;
@@ -109,11 +114,18 @@ void String::trim(int16_t trimPos, bool addEllipsis)
 
     char *p = mpBuff;
 
-    for (int i = 0; i < trimPos; i++)
+    if (ignoreESC)
     {
-        int seqLen = utf8seqlen(p);
-        if (seqLen <= 0) break;
-        p += seqLen;
+        p = const_cast<char*>(ansiUtf8SkipIgnoreEsc(p, trimPos));
+    }
+    else
+    {
+        for (int i = 0; i < trimPos; i++)
+        {
+            int seqLen = utf8seqlen(p);
+            if (seqLen <= 0) break;
+            p += seqLen;
+        }
     }
 
     if (p >= mpBuff + mSize) return;
@@ -195,18 +207,17 @@ void String::insert(int16_t pos, const char *s)
     mpBuff[mSize] = '\0';
 }
 
-void String::setLength(int16_t len, bool addEllipsis)
+void String::setLength(int16_t len, bool addEllipsis, bool ignoreESC)
 {
     if (len < 0)
         return;
 
-    // TODO: do not count ANSI ESC sequences length
-    int u8len = utf8len(mpBuff);
+    int u8len = ignoreESC ? ansiUtf8LenIgnoreEsc(mpBuff) : utf8len(mpBuff);
 
     if (u8len <= len)
         append(' ', len - u8len);
     else
-        trim(len, addEllipsis);
+        trim(len, addEllipsis, ignoreESC);
 }
 
 void String::clear()
@@ -233,9 +244,12 @@ String& String::operator=(String &&other)
     return *this;
 }
 
-unsigned String::u8len() const
+unsigned String::u8len(bool ignoreESC) const
 {
-    return (unsigned)utf8len(mpBuff);
+    if (ignoreESC)
+        return ansiUtf8LenIgnoreEsc(mpBuff);
+    else
+        return (unsigned)utf8len(mpBuff);
 }
 
 void String::resize(uint16_t newCapacity)

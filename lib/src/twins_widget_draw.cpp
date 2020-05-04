@@ -179,7 +179,7 @@ static void drawPanel(const Widget *pWgt)
     // title
     if (pWgt->panel.title)
     {
-        auto capt_len = strlen(pWgt->panel.title);
+        auto capt_len = utf8len(pWgt->panel.title);
         moveTo(my_coord.col + (pWgt->size.width - capt_len - 2)/2, my_coord.row);
         pushAttr(FontAttrib::Bold);
         writeStrFmt(" %s ", pWgt->panel.title);
@@ -235,9 +235,7 @@ static void drawLabel(const Widget *pWgt)
             p_line = " ";
         }
 
-        // limit the length only of text is plain (has no ANSI ESC sequences)
-        if (strchr(s_line.cstr(), '\e') == nullptr)
-            s_line.setLength(pWgt->size.width, true);
+        s_line.setLength(pWgt->size.width, true, true);
         writeStr(s_line.cstr());
         moveBy(-pWgt->size.width, 1);
     }
@@ -364,7 +362,7 @@ static void drawPageControl(const Widget *pWgt)
         // draw page title
         g.str.clear();
         g.str.appendFmt("%s%s", i == pg_idx ? "►" : " ", p_page->page.title);
-        g.str.setLength(pWgt->pagectrl.tabWidth, true);
+        g.str.setLength(pWgt->pagectrl.tabWidth, true, true);
 
         moveTo(my_coord.col, my_coord.row + i + 1);
         pushClFg(p_page->page.fgColor);
@@ -449,10 +447,11 @@ static void drawListBox(const Widget *pWgt)
         {
             s.append(is_current_item ? "►" : " ");
             g.pWndState->getListBoxItem(pWgt, topitem + i, s);
-            s.setLength(pWgt->size.width-2, true);
+            s.setLength(pWgt->size.width-2, true, true);
         }
         else
         {
+            // empty string - to erase old content
             s.setLength(pWgt->size.width-2);
         }
 

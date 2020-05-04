@@ -106,6 +106,16 @@ TEST_F(STRING_Test, append_3)
     EXPECT_EQ(1, s.size());
 }
 
+TEST_F(STRING_Test, append_4)
+{
+    twins::String s;
+    s.append(ESC_BLINK "x" ESC_BLINK_OFF);
+
+    EXPECT_EQ(10, s.size());
+    EXPECT_EQ(10, s.u8len(false));
+    EXPECT_EQ(1, s.u8len(true));
+}
+
 TEST_F(STRING_Test, append_len)
 {
     twins::String s;
@@ -191,6 +201,15 @@ TEST_F(STRING_Test, trim_ellipsis_2)
     }
 }
 
+TEST_F(STRING_Test, trim_ignore_esc)
+{
+    twins::String s;
+    s.append("►" ESC_BOLD " Service" ESC_NORMAL " Menu");
+
+    s.trim(10, false, true);
+    EXPECT_STREQ("►" ESC_BOLD " Service" ESC_NORMAL " ", s.cstr());
+}
+
 TEST_F(STRING_Test, set_len)
 {
     {
@@ -221,6 +240,18 @@ TEST_F(STRING_Test, set_len)
         s.setLength(3, true);
         EXPECT_STREQ("1… ", s.cstr());
     }
+}
+
+TEST_F(STRING_Test, set_len_ignore_esc)
+{
+    twins::String s;
+    s.append("►" ESC_BOLD " Service" ESC_NORMAL " Menu");
+
+    s.setLength(20, false, true);
+    EXPECT_STREQ("►" ESC_BOLD " Service" ESC_NORMAL " Menu" "      ", s.cstr());
+
+    s.setLength(10, false, true);
+    EXPECT_STREQ("►" ESC_BOLD " Service" ESC_NORMAL " ", s.cstr());
 }
 
 TEST_F(STRING_Test, move_assign)
