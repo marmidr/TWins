@@ -31,11 +31,18 @@ public:
 
     // --- events ---
 
-    void onButtonClick(const twins::Widget* pWgt) override
+    void onButtonDown(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
-        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
-        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("BTN_CANCEL");
+        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("˅ BTN_YES");
+        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("˅ BTN_NO");
+        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("˅ BTN_CANCEL");
+    }
+
+    void onButtonUp(const twins::Widget* pWgt) override
+    {
+        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("˄ BTN_YES");
+        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("˄ BTN_NO");
+        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("˄ BTN_CANCEL");
     }
 
     void onEditChange(const twins::Widget* pWgt, twins::String &&str) override
@@ -87,7 +94,7 @@ public:
         twins::writeChar('-', sz.width);
     }
 
-    void onCanvasClick(const twins::Widget* pWgt, const twins::KeyCode &kc) override
+    void onCanvasMouseEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         twins::moveTo(kc.mouse.col, kc.mouse.row);
         twins::writeChar('0' + (int)kc.mouse.btn);

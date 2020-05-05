@@ -636,7 +636,7 @@ static bool processKey_Button(const Widget *pWgt, const KeyCode &kc)
 {
     if (kc.key == Key::Enter)
     {
-        g.pWndState->onButtonClick(pWgt);
+        g.pWndState->onButtonDown(pWgt);
         g.pWndState->invalidate(pWgt->id);
         return true;
     }
@@ -783,11 +783,17 @@ static void processMouse_Button(const Widget *pWgt, const Rect &wgtRect, const K
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
-    }
-    else if (kc.mouse.btn == MouseBtn::ButtonReleased)
-    {
-        g.pWndState->onButtonClick(pWgt);
+        g.pWndState->onButtonDown(pWgt);
         g.pWndState->invalidate(pWgt->id);
+    }
+    else if (kc.mouse.btn == MouseBtn::ButtonReleased && g.pMouseDownWgt == pWgt)
+    {
+        g.pWndState->onButtonUp(pWgt);
+        g.pWndState->invalidate(pWgt->id);
+    }
+    else
+    {
+        g.pMouseDownWgt = nullptr;
     }
 }
 
@@ -860,13 +866,30 @@ static void processMouse_DropDownList(const Widget *pWgt, const Rect &wgtRect, c
 
 static void processMouse_Canvas(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
-    g.pWndState->onCanvasClick(pWgt, kc);
+    g.pWndState->onCanvasMouseEvt(pWgt, kc);
 }
 
 static bool processMouse(const KeyCode &kc)
 {
     Rect rct;
     const Widget *p_wgt = getWidgetAt(kc.mouse.col, kc.mouse.row, rct);
+
+    if (g.pMouseDownWgt)
+    {
+        // apply only for Button widget
+        if (g.pMouseDownWgt->type == Widget::Button)
+        {
+            // mouse button released over another widget - generate event for previously clicked button
+            if (kc.mouse.btn == MouseBtn::ButtonReleased && g.pMouseDownWgt != p_wgt)
+                p_wgt = g.pMouseDownWgt;
+        }
+    }
+    else if (p_wgt)
+    {
+        // remember clicked widget
+        if (kc.mouse.btn >= MouseBtn::ButtonLeft && kc.mouse.btn < MouseBtn::ButtonReleased)
+            g.pMouseDownWgt = p_wgt;
+    }
 
     if (!p_wgt)
         return false;
@@ -901,8 +924,12 @@ static bool processMouse(const KeyCode &kc)
         break;
     default:
         moveToHome();
+        g.pMouseDownWgt = nullptr;
         return false;
     }
+
+    if (kc.mouse.btn == MouseBtn::ButtonReleased)
+        g.pMouseDownWgt = nullptr;
 
     return true;
 }

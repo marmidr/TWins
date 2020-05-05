@@ -139,14 +139,15 @@ class IWindowState
 public:
     virtual ~IWindowState() = default;
     // events
-    virtual void onButtonClick(const twins::Widget* pWgt) {}
+    virtual void onButtonDown(const twins::Widget* pWgt) {}
+    virtual void onButtonUp(const twins::Widget* pWgt) {}
     virtual void onEditChange(const twins::Widget* pWgt, twins::String &&str) {}
     virtual void onCheckboxToggle(const twins::Widget* pWgt) {}
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
     virtual void onListBoxSelect(const twins::Widget* pWgt, uint16_t newIdx) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
     virtual void onCanvasDraw(const twins::Widget* pWgt) {}
-    virtual void onCanvasClick(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
+    virtual void onCanvasMouseEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
     // common state queries
     virtual bool isEnabled(const twins::Widget*) { return true; }
     virtual bool isFocused(const twins::Widget*) { return false; }

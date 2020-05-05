@@ -150,9 +150,9 @@ enum class MouseBtn : uint8_t
     ButtonLeft,
     ButtonMid,
     ButtonRight,
-    ButtonReleased,
     ButtonGoBack,
     ButtonGoForward,
+    ButtonReleased,
     WheelUp,
     WheelDown,
 };

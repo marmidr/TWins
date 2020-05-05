@@ -66,7 +66,7 @@ const Widget* findWidget(const WID widgetId);
 const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect);
 void setCursorAt(const Widget *pWgt);
 
-// do not require g.pWndArray
+// does not require g.pWndArray
 const Widget* getParent(const Widget *pWgt);
 
 // -----------------------------------------------------------------------------
