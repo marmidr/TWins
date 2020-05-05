@@ -332,3 +332,39 @@ TEST_F(STRING_Test, insert)
         EXPECT_STREQ("••", s.cstr());
     }
 }
+
+TEST(STRING, escLen)
+{
+    EXPECT_EQ(0, twins::String::escLen(nullptr));
+    EXPECT_EQ(0, twins::String::escLen(""));
+    // Up
+    EXPECT_EQ(0, twins::String::escLen("x\e[A"));
+    EXPECT_EQ(3, twins::String::escLen("\e[A"));
+}
+
+TEST(STRING, u8lenIgnoreEsc)
+{
+    EXPECT_EQ(0, twins::String::u8lenIgnoreEsc(nullptr));
+    EXPECT_EQ(0, twins::String::u8lenIgnoreEsc(""));
+
+    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("ABC"));
+    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("ĄBĆ"));
+
+    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("ĄBĆ\e[A"));
+    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("\e[AĄBĆ"));
+    EXPECT_EQ(4, twins::String::u8lenIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ"));
+}
+
+TEST(STRING, u8skipIgnoreEsc)
+{
+    EXPECT_STREQ("", twins::String::u8skipIgnoreEsc(nullptr, 0));
+    EXPECT_STREQ("", twins::String::u8skipIgnoreEsc("", 5));
+
+    EXPECT_STREQ("ABC", twins::String::u8skipIgnoreEsc("ABC", 0));
+    EXPECT_STREQ("C", twins::String::u8skipIgnoreEsc("ABC", 2));
+    EXPECT_STREQ("", twins::String::u8skipIgnoreEsc("ABC", 5));
+    EXPECT_STREQ("Ć", twins::String::u8skipIgnoreEsc("ĄBĆ", 2));
+
+    EXPECT_STREQ("Ć\e[1;2AĘ", twins::String::u8skipIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ", 2));
+    EXPECT_STREQ("", twins::String::u8skipIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ", 4));
+}

@@ -54,6 +54,13 @@ public:
     String& operator=(const String &other) { *this = other.cstr(); return *this; }
     String& operator=(String &&other);
 
+    /** @brief Return ESC sequence length starting at \p str */
+    static unsigned escLen(const char *str);
+    /** @brief Return length of UTF-8 string \p str , ignoring ESC sequences inside it */
+    static unsigned u8lenIgnoreEsc(const char *str);
+    /** @brief Return pointer to \p str moved by \p toSkip UTF-8 characters, omitting ESC sequences */
+    static const char* u8skipIgnoreEsc(const char *str, unsigned toSkip);
+
 private:
     void resize(uint16_t newCapacity);
     void free();

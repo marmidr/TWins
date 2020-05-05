@@ -302,7 +302,7 @@ int main()
             rbKeybInput.copy(wndMainState.lblKeycodeSeq, sizeof(wndMainState.lblKeycodeSeq)-1);
             wndMainState.lblKeycodeSeq[sizeof(wndMainState.lblKeycodeSeq)-1] = '\0';
 
-            twins::ansiDecodeInputSeq(rbKeybInput, kc);
+            twins::decodeInputSeq(rbKeybInput, kc);
             bool key_handled = twins::processKey(pWndMainArray, kc);
             wndMainState.lblKeyName = kc.name;
 

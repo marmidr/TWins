@@ -368,14 +368,14 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
 static uint8_t decodeFailCtr = 0;
 static uint8_t prevCR = 0;
 
-void ansiDecodeInputSeqReset()
+void decodeInputSeqReset()
 {
     // for testing
     decodeFailCtr = 0;
     prevCR = 0;
 }
 
-void ansiDecodeInputSeq(RingBuff<char> &input, KeyCode &output)
+void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
 {
     output.key = Key::None;
     output.mod_all = 0;
@@ -555,118 +555,6 @@ void ansiDecodeInputSeq(RingBuff<char> &input, KeyCode &output)
             }
         }
     }
-}
-
-unsigned ansiEscSeqLen(const char *str)
-{
-    // ESC sequence always ends with:
-    // - A..Z
-    // - a..z
-    // - @, ^, ~
-    if (str && *str == '\e')
-    {
-        unsigned n = 1;
-        while (n < ESC_MaxSeqLen)
-        {
-            const char c = str[n];
-
-            switch (c)
-            {
-            case '\0':
-                return 0;
-            case '@':
-            case '^':
-            case '~':
-                return n+1;
-            default:
-                break;
-            }
-
-            if (c >= 'A' && c <= 'Z')
-                return n+1;
-
-            if (c >= 'a' && c <= 'z')
-                return n+1;
-
-            n++;
-        }
-    }
-
-    return 0;
-}
-
-unsigned ansiUtf8LenIgnoreEsc(const char *str)
-{
-    if (!str || !*str)
-        return 0;
-
-    const char *str_end = str + strlen(str);
-    unsigned len = 0;
-
-    while (str < str_end)
-    {
-        unsigned esc_len = ansiEscSeqLen(str);
-        bool seq_found = esc_len > 0;
-
-        for (; esc_len && (str < str_end); )
-        {
-            str += esc_len;
-            esc_len = ansiEscSeqLen(str);
-        }
-
-        if (str < str_end)
-        {
-            if (int u8_len = utf8seqlen(str))
-            {
-                seq_found = true;
-                len++;
-                str += u8_len;
-            }
-        }
-
-        // nothing recognized? - string illformed
-        if (!seq_found)
-            break;
-    }
-
-    return len;
-}
-
-const char* ansiUtf8SkipIgnoreEsc(const char *str, unsigned toSkip)
-{
-    if (!str || !*str)
-        return "";
-
-    const char *str_end = str + strlen(str);
-    unsigned skipped = 0;
-
-    while (str < str_end && skipped < toSkip)
-    {
-        unsigned esc_len = ansiEscSeqLen(str);
-        bool seq_found = esc_len > 0;
-
-        for (; esc_len && (str < str_end); )
-        {
-            str += esc_len;
-            esc_len = ansiEscSeqLen(str);
-        }
-
-        if (str < str_end)
-        {
-            if (int u8_len = utf8seqlen(str))
-            {
-                seq_found = true;
-                skipped++;
-                str += u8_len;
-            }
-        }
-
-        // nothing recognized? - string illformed
-        if (!seq_found)
-            break;
-    }
-
-    return str;
 }
 
 // -----------------------------------------------------------------------------

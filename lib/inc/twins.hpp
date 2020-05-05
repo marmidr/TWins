@@ -399,22 +399,7 @@ inline void screenRestore()         { writeStr(ESC_SCREEN_RESTORE); }
 /**
  * @brief Decode ANSI keyboard/mouse sequence from \p input and produce readable Key Code \p output
  */
-void ansiDecodeInputSeq(RingBuff<char> &input, KeyCode &output);
-
-/**
- * @brief Return length of ANSI ESC sequence (booth input and output) starting at \p str or 0
- */
-unsigned ansiEscSeqLen(const char *str);
-
-/**
- * @brief Calculate \p str UTF-8 length ignoring all ESC sequences inside it
- */
-unsigned ansiUtf8LenIgnoreEsc(const char *str);
-
-/**
- * @brief Returns address of \p str substring after \p toSkip UTF-8 sequences ommited,
-          ignoring all ESC sequences inside it */
-const char* ansiUtf8SkipIgnoreEsc(const char *str, unsigned toSkip);
+void decodeInputSeq(RingBuff<char> &input, KeyCode &output);
 
 // -----------------------------------------------------------------------------
 

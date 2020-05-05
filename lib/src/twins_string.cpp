@@ -19,11 +19,6 @@
 namespace twins
 {
 
-extern unsigned ansiUtf8LenIgnoreEsc(const char *str);
-extern const char* ansiUtf8SkipIgnoreEsc(const char *str, unsigned toSkip);
-
-// -----------------------------------------------------------------------------
-
 String::String(String &&other)
 {
     *this = std::move(other);
@@ -116,7 +111,7 @@ void String::trim(int16_t trimPos, bool addEllipsis, bool ignoreESC)
 
     if (ignoreESC)
     {
-        p = const_cast<char*>(ansiUtf8SkipIgnoreEsc(p, trimPos));
+        p = const_cast<char*>(u8skipIgnoreEsc(p, trimPos));
     }
     else
     {
@@ -212,7 +207,7 @@ void String::setLength(int16_t len, bool addEllipsis, bool ignoreESC)
     if (len < 0)
         return;
 
-    int u8len = ignoreESC ? ansiUtf8LenIgnoreEsc(mpBuff) : utf8len(mpBuff);
+    int u8len = ignoreESC ? u8lenIgnoreEsc(mpBuff) : utf8len(mpBuff);
 
     if (u8len <= len)
         append(' ', len - u8len);
@@ -247,7 +242,7 @@ String& String::operator=(String &&other)
 unsigned String::u8len(bool ignoreESC) const
 {
     if (ignoreESC)
-        return ansiUtf8LenIgnoreEsc(mpBuff);
+        return u8lenIgnoreEsc(mpBuff);
     else
         return (unsigned)utf8len(mpBuff);
 }
@@ -293,6 +288,117 @@ void String::free()
     mCapacity = 0;
     mSize = 0;
 }
+
+unsigned String::escLen(const char *str)
+{
+    // ESC sequence always ends with:
+    // - A..Z
+    // - a..z
+    // - @, ^, ~
+    constexpr int esc_max_seq_len = 7;
+
+    if (str && *str == '\e')
+    {
+        unsigned n = 1;
+        while (n < esc_max_seq_len)
+        {
+            const char c = str[n];
+
+            switch (c)
+            {
+            case '\0':
+                return 0;
+            case '@':
+            case '^':
+            case '~':
+                return n+1;
+            default:
+                if (c >= 'A' && c <= 'Z') return n+1;
+                if (c >= 'a' && c <= 'z') return n+1;
+                break;
+            }
+
+            n++;
+        }
+    }
+
+    return 0;
+}
+
+unsigned String::u8lenIgnoreEsc(const char *str)
+{
+    if (!str || !*str)
+        return 0;
+
+    const char *str_end = str + strlen(str);
+    unsigned len = 0;
+
+    while (str < str_end)
+    {
+        unsigned esc_len = escLen(str);
+        bool seq_found = esc_len > 0;
+
+        for (; esc_len && (str < str_end); )
+        {
+            str += esc_len;
+            esc_len = escLen(str);
+        }
+
+        if (str < str_end)
+        {
+            if (int u8_len = utf8seqlen(str))
+            {
+                seq_found = true;
+                len++;
+                str += u8_len;
+            }
+        }
+
+        // nothing recognized? - string illformed
+        if (!seq_found)
+            break;
+    }
+
+    return len;
+}
+
+const char* String::u8skipIgnoreEsc(const char *str, unsigned toSkip)
+{
+    if (!str || !*str)
+        return "";
+
+    const char *str_end = str + strlen(str);
+    unsigned skipped = 0;
+
+    while (str < str_end && skipped < toSkip)
+    {
+        unsigned esc_len = escLen(str);
+        bool seq_found = esc_len > 0;
+
+        for (; esc_len && (str < str_end); )
+        {
+            str += esc_len;
+            esc_len = escLen(str);
+        }
+
+        if (str < str_end)
+        {
+            if (int u8_len = utf8seqlen(str))
+            {
+                seq_found = true;
+                skipped++;
+                str += u8_len;
+            }
+        }
+
+        // nothing recognized? - string illformed
+        if (!seq_found)
+            break;
+    }
+
+    return str;
+}
+
 
 // -----------------------------------------------------------------------------
 
