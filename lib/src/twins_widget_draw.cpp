@@ -526,7 +526,7 @@ void drawWidget(const Widget *pWindowArray, WID widgetId)
         WidgetSearchStruct wss { searchedID : widgetId };
 
         // search window for widget by it's Id
-        if (findWidget(wss) && wss.isVisible)
+        if (getWidgetWSS(wss) && wss.isVisible)
         {
             g.parentCoord = wss.parentCoord;
             // set parent's background color
@@ -558,7 +558,7 @@ void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t cou
     {
         WidgetSearchStruct wss { searchedID : pWidgetIds[i] };
 
-        if (findWidget(wss) && wss.isVisible)
+        if (getWidgetWSS(wss) && wss.isVisible)
         {
             g.parentCoord = wss.parentCoord;
             // set parent's background color

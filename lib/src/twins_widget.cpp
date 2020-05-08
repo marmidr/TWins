@@ -27,7 +27,7 @@ static bool isVisible(const Widget *pWgt);
 // ---- TWINS INTERNAL FUNCTIONS -----------------------------------------------
 // -----------------------------------------------------------------------------
 
-bool findWidget(WidgetSearchStruct &wss)
+bool getWidgetWSS(WidgetSearchStruct &wss)
 {
     if (wss.searchedID == WIDGET_ID_NONE)
         return false;
@@ -68,12 +68,11 @@ bool findWidget(WidgetSearchStruct &wss)
     return true;
 }
 
-const Widget* findWidget(const WID widgetId)
+const Widget* getWidgetByWID(const WID widgetId)
 {
-    WidgetSearchStruct wss { searchedID : widgetId };
-
-    if (findWidget(wss))
-        return wss.pWidget;
+    for (unsigned i = 0; g.pWndArray[i].type != Widget::None; i++)
+        if (g.pWndArray[i].id == widgetId)
+        return &g.pWndArray[i];
 
     return nullptr;
 }
@@ -412,7 +411,7 @@ static WID getNextToFocus(const WID focusedID, bool forward)
 {
     WidgetSearchStruct wss { searchedID : focusedID };
 
-    if (!findWidget(wss))
+    if (!getWidgetWSS(wss))
     {
         // here, find may fail only if invalid focusedID was given
         wss.pWidget = g.pWndArray;
@@ -434,7 +433,7 @@ static WID getParentToFocus(WID focusedID)
 
     WidgetSearchStruct wss { searchedID : focusedID };
 
-    if (findWidget(wss))
+    if (getWidgetWSS(wss))
     {
         const auto *p_wgt = &g.pWndArray[wss.pWidget->link.parentIdx];
         g.parentCoord -= wss.pWidget->coord;
@@ -454,7 +453,7 @@ static bool changeFocusTo(WID newID)
         curr_id = newID;
 
         WidgetSearchStruct wss { searchedID : newID };
-        if (findWidget(wss))
+        if (getWidgetWSS(wss))
         {
             if (wss.pWidget->type == Widget::ListBox)
             {
@@ -474,9 +473,21 @@ static bool changeFocusTo(WID newID)
     return false;
 }
 
-// -----------------------------------------------------------------------------
-// ---- TWINS PRIVATE FUNCTIONS ------------------------------------------------
-// -----------------------------------------------------------------------------
+static const Widget *findMainPgControl()
+{
+    assert(g.pWndArray);
+    const auto *p_wnd = &g.pWndArray[0];
+
+    for (unsigned i = 0; i < p_wnd->link.childsCnt; i++)
+    {
+        const auto *p_wgt = g.pWndArray + p_wnd->link.childsIdx + i;
+
+        if (p_wgt->type == Widget::PageCtrl)
+            return p_wgt;
+    }
+
+    return nullptr;
+}
 
 static void pgControlChangePage(const Widget *pWgt, bool next)
 {
@@ -489,7 +500,7 @@ static void pgControlChangePage(const Widget *pWgt, bool next)
     g.pWndState->onPageControlPageChange(pWgt, idx);
     g.pWndState->invalidate(pWgt->id);
 
-    if (const auto *p_wgt = findWidget(g.pWndState->getFocusedID()))
+    if (const auto *p_wgt = getWidgetByWID(g.pWndState->getFocusedID()))
         setCursorAt(p_wgt);
     else
         moveToHome();
@@ -710,7 +721,7 @@ static bool processKey_DropDownList(const Widget *pWgt, const KeyCode &kc)
 static bool processKey(const KeyCode &kc)
 {
     auto focused_id = g.pWndState->getFocusedID();
-    const Widget* p_wgt = findWidget(focused_id);
+    const Widget* p_wgt = getWidgetByWID(focused_id);
     bool key_handled = false;
 
     if (!p_wgt)
@@ -871,6 +882,15 @@ static void processMouse_Canvas(const Widget *pWgt, const Rect &wgtRect, const K
 
 static bool processMouse(const KeyCode &kc)
 {
+    if (kc.mouse.btn == MouseBtn::ButtonGoBack || kc.mouse.btn == MouseBtn::ButtonGoForward)
+    {
+        if (const auto *p_wgt = findMainPgControl())
+        {
+            pgControlChangePage(p_wgt, kc.mouse.btn == MouseBtn::ButtonGoForward);
+            return true;
+        }
+    }
+
     Rect rct;
     const Widget *p_wgt = getWidgetAt(kc.mouse.col, kc.mouse.row, rct);
 
@@ -1063,19 +1083,13 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
             case Key::PgDown:
             {
                 // Ctrl+PgUp/PgDown will be directed to window's first PageControl widget
-                for (unsigned i = 0; i < g.pWndArray[0].link.childsCnt; i++)
+                if (const auto *p_wgt = findMainPgControl())
                 {
-                    const auto *p_wgt = &g.pWndArray[g.pWndArray[0].link.childsIdx + i];
-
-                    if (p_wgt->type == Widget::PageCtrl)
+                    auto curr_id = g.pWndState->getFocusedID();
+                    if (kc.m_ctrl || curr_id == p_wgt->id)
                     {
-                        auto curr_id = g.pWndState->getFocusedID();
-                        if (kc.m_ctrl || curr_id == p_wgt->id)
-                        {
-                            processKey_PageCtrl(p_wgt, kc);
-                            key_processed = true;
-                        }
-                        break;
+                        processKey_PageCtrl(p_wgt, kc);
+                        key_processed = true;
                     }
                 }
                 break;
