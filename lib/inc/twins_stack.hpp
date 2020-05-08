@@ -88,8 +88,8 @@ private:
 
     void destroyContent(void)
     {
-        for (uint16_t i = 0; i < mCapacity; i++)
-            mpItems[i].~T();
+        // for (uint16_t i = 0; i < mCapacity; i++)
+        //     mpItems[i].~T();
     }
 
     void copyContent(const T *pSrc, uint16_t count)

@@ -15,9 +15,9 @@ add_executable(${TARGETNAME}
     src/test_vector.cpp
 )
 
-target_compile_options(${TARGETNAME}
-    PRIVATE
-        --coverage
+target_compile_options(${TARGETNAME} PRIVATE
+    --coverage
+    ${GCC_SANITIZERS}
 )
 
 target_link_libraries(${TARGETNAME}

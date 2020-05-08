@@ -19,3 +19,5 @@ target_include_directories(${TARGETNAME}
 target_link_libraries(${TARGETNAME}
     twins
 )
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_SANITIZERS}")

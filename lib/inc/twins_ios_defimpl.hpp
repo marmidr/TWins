@@ -61,10 +61,13 @@ struct DefaultIOs : twins::IOs
 
     void memFree(void *ptr) override
     {
-        auto allocated = malloc_usable_size(ptr);
-        stats.memAllocated -= allocated;
-        stats.memChunks--;
-        free(ptr);
+        if (ptr)
+        {
+            auto allocated = malloc_usable_size(ptr);
+            stats.memAllocated -= allocated;
+            stats.memChunks--;
+            free(ptr);
+        }
     }
 
     uint16_t getLogsRow() override

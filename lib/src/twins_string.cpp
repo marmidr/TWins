@@ -163,7 +163,7 @@ void String::erase(int16_t pos, int16_t len)
             break;
     }
 
-    memcpy(erase_at, erase_at + bytes_to_erase, mSize - (erase_at - mpBuff));
+    memmove(erase_at, erase_at + bytes_to_erase, mSize - (erase_at - mpBuff));
     mSize -= bytes_to_erase;
     mpBuff[mSize] = '\0';
 }
@@ -196,8 +196,8 @@ void String::insert(int16_t pos, const char *s)
     unsigned bytes_to_insert = strlen(s);
 
     resize(mSize + bytes_to_insert);
-    memcpy(insert_at + bytes_to_insert, insert_at, mSize - (insert_at - mpBuff));
-    memcpy(insert_at, s, bytes_to_insert);
+    memmove(insert_at + bytes_to_insert, insert_at, mSize - (insert_at - mpBuff));
+    memmove(insert_at, s, bytes_to_insert);
     mSize += bytes_to_insert;
     mpBuff[mSize] = '\0';
 }
