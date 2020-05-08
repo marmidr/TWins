@@ -165,7 +165,7 @@ void setCursorAt(const Widget *pWgt)
         coord.col += 1;
         break;
     case Widget::Button:
-        //coord.col += (utf8len(pWgt->button.text) + 4) / 2;
+        coord.col += 2; //(utf8len(pWgt->button.text) + 4) / 2;
         break;
     case Widget::PageCtrl:
         coord.row += 1;
@@ -500,10 +500,17 @@ static void pgControlChangePage(const Widget *pWgt, bool next)
     g.pWndState->onPageControlPageChange(pWgt, idx);
     g.pWndState->invalidate(pWgt->id);
 
+    // TODO: cancel EDIT mode ?
+
     if (const auto *p_wgt = getWidgetByWID(g.pWndState->getFocusedID()))
+    {
+        g.pFocusedWgt = p_wgt;
         setCursorAt(p_wgt);
+    }
     else
+    {
         moveToHome();
+    }
 }
 
 // -----------------------------------------------------------------------------

@@ -19,16 +19,14 @@
 class WndMainState : public twins::IWindowState
 {
 public:
-    WndMainState()
+    void init()
     {
-        pFocusedId = new twins::WID[wndMainNumPages];
-        for (int i = 0; i < wndMainNumPages; i++)
-            pFocusedId[i] = twins::WIDGET_ID_NONE;
-    }
+        focusedId.resize(wndMainNumPages);
 
-    ~WndMainState()
-    {
-        delete []pFocusedId;
+        for (auto &wid : focusedId)
+            wid = twins::WIDGET_ID_NONE;
+
+        initialized = true;
     }
 
     // --- events ---
@@ -122,7 +120,7 @@ public:
 
     bool isFocused(const twins::Widget* pWgt) override
     {
-        return pWgt->id == pFocusedId[pgcPage];
+        return pWgt->id == focusedId[pgcPage];
     }
 
     bool isVisible(const twins::Widget* pWgt) override
@@ -136,7 +134,7 @@ public:
 
     twins::WID& getFocusedID() override
     {
-        return pFocusedId[pgcPage];
+        return focusedId[pgcPage];
     }
 
     bool getCheckboxChecked(const twins::Widget* pWgt) override
@@ -241,6 +239,7 @@ public:
 public:
     char lblKeycodeSeq[10];
     const char *lblKeyName = "";
+    bool initialized = false;
 
 private:
     bool pnlVerEnabled = false;
@@ -255,7 +254,8 @@ private:
     int  radioId = 0;
 
     // focused WID separate for each page
-    twins::WID *pFocusedId = nullptr;
+    using wids_t = twins::Vector<twins::WID>;
+    wids_t focusedId;
     twins::String edt1Text;
     twins::String edt2Text;
 };
@@ -263,7 +263,13 @@ private:
 // -----------------------------------------------------------------------------
 
 static WndMainState wndMainState;
-twins::IWindowState * getWindMainState() { return &wndMainState; }
+
+twins::IWindowState * getWindMainState()
+{
+    if (!wndMainState.initialized) wndMainState.init();
+    return &wndMainState;
+}
+
 twins::RingBuff<char> rbKeybInput;
 
 struct DemoIOs : twins::DefaultIOs
