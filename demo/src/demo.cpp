@@ -8,6 +8,7 @@
 #include "twins.hpp"
 #include "twins_ringbuffer.hpp"
 #include "twins_ios_defimpl.hpp"
+#include "twins_vector.hpp"
 
 #include <stdio.h>
 #include <string.h>

@@ -27,18 +27,15 @@ public:
         pIOs->memFree(mpItems);
     }
 
-    void push(T item)
+    /** @brief Push new item onto the stack by copy or move */
+    template <typename Tv>
+    void push(Tv && item)
     {
         reserve();
-        mpItems[mSize++] = item;
+        mpItems[mSize++] = std::forward<Tv>(item);
     }
 
-    void push(T &&item)
-    {
-        reserve();
-        mpItems[mSize++] = std::move(item);
-    }
-
+    /** @brief Returns pointer to to the top item and decrease stack size, or \b nullptr if stack is empty */
     T* pop()
     {
         if (mSize)
@@ -50,14 +47,16 @@ public:
         return nullptr;
     }
 
+    /** @brief Returns pointer to the top-item or \b nullptr id stack is empty */
     T* top()
     {
         if (mSize)
-            return mpItems + mSize;
+            return mpItems + mSize - 1;
 
         return nullptr;
     }
 
+    /** @brief Remove all items and releases memory */
     void clear()
     {
         if (mCapacity * sizeof(T) >= 128)
@@ -70,6 +69,7 @@ public:
         mSize = 0;
     }
 
+    /** @brief Return stack size */
     uint16_t size() const { return mSize; }
 
 private:

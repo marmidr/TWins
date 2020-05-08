@@ -13,6 +13,24 @@
 namespace twins
 {
 
+#ifndef MIN
+# define MIN(x, y)              (((x) < (y)) ? (x) : (y))
+#endif
+
+#ifndef MAX
+# define MAX(x, y)              (((x) > (y)) ? (x) : (y))
+#endif
+
+#ifndef ABS
+# define ABS(a)                 ((a) >= 0 ? (a) : (-(a)))
+#endif
+
+#ifndef BIT
+# define BIT(n)                  (1 << (n))
+#endif
+
+#define INRANGE(val, min, max)  (((val) >= (min)) && ((val) <= (max)))
+
 // forward decl
 class String;
 

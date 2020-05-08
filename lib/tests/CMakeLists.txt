@@ -11,7 +11,13 @@ add_executable(${TARGETNAME}
     src/test_ansi_esc_decoder.cpp
     src/test_string.cpp
     src/test_twins.cpp
-    src/test_widget.cpp
+    src/test_stack.cpp
+    src/test_vector.cpp
+)
+
+target_compile_options(${TARGETNAME}
+    PRIVATE
+        --coverage
 )
 
 target_link_libraries(${TARGETNAME}
@@ -27,12 +33,15 @@ target_include_directories(${TARGETNAME}
 
 # ---
 
-set(GCOVR_EXCLUDES ".*/googletest/.*")
+set(GCOVR_EXCLUDES
+    -e ".*/googletest/.*"
+    -e ".*/test_.*cpp"
+)
 
 add_custom_target(twins_cov_only
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMAND mkdir -p cover_html
-    COMMAND gcovr -r ${PROJECT_SOURCE_DIR} -s -e ${GCOVR_EXCLUDES} -b --html-details -o cover_html/cover.html
+    COMMAND gcovr -r ${PROJECT_SOURCE_DIR} -s ${GCOVR_EXCLUDES} -b --html-details -o cover_html/cover.html
     COMMAND ln -sf cover_html/cover.html cover.html
 )
 
