@@ -72,6 +72,10 @@ struct DefaultIOs : twins::IOs
         return 0;
     }
 
+    void sleep(uint16_t ms) override
+    {
+    }
+
     // statistics
     Stats stats = {};
 

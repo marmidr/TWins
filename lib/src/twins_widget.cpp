@@ -165,7 +165,7 @@ void setCursorAt(const Widget *pWgt)
         coord.col += 1;
         break;
     case Widget::Button:
-        coord.col += (utf8len(pWgt->button.text) + 4) / 2;
+        //coord.col += (utf8len(pWgt->button.text) + 4) / 2;
         break;
     case Widget::PageCtrl:
         coord.row += 1;
@@ -525,6 +525,13 @@ static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
                 g.pWndState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
+            case Key::Tab:
+                // real TAB may have different widths and require extra processing
+                g.editState.str.insert(g.editState.cursorCol, "    ");
+                g.editState.cursorCol++;
+                g.pWndState->invalidate(pWgt->id);
+                key_handled = true;
+                break;
             case Key::Enter:
                 // finish editing
                 g.pWndState->onEditChange(pWgt, std::move(g.editState.str));
@@ -594,7 +601,7 @@ static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
     }
     else if (kc.key == Key::Enter)
     {
-        // enter editit mode
+        // enter edit mode
         g.editState.pWgt = pWgt;
         g.pWndState->getEditText(pWgt, g.editState.str);
         g.editState.cursorCol = g.editState.str.u8len();
@@ -647,7 +654,13 @@ static bool processKey_Button(const Widget *pWgt, const KeyCode &kc)
 {
     if (kc.key == Key::Enter)
     {
+        g.pMouseDownWgt = pWgt;
         g.pWndState->onButtonDown(pWgt);
+        g.pWndState->invalidate(pWgt->id);
+        pIOs->flushBuff();
+        pIOs->sleep(50);
+        g.pMouseDownWgt = nullptr;
+        g.pWndState->onButtonUp(pWgt);
         g.pWndState->invalidate(pWgt->id);
         return true;
     }
@@ -674,7 +687,7 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
     {
     case Key::Enter:
     {
-        g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
+        g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
         g.pWndState->invalidate(pWgt->id);
         return true;
     }
@@ -706,6 +719,7 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
         if (g.listboxHighlightIdx >= cnt)
             g.listboxHighlightIdx = 0;
 
+        g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
         g.pWndState->invalidate(pWgt->id);
         return true;
     }
@@ -800,6 +814,7 @@ static void processMouse_Button(const Widget *pWgt, const Rect &wgtRect, const K
     else if (kc.mouse.btn == MouseBtn::ButtonReleased && g.pMouseDownWgt == pWgt)
     {
         g.pWndState->onButtonUp(pWgt);
+        g.pMouseDownWgt = nullptr;
         g.pWndState->invalidate(pWgt->id);
     }
     else
@@ -846,6 +861,7 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
             g.listboxHighlightIdx = 0;
 
         changeFocusTo(pWgt->id);
+        g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
         g.pWndState->invalidate(pWgt->id);
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
@@ -863,6 +879,7 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
             g.listboxHighlightIdx = 0;
 
         changeFocusTo(pWgt->id);
+        g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
         g.pWndState->invalidate(pWgt->id);
     }
 }

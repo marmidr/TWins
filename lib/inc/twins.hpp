@@ -108,7 +108,7 @@ enum class FontAttrib : uint8_t
     Faint,          ///< faint, excludes bold
     Italics,        ///<
     Underline,      ///< single underline
-    Blink,      ///< blink
+    Blink,          ///< blink
     Inverse,        ///< fg/bg reversed
     Invisible,      ///< text invisible
     StrikeThrough   ///<
@@ -123,6 +123,16 @@ enum class FrameStyle : uint8_t
     Single,
     Double,
     PgControl,
+};
+
+/**
+ * @brief ProgressBar style
+ */
+enum class PgBarStyle : uint8_t
+{
+    Hash,
+    Shade,
+    Rectangle,
 };
 
 /**
@@ -144,7 +154,8 @@ public:
     virtual void onEditChange(const twins::Widget* pWgt, twins::String &&str) {}
     virtual void onCheckboxToggle(const twins::Widget* pWgt) {}
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
-    virtual void onListBoxSelect(const twins::Widget* pWgt, uint16_t newIdx) {}
+    virtual void onListBoxSelect(const twins::Widget* pWgt, uint16_t highlightIdx) {}
+    virtual void onListBoxChange(const twins::Widget* pWgt, uint16_t newIdx) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
     virtual void onCanvasDraw(const twins::Widget* pWgt) {}
     virtual void onCanvasMouseEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
@@ -290,6 +301,7 @@ struct Widget
         struct
         {
             ColorFG     fgColor;
+            PgBarStyle  style;
         } progressbar;
 
         struct

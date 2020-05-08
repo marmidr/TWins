@@ -58,6 +58,7 @@ struct IOs
     virtual void *memAlloc(uint32_t sz) = 0;
     virtual void  memFree(void *ptr) = 0;
     virtual uint16_t getLogsRow() = 0;
+    virtual void sleep(uint16_t ms) = 0;
 };
 
 // pointer set by init()

@@ -151,11 +151,9 @@ static void drawWindow(const Widget *pWgt)
         auto capt_len = utf8len(pWgt->window.title);
         moveTo(pWgt->coord.col + (pWgt->size.width - capt_len - 4)/2,
             pWgt->coord.row);
-        pushClFg(ColorFG::Yellow);
         pushAttr(FontAttrib::Bold);
         writeStrFmt("╡ %s ╞", pWgt->window.title);
         popAttr();
-        popClFg();
     }
 
     g.parentCoord = pWgt->coord;
@@ -286,45 +284,44 @@ static void drawLed(const Widget *pWgt)
 static void drawCheckbox(const Widget *pWgt)
 {
     const char *s_chk_state = g.pWndState->getCheckboxChecked(pWgt) ? "[x] " : "[ ] ";
-    bool focused = g.pWndState->isFocused(pWgt);
+    // bool focused = g.pWndState->isFocused(pWgt);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-    if (focused) pushAttr(FontAttrib::Inverse);
+    // if (focused) pushAttr(FontAttrib::Inverse);
     pushClFg(pWgt->checkbox.fgColor == ColorFG::None ? ColorFG::Default : pWgt->checkbox.fgColor);
     writeStr(s_chk_state);
     writeStr(pWgt->checkbox.text);
     popClFg();
-    if (focused) popAttr();
+    // if (focused) popAttr();
 }
 
 static void drawRadio(const Widget *pWgt)
 {
     const char *s_radio_state = pWgt->radio.radioId == g.pWndState->getRadioIndex(pWgt) ? "(●) " : "( ) ";
-    bool focused = g.pWndState->isFocused(pWgt);
+    // bool focused = g.pWndState->isFocused(pWgt);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-    if (focused) pushAttr(FontAttrib::Inverse);
+    // if (focused) pushAttr(FontAttrib::Inverse);
     writeStr(s_radio_state);
     writeStr(pWgt->radio.text);
-    if (focused) popAttr();
+    // if (focused) popAttr();
 }
 
 static void drawButton(const Widget *pWgt)
 {
+    bool focused = g.pWndState->isFocused(pWgt);
     g.str.clear();
-    g.str.append("[ ");
+    g.str.append(focused ? "[<" : "[ ");
     g.str.append(pWgt->button.text);
     g.str.trim(pWgt->size.width-2);
-    g.str.append(" ]");
-
-    bool focused = g.pWndState->isFocused(pWgt);
+    g.str.append(focused ? ">]" : " ]");
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-    if (focused) pushAttr(FontAttrib::Inverse);
+    if (pWgt == g.pMouseDownWgt) pushAttr(FontAttrib::Inverse);
     pushClFg(pWgt->button.fgColor == ColorFG::None ? ColorFG::Default : pWgt->button.fgColor);
     writeStr(g.str.cstr());
     popClFg();
-    if (focused) popAttr();
+    if (pWgt == g.pMouseDownWgt) popAttr();
 }
 
 static void drawPageControl(const Widget *pWgt)
@@ -392,7 +389,15 @@ static void drawPage(const Widget *pWgt)
 
 static void drawProgressBar(const Widget *pWgt)
 {
+    const char* style_data[][2] =
+    {
+        {"#", "."},
+        {"█", "▒"},
+        {"■", "□"}
+    };
+
     int pos = 0, max = 1;
+    auto style = (short)pWgt->progressbar.style;
     g.pWndState->getProgressBarState(pWgt, pos, max);
 
     if (max <= 0) max = 1;
@@ -401,8 +406,8 @@ static void drawProgressBar(const Widget *pWgt)
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     g.str.clear();
     int fill = pos * pWgt->size.width / max;
-    g.str.append("█", fill);
-    g.str.append("▒", pWgt->size.width - fill);
+    g.str.append(style_data[style][0], fill);
+    g.str.append(style_data[style][1], pWgt->size.width - fill);
 
     pushClFg(pWgt->progressbar.fgColor);
     writeStr(g.str.cstr());

@@ -48,12 +48,13 @@ Implementation is based on examples:
     - [x] page control
     - [x] progress bar
     - [x] list
-    - [ ] drop down list
+    - [ ] dropdown list
     - [x] canvas
+    - [ ] scrollbar
 - navigation
     - [x] widgets navigation by Tab/Esc key
     - [x] render focused widget state
-    - [ ] blinking cursor instead of inversed colors
+    - [x] blinking cursor instead of inversed colors
     - [x] select widget by mouse
 - notifications
     - [x] notify event per widget type (button clicked, checkbox toggled)

@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 // -----------------------------------------------------------------------------
 
@@ -33,16 +34,16 @@ public:
 
     void onButtonDown(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("˅ BTN_YES");
-        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("˅ BTN_NO");
-        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("˅ BTN_CANCEL");
+        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
+        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
+        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("BTN_CANCEL");
     }
 
     void onButtonUp(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("˄ BTN_YES");
-        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("˄ BTN_NO");
-        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("˄ BTN_CANCEL");
+        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
+        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
+        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("BTN_CANCEL");
     }
 
     void onEditChange(const twins::Widget* pWgt, twins::String &&str) override
@@ -67,12 +68,17 @@ public:
         if (pWgt->id == ID_PGCONTROL) pgcPage = newPageIdx;
     }
 
-    void onListBoxSelect(const twins::Widget* pWgt, uint16_t newIdx) override
+    void onListBoxSelect(const twins::Widget* pWgt, uint16_t highlightIdx) override
+    {
+        TWINS_LOG("LISTBOX_SELECT(%u)", highlightIdx);
+    }
+
+    void onListBoxChange(const twins::Widget* pWgt, uint16_t newIdx) override
     {
         if (pWgt->id == ID_LISTBOX)
         {
             listBoxItemIdx = newIdx;
-            TWINS_LOG("LISTBOX_SELECT");
+            TWINS_LOG("LISTBOX_CHANGE(%u)", newIdx);
         }
     }
 
@@ -273,6 +279,11 @@ struct DemoIOs : twins::DefaultIOs
     {
         return pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1;
     }
+
+    void sleep(uint16_t ms) override
+    {
+        usleep(ms * 1000);
+    }
 };
 
 static DemoIOs demo_ios;
@@ -342,7 +353,9 @@ int main()
                 {
                     twins::drawWidgets(pWndMainArray,
                     {
-                        ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
+                        ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP,
+                        ID_PRGBAR_1, ID_PRGBAR_2, ID_PRGBAR_3,
+                        ID_PANEL_VERSIONS,
                     });
                 }
                 twins::cursorRestorePos();

@@ -216,7 +216,30 @@ static constexpr twins::Widget page1Childs[] =
         size    : { 25, 1 },
         link    : {},
         { progressbar : {
-            fgColor : twins::ColorFG::Yellow
+            fgColor : twins::ColorFG::Yellow,
+            style   : twins::PgBarStyle::Hash
+        }}
+    },
+    {
+        type    : twins::Widget::ProgressBar,
+        id      : ID_PRGBAR_2,
+        coord   : { 30, 10 },
+        size    : { 12, 1 },
+        link    : {},
+        { progressbar : {
+            fgColor : twins::ColorFG::White,
+            style   : twins::PgBarStyle::Shade
+        }}
+    },
+    {
+        type    : twins::Widget::ProgressBar,
+        id      : ID_PRGBAR_3,
+        coord   : { 43, 10 },
+        size    : { 12, 1 },
+        link    : {},
+        { progressbar : {
+            fgColor : twins::ColorFG::White,
+            style   : twins::PgBarStyle::Rectangle
         }}
     },
     { /* NUL */ }

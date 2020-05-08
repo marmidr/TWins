@@ -33,6 +33,8 @@ enum WndMainIDs
                 ID_BTN_NO,
                 ID_BTN_CANCEL,
                 ID_PRGBAR_1,
+                ID_PRGBAR_2,
+                ID_PRGBAR_3,
                 ID_PAGE_1_END,
             ID_PAGE_2,
                 ID_LABEL_LBHELP,
