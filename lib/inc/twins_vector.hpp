@@ -55,6 +55,36 @@ public:
         T* mPtr;
     };
 
+    class ConstIter
+    {
+    public:
+        ConstIter(void) = delete;
+        ConstIter(const Vector<T> &vec, unsigned idx  = 0) { mPtr = vec.data() + idx; }
+        ConstIter(const ConstIter &other) { mPtr = other.mPtr; }
+
+        bool operator == (const ConstIter &other) const { return mPtr == other.mPtr; }
+        bool operator != (const ConstIter &other) const { return mPtr != other.mPtr; }
+        const T & operator *  (void) const { return *mPtr; }
+        const T * operator -> (void) const { return mPtr; }
+
+        // ++it
+        ConstIter& operator ++(void)
+        {
+            mPtr++;
+            return *this;
+        }
+
+        // it++ - ugly, do not use
+        // Iter operator ++(int)
+        // {
+        //     Iter it(*this);
+        //     mPtr++;
+        //     return it;
+        // }
+    protected:
+        const T* mPtr;
+    };
+
 public:
     Vector() = default;
 
@@ -137,6 +167,12 @@ public:
 
     /** @brief Direct access operator; \b Note: may lead to crash in case of invalid \p idx */
     T & operator [] (int idx)
+    {
+        assert(idx >= 0 && idx < mSize);
+        return mpItems[idx];
+    }
+
+    const T & operator [] (int idx) const
     {
         assert(idx >= 0 && idx < mSize);
         return mpItems[idx];
@@ -292,11 +328,12 @@ public:
             }
             else
             {
-                swap(idx, size()-1);
+                swap(idx, mSize - 1);
             }
         }
 
         mSize--;
+        resetItem(mpItems + mSize);
         return true;
     }
 
@@ -314,7 +351,7 @@ public:
     }
 
     /** @brief Search for \p val and return pointer or \b nullptr othervise  */
-    T* find(const T &val, int *pIdx = nullptr) const
+    T* find(const T &val, int *pIdx = nullptr)
     {
         for (unsigned i = 0; i < mSize; i++)
         {
@@ -330,7 +367,7 @@ public:
     }
 
     /** @brief Simpy check if vector contains \p val */
-    bool contains(const T &val) const
+    bool contains(const T &val)
     {
         return find(val) != nullptr;
     }
@@ -347,6 +384,9 @@ public:
 
     Iter begin(void) { return Iter(*this, 0); }
     Iter end(void)   { return Iter(*this, size()); }
+
+    ConstIter begin(void) const { return ConstIter(*this, 0); }
+    ConstIter end(void)   const { return ConstIter(*this, size()); }
 
 protected:
     T *         mpItems = nullptr;
@@ -376,7 +416,13 @@ protected:
     void initContent(T *pItems, uint16_t count)
     {
         for (unsigned i = 0; i < count; i++)
-            new (&pItems[i]) T();
+            new (&pItems[i]) T{};
+    }
+
+    void resetItem(T *pItem)
+    {
+        pItem->~T();
+        new (pItem) T{};
     }
 
 };

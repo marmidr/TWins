@@ -13,6 +13,7 @@ add_executable(${TARGETNAME}
     src/test_twins.cpp
     src/test_stack.cpp
     src/test_vector.cpp
+    src/test_map.cpp
 )
 
 target_compile_options(${TARGETNAME} PRIVATE

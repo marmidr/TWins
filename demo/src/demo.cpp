@@ -9,6 +9,7 @@
 #include "twins_ringbuffer.hpp"
 #include "twins_ios_defimpl.hpp"
 #include "twins_vector.hpp"
+#include "twins_map.hpp"
 
 #include <stdio.h>
 #include <string.h>
@@ -58,8 +59,10 @@ public:
 
     void onCheckboxToggle(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_CHBX_ENBL) TWINS_LOG("CHBX_ENBL"), chbxEnabled = !chbxEnabled;
-        if (pWgt->id == ID_CHBX_LOCK) TWINS_LOG("CHBX_LOCK"), chbxLocked = !chbxLocked;
+        if (pWgt->id == ID_CHBX_ENBL) TWINS_LOG("CHBX_ENBL");
+        if (pWgt->id == ID_CHBX_LOCK) TWINS_LOG("CHBX_LOCK");
+
+        wgtProp[pWgt->id].chbx.checked = !wgtProp[pWgt->id].chbx.checked;
     }
 
     void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) override
@@ -111,8 +114,9 @@ public:
     {
         if (pWgt->id == ID_PANEL_VERSIONS)
         {
-            pnlVerEnabled = !pnlVerEnabled;
-            return pnlVerEnabled;
+            auto &prp = wgtProp[pWgt->id];
+            prp.pnl.enabled = !prp.pnl.enabled;
+            return prp.pnl.enabled;
         }
 
         return true;
@@ -139,9 +143,7 @@ public:
 
     bool getCheckboxChecked(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_CHBX_ENBL) return chbxEnabled;
-        if (pWgt->id == ID_CHBX_LOCK) return chbxLocked;
-        return false;
+        return wgtProp[pWgt->id].chbx.checked;
     }
 
     void getLabelText(const twins::Widget* pWgt, twins::String &out) override
@@ -182,17 +184,9 @@ public:
 
     bool getLedLit(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_LED_LOCK)
-        {
-            ledLock = !ledLock;
-            return ledLock;
-        }
-        if (pWgt->id == ID_LED_PUMP)
-        {
-            ledBatt = !ledBatt;
-            return lblKeycodeSeq[0] == ' ';
-        }
-        return ledBatt;
+        auto &prp = wgtProp[pWgt->id];
+        prp.led.lit = !prp.led.lit;
+        return prp.led.lit;
     }
 
     void getProgressBarState(const twins::Widget*, int &pos, int &max) override
@@ -242,22 +236,36 @@ public:
     bool initialized = false;
 
 private:
-    bool pnlVerEnabled = false;
-    bool ledLock = false;
-    bool ledBatt = false;
-    bool chbxEnabled = false;
-    bool chbxLocked = true;
+    union WgtProp
+    {
+        struct
+        {
+            bool checked;
+        } chbx;
+
+        struct
+        {
+            bool lit;
+        } led;
+
+        struct
+        {
+            bool enabled;
+        } pnl;
+    };
+
     int  pgbarPos = 0;
     int  pgcPage = 0;
     int  listBoxItemIdx = 0;
     int  listBoxItemsCount = 20;
     int  radioId = 0;
+    twins::String edt1Text;
+    twins::String edt2Text;
+    twins::Map<twins::WID, WgtProp> wgtProp;
 
     // focused WID separate for each page
     using wids_t = twins::Vector<twins::WID>;
     wids_t focusedId;
-    twins::String edt1Text;
-    twins::String edt2Text;
 };
 
 // -----------------------------------------------------------------------------
