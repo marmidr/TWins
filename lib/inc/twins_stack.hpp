@@ -31,7 +31,8 @@ public:
     template <typename Tv>
     void push(Tv && item)
     {
-        reserve();
+        if (!reserve())
+            return;
         mpItems[mSize++] = std::forward<Tv>(item);
     }
 
@@ -56,10 +57,10 @@ public:
         return nullptr;
     }
 
-    /** @brief Remove all items and releases memory */
-    void clear()
+    /** @brief Remove all items and releases memory if at least 64B is to be retrieved */
+    void clear(bool force = false)
     {
-        if (mCapacity * sizeof(T) >= 128)
+        if (force || (mCapacity * sizeof(T) >= 64))
         {
             destroyContent();
             pIOs->memFree(mpItems);
@@ -73,40 +74,45 @@ public:
     uint16_t size() const { return mSize; }
 
 private:
-    void reserve()
+    bool reserve()
     {
         if (mSize == mCapacity)
         {
-            mCapacity += 10;
+            if (mCapacity >= 32000)
+                return false;
+            // only one growth strategy: increase by 8 slots
+            mCapacity += 8;
             T* p_new = (T*)pIOs->memAlloc(mCapacity * sizeof(T));
             moveContent(p_new, mpItems, mSize);
-            initContent(p_new+mSize, mCapacity-mSize);
+            initContent(p_new + mSize, mCapacity - mSize);
             pIOs->memFree(mpItems);
             mpItems = p_new;
         }
+
+        return true;
     }
 
     void destroyContent(void)
     {
-        // for (uint16_t i = 0; i < mCapacity; i++)
-        //     mpItems[i].~T();
+        for (unsigned i = 0; i < mCapacity; i++)
+            mpItems[i].~T();
     }
 
     void copyContent(const T *pSrc, uint16_t count)
     {
-        for (uint16_t i = 0; i < count; i++)
+        for (unsigned i = 0; i < count; i++)
             mpItems[i] = pSrc[i];
     }
 
     void moveContent(T *pDst, T *pSrc, uint16_t count)
     {
-        for (uint16_t i = 0; i < count; i++)
+        for (unsigned i = 0; i < count; i++)
             new (&pDst[i]) T(std::move(pSrc[i]));
     }
 
     void initContent(T *pItems, uint16_t count)
     {
-        for (uint16_t i = 0; i < count; i++)
+        for (unsigned i = 0; i < count; i++)
             new (&pItems[i]) T();
     }
 

@@ -129,13 +129,13 @@ TEST(VECTOR, insert)
     twins::Vector<int> v;
     EXPECT_EQ(0, v.size());
 
-    v.insert(77, 0);
+    v.insert(0, 77);
     EXPECT_TRUE(v == (twins::Vector<int>{77}));
 
-    v.insert(111, 0);
+    v.insert(0, 111);
     EXPECT_TRUE(v == (twins::Vector<int>{111, 77}));
 
-    v.insert(-3, 100);
+    v.insert(100, -3);
     EXPECT_TRUE(v == (twins::Vector<int>{111, 77, -3}));
 }
 
@@ -181,4 +181,14 @@ TEST(VECTOR, shrink)
     EXPECT_EQ(3, v.capacity());
 
     EXPECT_EQ(100, v.begin()->size());
+}
+
+TEST(VECTOR, std_string)
+{
+    twins::Vector<std::string> v;
+    // test for proper content destruction to catch memory leak
+    std::string s;
+    s.resize(100);
+    v.append(s);
+    v.insert(0, "X");
 }

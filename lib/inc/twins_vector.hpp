@@ -27,9 +27,6 @@ public:
 
     class Iter
     {
-    protected:
-        T* mPtr;
-
     public:
         Iter(void) = delete;
         Iter(Vector<T> &vec, unsigned idx  = 0) { mPtr = vec.data() + idx; }
@@ -54,6 +51,8 @@ public:
         //     mPtr++;
         //     return it;
         // }
+    protected:
+        T* mPtr;
     };
 
 public:
@@ -137,14 +136,14 @@ public:
     }
 
     /** @brief Direct access operator; \b Note: may lead to crash in case of invalid \p idx */
-    T & operator [] (int idx) const
+    T & operator [] (int idx)
     {
         assert(idx >= 0 && idx < mSize);
         return mpItems[idx];
     }
 
     /** @brief Direct safe access operator; Returns \b nullptr in case of invalid \p idx */
-    T * getAt(int idx) const
+    T * getAt(int idx)
     {
         if (idx >= 0 && idx < mSize)
             return &mpItems[idx];
@@ -153,6 +152,7 @@ public:
 
     /** @brief Simply returns iternal poinder do array of T */
     T * data() { return mpItems; }
+    const T * data() const { return mpItems; }
 
     /** @brief Returns vector current size (number of items) */
     unsigned size(void) const { return mSize; }
@@ -226,7 +226,7 @@ public:
 
     /** @brief Insert at given position or append if idx >= size */
     template<typename Tv>
-    void insert(Tv &&val, int idx)
+    void insert(int idx, Tv &&val)
     {
         if (idx < 0)
             return;
