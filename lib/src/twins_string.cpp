@@ -100,7 +100,7 @@ void String::appendFmt(const char *fmt, ...)
     } while (retry--);
 }
 
-void String::trim(int16_t trimPos, bool addEllipsis)
+void String::trim(int16_t trimPos, bool addEllipsis, bool ignoreESC)
 {
     if (trimPos < 0 || trimPos >= mSize)
         return;
@@ -108,16 +108,22 @@ void String::trim(int16_t trimPos, bool addEllipsis)
         trimPos--;
 
     char *p = mpBuff;
-    char *pEnd = mpBuff + mSize;
 
-    for (int pos = 0; pos < trimPos; pos++)
+    if (ignoreESC)
     {
-        int seqLen = utf8seqlen(p);
-        if (seqLen <= 0) break;
-        p += seqLen;
+        p = const_cast<char*>(u8skipIgnoreEsc(p, trimPos));
+    }
+    else
+    {
+        for (int i = 0; i < trimPos; i++)
+        {
+            int seqLen = utf8seqlen(p);
+            if (seqLen <= 0) break;
+            p += seqLen;
+        }
     }
 
-    if (p >= pEnd) return;
+    if (p >= mpBuff + mSize) return;
     mSize = p - mpBuff;
     char last = mpBuff[mSize];
 
@@ -126,18 +132,87 @@ void String::trim(int16_t trimPos, bool addEllipsis)
     if (addEllipsis && last != ' ') append("…");
 }
 
-void String::setLength(int16_t len, bool addEllipsis)
+void String::erase(int16_t pos, int16_t len)
+{
+    if (pos < 0 || pos >= mSize)
+        return;
+    if (len <= 0)
+        return;
+
+    char *p = mpBuff;
+
+    for (int i = 0; i < pos; i++)
+    {
+        int seqLen = utf8seqlen(p);
+        if (seqLen <= 0) break;
+        p += seqLen;
+    }
+
+    if (p >= mpBuff + mSize) return;
+
+    char *erase_at = p;
+    unsigned bytes_to_erase = 0;
+
+    for (int i = 0; i < len; i++)
+    {
+        int seqLen = utf8seqlen(p);
+        if (seqLen <= 0) break;
+        bytes_to_erase += seqLen;
+        p += seqLen;
+        if (p >= mpBuff + mSize)
+            break;
+    }
+
+    memmove(erase_at, erase_at + bytes_to_erase, mSize - (erase_at - mpBuff));
+    mSize -= bytes_to_erase;
+    mpBuff[mSize] = '\0';
+}
+
+void String::insert(int16_t pos, const char *s)
+{
+    if (pos < 0)
+        return;
+    if (!s || !*s)
+        return;
+
+    if ((unsigned)pos >= u8len())
+    {
+        append(s);
+        return;
+    }
+
+    char *p = mpBuff;
+
+    for (int i = 0; i < pos; i++)
+    {
+        int seqLen = utf8seqlen(p);
+        if (seqLen <= 0) break;
+        p += seqLen;
+    }
+
+    if (p >= mpBuff + mSize) return;
+
+    char *insert_at = p;
+    unsigned bytes_to_insert = strlen(s);
+
+    resize(mSize + bytes_to_insert);
+    memmove(insert_at + bytes_to_insert, insert_at, mSize - (insert_at - mpBuff));
+    memmove(insert_at, s, bytes_to_insert);
+    mSize += bytes_to_insert;
+    mpBuff[mSize] = '\0';
+}
+
+void String::setLength(int16_t len, bool addEllipsis, bool ignoreESC)
 {
     if (len < 0)
         return;
 
-    // TODO: do not count ANSI ESC sequences length
-    int u8len = utf8len(mpBuff);
+    int u8len = ignoreESC ? u8lenIgnoreEsc(mpBuff) : utf8len(mpBuff);
 
     if (u8len <= len)
         append(' ', len - u8len);
     else
-        trim(len, addEllipsis);
+        trim(len, addEllipsis, ignoreESC);
 }
 
 void String::clear()
@@ -164,9 +239,12 @@ String& String::operator=(String &&other)
     return *this;
 }
 
-unsigned String::u8len() const
+unsigned String::u8len(bool ignoreESC) const
 {
-    return (unsigned)utf8len(mpBuff);
+    if (ignoreESC)
+        return u8lenIgnoreEsc(mpBuff);
+    else
+        return (unsigned)utf8len(mpBuff);
 }
 
 void String::resize(uint16_t newCapacity)
@@ -210,6 +288,117 @@ void String::free()
     mCapacity = 0;
     mSize = 0;
 }
+
+unsigned String::escLen(const char *str)
+{
+    // ESC sequence always ends with:
+    // - A..Z
+    // - a..z
+    // - @, ^, ~
+    constexpr int esc_max_seq_len = 7;
+
+    if (str && *str == '\e')
+    {
+        unsigned n = 1;
+        while (n < esc_max_seq_len)
+        {
+            const char c = str[n];
+
+            switch (c)
+            {
+            case '\0':
+                return 0;
+            case '@':
+            case '^':
+            case '~':
+                return n+1;
+            default:
+                if (c >= 'A' && c <= 'Z') return n+1;
+                if (c >= 'a' && c <= 'z') return n+1;
+                break;
+            }
+
+            n++;
+        }
+    }
+
+    return 0;
+}
+
+unsigned String::u8lenIgnoreEsc(const char *str)
+{
+    if (!str || !*str)
+        return 0;
+
+    const char *str_end = str + strlen(str);
+    unsigned len = 0;
+
+    while (str < str_end)
+    {
+        unsigned esc_len = escLen(str);
+        bool seq_found = esc_len > 0;
+
+        for (; esc_len && (str < str_end); )
+        {
+            str += esc_len;
+            esc_len = escLen(str);
+        }
+
+        if (str < str_end)
+        {
+            if (int u8_len = utf8seqlen(str))
+            {
+                seq_found = true;
+                len++;
+                str += u8_len;
+            }
+        }
+
+        // nothing recognized? - string illformed
+        if (!seq_found)
+            break;
+    }
+
+    return len;
+}
+
+const char* String::u8skipIgnoreEsc(const char *str, unsigned toSkip)
+{
+    if (!str || !*str)
+        return "";
+
+    const char *str_end = str + strlen(str);
+    unsigned skipped = 0;
+
+    while (str < str_end && skipped < toSkip)
+    {
+        unsigned esc_len = escLen(str);
+        bool seq_found = esc_len > 0;
+
+        for (; esc_len && (str < str_end); )
+        {
+            str += esc_len;
+            esc_len = escLen(str);
+        }
+
+        if (str < str_end)
+        {
+            if (int u8_len = utf8seqlen(str))
+            {
+                seq_found = true;
+                skipped++;
+                str += u8_len;
+            }
+        }
+
+        // nothing recognized? - string illformed
+        if (!seq_found)
+            break;
+    }
+
+    return str;
+}
+
 
 // -----------------------------------------------------------------------------
 

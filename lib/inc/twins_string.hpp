@@ -34,21 +34,32 @@ public:
     /** @brief Append formatted string */
     void appendFmt(const char *fmt, ...);
     /** @brief Trim string that is too long to fit; optionally append ellipsis ... at the \p trimPos */
-    void trim(int16_t trimPos, bool addEllipsis = false);
+    void trim(int16_t trimPos, bool addEllipsis = false, bool ignoreESC = false);
+    /** @brief Erase \p len characters from string at \p pos */
+    void erase(int16_t pos, int16_t len = 1);
+    /** @brief Insert string \p s at \p pos */
+    void insert(int16_t pos, const char *s);
     /** @brief If shorter than len - add spaces; if longer - calls trim */
-    void setLength(int16_t len, bool addEllipsis = false);
+    void setLength(int16_t len, bool addEllipsis = false, bool ignoreESC = false);
     /** @brief Set size to zero; does not release buffer memory */
     void clear();
     /** @brief Return string size, in bytes */
     unsigned size() const { return mSize; }
     /** @brief Return string length, in characters, assuming UTF-8 encoding */
-    unsigned u8len() const;
+    unsigned u8len(bool ignoreESC = false) const;
     /** @brief Return C-style string buffer */
     const char *cstr() const { return mpBuff ? mpBuff : ""; }
     /** @brief Convenient assign operators */
     String& operator=(const char *s);
     String& operator=(const String &other) { *this = other.cstr(); return *this; }
     String& operator=(String &&other);
+
+    /** @brief Return ESC sequence length starting at \p str */
+    static unsigned escLen(const char *str);
+    /** @brief Return length of UTF-8 string \p str , ignoring ESC sequences inside it */
+    static unsigned u8lenIgnoreEsc(const char *str);
+    /** @brief Return pointer to \p str moved by \p toSkip UTF-8 characters, omitting ESC sequences */
+    static const char* u8skipIgnoreEsc(const char *str, unsigned toSkip);
 
 private:
     void resize(uint16_t newCapacity);

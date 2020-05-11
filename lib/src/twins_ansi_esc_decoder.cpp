@@ -1,5 +1,5 @@
 /******************************************************************************
- * @brief   TWins - key sequence decoder
+ * @brief   TWins - ANSI ESC sequence decoder
  * @author  Mariusz Midor
  *          https://bitbucket.org/mmidor/twins
  * @note    Based on Python script : https://wiki.bash-hackers.org/scripting/terminalcodes
@@ -8,8 +8,7 @@
  *          and https://ideone.com/CeeJUy
  *****************************************************************************/
 
-#include "twins_common.hpp"
-#include "twins_ringbuffer.hpp"
+#include "twins.hpp"
 #include "twins_utf8str.hpp"
 
 #include <stdint.h>
@@ -33,6 +32,8 @@
 
 namespace twins
 {
+
+constexpr unsigned ESC_MaxSeqLen = 7; // not including leading '\e'
 
 struct SeqMap
 {
@@ -362,6 +363,7 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
     return nullptr;
 }
 
+// -----------------------------------------------------------------------------
 
 static uint8_t decodeFailCtr = 0;
 static uint8_t prevCR = 0;
@@ -382,12 +384,11 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
     if (input.size() == 0)
         return;
 
-    constexpr uint8_t esc_max_len = 7;
-    char seq[esc_max_len+1];
+    char seq[ESC_MaxSeqLen+1];
 
     while (input.size())
     {
-        auto seq_sz = input.copy(seq, esc_max_len);
+        auto seq_sz = input.copy(seq, ESC_MaxSeqLen);
         seq[seq_sz] = '\0';
         const char c0 = seq[0];
         prevCR >>= 1; // set = 2 and then shift is faster than: if(prevCR) prevCR--;
@@ -398,6 +399,41 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
         {
             if (seq_sz < 3) // sequence too short
                 return;
+
+            // check mouse code
+            if (seq_sz >= 6 && seq[1] == '[' && seq[2] == 'M')
+            {
+                output.mouse.key = Key::MouseEvent;
+                const char mouse_btn = seq[3] - ' ';
+
+                switch (mouse_btn & 0xE3)
+                {
+                    case 0x00: output.mouse.btn = MouseBtn::ButtonLeft; break;
+                    case 0x01: output.mouse.btn = MouseBtn::ButtonMid; break;
+                    case 0x02: output.mouse.btn = MouseBtn::ButtonRight; break;
+                    case 0x03: output.mouse.btn = MouseBtn::ButtonReleased; break;
+                    case 0x80: output.mouse.btn = MouseBtn::ButtonGoBack; break;
+                    case 0x81: output.mouse.btn = MouseBtn::ButtonGoForward; break;
+                    case 0x40: output.mouse.btn = MouseBtn::WheelUp; break;
+                    case 0x41: output.mouse.btn = MouseBtn::WheelDown; break;
+                }
+
+                //TWINS_LOG("MouseBtn:0x%x", (unsigned)mouse_btn);
+
+                if (mouse_btn & 0x04) output.m_shift = 1;
+                if (mouse_btn & 0x08) output.m_alt = 1;
+                if (mouse_btn & 0x10) output.m_ctrl = 1;
+
+                output.mouse.col = seq[4] - ' ';
+                output.mouse.row = seq[5] - ' ';
+
+                #if TWINS_USE_KEY_NAMES
+                output.name = "MouseClk";
+                #endif
+
+                input.skip(6);
+                return;
+            }
 
             // binary search: find key map in max 7 steps
             if (auto *p_km = binary_search(seq+1, esc_keys_map_sorted.begin(), esc_keys_map_sorted.size()))

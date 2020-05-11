@@ -48,8 +48,8 @@
 #define ESC_UNDERLINE_ON                ANSI_CSI("4m")
 #define ESC_UNDERLINE_OFF               ANSI_CSI("24m")
 
-#define ESC_BLINK_SLOW                  ANSI_CSI("5m") // if not blinks, the bg color may be lighter
-#define ESC_BLINK_FAST                  ANSI_CSI("6m") // Not widely supported
+// if not blinks, the bg color may be lighter
+#define ESC_BLINK                       ANSI_CSI("5m")
 #define ESC_BLINK_OFF                   ANSI_CSI("25m")
 
 #define ESC_INVERSE_ON                  ANSI_CSI("7m")
@@ -72,7 +72,7 @@
 //@}
 
 /*******************************************************************************
- * @name Text Colour Control Sequences
+ * @name Text Color Control Sequences
  */
 
 //@{
@@ -155,25 +155,29 @@
 //@}
 
 /*******************************************************************************
- * @name Miscellaneous Control Sequences
+ * @name Line control
  */
 
 //@{
 
-/** Repeat last character \p n times - not fully supported */
-#define ESC_REPEAT_LAST_CHAR(n)         ANSI_CSI(#n "b")
-#define ESC_REPEAT_LAST_CHAR_FMT        ESC_REPEAT_LAST_CHAR(%u)
-
-/** Erases the current line, returning the cursor to the far left. */
+/** @brief Erases the current line, returning the cursor to the far left. */
 #define ESC_LINE_ERASE_ALL              ANSI_CSI("2K")
 #define ESC_LINE_ERASE_RIGHT            ANSI_CSI("0K")
 #define ESC_LINE_ERASE_LEFT             ANSI_CSI("1K")
 
-/** Insert line */
+/** @brief Insert line */
 #define ESC_LINE_INSERT(n)              ANSI_CSI(#n "L")
 #define ESC_LINE_INSERT_FMT             ESC_LINE_INSERT(%u)
 
-/** Erases the entire display, returning the cursor to the top left. */
+//@}
+
+/*******************************************************************************
+ * @name Screen Control Sequences
+ */
+
+ //@{
+
+/** @brief Erases the entire display, returning the cursor to the top left. */
 #define ESC_SCREEN_ERASE_ALL            ANSI_CSI("2J")
 #define ESC_SCREEN_ERASE_BELOW          ANSI_CSI("0J")
 #define ESC_SCREEN_ERASE_ABOVE          ANSI_CSI("1J")
@@ -182,15 +186,58 @@
 #define ESC_SCREEN_SAVE                 ANSI_CSI("?47h")
 #define ESC_SCREEN_RESTORE              ANSI_CSI("?47l")
 
-/** Reverse/normal video mode (BG <--> FG) */
+/** @brief Reverse/normal video mode (BG <--> FG) */
 #define ESC_SCREEN_REVERSE_ON           ANSI_CSI("?5h")
 #define ESC_SCREEN_REVERSE_OFF          ANSI_CSI("?5l")
 
-/** Scrool screen  */
+/** @brief Scrool screen  */
 #define ESC_SCREEN_SCROLL_UP(n)         ANSI_CSI(#n "S")
 #define ESC_SCREEN_SCROLL_DOWN(n)       ANSI_CSI(#n "T")
+
 #define ESC_SCREEN_SCROLL_UP_FMT        ESC_SCREEN_SCROLL_UP(%u)
 #define ESC_SCREEN_SCROLL_DOWN_FMT      ESC_SCREEN_SCROLL_DOWN(%u)
+
+//@}
+
+/*******************************************************************************
+ * @name Mouse Control Sequences
+ *       https://www.systutorials.com/docs/linux/man/4-console_codes/#lbAF
+ */
+
+//@{
+
+// Mode1: only click
+#define ESC_MOUSE_REPORTING_M1_ON       ANSI_CSI("?9h")
+#define ESC_MOUSE_REPORTING_M1_OFF      ANSI_CSI("?9l")
+
+// Mode2: click + release + wheel + Ctrl/Alt/Shift
+#define ESC_MOUSE_REPORTING_M2_ON       ANSI_CSI("?1000h")
+#define ESC_MOUSE_REPORTING_M2_OFF      ANSI_CSI("?1000l")
+
+//@}
+
+/*******************************************************************************
+ * @name Miscellaneous Control Sequences
+ */
+
+//@{
+
+/** @brief Terminal reset - clear the screen and scroll buffer */
+#define ESC_TERM_RESET                  ANSI_CSI("c")
+
+/** @brief Repeat last character \p n times - not fully supported */
+#define ESC_REPEAT_LAST_CHAR(n)         ANSI_CSI(#n "b")
+#define ESC_REPEAT_LAST_CHAR_FMT        ESC_REPEAT_LAST_CHAR(%u)
+
+/** @brief Character encoding */
+#define ESC_ENCODING_ISO8858_1          ANSI_ESC("%@")
+#define ESC_ENCODING_UTF8               ANSI_ESC("%G")
+
+/** @brief Terminal properties reporting */
+#define ESC_REPORT_WINDOW_CHARS         ANSI_CSI("18t")
+#define ESC_REPORT_SCREEN_CHARS         ANSI_CSI("19t")
+#define ESC_REPORT_CAPABILITIES         ANSI_CSI("c")
+
 
 // bash: blink screen until key pressed
 // { while true; do printf \\e[?5h; sleep 0.3; printf \\e[?5l; read -s -n1 -t1 && break; done; }

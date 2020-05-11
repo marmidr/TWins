@@ -18,21 +18,24 @@ void decodeInputSeqReset();
 
 static char rbBuffer[15];
 
-TEST(INPUTDECODER, empty)
+
+// -----------------------------------------------------------------------------
+
+TEST(ANSI_INPUTDECODER, empty)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
 
     ASSERT_EQ(0, input.size());
     ASSERT_EQ(sizeof(rbBuffer), input.capacity());
-    decodeInputSeq(input, kc);
+    twins::decodeInputSeq(input, kc);
 
     EXPECT_EQ(KEY_MOD_NONE, kc.mod_all);
     EXPECT_EQ(twins::Key::None, kc.key);
     EXPECT_STREQ("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, unknown)
+TEST(ANSI_INPUTDECODER, unknown)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
@@ -45,7 +48,7 @@ TEST(INPUTDECODER, unknown)
     EXPECT_STREQ("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, u8_character)
+TEST(ANSI_INPUTDECODER, u8_character)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
@@ -59,7 +62,7 @@ TEST(INPUTDECODER, u8_character)
     EXPECT_STRNE("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, Esc)
+TEST(ANSI_INPUTDECODER, Esc)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
@@ -73,7 +76,7 @@ TEST(INPUTDECODER, Esc)
     EXPECT_STRNE("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, Ctrl_S)
+TEST(ANSI_INPUTDECODER, Ctrl_S)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
@@ -87,7 +90,7 @@ TEST(INPUTDECODER, Ctrl_S)
     EXPECT_STRNE("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, Ctrl_F1)
+TEST(ANSI_INPUTDECODER, Ctrl_F1)
 {
     twins::RingBuff<char> input(rbBuffer);
     twins::KeyCode kc;
@@ -101,7 +104,7 @@ TEST(INPUTDECODER, Ctrl_F1)
     EXPECT_STRNE("<?>", kc.name);
 }
 
-TEST(INPUTDECODER, UnknownSeq__Ctrl_Home)
+TEST(ANSI_INPUTDECODER, UnknownSeq__Ctrl_Home)
 {
     twins::decodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
@@ -119,7 +122,7 @@ TEST(INPUTDECODER, UnknownSeq__Ctrl_Home)
     EXPECT_STREQ("@", kc.utf8);
 }
 
-TEST(INPUTDECODER, LoongUnknownSeq__Ctrl_Home)
+TEST(ANSI_INPUTDECODER, LoongUnknownSeq__Ctrl_Home)
 {
     twins::decodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
@@ -141,7 +144,7 @@ TEST(INPUTDECODER, LoongUnknownSeq__Ctrl_Home)
     EXPECT_EQ(0, input.size());
 }
 
-TEST(INPUTDECODER, NUL_InInput)
+TEST(ANSI_INPUTDECODER, NUL_InInput)
 {
     twins::decodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
@@ -153,7 +156,7 @@ TEST(INPUTDECODER, NUL_InInput)
     EXPECT_EQ(twins::Key::None, kc.key);
 }
 
-TEST(INPUTDECODER, Ctrl_F1__incomplete)
+TEST(ANSI_INPUTDECODER, Ctrl_F1__incomplete)
 {
     twins::decodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
@@ -182,7 +185,7 @@ TEST(INPUTDECODER, Ctrl_F1__incomplete)
     EXPECT_EQ(twins::Key::Esc, kc.key);
 }
 
-TEST(INPUTDECODER, L__S_C_UP__O)
+TEST(ANSI_INPUTDECODER, L__S_C_UP__O)
 {
     twins::decodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
@@ -207,7 +210,7 @@ TEST(INPUTDECODER, L__S_C_UP__O)
     EXPECT_EQ(1, input.size());
 }
 
-TEST(INPUTDECODER, CR)
+TEST(ANSI_INPUTDECODER, CR)
 {
     twins::decodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
@@ -225,7 +228,7 @@ TEST(INPUTDECODER, CR)
     EXPECT_EQ(twins::Key::Tab, kc.key);
 }
 
-TEST(INPUTDECODER, LF)
+TEST(ANSI_INPUTDECODER, LF)
 {
     twins::decodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);
@@ -243,7 +246,7 @@ TEST(INPUTDECODER, LF)
     EXPECT_EQ(twins::Key::Tab, kc.key);
 }
 
-TEST(INPUTDECODER, CR_LF_CR)
+TEST(ANSI_INPUTDECODER, CR_LF_CR)
 {
     twins::decodeInputSeqReset();
     twins::RingBuff<char> input(rbBuffer);

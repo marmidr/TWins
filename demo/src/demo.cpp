@@ -8,34 +8,61 @@
 #include "twins.hpp"
 #include "twins_ringbuffer.hpp"
 #include "twins_ios_defimpl.hpp"
+#include "twins_vector.hpp"
+#include "twins_map.hpp"
 
 #include <stdio.h>
-// #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 // -----------------------------------------------------------------------------
 
 class WndMainState : public twins::IWindowState
 {
 public:
+    void init()
+    {
+        focusedId.resize(wndMainNumPages);
+
+        for (auto &wid : focusedId)
+            wid = twins::WIDGET_ID_NONE;
+
+        initialized = true;
+    }
+
     // --- events ---
 
-    void onButtonClick(const twins::Widget* pWgt) override
+    void onButtonDown(const twins::Widget* pWgt) override
     {
         if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
         if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
         if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("BTN_CANCEL");
     }
 
-    void onEditChange(const twins::Widget* pWgt, twins::String &str) override
+    void onButtonUp(const twins::Widget* pWgt) override
     {
+        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
+        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
+        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("BTN_CANCEL");
+    }
+
+    void onEditChange(const twins::Widget* pWgt, twins::String &&str) override
+    {
+        switch (pWgt->id)
+        {
+            case ID_EDT_1: edt1Text = std::move(str); break;
+            case ID_EDT_2: edt2Text = std::move(str); break;
+            default: break;
+        }
         TWINS_LOG("value:%s", str.cstr());
     }
 
     void onCheckboxToggle(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_CHBX_ENBL) TWINS_LOG("CHBX_ENBL"), chbxEnabled = !chbxEnabled;
-        if (pWgt->id == ID_CHBX_LOCK) TWINS_LOG("CHBX_LOCK"), chbxLocked = !chbxLocked;
+        if (pWgt->id == ID_CHBX_ENBL) TWINS_LOG("CHBX_ENBL");
+        if (pWgt->id == ID_CHBX_LOCK) TWINS_LOG("CHBX_LOCK");
+
+        wgtProp[pWgt->id].chbx.checked = !wgtProp[pWgt->id].chbx.checked;
     }
 
     void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) override
@@ -43,22 +70,18 @@ public:
         if (pWgt->id == ID_PGCONTROL) pgcPage = newPageIdx;
     }
 
-    void onListBoxScroll(const twins::Widget* pWgt, bool up, bool page) override
+    void onListBoxSelect(const twins::Widget* pWgt, uint16_t highlightIdx) override
+    {
+        TWINS_LOG("LISTBOX_SELECT(%u)", highlightIdx);
+    }
+
+    void onListBoxChange(const twins::Widget* pWgt, uint16_t newIdx) override
     {
         if (pWgt->id == ID_LISTBOX)
         {
-            int cnt = listBoxItemsCount;
-            int delta = page ? pWgt->size.height : 1;
-            if (up) delta = -delta;
-            listBoxItemIdx += delta;
-            if (listBoxItemIdx >= cnt) listBoxItemIdx = 0;
-            if (listBoxItemIdx < 0) listBoxItemIdx = cnt - 1;
+            listBoxItemIdx = newIdx;
+            TWINS_LOG("LISTBOX_CHANGE(%u)", newIdx);
         }
-    }
-
-    void onListBoxSelect(const twins::Widget* pWgt) override
-    {
-        if (pWgt->id == ID_LISTBOX) TWINS_LOG("LISTBOX_SELECT");
     }
 
     void onRadioSelect(const twins::Widget* pWgt) override
@@ -68,14 +91,32 @@ public:
             radioId = pWgt->radio.radioId;
     }
 
+    void onCanvasDraw(const twins::Widget* pWgt) override
+    {
+        auto coord = twins::getScreenCoord(pWgt);
+        auto sz = pWgt->size;
+
+        twins::moveTo(coord.col, coord.row);
+        twins::writeChar('-', sz.width);
+        twins::moveTo(coord.col, coord.row + sz.height);
+        twins::writeChar('-', sz.width);
+    }
+
+    void onCanvasMouseEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
+    {
+        twins::moveTo(kc.mouse.col, kc.mouse.row);
+        twins::writeChar('0' + (int)kc.mouse.btn);
+    }
+
     // --- widgets state queries ---
 
     bool isEnabled(const twins::Widget* pWgt) override
     {
         if (pWgt->id == ID_PANEL_VERSIONS)
         {
-            pnlVerEnabled = !pnlVerEnabled;
-            return pnlVerEnabled;
+            auto &prp = wgtProp[pWgt->id];
+            prp.pnl.enabled = !prp.pnl.enabled;
+            return prp.pnl.enabled;
         }
 
         return true;
@@ -102,9 +143,7 @@ public:
 
     bool getCheckboxChecked(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_CHBX_ENBL) return chbxEnabled;
-        if (pWgt->id == ID_CHBX_LOCK) return chbxLocked;
-        return false;
+        return wgtProp[pWgt->id].chbx.checked;
     }
 
     void getLabelText(const twins::Widget* pWgt, twins::String &out) override
@@ -133,24 +172,21 @@ public:
         }
     }
 
-    void getEditText(const twins::Widget*, twins::String &out) override
+    void getEditText(const twins::Widget* pWgt, twins::String &out) override
     {
-        out = "Name:";
+        switch (pWgt->id)
+        {
+            case ID_EDT_1: out = edt1Text; break;
+            case ID_EDT_2: out = edt2Text; break;
+            default: break;
+        }
     }
 
     bool getLedLit(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_LED_LOCK)
-        {
-            ledLock = !ledLock;
-            return ledLock;
-        }
-        if (pWgt->id == ID_LED_PUMP)
-        {
-            ledBatt = !ledBatt;
-            return lblKeycodeSeq[0] == ' ';
-        }
-        return ledBatt;
+        auto &prp = wgtProp[pWgt->id];
+        prp.led.lit = !prp.led.lit;
+        return prp.led.lit;
     }
 
     void getProgressBarState(const twins::Widget*, int &pos, int &max) override
@@ -174,9 +210,9 @@ public:
     void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
     {
         if (itemIdx == 3)
-            out.appendFmt("Item 0034567890123456789*");
+            out.appendFmt(ESC_BOLD "Item" ESC_NORMAL " 0034567890123456789*");
         else
-            out.appendFmt("Item %03d", itemIdx);
+            out.appendFmt(ESC_FG_GREEN_INTENSE "Item" ESC_FG_WHITE " %03d", itemIdx);
     }
 
     int getRadioIndex(const twins::Widget* pWgt) override
@@ -197,34 +233,71 @@ public:
 public:
     char lblKeycodeSeq[10];
     const char *lblKeyName = "";
+    bool initialized = false;
 
 private:
-    bool pnlVerEnabled = false;
-    bool ledLock = false;
-    bool ledBatt = false;
-    bool chbxEnabled = false;
-    bool chbxLocked = true;
+    union WgtProp
+    {
+        struct
+        {
+            bool checked;
+        } chbx;
+
+        struct
+        {
+            bool lit;
+        } led;
+
+        struct
+        {
+            bool enabled;
+        } pnl;
+    };
+
     int  pgbarPos = 0;
     int  pgcPage = 0;
     int  listBoxItemIdx = 0;
     int  listBoxItemsCount = 20;
     int  radioId = 0;
+    twins::String edt1Text;
+    twins::String edt2Text;
+    twins::Map<twins::WID, WgtProp> wgtProp;
 
     // focused WID separate for each page
-    twins::WID focusedId[3] {};
+    using wids_t = twins::Vector<twins::WID>;
+    wids_t focusedId;
 };
 
 // -----------------------------------------------------------------------------
 
 static WndMainState wndMainState;
-twins::IWindowState * getWindMainState() { return &wndMainState; }
+
+twins::IWindowState * getWindMainState()
+{
+    if (!wndMainState.initialized) wndMainState.init();
+    return &wndMainState;
+}
+
 twins::RingBuff<char> rbKeybInput;
 
 struct DemoIOs : twins::DefaultIOs
 {
+    DemoIOs()
+    {
+    }
+
+    ~DemoIOs()
+    {
+    }
+
     uint16_t getLogsRow() override
     {
         return pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1;
+    }
+
+    void sleep(uint16_t ms) override
+    {
+        usleep(ms * 1000);
     }
 };
 
@@ -243,12 +316,14 @@ int main()
     twins::screenClrAll();
     twins::drawWidget(pWndMainArray);
     twins::inputPosixInit(100);
+    twins::writeStr(ESC_MOUSE_REPORTING_M2_ON);
     rbKeybInput.init(20);
     fflush(stdout);
 
     for (;;)
     {
         bool quit_req = false;
+        twins::KeyCode kc = {};
         const char *posix_inp = twins::inputPosixRead(quit_req);
         if (quit_req) break;
         rbKeybInput.write(posix_inp);
@@ -260,14 +335,24 @@ int main()
             rbKeybInput.copy(wndMainState.lblKeycodeSeq, sizeof(wndMainState.lblKeycodeSeq)-1);
             wndMainState.lblKeycodeSeq[sizeof(wndMainState.lblKeycodeSeq)-1] = '\0';
 
-            twins::KeyCode kc = {};
             twins::decodeInputSeq(rbKeybInput, kc);
             bool key_handled = twins::processKey(pWndMainArray, kc);
+            wndMainState.lblKeyName = kc.name;
 
             // display decoded key
-            wndMainState.lblKeyName = kc.name;
-            if (kc.key != twins::Key::None)
+            if (kc.key == twins::Key::MouseEvent)
+            {
+                // TWINS_LOG("B%c %c%c%c %03d:%03d",
+                //     '0' + (char)kc.mouse.btn,
+                //     kc.m_ctrl ? 'C' : ' ',
+                //     kc.m_alt ? 'A' : ' ',
+                //     kc.m_shift ? 'S' : ' ',
+                //     kc.mouse.col, kc.mouse.row);
+            }
+            else if (kc.key != twins::Key::None)
+            {
                 TWINS_LOG("Key: '%s' %s", kc.name, key_handled ? "(handled)" : "");
+            }
 
             if (kc.m_spec && kc.key == twins::Key::F5)
             {
@@ -276,26 +361,29 @@ int main()
             }
             else
             {
+                twins::cursorSavePos();
                 twins::drawWidgets(pWndMainArray, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
 
                 if (kc.mod_all != KEY_MOD_SPECIAL)
                 {
                     twins::drawWidgets(pWndMainArray,
                     {
-                        ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP, ID_PRGBAR_1, ID_PANEL_VERSIONS,
+                        ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP,
+                        ID_PRGBAR_1, ID_PRGBAR_2, ID_PRGBAR_3,
+                        ID_PANEL_VERSIONS,
                     });
                 }
+                twins::cursorRestorePos();
             }
         }
 
-        twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
         fflush(stdout);
     }
 
     // Window is always at [0]
     twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
     twins::screenClrBelow();
-    // twins::writeStr();
+    twins::writeStr(ESC_MOUSE_REPORTING_M2_OFF);
     twins::inputPosixFree();
 
     printf("Memory stats: max chunks: %d, max memory: %d B \n",

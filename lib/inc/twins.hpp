@@ -43,7 +43,7 @@ struct Size
 enum class ColorFG : uint8_t
 {
     None,       // Means 'No Change'
-    Default,    // Reset Do Terminal Default
+    Default,    // Reset to Terminal Default
     Black,
     BlackIntense,
     Red,
@@ -70,7 +70,7 @@ enum class ColorFG : uint8_t
 enum class ColorBG : uint8_t
 {
     None,       // Means 'No Change'
-    Default,    // Reset Do Terminal Default
+    Default,    // Reset to Terminal Default
     Black,
     BlackIntense,
     Red,
@@ -108,7 +108,7 @@ enum class FontAttrib : uint8_t
     Faint,          ///< faint, excludes bold
     Italics,        ///<
     Underline,      ///< single underline
-    BlinkSlow,      ///< blink
+    Blink,          ///< blink
     Inverse,        ///< fg/bg reversed
     Invisible,      ///< text invisible
     StrikeThrough   ///<
@@ -126,6 +126,16 @@ enum class FrameStyle : uint8_t
 };
 
 /**
+ * @brief ProgressBar style
+ */
+enum class PgBarStyle : uint8_t
+{
+    Hash,
+    Shade,
+    Rectangle,
+};
+
+/**
  * @brief Unique Widget-ID
  */
 using WID = int16_t;
@@ -139,29 +149,32 @@ class IWindowState
 public:
     virtual ~IWindowState() = default;
     // events
-    virtual void onButtonClick(const twins::Widget* pWgt) {}
-    virtual void onEditChange(const twins::Widget* pWgt, twins::String &str) {}
+    virtual void onButtonDown(const twins::Widget* pWgt) {}
+    virtual void onButtonUp(const twins::Widget* pWgt) {}
+    virtual void onEditChange(const twins::Widget* pWgt, twins::String &&str) {}
     virtual void onCheckboxToggle(const twins::Widget* pWgt) {}
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
-    virtual void onListBoxScroll(const twins::Widget* pWgt, bool up, bool page) {}
-    virtual void onListBoxSelect(const twins::Widget* pWgt) {}
+    virtual void onListBoxSelect(const twins::Widget* pWgt, uint16_t highlightIdx) {}
+    virtual void onListBoxChange(const twins::Widget* pWgt, uint16_t newIdx) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
+    virtual void onCanvasDraw(const twins::Widget* pWgt) {}
+    virtual void onCanvasMouseEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
     // common state queries
-    virtual bool isEnabled(const Widget*) { return true; }
-    virtual bool isFocused(const Widget*) { return false; }
-    virtual bool isVisible(const Widget*) { return true; }
+    virtual bool isEnabled(const twins::Widget*) { return true; }
+    virtual bool isFocused(const twins::Widget*) { return false; }
+    virtual bool isVisible(const twins::Widget*) { return true; }
     virtual WID& getFocusedID() = 0;
     // widget-specific queries
-    virtual bool getCheckboxChecked(const Widget*) { return false; }
-    virtual void getLabelText(const Widget*, String &out) {}
-    virtual void getEditText(const Widget*, String &out) {}
-    virtual bool getLedLit(const Widget*) { return false; }
-    virtual void getLedText(const Widget*, String &out) {}
-    virtual void getProgressBarState(const Widget*, int &pos, int &max) {}
-    virtual int  getPageCtrlPageIndex(const Widget*) { return 0; }
-    virtual void getListBoxState(const Widget*, int &itemIdx, int &itemsCount) { itemIdx = 0; itemsCount = 0; }
-    virtual void getListBoxItem(const Widget*, int itemIdx, String &out) {}
-    virtual int  getRadioIndex(const Widget*) { return -1; }
+    virtual bool getCheckboxChecked(const twins::Widget*) { return false; }
+    virtual void getLabelText(const twins::Widget*, twins::String &out) {}
+    virtual void getEditText(const twins::Widget*, twins::String &out) {}
+    virtual bool getLedLit(const twins::Widget*) { return false; }
+    virtual void getLedText(const twins::Widget*, twins::String &out) {}
+    virtual void getProgressBarState(const twins::Widget*, int &pos, int &max) {}
+    virtual int  getPageCtrlPageIndex(const twins::Widget*) { return 0; }
+    virtual void getListBoxState(const twins::Widget*, int &itemIdx, int &itemsCount) { itemIdx = 0; itemsCount = 0; }
+    virtual void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) {}
+    virtual int  getRadioIndex(const twins::Widget*) { return -1; }
     // requests
     virtual void invalidate(twins::WID id) {}
 };
@@ -192,6 +205,7 @@ struct Widget
         ProgressBar,
         ListBox,
         DropDownList,
+        Canvas,
     };
 
     Type    type = {};
@@ -208,6 +222,7 @@ struct Widget
         {
             /** in constexpr the pointer cannot be calculated, thus,
               * we use flat Widgets array index instead */
+            uint8_t ownIdx;     /// set in compile-time
             uint8_t parentIdx;  /// set in compile-time
             uint8_t childsIdx;  /// set in compile-time
             uint8_t childsCnt;  /// set in compile-time
@@ -234,7 +249,6 @@ struct Widget
 
         struct
         {
-            ColorBG     bgColor;
             ColorFG     fgColor;
             const char *text;
         } label;
@@ -287,17 +301,20 @@ struct Widget
         struct
         {
             ColorFG     fgColor;
+            PgBarStyle  style;
         } progressbar;
 
         struct
         {
-
         } listbox;
 
         struct
         {
-
         } dropdownlist;
+
+        struct
+        {
+        } canvas;
     };
 
 };
@@ -306,7 +323,7 @@ static constexpr WID WIDGET_ID_NONE = 0;    // convenient; default value points 
 static constexpr WID WIDGET_ID_ALL = -1;
 
 /** @brief Object remembers terminal font colors and attribute,
- *         to restore them upon destruction
+ *         to restore them on destruction
  */
 struct FontMemento
 {
@@ -329,7 +346,7 @@ void init(IOs *ios);
 /** @brief used by TWINS_LOG() */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
 
-/** @brief Control wheather all output is passed to a buffer and then written at once, asynchronously */
+/** @brief Control wheather all succesive write are stored in a buffer and then written at once, asynchronously */
 void bufferBegin();
 void bufferEnd();
 
@@ -340,32 +357,6 @@ int writeChar(char c, int16_t count = 1);
 int writeStr(const char *s);
 int writeStr(const char *s, int16_t count);
 int writeStrFmt(const char *fmt, ...);
-
-/**
- * @brief Draw single widget or entire window
- */
-void drawWidget(const Widget *pWindowArray, WID widgetId = WIDGET_ID_ALL);
-
-/**
- * @brief Draw selected widgets
- */
-void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t count);
-
-template<int N>
-inline void drawWidgets(const Widget *pWindowArray, const WID (&widgetIds)[N])
-{
-    drawWidgets(pWindowArray, widgetIds, N);
-}
-
-inline void drawWidgets(const Widget *pWindowArray, const std::initializer_list<WID> &ids)
-{
-    drawWidgets(pWindowArray, ids.begin(), ids.size());
-}
-
-/**
- * @brief Return widget type as string
- */
-const char * toString(Widget::Type type);
 
 /**
  * @brief Foreground color stack
@@ -416,17 +407,61 @@ inline void screenClrAll()          { writeStr(ESC_SCREEN_ERASE_ALL); }
 inline void screenSave()            { writeStr(ESC_SCREEN_SAVE); }
 inline void screenRestore()         { writeStr(ESC_SCREEN_RESTORE); }
 
+// -----------------------------------------------------------------------------
+
 /**
- * @brief Decode given ANSI sequence and produce readable Key Code
+ * @brief Decode ANSI keyboard/mouse sequence from \p input and produce readable Key Code \p output
  */
 void decodeInputSeq(RingBuff<char> &input, KeyCode &output);
 
+// -----------------------------------------------------------------------------
+
 /**
- * @brief Process keyboard signal received by console
+ * @brief Draw single widget or entire window
+ */
+void drawWidget(const Widget *pWindowArray, WID widgetId = WIDGET_ID_ALL);
+
+/**
+ * @brief Draw selected widgets
+ */
+void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t count);
+
+template<int N>
+inline void drawWidgets(const Widget *pWindowArray, const WID (&widgetIds)[N])
+{
+    drawWidgets(pWindowArray, widgetIds, N);
+}
+
+inline void drawWidgets(const Widget *pWindowArray, const std::initializer_list<WID> &ids)
+{
+    drawWidgets(pWindowArray, ids.begin(), ids.size());
+}
+
+/**
+ * @brief Return widget type as string
+ */
+const char * toString(Widget::Type type);
+
+/**
+ * @brief Return widget terminal screen based coordinates
+ */
+Coord getScreenCoord(const Widget *pWgt);
+
+/**
+ * @brief Return page id from \p pPageControl and \p pageIdx or \b WIDGET_ID_NONE
+ */
+WID getPageID(const Widget *pPageControl, int8_t pageIdx);
+
+/**
+ * @brief Return widget from its ID or \b nullptr
+ */
+const Widget* getWidget(const Widget *pWindowArray, WID widgetId);
+
+/**
+ * @brief Process keyboard/mouse signal received by console
  */
 bool processKey(const Widget *pWindow, const KeyCode &kc);
 
-//void quit();
 
 // -----------------------------------------------------------------------------
 

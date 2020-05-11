@@ -18,6 +18,7 @@ Implementation is based on examples:
 * https://wiki.bash-hackers.org/scripting/terminalcodes
 * http://0x80.pl/articles/terminals.html
 * https://www.jedsoft.org/slang/
+* https://www.systutorials.com/docs/linux/man/4-console_codes/#lbAF
 
 ## Primary goals
 
@@ -47,16 +48,19 @@ Implementation is based on examples:
     - [x] page control
     - [x] progress bar
     - [x] list
-    - [ ] drop down list
+    - [ ] dropdown list
+    - [x] canvas
+    - [ ] scrollbar
 - navigation
     - [x] widgets navigation by Tab/Esc key
     - [x] render focused widget state
-    - [ ] blinking cursor instead of inversed colors
+    - [x] blinking cursor instead of inversed colors
+    - [x] select widget by mouse
 - notifications
     - [x] notify event per widget type (button clicked, checkbox toggled)
 - [ ] color theme for window
 - [x] return if keyboard key was handled by active widget
-- [ ] support for mouse click
+- [x] support for mouse click
 
 ## How to build
 
@@ -76,10 +80,10 @@ Run demo:
 ./bin/TWinsDemo
 ```
 
-If you have `gcovr` installed you can generate test coverage HTML report
+If you have `gcovr` installed, after running tests you can generate test coverage HTML report
 
 ```bash
-make cov_only
+make twins_cov_only
 ```
 
 ---

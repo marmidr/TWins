@@ -106,6 +106,16 @@ TEST_F(STRING_Test, append_3)
     EXPECT_EQ(1, s.size());
 }
 
+TEST_F(STRING_Test, append_4)
+{
+    twins::String s;
+    s.append(ESC_BLINK "x" ESC_BLINK_OFF);
+
+    EXPECT_EQ(10, s.size());
+    EXPECT_EQ(10, s.u8len(false));
+    EXPECT_EQ(1, s.u8len(true));
+}
+
 TEST_F(STRING_Test, append_len)
 {
     twins::String s;
@@ -191,6 +201,15 @@ TEST_F(STRING_Test, trim_ellipsis_2)
     }
 }
 
+TEST_F(STRING_Test, trim_ignore_esc)
+{
+    twins::String s;
+    s.append("►" ESC_BOLD " Service" ESC_NORMAL " Menu");
+
+    s.trim(10, false, true);
+    EXPECT_STREQ("►" ESC_BOLD " Service" ESC_NORMAL " ", s.cstr());
+}
+
 TEST_F(STRING_Test, set_len)
 {
     {
@@ -223,6 +242,18 @@ TEST_F(STRING_Test, set_len)
     }
 }
 
+TEST_F(STRING_Test, set_len_ignore_esc)
+{
+    twins::String s;
+    s.append("►" ESC_BOLD " Service" ESC_NORMAL " Menu");
+
+    s.setLength(20, false, true);
+    EXPECT_STREQ("►" ESC_BOLD " Service" ESC_NORMAL " Menu" "      ", s.cstr());
+
+    s.setLength(10, false, true);
+    EXPECT_STREQ("►" ESC_BOLD " Service" ESC_NORMAL " ", s.cstr());
+}
+
 TEST_F(STRING_Test, move_assign)
 {
     twins::String s1;
@@ -237,4 +268,103 @@ TEST_F(STRING_Test, move_assign)
     twins::String s3 = std::move(s2);
     EXPECT_EQ(0, s2.size());
     EXPECT_EQ(4, s3.size());
+}
+
+TEST_F(STRING_Test, erase)
+{
+    {
+        twins::String s;
+
+        s = "A";
+        s.erase(-2, 1);
+        EXPECT_STREQ("A", s.cstr());
+        s.erase(0, -1);
+        EXPECT_STREQ("A", s.cstr());
+        s.erase(1, 1);
+        EXPECT_STREQ("A", s.cstr());
+    }
+
+    {
+        twins::String s;
+
+        s = "*ĄBĆDĘ#";
+        s.erase(1, 1);
+        EXPECT_STREQ("*BĆDĘ#", s.cstr());
+        s.erase(3, 2);
+        EXPECT_STREQ("*BĆ#", s.cstr());
+        s.erase(1, 15);
+        EXPECT_STREQ("*", s.cstr());
+    }
+}
+
+TEST_F(STRING_Test, insert)
+{
+    {
+        twins::String s;
+
+        s = "A";
+        s.insert(-2, "*");
+        EXPECT_STREQ("A", s.cstr());
+        s.insert(0, nullptr);
+        EXPECT_STREQ("A", s.cstr());
+        s.insert(0, "");
+        EXPECT_STREQ("A", s.cstr());
+        s.insert(5, ".");
+        EXPECT_STREQ("A.", s.cstr());
+    }
+
+    {
+        twins::String s;
+
+        s = "*ĄBĆDĘ#";
+        s.insert(1, ".");
+        EXPECT_STREQ("*.ĄBĆDĘ#", s.cstr());
+        s.insert(5, "••");
+        EXPECT_STREQ("*.ĄBĆ••DĘ#", s.cstr());
+        s.insert(11, "X");
+        EXPECT_STREQ("*.ĄBĆ••DĘ#X", s.cstr());
+    }
+
+    {
+        twins::String s;
+
+        s.insert(0, "••");
+        EXPECT_STREQ("••", s.cstr());
+    }
+}
+
+TEST(STRING, escLen)
+{
+    EXPECT_EQ(0, twins::String::escLen(nullptr));
+    EXPECT_EQ(0, twins::String::escLen(""));
+    // Up
+    EXPECT_EQ(0, twins::String::escLen("x\e[A"));
+    EXPECT_EQ(3, twins::String::escLen("\e[A"));
+}
+
+TEST(STRING, u8lenIgnoreEsc)
+{
+    EXPECT_EQ(0, twins::String::u8lenIgnoreEsc(nullptr));
+    EXPECT_EQ(0, twins::String::u8lenIgnoreEsc(""));
+
+    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("ABC"));
+    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("ĄBĆ"));
+
+    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("ĄBĆ\e[A"));
+    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("\e[AĄBĆ"));
+    EXPECT_EQ(4, twins::String::u8lenIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ"));
+}
+
+TEST(STRING, u8skipIgnoreEsc)
+{
+    EXPECT_STREQ("", twins::String::u8skipIgnoreEsc(nullptr, 0));
+    EXPECT_STREQ("", twins::String::u8skipIgnoreEsc("", 5));
+
+    EXPECT_STREQ("ABC", twins::String::u8skipIgnoreEsc("ABC", 0));
+    EXPECT_STREQ("C", twins::String::u8skipIgnoreEsc("ABC", 2));
+    EXPECT_STREQ("", twins::String::u8skipIgnoreEsc("ABC", 5));
+    EXPECT_STREQ("Ć", twins::String::u8skipIgnoreEsc("ĄBĆ", 2));
+
+    EXPECT_STREQ("Ć\e[1;2AĘ", twins::String::u8skipIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ", 2));
+    EXPECT_STREQ("", twins::String::u8skipIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ", 4));
 }

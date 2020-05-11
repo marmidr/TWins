@@ -13,13 +13,36 @@
 namespace twins
 {
 
+#ifndef MIN
+# define MIN(x, y)              (((x) < (y)) ? (x) : (y))
+#endif
+
+#ifndef MAX
+# define MAX(x, y)              (((x) > (y)) ? (x) : (y))
+#endif
+
+#ifndef ABS
+# define ABS(a)                 ((a) >= 0 ? (a) : (-(a)))
+#endif
+
+#ifndef BIT
+# define BIT(n)                  (1 << (n))
+#endif
+
+#define INRANGE(val, min, max)  (((val) >= (min)) && ((val) <= (max)))
+
+// forward decl
 class String;
 
-/** @brief Template returning length of array of type T */
+/**
+ * @brief Template returning length of array of type T
+ */
 template<unsigned N, typename T>
 unsigned arrSize(const T (&arr)[N]) { return N; }
 
-/// @brief array template usefull in const expressions
+/**
+ * @brief array template usefull in const expressions
+ */
 template <typename T, unsigned N>
 struct Array
 {
@@ -53,6 +76,7 @@ struct IOs
     virtual void *memAlloc(uint32_t sz) = 0;
     virtual void  memFree(void *ptr) = 0;
     virtual uint16_t getLogsRow() = 0;
+    virtual void sleep(uint16_t ms) = 0;
 };
 
 // pointer set by init()
@@ -135,6 +159,21 @@ enum class Key : uint8_t
     F11,
     F12,
     //
+    MouseEvent
+};
+
+/** Mouse button click events */
+enum class MouseBtn : uint8_t
+{
+    None,
+    ButtonLeft,
+    ButtonMid,
+    ButtonRight,
+    ButtonGoBack,
+    ButtonGoForward,
+    ButtonReleased,
+    WheelUp,
+    WheelDown,
 };
 
 /** Key modifiers */
@@ -151,8 +190,21 @@ struct KeyCode
 {
     union
     {
-        char    utf8[5];    // UTF-8 code: 'a', '4', 'Ł'
+        /** used for regular text input */
+        char    utf8[5];    // NUL terminated UTF-8 code: 'a', '4', 'Ł'
+        /** used for special keys */
         Key     key = {};   // 'F1', 'Enter'
+        /** used for mouse events (when key == Key::MouseClick) */
+        struct
+        {
+            // same as key above
+            Key      key;
+            /** button or wheel event */
+            MouseBtn btn;
+            /** 1:1 based terminal coordinates of the event */
+            uint8_t  col;
+            uint8_t  row;
+        } mouse;
     };
 
     union
