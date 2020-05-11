@@ -448,6 +448,16 @@ const char * toString(Widget::Type type);
 Coord getScreenCoord(const Widget *pWgt);
 
 /**
+ * @brief Return page id from \p pPageControl and \p pageIdx or \b WIDGET_ID_NONE
+ */
+WID getPageID(const Widget *pPageControl, int8_t pageIdx);
+
+/**
+ * @brief Return widget from its ID or \b nullptr
+ */
+const Widget* getWidget(const Widget *pWindowArray, WID widgetId);
+
+/**
  * @brief Process keyboard/mouse signal received by console
  */
 bool processKey(const Widget *pWindow, const KeyCode &kc);

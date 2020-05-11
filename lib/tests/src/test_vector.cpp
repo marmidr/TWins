@@ -161,6 +161,15 @@ TEST(VECTOR, remove)
     EXPECT_EQ(0, v.size());
 }
 
+TEST(VECTOR, resize_down)
+{
+    twins::Vector<int> v(std::initializer_list<int>{1, 2, 3, 5, 11, 16});
+    EXPECT_EQ(6, v.size());
+
+    v.resize(4);
+    EXPECT_EQ(4, v.size());
+}
+
 TEST(VECTOR, shrink)
 {
     using bigarray_t = std::array<int, 100>;

@@ -224,7 +224,8 @@ public:
             if (sizeof(T) * (newSize - newSize) < 64)
             {
                 // small change in memory - do not reallocate memory
-                newSize = newSize;
+                destroyContent(mpItems + newSize, mSize-newSize);
+                mSize = newSize;
                 return;
             }
         }
@@ -242,10 +243,13 @@ public:
         mCapacity = mSize = newSize;
     }
 
-    /** @brief Realloc if big space reserver but small number of elements stored */
-    void shrink(void)
+    /** @brief Change buffer capacity to enough for \b size items */
+    void shrink(bool force = false)
     {
-        if ((mCapacity - mSize) * sizeof(T) < 128)
+        if (mCapacity == mSize)
+            return;
+
+        if (!force && ((mCapacity - mSize) * sizeof(T) < 64))
             return;
 
         unsigned new_capacity = mSize;
@@ -394,10 +398,22 @@ protected:
     uint16_t    mCapacity = 0;
 
 protected:
-    void destroyContent(void)
+    void initContent(T *pItems, uint16_t count)
     {
-        for (unsigned i = 0; i < mCapacity; i++)
-            mpItems[i].~T();
+        for (unsigned i = 0; i < count; i++)
+            new (&pItems[i]) T{};
+    }
+
+    void destroyContent(T *pItems = nullptr, uint16_t count = 0)
+    {
+        if (pItems == nullptr)
+        {
+            pItems = mpItems;
+            count = mSize;
+        }
+
+        for (unsigned i = 0; i < count; i++)
+            pItems[i].~T();
     }
 
     template<typename Tv>
@@ -411,12 +427,6 @@ protected:
     {
         for (unsigned i = 0; i < count; i++)
             new (&pDst[i]) T(std::move(pSrc[i]));
-    }
-
-    void initContent(T *pItems, uint16_t count)
-    {
-        for (unsigned i = 0; i < count; i++)
-            new (&pItems[i]) T{};
     }
 
     void resetItem(T *pItem)

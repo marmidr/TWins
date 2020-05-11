@@ -23,8 +23,9 @@ pipelines:
           - apt-get update
           - apt-get install -y cmake
           - git submodule update --init --remote
+          - g++ --version
           - mkdir build
           - cd build
-          - cmake ..
+          - cmake -DTWINS_USE_SANITIZERS=OFF ..
           - make -j
           - ctest -V

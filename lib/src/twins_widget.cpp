@@ -72,7 +72,7 @@ const Widget* getWidgetByWID(const WID widgetId)
 {
     for (unsigned i = 0; g.pWndArray[i].type != Widget::None; i++)
         if (g.pWndArray[i].id == widgetId)
-        return &g.pWndArray[i];
+            return &g.pWndArray[i];
 
     return nullptr;
 }
@@ -94,6 +94,7 @@ const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
 
     for (unsigned i = 0; g.pWndArray[i].type != Widget::None; i++)
     {
+        bool stop_searching = true;
         Rect r;
         const auto *p_wgt = g.pWndArray + i;
         r.coord = getScreenCoord(p_wgt);
@@ -124,6 +125,7 @@ const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
         case Widget::DropDownList:
             break;
         default:
+            stop_searching = false;
             break;
         }
 
@@ -136,6 +138,10 @@ const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
                 p_wgt_at = p_wgt;
                 best_rect = r;
                 wgtRect = r;
+
+                // visible and clickable widget found?
+                if (stop_searching)
+                    break;
             }
         }
     }
@@ -677,9 +683,10 @@ static bool processKey_Button(const Widget *pWgt, const KeyCode &kc)
 
 static bool processKey_PageCtrl(const Widget *pWgt, const KeyCode &kc)
 {
-    if (kc.key == Key::PgDown || kc.key == Key::PgUp)
+    if (kc.key == Key::PgDown || kc.key == Key::PgUp ||
+        kc.key == Key::F11 || kc.key == Key::F12)
     {
-        pgControlChangePage(pWgt, kc.key == Key::PgDown);
+        pgControlChangePage(pWgt, kc.key == Key::PgDown || kc.key == Key::F12);
         return true;
     }
 
@@ -1044,23 +1051,52 @@ Coord getScreenCoord(const Widget *pWgt)
 {
     Coord coord = pWgt->coord;
 
-    // go up the widgets hierarchy
-    const auto *p_parent = getParent(pWgt);
-
-    for (;;)
+    if (pWgt->link.ownIdx > 0)
     {
-        coord += p_parent->coord;
+        // go up the widgets hierarchy
+        const auto *p_parent = getParent(pWgt);
 
-        if (p_parent->type == Widget::Type::PageCtrl)
-            coord.col += p_parent->pagectrl.tabWidth;
+        for (;;)
+        {
+            coord += p_parent->coord;
 
-        if (p_parent->link.ownIdx == 0)
-            break;
+            if (p_parent->type == Widget::Type::PageCtrl)
+                coord.col += p_parent->pagectrl.tabWidth;
 
-        p_parent = getParent(p_parent);
+            // top-level parent reached
+            if (p_parent->link.ownIdx == 0)
+                break;
+
+            p_parent = getParent(p_parent);
+        }
     }
 
     return coord;
+}
+
+WID getPageID(const Widget *pPageControl, int8_t pageIdx)
+{
+    assert(pPageControl);
+    assert(pPageControl->type == Widget::PageCtrl);
+
+    if (pageIdx < 0 || pageIdx >= pPageControl->link.childsCnt)
+        return WIDGET_ID_NONE;
+
+    const Widget *p_page = pPageControl;
+    p_page += (pPageControl->link.childsIdx - pPageControl->link.ownIdx) + pageIdx;
+    return p_page->id;
+}
+
+const Widget* getWidget(const Widget *pWindowArray, WID widgetId)
+{
+    assert(pWindowArray);
+    assert(pWindowArray->type == Widget::Window);
+
+    const Widget *p_arr_bkp = g.pWndArray;
+    g.pWndArray = pWindowArray;
+    const auto *p_wgt = getWidgetByWID(widgetId);
+    g.pWndArray = p_arr_bkp;
+    return p_wgt;
 }
 
 bool processKey(const Widget *pWindowArray, const KeyCode &kc)
@@ -1105,12 +1141,14 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
             }
             case Key::PgUp:
             case Key::PgDown:
+            case Key::F11:
+            case Key::F12:
             {
                 // Ctrl+PgUp/PgDown will be directed to window's first PageControl widget
                 if (const auto *p_wgt = findMainPgControl())
                 {
                     auto curr_id = g.pWndState->getFocusedID();
-                    if (kc.m_ctrl || curr_id == p_wgt->id)
+                    if (kc.m_ctrl || curr_id == p_wgt->id || (kc.key == Key::F11 || kc.key == Key::F12))
                     {
                         processKey_PageCtrl(p_wgt, kc);
                         key_processed = true;
