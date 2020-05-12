@@ -146,6 +146,15 @@ enum class PgBarStyle : uint8_t
 };
 
 /**
+ * @brief Button style
+ */
+enum class ButtonStyle : uint8_t
+{
+    Simple,
+    Solid,
+};
+
+/**
  * @brief Unique Widget-ID
  */
 using WID = int16_t;
@@ -285,8 +294,9 @@ struct Widget
         struct
         {
             const char *text;
-            uint8_t     groupId;
             ColorFG     fgColor;
+            ColorBG     bgColor;
+            ButtonStyle style;
         } button;
 
         struct

@@ -131,7 +131,7 @@ static constexpr twins::Widget page1Childs[] =
                 size    : { 22, 1 },
                 link    : {},
                 { label : {
-                    fgColor : twins::ColorFG::Blue,
+                    fgColor : twins::ColorFG::White,
                     text    : nullptr // use callback to get text
                 }}
             },
@@ -183,7 +183,9 @@ static constexpr twins::Widget page1Childs[] =
         link    : {},
         { button : {
             text    : "YES",
-            groupId : 1
+            fgColor : twins::ColorFG::Green,
+            bgColor : twins::ColorBG::White,
+            style   : twins::ButtonStyle::Solid
         }}
     },
     {
@@ -194,8 +196,7 @@ static constexpr twins::Widget page1Childs[] =
         link    : {},
         { button : {
             text    : "NO",
-            groupId : 1,
-            fgColor : twins::ColorFG::Red
+            fgColor : twins::ColorFG::Yellow,
         }}
     },
     {
@@ -206,7 +207,9 @@ static constexpr twins::Widget page1Childs[] =
         link    : {},
         { button : {
             text    : "CANCEL",
-            groupId : 1
+            fgColor : twins::ColorFG::Yellow,
+            bgColor : twins::ColorBG::Black,
+            style   : twins::ButtonStyle::Solid
         }}
     },
     {

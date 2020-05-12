@@ -43,6 +43,8 @@ public:
     void setLength(int16_t len, bool addEllipsis = false, bool ignoreESC = false);
     /** @brief Set size to zero; does not release buffer memory */
     void clear();
+    /** @brief */
+    String& operator << (const char *s) { append(s); return *this; }
     /** @brief Return string size, in bytes */
     unsigned size() const { return mSize; }
     /** @brief Return string length, in characters, assuming UTF-8 encoding */

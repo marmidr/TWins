@@ -309,19 +309,67 @@ static void drawRadio(const Widget *pWgt)
 
 static void drawButton(const Widget *pWgt)
 {
-    bool focused = g.pWndState->isFocused(pWgt);
-    g.str.clear();
-    g.str.append(focused ? "[<" : "[ ");
-    g.str.append(pWgt->button.text);
-    g.str.trim(pWgt->size.width-2);
-    g.str.append(focused ? ">]" : " ]");
+    const bool focused = g.pWndState->isFocused(pWgt);
+    const bool is_pressed = pWgt == g.pMouseDownWgt;
 
-    moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-    if (pWgt == g.pMouseDownWgt) pushAttr(FontAttrib::Inverse);
-    pushClFg(pWgt->button.fgColor == ColorFG::None ? ColorFG::Default : pWgt->button.fgColor);
-    writeStr(g.str.cstr());
-    popClFg();
-    if (pWgt == g.pMouseDownWgt) popAttr();
+    if (pWgt->button.style == ButtonStyle::Simple)
+    {
+        g.str.clear();
+        g.str.append(focused ? "[<" : "[ ");
+        g.str.append(pWgt->button.text);
+        g.str.append(focused ? ">]" : " ]");
+
+        moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
+        pushClFg(pWgt->button.fgColor == ColorFG::None ? ColorFG::Default : pWgt->button.fgColor);
+        if (is_pressed) pushAttr(FontAttrib::Inverse);
+        writeStr(g.str.cstr());
+        if (is_pressed) popAttr();
+        popClFg();
+    }
+    else
+    {
+        g.str.clear();
+        g.str << " " << pWgt->button.text << " ";
+
+        moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
+        pushClBg(pWgt->button.bgColor);
+        pushClFg(pWgt->button.fgColor);
+        if (is_pressed) pushAttr(FontAttrib::Inverse);
+        writeStr(g.str.cstr());
+        if (is_pressed) popAttr();
+        popClFg();
+        popClBg();
+
+        if (is_pressed)
+        {
+            // erase shadow after
+            writeStr(" ");
+            // erase shadow below
+            g.str.clear();
+            auto l = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
+            for (unsigned i = 0; i < l; i++) g.str.append(" ");
+
+            moveTo(g.parentCoord.col + pWgt->coord.col + 1, g.parentCoord.row + pWgt->coord.row + 1);
+            writeStr(g.str.cstr());
+        }
+        else
+        {
+            // trailing shadow
+            pushClFg(ColorFG::BlackIntense);
+            writeStr("▄");
+            popClFg();
+
+            // shadow
+            g.str.clear();
+            auto l = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
+            for (unsigned i = 0; i < l; i++) g.str.append("▀");
+
+            moveTo(g.parentCoord.col + pWgt->coord.col + 1, g.parentCoord.row + pWgt->coord.row + 1);
+            pushClFg(ColorFG::BlackIntense);
+            writeStr(g.str.cstr());
+            popClFg();
+        }
+    }
 }
 
 static void drawPageControl(const Widget *pWgt)
