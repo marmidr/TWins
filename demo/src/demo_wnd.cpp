@@ -313,6 +313,101 @@ static constexpr twins::Widget page2Childs[] =
     { /* NUL */ }
 };
 
+static constexpr twins::Widget page3Childs[] =
+{
+    {
+        type    : twins::Widget::Panel,
+        id      : ID_PANEL_EDT,
+        coord   : { 2, 1 },
+        size    : { 32, 5 },
+        link    : { (const twins::Widget[]) // set first field in union - pChilds
+        {
+            {
+                type    : twins::Widget::Edit,
+                id      : ID_EDT_1,
+                coord   : { 1, 1 },
+                size    : { 30, 1 },
+                link    : {},
+                { edit : {
+                    bgColor     : twins::ColorBG::BlueIntense,
+                    fgColor     : twins::ColorFG::White,
+                }}
+            },
+            {
+                type    : twins::Widget::Edit,
+                id      : ID_EDT_2,
+                coord   : { 1, 3 },
+                size    : { 30, 1 },
+                link    : {},
+                { edit : {
+                    bgColor     : twins::ColorBG::BlueIntense,
+                    fgColor     : twins::ColorFG::White,
+                }}
+            },
+            { /* NUL */ }
+        }},
+        { panel : {
+            bgColor     : twins::ColorBG::White,
+            fgColor     : twins::ColorFG::White,
+            title       : {},
+        }} // panel
+    },
+    {
+        type    : twins::Widget::Canvas,
+        id      : ID_CANVAS,
+        coord   : { 2, 6 },
+        size    : { 32, 4 },
+        link    : {},
+    },
+    {
+        type    : twins::Widget::Panel,
+        id      : ID_PANEL_CHBX,
+        coord   : { 36, 1 },
+        size    : { 22, 10 },
+        link    : { (const twins::Widget[]) // set first field in union - pChilds
+        {
+            {
+                type    : twins::Widget::CheckBox,
+                id      : ID_CHBX_A,
+                coord   : { 2, 2 },
+                size    : {},
+                link    : {},
+                { checkbox : {
+                    text    : "Check A"
+                }}
+            },
+            {
+                type    : twins::Widget::CheckBox,
+                id      : ID_CHBX_B,
+                coord   : { 2, 4 },
+                size    : {},
+                link    : {},
+                { checkbox : {
+                    text    : "Check B"
+                }}
+            },
+            {
+                type    : twins::Widget::CheckBox,
+                id      : ID_CHBX_C,
+                coord   : { 2, 6 },
+                size    : {},
+                link    : {},
+                { checkbox : {
+                    text    : "Check C"
+                }}
+            },
+
+            { /* NUL */ }
+        }},
+        { panel : {
+            bgColor     : twins::ColorBG::Blue,
+            fgColor     : twins::ColorFG::White,
+            title       : {},
+        }} // panel
+    },
+    { /* NUL */ }
+};
+
 static constexpr twins::Widget wndMain =
 {
     // NOTE: all members must be initialized, in order they are declared,
@@ -361,39 +456,7 @@ static constexpr twins::Widget wndMain =
                     id      : ID_PAGE_3,
                     coord   : {},
                     size    : {},
-                    link    : { (const twins::Widget[])
-                    {
-                        {
-                            type    : twins::Widget::Edit,
-                            id      : ID_EDT_1,
-                            coord   : { 2, 1 },
-                            size    : { 30, 1 },
-                            link    : {},
-                            { edit : {
-                                bgColor     : twins::ColorBG::White,
-                                fgColor     : twins::ColorFG::Black,
-                            }}
-                        },
-                        {
-                            type    : twins::Widget::Edit,
-                            id      : ID_EDT_2,
-                            coord   : { 2, 3 },
-                            size    : { 30, 1 },
-                            link    : {},
-                            { edit : {
-                                bgColor     : twins::ColorBG::White,
-                                fgColor     : twins::ColorFG::Black,
-                            }}
-                        },
-                        {
-                            type    : twins::Widget::Canvas,
-                            id      : ID_CANVAS,
-                            coord   : { 2, 5 },
-                            size    : { 30, 5 },
-                            link    : {},
-                        },
-                        { /* NUL */ }
-                    }},
+                    link    : { page3Childs },
                     { page : {
                         fgColor     : twins::ColorFG::Yellow,
                         title       : "Diagnostics",

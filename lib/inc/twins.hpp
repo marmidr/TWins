@@ -293,8 +293,8 @@ struct Widget
         struct
         {
             const char *text;
-            int8_t      radioId;
-            int8_t      groupId;
+            uint16_t    radioId;
+            uint8_t     groupId;
         } radio;
 
         struct

@@ -115,6 +115,24 @@ public:
         return &mBuckets[idx];
     }
 
+    /** @brief Return elements distribution 0 (worse)..100% (best) */
+    uint8_t distribution()
+    {
+        unsigned expected_nodes_per_bkt = mNodes / mBuckets.size();
+        unsigned over_expected = 0;
+
+        if (expected_nodes_per_bkt < 2)
+            return 100;
+
+        for (const auto &bkt : mBuckets)
+        {
+            if (bkt.size() > expected_nodes_per_bkt)
+                over_expected += bkt.size() - expected_nodes_per_bkt;
+        }
+
+        return 100 - (100 * over_expected / mNodes);
+    }
+
 private:
     Hash hashBuff(const void *data, unsigned length) const
     {

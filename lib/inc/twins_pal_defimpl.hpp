@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <time.h>
 
 #include <utility> // std::move
 
@@ -69,13 +70,37 @@ struct DefaultPAL : twins::IPal
         }
     }
 
+    void sleep(uint16_t ms) override
+    {
+        timespec ts = {};
+        ts.tv_sec = ms / 1000;
+        ms %= 1000;
+        ts.tv_nsec = 1'000'000 * ms;
+        nanosleep(&ts, nullptr);
+    }
+
     uint16_t getLogsRow() override
     {
         return 0;
     }
 
-    void sleep(uint16_t ms) override
+    uint32_t getTimeStamp() override
     {
+        static timespec ts_at_start;
+        if (ts_at_start.tv_sec == 0)
+            clock_gettime(CLOCK_MONOTONIC, &ts_at_start);
+
+        timespec ts_now;
+        clock_gettime(CLOCK_MONOTONIC, &ts_now);
+        uint32_t sec_diff = ts_now.tv_sec - ts_at_start.tv_sec;
+        auto msec_diff = (ts_now.tv_nsec - ts_at_start.tv_nsec) / 1'000'000;
+        return sec_diff * 1000 + msec_diff;
+    }
+
+    uint32_t getTimeDiff(uint32_t timestamp) override
+    {
+        auto now = getTimeStamp();
+        return now - timestamp;
     }
 
     // statistics

@@ -69,14 +69,16 @@ struct IPal
     };
 
     virtual ~IPal() = default;
-    virtual int   writeStr(const char *s) = 0;
-    virtual int   writeStrAsync(twins::String &&str) = 0;
-    virtual int   writeStrFmt(const char *fmt, va_list ap) = 0;
+    virtual int writeStr(const char *s) = 0;
+    virtual int writeStrAsync(twins::String &&str) = 0;
+    virtual int writeStrFmt(const char *fmt, va_list ap) = 0;
     virtual void  flushBuff() = 0;
     virtual void *memAlloc(uint32_t sz) = 0;
     virtual void  memFree(void *ptr) = 0;
+    virtual void  sleep(uint16_t ms) = 0;
     virtual uint16_t getLogsRow() = 0;
-    virtual void sleep(uint16_t ms) = 0;
+    virtual uint32_t getTimeStamp() = 0;
+    virtual uint32_t getTimeDiff(uint32_t timestamp) = 0;
 };
 
 // pointer set by init()

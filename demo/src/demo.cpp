@@ -30,6 +30,12 @@ public:
         initialized = true;
     }
 
+    ~WndMainState()
+    {
+        TWINS_LOG("WgtProperty map Distribution=%u%% Buckets:%u Nodes:%u",
+            wgtProp.distribution(), wgtProp.bucketsCount(), wgtProp.size());
+    }
+
     // --- events ---
 
     void onButtonDown(const twins::Widget* pWgt) override
@@ -50,17 +56,21 @@ public:
     {
         switch (pWgt->id)
         {
-            case ID_EDT_1: edt1Text = std::move(str); break;
-            case ID_EDT_2: edt2Text = std::move(str); break;
-            default: break;
+        case ID_EDT_1: edt1Text = std::move(str); break;
+        case ID_EDT_2: edt2Text = std::move(str); break;
+        default: break;
         }
         TWINS_LOG("value:%s", str.cstr());
     }
 
     void onCheckboxToggle(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_CHBX_ENBL) TWINS_LOG("CHBX_ENBL");
-        if (pWgt->id == ID_CHBX_LOCK) TWINS_LOG("CHBX_LOCK");
+        switch (pWgt->id)
+        {
+        case ID_CHBX_ENBL: TWINS_LOG("CHBX_ENBL"); break;
+        case ID_CHBX_LOCK: TWINS_LOG("CHBX_LOCK"); break;
+        default: TWINS_LOG("CHBX"); break;
+        }
 
         wgtProp[pWgt->id].chbx.checked = !wgtProp[pWgt->id].chbx.checked;
     }
@@ -338,12 +348,12 @@ int main()
             // display decoded key
             if (kc.key == twins::Key::MouseEvent)
             {
-                // TWINS_LOG("B%c %c%c%c %03d:%03d",
-                //     '0' + (char)kc.mouse.btn,
-                //     kc.m_ctrl ? 'C' : ' ',
-                //     kc.m_alt ? 'A' : ' ',
-                //     kc.m_shift ? 'S' : ' ',
-                //     kc.mouse.col, kc.mouse.row);
+                TWINS_LOG("B%c %c%c%c %03d:%03d",
+                    '0' + (char)kc.mouse.btn,
+                    kc.m_ctrl ? 'C' : ' ',
+                    kc.m_alt ? 'A' : ' ',
+                    kc.m_shift ? 'S' : ' ',
+                    kc.mouse.col, kc.mouse.row);
             }
             else if (kc.key != twins::Key::None)
             {
