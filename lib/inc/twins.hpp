@@ -108,6 +108,12 @@ const char* encodeCl(ColorFG cl);
 /** @brief Convert color identifier to ASCII ESC code */
 const char* encodeCl(ColorBG cl);
 
+/** @brief Color increment operator */
+ColorFG operator+(ColorFG cl, uint8_t n);
+ColorBG operator+(ColorBG cl, uint8_t n);
+inline ColorFG operator++(ColorFG &cl) { cl = cl + 1; return cl; };
+inline ColorBG operator++(ColorBG &cl) { cl = cl + 1; return cl; };
+
 /**
  * @brief
  */

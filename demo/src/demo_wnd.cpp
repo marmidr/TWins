@@ -183,8 +183,8 @@ static constexpr twins::Widget page1Childs[] =
         link    : {},
         { button : {
             text    : "YES",
-            fgColor : twins::ColorFG::Green,
-            bgColor : twins::ColorBG::White,
+            fgColor : twins::ColorFG::White,
+            bgColor : twins::ColorBG::Green,
             style   : twins::ButtonStyle::Solid
         }}
     },
@@ -207,8 +207,8 @@ static constexpr twins::Widget page1Childs[] =
         link    : {},
         { button : {
             text    : "CANCEL",
-            fgColor : twins::ColorFG::Yellow,
-            bgColor : twins::ColorBG::Black,
+            fgColor : twins::ColorFG::White,
+            bgColor : twins::ColorBG::BlackIntense,
             style   : twins::ButtonStyle::Solid
         }}
     },

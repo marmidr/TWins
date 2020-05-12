@@ -71,4 +71,18 @@ const char* encodeCl(ColorBG cl)
     return "";
 }
 
+ColorBG operator+(ColorBG cl, uint8_t n)
+{
+    if (cl > ColorBG::Default && cl < ColorBG::ThemeEnd)
+        cl = ColorBG((int)cl + n);
+    return cl;
+}
+
+ColorFG operator+(ColorFG cl, uint8_t n)
+{
+    if (cl > ColorFG::Default && cl < ColorFG::ThemeEnd)
+        cl = ColorFG((int)cl + n);
+    return cl;
+}
+
 }

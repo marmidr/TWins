@@ -171,7 +171,7 @@ void setCursorAt(const Widget *pWgt)
         coord.col += 1;
         break;
     case Widget::Button:
-        coord.col += 2; //(utf8len(pWgt->button.text) + 4) / 2;
+        coord.col += pWgt->button.style == ButtonStyle::Simple ? 2 : 1;
         break;
     case Widget::PageCtrl:
         coord.row += 1;
@@ -842,11 +842,12 @@ static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
-        int idx = kc.mouse.row - wgtRect.coord.row - 1;
+        int idx = g.pWndState->getPageCtrlPageIndex(pWgt);
+        int new_idx = kc.mouse.row - wgtRect.coord.row - 1;
 
-        if (idx >= 0 && idx < pWgt->link.childsCnt)
+        if (new_idx != idx && new_idx >= 0 && new_idx < pWgt->link.childsCnt)
         {
-            g.pWndState->onPageControlPageChange(pWgt, idx);
+            g.pWndState->onPageControlPageChange(pWgt, new_idx);
             g.pWndState->invalidate(pWgt->id);
         }
     }

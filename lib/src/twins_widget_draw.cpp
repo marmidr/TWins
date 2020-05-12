@@ -284,33 +284,41 @@ static void drawLed(const Widget *pWgt)
 static void drawCheckbox(const Widget *pWgt)
 {
     const char *s_chk_state = g.pWndState->getCheckboxChecked(pWgt) ? "[x] " : "[ ] ";
-    // bool focused = g.pWndState->isFocused(pWgt);
+    bool focused = g.pWndState->isFocused(pWgt);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-    // if (focused) pushAttr(FontAttrib::Inverse);
-    pushClFg(pWgt->checkbox.fgColor == ColorFG::None ? ColorFG::Default : pWgt->checkbox.fgColor);
+    if (focused) pushAttr(FontAttrib::Bold);
+    auto clfg = pWgt->checkbox.fgColor == ColorFG::None ? ColorFG::Default : pWgt->checkbox.fgColor;
+    if (focused) ++clfg;
+    pushClFg(clfg);
     writeStr(s_chk_state);
     writeStr(pWgt->checkbox.text);
     popClFg();
-    // if (focused) popAttr();
+    if (focused) popAttr();
 }
 
 static void drawRadio(const Widget *pWgt)
 {
     const char *s_radio_state = pWgt->radio.radioId == g.pWndState->getRadioIndex(pWgt) ? "(●) " : "( ) ";
-    // bool focused = g.pWndState->isFocused(pWgt);
+    bool focused = g.pWndState->isFocused(pWgt);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-    // if (focused) pushAttr(FontAttrib::Inverse);
+    auto clfg = ColorFG::White;
+    if (focused) ++clfg;
+    if (focused) pushAttr(FontAttrib::Bold);
+    pushClFg(clfg);
     writeStr(s_radio_state);
     writeStr(pWgt->radio.text);
-    // if (focused) popAttr();
+    popClFg();
+    if (focused) popAttr();
 }
 
 static void drawButton(const Widget *pWgt)
 {
     const bool focused = g.pWndState->isFocused(pWgt);
-    const bool is_pressed = pWgt == g.pMouseDownWgt;
+    const bool pressed = pWgt == g.pMouseDownWgt;
+    auto clfg = pWgt->button.fgColor == ColorFG::None ? ColorFG::Default : pWgt->button.fgColor;
+    if (focused) ++clfg;
 
     if (pWgt->button.style == ButtonStyle::Simple)
     {
@@ -320,11 +328,13 @@ static void drawButton(const Widget *pWgt)
         g.str.append(focused ? ">]" : " ]");
 
         moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-        pushClFg(pWgt->button.fgColor == ColorFG::None ? ColorFG::Default : pWgt->button.fgColor);
-        if (is_pressed) pushAttr(FontAttrib::Inverse);
+        pushAttr(FontAttrib::Bold);
+        pushClFg(clfg);
+        if (pressed) pushAttr(FontAttrib::Inverse);
         writeStr(g.str.cstr());
-        if (is_pressed) popAttr();
+        if (pressed) popAttr();
         popClFg();
+        popAttr();
     }
     else
     {
@@ -332,22 +342,24 @@ static void drawButton(const Widget *pWgt)
         g.str << " " << pWgt->button.text << " ";
 
         moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
+        pushAttr(FontAttrib::Bold);
         pushClBg(pWgt->button.bgColor);
-        pushClFg(pWgt->button.fgColor);
-        if (is_pressed) pushAttr(FontAttrib::Inverse);
+        pushClFg(clfg);
+        if (pressed) pushAttr(FontAttrib::Inverse);
         writeStr(g.str.cstr());
-        if (is_pressed) popAttr();
+        if (pressed) popAttr();
         popClFg();
         popClBg();
+        popAttr();
 
-        if (is_pressed)
+        if (pressed)
         {
             // erase shadow after
             writeStr(" ");
             // erase shadow below
             g.str.clear();
             auto l = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
-            for (unsigned i = 0; i < l; i++) g.str.append(" ");
+            g.str.append(" ", l);
 
             moveTo(g.parentCoord.col + pWgt->coord.col + 1, g.parentCoord.row + pWgt->coord.row + 1);
             writeStr(g.str.cstr());
@@ -355,17 +367,17 @@ static void drawButton(const Widget *pWgt)
         else
         {
             // trailing shadow
-            pushClFg(ColorFG::BlackIntense);
+            pushClFg(ColorFG::Black);
             writeStr("▄");
             popClFg();
 
             // shadow
             g.str.clear();
             auto l = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
-            for (unsigned i = 0; i < l; i++) g.str.append("▀");
+            g.str.append("▀", l);
 
             moveTo(g.parentCoord.col + pWgt->coord.col + 1, g.parentCoord.row + pWgt->coord.row + 1);
-            pushClFg(ColorFG::BlackIntense);
+            pushClFg(ColorFG::Black);
             writeStr(g.str.cstr());
             popClFg();
         }
