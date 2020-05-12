@@ -35,7 +35,7 @@ public:
     ~RingBuff()
     {
         if (mpBuff && !mStaticBuff)
-            pIOs->memFree(mpBuff);
+            pPAL->memFree(mpBuff);
     }
 
     /** @brief Initialize the internal buffer using twins::IOS memAlloc() */
@@ -45,8 +45,8 @@ public:
         if (mpBuff)
             return;
 
-        assert(pIOs);
-        mpBuff = (T*)pIOs->memAlloc(bufferSize * sizeof(T));
+        assert(pPAL);
+        mpBuff = (T*)pPAL->memAlloc(bufferSize * sizeof(T));
         mCapacity = bufferSize;
     }
 

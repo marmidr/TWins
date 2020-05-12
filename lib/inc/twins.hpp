@@ -17,7 +17,15 @@
 #define TWINS_LOG(...)   twins::log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
 
 #ifndef __TWINS_LINK_SECRET
-#define __TWINS_LINK_SECRET void*_
+# define __TWINS_LINK_SECRET void*_
+#endif
+
+#ifndef THEME_FG_DEFS
+# define THEME_FG_DEFS
+#endif
+
+#ifndef THEME_BG_DEFS
+# define THEME_BG_DEFS
 #endif
 
 // -----------------------------------------------------------------------------
@@ -62,6 +70,7 @@ enum class ColorFG : uint8_t
     WhiteIntense,
     // begin of theme-defined colors
     ThemeBegin,
+    THEME_FG_DEFS
     ThemeEnd = 255
 };
 
@@ -89,6 +98,7 @@ enum class ColorBG : uint8_t
     WhiteIntense,
     // begin of theme-defined colors
     ThemeBegin,
+    THEME_BG_DEFS
     ThemeEnd = 255
 };
 
@@ -341,7 +351,7 @@ private:
 /**
  * @brief Initialize TWins
  */
-void init(IOs *ios);
+void init(IPal *pal);
 
 /** @brief used by TWINS_LOG() */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);

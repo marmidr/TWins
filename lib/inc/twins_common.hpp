@@ -56,9 +56,9 @@ struct Array
 };
 
 /**
- * @brief Interface for I/O layer for easy porting
+ * @brief Platform Abstraction Layer for easy porting
  */
-struct IOs
+struct IPal
 {
     struct Stats
     {
@@ -68,7 +68,7 @@ struct IOs
         int32_t  memAllocatedMax;
     };
 
-    virtual ~IOs() = default;
+    virtual ~IPal() = default;
     virtual int   writeStr(const char *s) = 0;
     virtual int   writeStrAsync(twins::String &&str) = 0;
     virtual int   writeStrFmt(const char *fmt, va_list ap) = 0;
@@ -80,7 +80,7 @@ struct IOs
 };
 
 // pointer set by init()
-extern IOs *pIOs;
+extern IPal *pPAL;
 
 
 

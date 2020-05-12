@@ -114,7 +114,7 @@ constexpr Array<T, N> cex_sort_arr(Array<T, N> array)
 
 // -----------------------------------------------------------------------------
 
-constexpr Array<SeqMap, 155> esc_keys_map_unsorted
+constexpr Array<SeqMap, 151> esc_keys_map_unsorted
 {
     KEY_DEF("[A",       "Up",           Key::Up,        KEY_MOD_SPECIAL)   // xterm
     KEY_DEF("[B",       "Down",         Key::Down,      KEY_MOD_SPECIAL)   // xterm
@@ -134,10 +134,6 @@ constexpr Array<SeqMap, 155> esc_keys_map_unsorted
     KEY_DEF("OQ",       "F2",           Key::F2,        KEY_MOD_SPECIAL)
     KEY_DEF("OR",       "F3",           Key::F3,        KEY_MOD_SPECIAL)
     KEY_DEF("OS",       "F4",           Key::F4,        KEY_MOD_SPECIAL)
-    KEY_DEF("[11~",     "F1",           Key::F1,        KEY_MOD_SPECIAL)
-    KEY_DEF("[12~",     "F2",           Key::F2,        KEY_MOD_SPECIAL)
-    KEY_DEF("[13~",     "F3",           Key::F3,        KEY_MOD_SPECIAL)
-    KEY_DEF("[14~",     "F4",           Key::F4,        KEY_MOD_SPECIAL)
     KEY_DEF("[15~",     "F5",           Key::F5,        KEY_MOD_SPECIAL)
     KEY_DEF("[17~",     "F6",           Key::F6,        KEY_MOD_SPECIAL)
     KEY_DEF("[18~",     "F7",           Key::F7,        KEY_MOD_SPECIAL)
@@ -412,15 +408,14 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
 
                 switch (mouse_btn & 0xE3)
                 {
-                case 0x00: output.mouse.btn = MouseBtn::ButtonLeft; break;
-                case 0x01: output.mouse.btn = MouseBtn::ButtonMid; break;
-                case 0x02: output.mouse.btn = MouseBtn::ButtonRight; break;
-                case 0x03: output.mouse.btn = MouseBtn::ButtonReleased; break;
-                case 0x80: output.mouse.btn = MouseBtn::ButtonGoBack; break;
-                case 0x81: output.mouse.btn = MouseBtn::ButtonGoForward; break;
-                case 0x40: output.mouse.btn = MouseBtn::WheelUp; break;
-                case 0x41: output.mouse.btn = MouseBtn::WheelDown; break;
-                default: break;
+                    case 0x00: output.mouse.btn = MouseBtn::ButtonLeft; break;
+                    case 0x01: output.mouse.btn = MouseBtn::ButtonMid; break;
+                    case 0x02: output.mouse.btn = MouseBtn::ButtonRight; break;
+                    case 0x03: output.mouse.btn = MouseBtn::ButtonReleased; break;
+                    case 0x80: output.mouse.btn = MouseBtn::ButtonGoBack; break;
+                    case 0x81: output.mouse.btn = MouseBtn::ButtonGoForward; break;
+                    case 0x40: output.mouse.btn = MouseBtn::WheelUp; break;
+                    case 0x41: output.mouse.btn = MouseBtn::WheelDown; break;
                 }
 
                 //TWINS_LOG("MouseBtn:0x%x", (unsigned)mouse_btn);

@@ -670,8 +670,8 @@ static bool processKey_Button(const Widget *pWgt, const KeyCode &kc)
         g.pMouseDownWgt = pWgt;
         g.pWndState->onButtonDown(pWgt);
         g.pWndState->invalidate(pWgt->id);
-        pIOs->flushBuff();
-        pIOs->sleep(50);
+        pPAL->flushBuff();
+        pPAL->sleep(50);
         g.pMouseDownWgt = nullptr;
         g.pWndState->onButtonUp(pWgt);
         g.pWndState->invalidate(pWgt->id);
@@ -997,7 +997,7 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
     pushClBg(ColorBG::Default);
     pushClFg(ColorFG::White);
 
-    uint16_t row = pIOs->getLogsRow();
+    uint16_t row = pPAL->getLogsRow();
     moveTo(1, row);
     insertLines(1);
 
@@ -1015,8 +1015,8 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
 
     va_list ap;
     va_start(ap, fmt);
-    pIOs->writeStrFmt(fmt, ap);
-    pIOs->flushBuff();
+    pPAL->writeStrFmt(fmt, ap);
+    pPAL->flushBuff();
     va_end(ap);
 
     cursorRestorePos();

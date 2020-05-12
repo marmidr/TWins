@@ -20,7 +20,7 @@
 namespace twins
 {
 
-struct DefaultIOs : twins::IOs
+struct DefaultPAL : twins::IPal
 {
     int writeStr(const char *s) override
     {
@@ -29,8 +29,7 @@ struct DefaultIOs : twins::IOs
 
     int writeStrAsync(twins::String &&str) override
     {
-        asyncStr = std::move(str);
-        return printf("%s", asyncStr.cstr());
+        return printf("%s", str.cstr());
     }
 
     int writeStrFmt(const char *fmt, va_list ap) override
@@ -81,9 +80,6 @@ struct DefaultIOs : twins::IOs
 
     // statistics
     Stats stats = {};
-
-    // string for async write
-    twins::String asyncStr;
 };
 
 // -----------------------------------------------------------------------------

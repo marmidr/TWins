@@ -24,7 +24,7 @@ public:
     ~Stack()
     {
         destroyContent();
-        pIOs->memFree(mpItems);
+        pPAL->memFree(mpItems);
     }
 
     /** @brief Push new item onto the stack by copy or move */
@@ -63,7 +63,7 @@ public:
         if (force || (mCapacity * sizeof(T) >= 64))
         {
             destroyContent();
-            pIOs->memFree(mpItems);
+            pPAL->memFree(mpItems);
             mpItems = nullptr;
             mCapacity = 0;
         }
@@ -82,10 +82,10 @@ private:
                 return false;
             // only one growth strategy: increase by 8 slots
             mCapacity += 8;
-            T* p_new = (T*)pIOs->memAlloc(mCapacity * sizeof(T));
+            T* p_new = (T*)pPAL->memAlloc(mCapacity * sizeof(T));
             moveContent(p_new, mpItems, mSize);
             initContent(p_new + mSize, mCapacity - mSize);
-            pIOs->memFree(mpItems);
+            pPAL->memFree(mpItems);
             mpItems = p_new;
         }
 

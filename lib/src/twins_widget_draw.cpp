@@ -132,7 +132,7 @@ static void drawScrollBarV(const Coord coord, int height, int max, int pos)
     for (int i = 0; i < height; i++)
     {
         moveTo(coord.col, coord.row + i);
-        pIOs->writeStr(i == slider_at ? "◘" : "▒");
+        pPAL->writeStr(i == slider_at ? "◘" : "▒");
     }
 
     popClFg();

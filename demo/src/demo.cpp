@@ -7,7 +7,7 @@
 #include "demo_wnd.hpp"
 #include "twins.hpp"
 #include "twins_ringbuffer.hpp"
-#include "twins_ios_defimpl.hpp"
+#include "twins_pal_defimpl.hpp"
 #include "twins_vector.hpp"
 #include "twins_map.hpp"
 
@@ -280,15 +280,11 @@ twins::IWindowState * getWindMainState()
 
 twins::RingBuff<char> rbKeybInput;
 
-struct DemoIOs : twins::DefaultIOs
+struct DemoPAL : twins::DefaultPAL
 {
-    DemoIOs()
-    {
-    }
+    DemoPAL() { }
 
-    ~DemoIOs()
-    {
-    }
+    ~DemoPAL() { }
 
     uint16_t getLogsRow() override
     {
@@ -301,7 +297,7 @@ struct DemoIOs : twins::DefaultIOs
     }
 };
 
-static DemoIOs demo_ios;
+static DemoPAL demo_pal;
 
 // -----------------------------------------------------------------------------
 
@@ -312,7 +308,7 @@ int main()
     // printf("Win1 controls: %u" "\n", wndMain.window.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
 
-    twins::init(&demo_ios);
+    twins::init(&demo_pal);
     twins::screenClrAll();
     twins::drawWidget(pWndMainArray);
     twins::inputPosixInit(100);
@@ -387,6 +383,6 @@ int main()
     twins::inputPosixFree();
 
     printf("Memory stats: max chunks: %d, max memory: %d B \n",
-        demo_ios.stats.memChunksMax, demo_ios.stats.memAllocatedMax
+        demo_pal.stats.memChunksMax, demo_pal.stats.memAllocatedMax
     );
 }

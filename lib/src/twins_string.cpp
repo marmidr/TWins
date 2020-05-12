@@ -27,7 +27,7 @@ String::String(String &&other)
 String::~String()
 {
     if (mpBuff)
-        pIOs->memFree(mpBuff);
+        pPAL->memFree(mpBuff);
 }
 
 void String::append(const char *s, int16_t count)
@@ -263,7 +263,7 @@ void String::resize(uint16_t newCapacity)
     if (!mpBuff)
     {
         // first-time buffer allocation
-        mpBuff = (char*)pIOs->memAlloc(newCapacity);
+        mpBuff = (char*)pPAL->memAlloc(newCapacity);
         mCapacity = newCapacity;
         *mpBuff = '\0';
         mSize = 0;
@@ -273,17 +273,17 @@ void String::resize(uint16_t newCapacity)
     if (newCapacity > mCapacity)
     {
         // reallocation needed
-        char *pnew = (char*)pIOs->memAlloc(newCapacity);
+        char *pnew = (char*)pPAL->memAlloc(newCapacity);
         mCapacity = newCapacity;
         memcpy(pnew, mpBuff, mSize+1);
-        pIOs->memFree(mpBuff);
+        pPAL->memFree(mpBuff);
         mpBuff = pnew;
     }
 }
 
 void String::free()
 {
-    if (mpBuff) pIOs->memFree(mpBuff);
+    if (mpBuff) pPAL->memFree(mpBuff);
     mpBuff = nullptr;
     mCapacity = 0;
     mSize = 0;

@@ -8,7 +8,7 @@
 #include "gmock/gmock.h"
 
 #include "twins.hpp"
-#include "twins_ios_defimpl.hpp"
+#include "twins_pal_defimpl.hpp"
 
 // -----------------------------------------------------------------------------
 
@@ -16,15 +16,15 @@ struct STRING_Test : public testing::Test
 {
     void SetUp() override
     {
-        tios.stats = {};
+        pal.stats = {};
     }
 
     void TearDown() override
     {
-        EXPECT_EQ(0, tios.stats.memChunks);
+        EXPECT_EQ(0, pal.stats.memChunks);
     }
 
-    twins::DefaultIOs& tios = (twins::DefaultIOs&)*twins::pIOs;
+    twins::DefaultPAL& pal = (twins::DefaultPAL&)*twins::pPAL;
 };
 
 // -----------------------------------------------------------------------------
@@ -37,16 +37,16 @@ TEST_F(STRING_Test, clear)
         EXPECT_STREQ("", s.cstr());
         EXPECT_EQ(0, s.size());
         EXPECT_EQ(0, s.u8len());
-        EXPECT_EQ(0, tios.stats.memChunks);
+        EXPECT_EQ(0, pal.stats.memChunks);
 
         s.clear();
         EXPECT_EQ("", s.cstr());
         EXPECT_EQ(0, s.size());
         EXPECT_EQ(0, s.u8len());
-        EXPECT_EQ(0, tios.stats.memChunks);
+        EXPECT_EQ(0, pal.stats.memChunks);
     }
 
-    EXPECT_EQ(0, tios.stats.memChunksMax);
+    EXPECT_EQ(0, pal.stats.memChunksMax);
 }
 
 TEST_F(STRING_Test, append_1)
@@ -60,15 +60,15 @@ TEST_F(STRING_Test, append_1)
         EXPECT_STREQ("Cześć", s.cstr());
         EXPECT_EQ(7, s.size());
         EXPECT_EQ(5, s.u8len());
-        EXPECT_EQ(1, tios.stats.memChunks);
+        EXPECT_EQ(1, pal.stats.memChunks);
 
         s.clear();
-        EXPECT_EQ(1, tios.stats.memChunks);
+        EXPECT_EQ(1, pal.stats.memChunks);
         EXPECT_EQ(0, s.size());
         EXPECT_EQ(0, s.u8len());
     }
 
-    EXPECT_EQ(1, tios.stats.memChunksMax);
+    EXPECT_EQ(1, pal.stats.memChunksMax);
 }
 
 TEST_F(STRING_Test, append_2)
@@ -80,17 +80,17 @@ TEST_F(STRING_Test, append_2)
 
         EXPECT_EQ(35, s.size());
         EXPECT_EQ(35, s.u8len());
-        EXPECT_EQ(1, tios.stats.memChunks);
+        EXPECT_EQ(1, pal.stats.memChunks);
 
         s.clear();
         s.append('X', -5);
         s.append('X');
-        EXPECT_EQ(1, tios.stats.memChunks);
+        EXPECT_EQ(1, pal.stats.memChunks);
         EXPECT_EQ(1, s.size());
         EXPECT_EQ(1, s.u8len());
     }
 
-    EXPECT_EQ(2, tios.stats.memChunksMax);
+    EXPECT_EQ(2, pal.stats.memChunksMax);
 }
 
 TEST_F(STRING_Test, append_3)
@@ -143,10 +143,10 @@ TEST_F(STRING_Test, append_fmt__fits_in_buffer)
         s.appendFmt("%s:%4u", "Fun()", 2048);
         EXPECT_EQ(15, s.size());
         EXPECT_TRUE(strstr(s.cstr(), ":2048"));
-        EXPECT_EQ(1, tios.stats.memChunks);
+        EXPECT_EQ(1, pal.stats.memChunks);
     }
 
-    EXPECT_EQ(1, tios.stats.memChunksMax);
+    EXPECT_EQ(1, pal.stats.memChunksMax);
 }
 
 TEST_F(STRING_Test, append_fmt__buffer_to_small)
@@ -159,10 +159,10 @@ TEST_F(STRING_Test, append_fmt__buffer_to_small)
         s.appendFmt("%s:%4u", "Fun()", 2048); // buffer must be expanded
         EXPECT_TRUE(strstr(s.cstr(), ":2048"));
         EXPECT_EQ(40, s.size());
-        EXPECT_EQ(1, tios.stats.memChunks);
+        EXPECT_EQ(1, pal.stats.memChunks);
     }
 
-    EXPECT_EQ(2, tios.stats.memChunksMax);
+    EXPECT_EQ(2, pal.stats.memChunksMax);
 }
 
 TEST_F(STRING_Test, trim_no_ellipsis)
