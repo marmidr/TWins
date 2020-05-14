@@ -9,6 +9,11 @@
 
 // -----------------------------------------------------------------------------
 
+// trick that can triple the interface drawing speed
+#ifndef TWINS_FAST_FILL
+# define TWINS_FAST_FILL    0
+#endif
+
 namespace twins
 {
 
@@ -89,7 +94,12 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     // top line
     g.str.clear();
     g.str.append(frame[0]);
+#if TWINS_FAST_FILL
+    g.str.append(frame[1]);
+    g.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
+#else
     g.str.append(frame[1], size.width - 2);
+#endif
     g.str.append(frame[2]);
     writeStr(g.str.cstr());
 
@@ -97,9 +107,18 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     g.str.clear();
     g.str.append(frame[3]);
     if (filled)
+    {
+    #if TWINS_FAST_FILL
+        g.str.append(frame[4]);
+        g.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
+    #else
         g.str.append(frame[4], size.width - 2);
+    #endif
+    }
     else
+    {
         g.str.appendFmt(ESC_CURSOR_FORWARD_FMT, size.width - 2);
+    }
     g.str.append(frame[5]);
 
     for (int r = coord.row + 1; r < coord.row + size.height - 1; r++)
@@ -111,7 +130,12 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     // bottom line
     g.str.clear();
     g.str.append(frame[6]);
+#if TWINS_FAST_FILL
+    g.str.append(frame[7]);
+    g.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
+#else
     g.str.append(frame[7], size.width - 2);
+#endif
     g.str.append(frame[8]);
     moveBy(-size.width, 1);
     writeStr(g.str.cstr());
