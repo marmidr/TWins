@@ -49,13 +49,16 @@ TEST_F(STRING_Test, clear)
     EXPECT_EQ(0, pal.stats.memChunksMax);
 }
 
-TEST_F(STRING_Test, append_1)
+TEST_F(STRING_Test, append_no_resize)
 {
     {
         twins::String s;
+        EXPECT_STREQ("", s.cstr());
+
         s.append(nullptr);
-        s.append("Cześć", 0);
+        s.append("Cześć", 0); // append 0 copies
         s.append("Cześć");
+        s.append(s.cstr()); // append ourselve shall fail
 
         EXPECT_STREQ("Cześć", s.cstr());
         EXPECT_EQ(7, s.size());
@@ -71,7 +74,7 @@ TEST_F(STRING_Test, append_1)
     EXPECT_EQ(1, pal.stats.memChunksMax);
 }
 
-TEST_F(STRING_Test, append_2)
+TEST_F(STRING_Test, append_resize_buffer)
 {
     {
         twins::String s;
@@ -93,7 +96,7 @@ TEST_F(STRING_Test, append_2)
     EXPECT_EQ(2, pal.stats.memChunksMax);
 }
 
-TEST_F(STRING_Test, append_3)
+TEST_F(STRING_Test, append_very_long)
 {
     twins::String s;
     s.append("12345ABCDE", 101);
@@ -106,7 +109,7 @@ TEST_F(STRING_Test, append_3)
     EXPECT_EQ(1, s.size());
 }
 
-TEST_F(STRING_Test, append_4)
+TEST_F(STRING_Test, append_esc)
 {
     twins::String s;
     s.append(ESC_BLINK "x" ESC_BLINK_OFF);
@@ -165,6 +168,16 @@ TEST_F(STRING_Test, append_fmt__buffer_to_small)
     EXPECT_EQ(2, pal.stats.memChunksMax);
 }
 
+TEST_F(STRING_Test, stream_append)
+{
+    twins::String s;
+    s.append("x");
+    EXPECT_STREQ("x", s.cstr());
+
+    s << "► " << "Service Menu";
+    EXPECT_STREQ("x► Service Menu", s.cstr());
+}
+
 TEST_F(STRING_Test, trim_no_ellipsis)
 {
     twins::String s;
@@ -192,13 +205,11 @@ TEST_F(STRING_Test, trim_ellipsis_1)
 
 TEST_F(STRING_Test, trim_ellipsis_2)
 {
-    {
-        twins::String s;
-        s = "► Service Menu";
-        s.trim(12, true); // trim at non-space character
-        EXPECT_EQ(12, s.u8len());
-        EXPECT_STREQ("► Service M…", s.cstr());
-    }
+    twins::String s;
+    s = "► Service Menu";
+    s.trim(12, true); // trim at non-space character
+    EXPECT_EQ(12, s.u8len());
+    EXPECT_STREQ("► Service M…", s.cstr());
 }
 
 TEST_F(STRING_Test, trim_ignore_esc)
@@ -254,10 +265,30 @@ TEST_F(STRING_Test, set_len_ignore_esc)
     EXPECT_STREQ("►" ESC_BOLD " Service" ESC_NORMAL " ", s.cstr());
 }
 
+TEST_F(STRING_Test, copy_assign)
+{
+    twins::String s;
+    s = "Menu";
+
+    // such try shall fail
+    s = s;
+    EXPECT_STREQ("Menu", s.cstr());
+
+    s = s.cstr();
+    EXPECT_STREQ("Menu", s.cstr());
+
+    s = s.cstr() + 3;
+    EXPECT_STREQ("Menu", s.cstr());
+}
+
 TEST_F(STRING_Test, move_assign)
 {
     twins::String s1;
     s1 = "Menu";
+
+    // such try shall fail
+    s1 = std::move(s1);
+    EXPECT_STREQ("Menu", s1.cstr());
 
     twins::String s2;
     s2 = std::move(s1);
@@ -340,6 +371,14 @@ TEST(STRING, escLen)
     // Up
     EXPECT_EQ(0, twins::String::escLen("x\e[A"));
     EXPECT_EQ(3, twins::String::escLen("\e[A"));
+    // Home
+    EXPECT_EQ(4, twins::String::escLen("\e[1~"));
+    // F1
+    EXPECT_EQ(5, twins::String::escLen("\e[23^"));
+    // F1
+    EXPECT_EQ(3, twins::String::escLen("\eOP"));
+    // C-S-F1
+    EXPECT_EQ(5, twins::String::escLen("\e[23@"));
 }
 
 TEST(STRING, u8lenIgnoreEsc)

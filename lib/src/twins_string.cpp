@@ -34,8 +34,10 @@ void String::append(const char *s, int16_t count)
 {
     if (count <= 0) return;
     if (!s) return;
+    if (sourceIsOurs(s)) return;
+
     int s_len = strlen(s);
-    resize(mSize + count * s_len);
+    reserve(mSize + count * s_len);
     char *p = mpBuff + mSize;
     mSize += count  *s_len;
     while (count--)
@@ -47,7 +49,9 @@ void String::appendLen(const char *s, int16_t sLen)
 {
     if (sLen <= 0) return;
     if (!s) return;
-    resize(mSize + sLen);
+    if (sourceIsOurs(s)) return;
+
+    reserve(mSize + sLen);
     strncat(mpBuff + mSize, s, sLen);
     mSize += sLen;
     mpBuff[mSize] = '\0';
@@ -56,7 +60,7 @@ void String::appendLen(const char *s, int16_t sLen)
 void String::append(char c, int16_t count)
 {
     if (count <= 0) return;
-    resize(mSize + count);
+    reserve(mSize + count);
     char *p = mpBuff + mSize;
     mSize += count;
     while (count--)
@@ -89,7 +93,7 @@ void String::appendFmt(const char *fmt, ...)
             }
 
             // too small buffer
-            resize(mCapacity + n + 10);
+            reserve(mCapacity + n + 10);
         }
         else
         {
@@ -174,6 +178,8 @@ void String::insert(int16_t pos, const char *s)
         return;
     if (!s || !*s)
         return;
+    if (sourceIsOurs(s))
+        return;
 
     if ((unsigned)pos >= u8len())
     {
@@ -195,7 +201,7 @@ void String::insert(int16_t pos, const char *s)
     char *insert_at = p;
     unsigned bytes_to_insert = strlen(s);
 
-    resize(mSize + bytes_to_insert);
+    reserve(mSize + bytes_to_insert);
     memmove(insert_at + bytes_to_insert, insert_at, mSize - (insert_at - mpBuff));
     memmove(insert_at, s, bytes_to_insert);
     mSize += bytes_to_insert;
@@ -221,21 +227,28 @@ void String::clear()
         free();
 
     mSize = 0;
-    if (mpBuff) *mpBuff = '\0';
+    if (mpBuff)
+        *mpBuff = '\0';
 }
 
 String& String::operator=(const char *s)
 {
-    clear();
-    append(s);
+    if (!sourceIsOurs(s))
+    {
+        clear();
+        append(s);
+    }
     return *this;
 }
 
 String& String::operator=(String &&other)
 {
-    std::swap(mpBuff,    other.mpBuff);
-    std::swap(mCapacity, other.mCapacity);
-    std::swap(mSize,     other.mSize);
+    if (&other != this)
+    {
+        std::swap(mpBuff,    other.mpBuff);
+        std::swap(mCapacity, other.mCapacity);
+        std::swap(mSize,     other.mSize);
+    }
     return *this;
 }
 
@@ -247,7 +260,7 @@ unsigned String::u8len(bool ignoreESC) const
         return (unsigned)utf8len(mpBuff);
 }
 
-void String::resize(uint16_t newCapacity)
+void String::reserve(uint16_t newCapacity)
 {
     if (newCapacity < mCapacity)
         return;
@@ -313,7 +326,7 @@ unsigned String::escLen(const char *str)
             case '~':
                 return n+1;
             default:
-                if (c >= 'A' && c <= 'Z') return n+1;
+                if (c >= 'A' && c <= 'Z' && c != 'O') return n+1;
                 if (c >= 'a' && c <= 'z') return n+1;
                 break;
             }

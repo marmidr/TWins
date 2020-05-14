@@ -43,18 +43,20 @@ public:
     void setLength(int16_t len, bool addEllipsis = false, bool ignoreESC = false);
     /** @brief Set size to zero; does not release buffer memory */
     void clear();
-    /** @brief */
-    String& operator << (const char *s) { append(s); return *this; }
     /** @brief Return string size, in bytes */
     unsigned size() const { return mSize; }
     /** @brief Return string length, in characters, assuming UTF-8 encoding */
     unsigned u8len(bool ignoreESC = false) const;
     /** @brief Return C-style string buffer */
     const char *cstr() const { return mpBuff ? mpBuff : ""; }
+    /** @brief Reserve buffer if u know the string size in advance */
+    void reserve(uint16_t newCapacity);
     /** @brief Convenient assign operators */
-    String& operator=(const char *s);
-    String& operator=(const String &other) { *this = other.cstr(); return *this; }
-    String& operator=(String &&other);
+    String& operator =(const char *s);
+    String& operator =(const String &other) { *this = other.cstr(); return *this; }
+    String& operator =(String &&other);
+    /** @brief Convenient append operator */
+    String& operator <<(const char *s) { append(s); return *this; }
 
     /** @brief Return ESC sequence length starting at \p str */
     static unsigned escLen(const char *str);
@@ -64,8 +66,8 @@ public:
     static const char* u8skipIgnoreEsc(const char *str, unsigned toSkip);
 
 private:
-    void resize(uint16_t newCapacity);
     void free();
+    bool sourceIsOurs(const char *s) const { return (s >= mpBuff) && (s < mpBuff + mCapacity); }
 
 private:
     char *  mpBuff = nullptr;
