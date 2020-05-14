@@ -365,6 +365,13 @@ int main()
                 twins::screenClrAll();
                 twins::drawWidget(pWndMainArray);
             }
+            else if (kc.m_spec && kc.key == twins::Key::F6)
+            {
+                twins::cursorSavePos();
+                twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
+                twins::screenClrBelow();
+                twins::cursorRestorePos();
+            }
             else
             {
                 twins::cursorSavePos();

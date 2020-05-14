@@ -477,6 +477,7 @@ static constexpr twins::Widget wndMain =
             { label : {
                 fgColor : twins::ColorFG::White,
                 text    :  ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_CYAN "Refresh" ESC_BG_BLUE "  "
+                           ESC_BOLD "F6 "           ESC_NORMAL ESC_BG_CYAN "Clr Logs" ESC_BG_BLUE "  "
                            ESC_BOLD "PgUp/PgDn "    ESC_NORMAL ESC_BG_CYAN "Menu" ESC_BG_BLUE "  "
                            ESC_BOLD "ESC "          ESC_NORMAL ESC_BG_CYAN "Select parent"
             }}

@@ -326,12 +326,13 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
 
     assert(p_childs);
 
+    // TWINS_LOG("pParent[id:%u, %s] cur= %d", pParent->id, toString(pParent->type), focusedID);
+
     if (focusedID == WIDGET_ID_NONE)
     {
         //TWINS_LOG("Search * in %s items[%d]", toString(pParent->type), child_cnt);
 
-        // give me first focusable
-        for (uint16_t i = 0; i < child_cnt; i++)
+        auto check_wgt = [p_childs, focusedID, forward](unsigned i)
         {
             const auto *p_wgt = &p_childs[i];
             //TWINS_LOG("  %s(%d)", toString(p_wgt->type), p_wgt->id);
@@ -345,6 +346,27 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
                 if ((p_wgt = getNextFocusable(p_wgt, focusedID, forward)))
                     return p_wgt;
             }
+
+            return static_cast<const Widget*>(nullptr);
+        };
+
+        if (forward)
+        {
+            // give me first focusable
+            for (uint16_t i = 0; i < child_cnt; i++)
+            {
+                if (const auto *p_wgt = check_wgt(i))
+                    return p_wgt;
+            }
+        }
+        else
+        {
+            // give me last focusable
+            for (int16_t i = child_cnt-1; i >= 0; i--)
+            {
+                if (const auto *p_wgt = check_wgt(i))
+                    return p_wgt;
+            }
         }
     }
     else
@@ -356,21 +378,31 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
         {
             if (p_childs[i].id == focusedID)
             {
-                if (forward)
+                bool border_reached = false;
+                int16_t neighbor_idx = i + (forward ? 1 : -1);
+
+                if (neighbor_idx < 0 || neighbor_idx == child_cnt)
                 {
-                    if (i + 1 == child_cnt)
-                        p_wgt = &p_childs[0];
+                    border_reached = true;
+
+                    if (neighbor_idx < 0)
+                        neighbor_idx = child_cnt-1;
                     else
-                        p_wgt = &p_childs[i+1];
+                        neighbor_idx = 0;
+                }
+
+                if (border_reached && pParent->type == Widget::Panel)
+                {
+                    // if pParent is Panel, go to its parent next child
+                    // TWINS_LOG("call getNextFocusable()");
+                    p_wgt = getNextFocusable(getParent(pParent), pParent->id, forward);
                 }
                 else
                 {
-                    if (i > 0)
-                        p_wgt = &p_childs[i-1];
-                    else
-                        p_wgt = &p_childs[child_cnt-1];
+                    p_wgt = p_childs + neighbor_idx;
                 }
 
+                // end searching
                 break;
             }
         }
@@ -382,28 +414,24 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
             // iterate until focusable found
             for (uint16_t i = 0; i < child_cnt; i++)
             {
-                // TWINS_LOG("  %s(%d)", toString(p_wgt->type), p_wgt->id);
-
                 if (isFocusable(p_wgt))
                     return p_wgt;
 
                 if (isParent(p_wgt))
                 {
-                    //TWINS_LOG("Search parent %s(%d)", toString(p_wgt->type), p_wgt->id);
-                    if (const auto *p = getNextFocusable(p_wgt, focusedID, forward))
+                    // TWINS_LOG("call getNextFocusable()");
+                    if (const auto *p = getNextFocusable(p_wgt, WIDGET_ID_NONE, forward))
                         return p;
                 }
 
                 if (forward)
                 {
-                    p_wgt++;
-                    if (p_wgt == p_childs + child_cnt)
+                    if (++p_wgt == p_childs + child_cnt)
                         p_wgt = p_childs;
                 }
                 else
                 {
-                    p_wgt--;
-                    if (p_wgt < p_childs)
+                    if (--p_wgt < p_childs)
                         p_wgt = p_childs + child_cnt - 1;
                 }
             }

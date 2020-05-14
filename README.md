@@ -59,22 +59,22 @@ Implementation is based on examples:
 - notifications
     - [x] notify event per widget type (button clicked, checkbox toggled)
 - [ ] color theme for window
-- [x] return if keyboard key was handled by active widget
+- [x] keyboard handler returns if key was handled by active widget
 - [x] support for mouse click
 
 ## How to build
 
 Project is CMake-based and contains two targets: *TWinsDemo* and *TWinsUT*.  
-Demo is enabled by default, unit tests has to be enabled in commandline or in `ccmake`.
+Tests are enabled by default, Demo has to be enabled in commandline or in `ccmake`.
 
 ```bash
 mkdir build && cd build
-cmake -DTWINS_BUILD_UT=ON ..
+cmake -DTWINS_BUILD_DEMO=ON ..
 make -j
 ctest -V
 ```
 
-Run demo:
+#### Run demo:
 
 ```bash
 ./bin/TWinsDemo
