@@ -698,7 +698,7 @@ static bool processKey_Button(const Widget *pWgt, const KeyCode &kc)
         g.pMouseDownWgt = pWgt;
         g.pWndState->onButtonDown(pWgt);
         g.pWndState->invalidate(pWgt->id);
-        pPAL->flushBuff();
+        flushBuffer();
         pPAL->sleep(50);
         g.pMouseDownWgt = nullptr;
         g.pWndState->onButtonUp(pWgt);
@@ -1042,13 +1042,16 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
 
     pushClFg(ColorFG::WhiteIntense);
 
-    va_list ap;
-    va_start(ap, fmt);
-    pPAL->writeStrFmt(fmt, ap);
-    pPAL->flushBuff();
-    va_end(ap);
+    if (fmt)
+    {
+        va_list ap;
+        va_start(ap, fmt);
+        writeStrVFmt(fmt, ap);
+        va_end(ap);
+    }
 
     cursorRestorePos();
+    flushBuffer();
 }
 
 const char * toString(Widget::Type type)

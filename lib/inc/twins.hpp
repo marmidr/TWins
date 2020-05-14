@@ -372,38 +372,35 @@ void init(IPal *pal);
 /** @brief used by TWINS_LOG() */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
 
-/** @brief Control wheather all succesive write are stored in a buffer and then written at once, asynchronously */
-void bufferBegin();
-void bufferEnd();
-
 /**
  * @brief Write char or string to the output
  */
-int writeChar(char c, int16_t count = 1);
-int writeStr(const char *s);
-int writeStr(const char *s, int16_t count);
+int writeChar(char c, int16_t repeat = 1);
+int writeStr(const char *s, int16_t repeat = 1);
 int writeStrFmt(const char *fmt, ...);
+int writeStrVFmt(const char *fmt, va_list ap);
+void flushBuffer(void);
 
 /**
  * @brief Foreground color stack
  */
 void pushClFg(ColorFG cl);
 void popClFg(int n = 1);
-void resetClFg();
+void resetClFg(void);
 
 /**
  * @brief Background color stack
  */
 void pushClBg(ColorBG cl);
 void popClBg(int n = 1);
-void resetClBg();
+void resetClBg(void);
 
 /**
  * @brief Font attributes stack
  */
 void pushAttr(FontAttrib attr);
 void popAttr(int n = 1);
-void resetAttr();
+void resetAttr(void);
 
 /**
  * @brief Cursor manipulation
@@ -411,12 +408,12 @@ void resetAttr();
 void moveTo(uint16_t col, uint16_t row);
 void moveToCol(uint16_t col);
 void moveBy(int16_t cols, int16_t rows);
-inline void moveToHome()            { writeStr(ESC_CURSOR_HOME); }
+inline void moveToHome(void)        { writeStr(ESC_CURSOR_HOME); }
 
-inline void cursorSavePos()         { writeStr(ESC_CURSOR_POS_SAVE); }
-inline void cursorRestorePos()      { writeStr(ESC_CURSOR_POS_RESTORE); }
-inline void cursorHide()            { writeStr(ESC_CURSOR_HIDE); }
-inline void cursorShow()            { writeStr(ESC_CURSOR_SHOW); }
+inline void cursorSavePos(void)     { writeStr(ESC_CURSOR_POS_SAVE); }
+inline void cursorRestorePos(void)  { writeStr(ESC_CURSOR_POS_RESTORE); }
+inline void cursorHide(void)        { writeStr(ESC_CURSOR_HIDE); }
+inline void cursorShow(void)        { writeStr(ESC_CURSOR_SHOW); }
 
 /**
  * @brief Lines manipulation
@@ -426,12 +423,12 @@ inline void insertLines(uint16_t count) { writeStrFmt(ESC_LINE_INSERT_FMT, count
 /**
  * @brief Screen manipulation
  */
-inline void screenClrAbove()        { writeStr(ESC_SCREEN_ERASE_ABOVE); }
-inline void screenClrBelow()        { writeStr(ESC_SCREEN_ERASE_BELOW); }
-inline void screenClrAll()          { writeStr(ESC_SCREEN_ERASE_ALL); }
+inline void screenClrAbove(void)    { writeStr(ESC_SCREEN_ERASE_ABOVE); }
+inline void screenClrBelow(void)    { writeStr(ESC_SCREEN_ERASE_BELOW); }
+inline void screenClrAll(void)      { writeStr(ESC_SCREEN_ERASE_ALL); }
 
-inline void screenSave()            { writeStr(ESC_SCREEN_SAVE); }
-inline void screenRestore()         { writeStr(ESC_SCREEN_RESTORE); }
+inline void screenSave(void)        { writeStr(ESC_SCREEN_SAVE); }
+inline void screenRestore(void)     { writeStr(ESC_SCREEN_RESTORE); }
 
 // -----------------------------------------------------------------------------
 

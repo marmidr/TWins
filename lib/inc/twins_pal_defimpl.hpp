@@ -23,24 +23,41 @@ namespace twins
 
 struct DefaultPAL : twins::IPal
 {
-    int writeStr(const char *s) override
+    int writeChar(char c, int16_t repeat) override
     {
-        return printf("%s", s);
+        auto sz = lineBuff.size();
+        lineBuff.append(c, repeat);
+        return lineBuff.size() - sz;
     }
 
-    int writeStrAsync(twins::String &&str) override
+    int writeStr(const char *s, int16_t repeat) override
     {
-        return printf("%s", str.cstr());
+        auto sz = lineBuff.size();
+        lineBuff.append(s, repeat);
+        return lineBuff.size() - sz;
     }
 
-    int writeStrFmt(const char *fmt, va_list ap) override
+    int writeStrVFmt(const char *fmt, va_list ap) override
     {
-        return vprintf(fmt, ap);
+        //return vprintf(fmt, ap);
+        auto sz = lineBuff.size();
+        lineBuff.appendVFmt(fmt, ap);
+        return lineBuff.size() - sz;
     }
 
     void flushBuff() override
     {
-        fflush(stdout);
+        if (lineBuff.size())
+        {
+            printf("%s", lineBuff.cstr());
+            fflush(stdout);
+
+            if (lineBuff.size() > lineBuffMaxSize)
+                lineBuffMaxSize = lineBuff.size();
+
+            lineBuff.clear();
+            lineBuff.reserve(500);
+        }
     }
 
     void* memAlloc(uint32_t size) override
@@ -102,6 +119,9 @@ struct DefaultPAL : twins::IPal
         auto now = getTimeStamp();
         return now - timestamp;
     }
+
+    String lineBuff;
+    uint32_t lineBuffMaxSize = 0;
 
     // statistics
     Stats stats = {};

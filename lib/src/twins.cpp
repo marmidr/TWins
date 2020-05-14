@@ -18,11 +18,6 @@ namespace twins
 /** @brief Pointer to PAL used internally by TWins */
 IPal *pPAL;
 
-/** @brief Line buffer to avoid printing single chars */
-static twins::String lineBuff;
-
-static bool writesBuffered = false;
-
 /** @brief Current font colors and attributes */
 static ColorFG currentClFg = ColorFG::Default;
 static ColorBG currentClBg = ColorBG::Default;
@@ -56,65 +51,41 @@ void init(IPal *pal)
     pPAL = pal;
 }
 
-void bufferBegin()
+int writeChar(char c, int16_t repeat)
 {
-    writesBuffered = true;
+    return pPAL ? pPAL->writeChar(c, repeat) : 0;
 }
 
-void bufferEnd()
+int writeStr(const char *s, int16_t repeat)
 {
-    writesBuffered = false;
-    // TODO: flushBuffer()
-}
+    return pPAL ? pPAL->writeStr(s, repeat) : 0;
 
-// TODO: these writeX functions duplicates twins::String;
-// make lineBuff work harder and use more buffering and asynchronous flush
-int writeChar(char c, int16_t count)
-{
-    if (count <= 0)
-        return 0;
-    lineBuff.clear();
-    lineBuff.append(c, count);
-    return writeStr(lineBuff.cstr());
-}
-
-int writeStr(const char *s, int16_t count)
-{
-    if (!s || count <= 0)
-        return 0;
-
-    if (count == 1)
-        return pPAL->writeStr(s);
-
-    lineBuff.clear();
-    lineBuff.append(s, count);
-    return writeStr(lineBuff.cstr());
-}
-
-int writeStr(const char *s)
-{
-    if (!s) return 0;
-    return pPAL->writeStr(s);
 }
 
 int writeStrFmt(const char *fmt, ...)
 {
-    if (!fmt) return 0;
+    if (!(fmt && pPAL))
+        return 0;
+
     va_list ap;
     va_start(ap, fmt);
-    int n = pPAL->writeStrFmt(fmt, ap);
+    int n = pPAL->writeStrVFmt(fmt, ap);
     va_end(ap);
     return n;
 }
 
-// TODO: implement full buffering
+int writeStrVFmt(const char *fmt, va_list ap)
+{
+    return pPAL ? pPAL->writeStrVFmt(fmt, ap) : 0;
+}
+
 void flushBuffer()
 {
-    // give the line buffer to the HAL so it can asynchronicaly send it and release
-    //writeStr(std::move(lineBuff));
-    //lineBuff.clear();
-    pPAL->flushBuff();
+    if (pPAL)
+        pPAL->flushBuff();
 }
+
+// -----------------------------------------------------------------------------
 
 void moveTo(uint16_t col, uint16_t row)
 {

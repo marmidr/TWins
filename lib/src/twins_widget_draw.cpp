@@ -156,7 +156,7 @@ static void drawScrollBarV(const Coord coord, int height, int max, int pos)
     for (int i = 0; i < height; i++)
     {
         moveTo(coord.col, coord.row + i);
-        pPAL->writeStr(i == slider_at ? "◘" : "▒");
+        writeStr(i == slider_at ? "◘" : "▒");
     }
 
     popClFg();
@@ -563,8 +563,6 @@ static void drawCanvas(const Widget *pWgt)
 
 static void drawWidgetInternal(const Widget *pWgt)
 {
-    bufferBegin();
-
     bool en = g.pWndState->isEnabled(pWgt);
     if (!en) pushAttr(FontAttrib::Faint);
 
@@ -589,7 +587,6 @@ static void drawWidgetInternal(const Widget *pWgt)
 
     if (!en)
         popAttr();
-    bufferEnd();
 }
 
 // -----------------------------------------------------------------------------

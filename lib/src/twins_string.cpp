@@ -30,17 +30,17 @@ String::~String()
         pPAL->memFree(mpBuff);
 }
 
-void String::append(const char *s, int16_t count)
+void String::append(const char *s, int16_t repeat)
 {
-    if (count <= 0) return;
+    if (repeat <= 0) return;
     if (!s) return;
     if (sourceIsOurs(s)) return;
 
     int s_len = strlen(s);
-    reserve(mSize + count * s_len);
+    reserve(mSize + repeat * s_len);
     char *p = mpBuff + mSize;
-    mSize += count  *s_len;
-    while (count--)
+    mSize += repeat  *s_len;
+    while (repeat--)
         p = strcat(p, s);
     mpBuff[mSize] = '\0';
 }
@@ -57,13 +57,13 @@ void String::appendLen(const char *s, int16_t sLen)
     mpBuff[mSize] = '\0';
 }
 
-void String::append(char c, int16_t count)
+void String::append(char c, int16_t repeat)
 {
-    if (count <= 0) return;
-    reserve(mSize + count);
+    if (repeat <= 0) return;
+    reserve(mSize + repeat);
     char *p = mpBuff + mSize;
-    mSize += count;
-    while (count--)
+    mSize += repeat;
+    while (repeat--)
         *p++ = c;
     mpBuff[mSize] = '\0';
 }
@@ -72,16 +72,23 @@ void String::appendFmt(const char *fmt, ...)
 {
     if (!fmt) return;
 
+    va_list ap;
+    va_start(ap, fmt);
+    appendVFmt(fmt, ap);
+    va_end(ap);
+}
+
+void String::appendVFmt(const char *fmt, va_list ap)
+{
     // https://en.cppreference.com/w/cpp/io/c/fprintf
     uint8_t retry = 1;
 
     do
     {
-        va_list ap;
-        va_start(ap, fmt);
+        va_list ap_copy;
+        va_copy(ap_copy, ap);
         int freespace = mCapacity - mSize;
-        int n = vsnprintf(mpBuff + mSize, freespace, fmt, ap);
-        va_end(ap);
+        int n = vsnprintf(mpBuff + mSize, freespace, fmt, ap_copy);
 
         if (n > 0)
         {

@@ -284,7 +284,8 @@ static WndMainState wndMainState;
 
 twins::IWindowState * getWindMainState()
 {
-    if (!wndMainState.initialized) wndMainState.init();
+    if (!wndMainState.initialized)
+        wndMainState.init();
     return &wndMainState;
 }
 
@@ -294,7 +295,10 @@ struct DemoPAL : twins::DefaultPAL
 {
     DemoPAL() { }
 
-    ~DemoPAL() { }
+    ~DemoPAL()
+    {
+        TWINS_LOG("lineBuffMaxSize: %u", lineBuffMaxSize);
+    }
 
     uint16_t getLogsRow() override
     {
@@ -324,7 +328,7 @@ int main()
     twins::inputPosixInit(100);
     twins::writeStr(ESC_MOUSE_REPORTING_M2_ON);
     rbKeybInput.init(20);
-    fflush(stdout);
+    twins::flushBuffer();
 
     for (;;)
     {
@@ -363,6 +367,7 @@ int main()
             if (kc.m_spec && kc.key == twins::Key::F5)
             {
                 twins::screenClrAll();
+                twins::flushBuffer();
                 twins::drawWidget(pWndMainArray);
             }
             else if (kc.m_spec && kc.key == twins::Key::F6)
@@ -390,13 +395,14 @@ int main()
             }
         }
 
-        fflush(stdout);
+        twins::flushBuffer();
     }
 
     // Window is always at [0]
     twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
     twins::screenClrBelow();
     twins::writeStr(ESC_MOUSE_REPORTING_M2_OFF);
+    twins::flushBuffer();
     twins::inputPosixFree();
 
     printf("Memory stats: max chunks: %d, max memory: %d B \n",

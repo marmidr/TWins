@@ -25,14 +25,15 @@ public:
     String(String &&other);
     ~String();
 
-    /** @brief Append \p count of given string \p s */
-    void append(const char *s, int16_t count = 1);
+    /** @brief Append \p repeat of given string \p s */
+    void append(const char *s, int16_t repeat = 1);
     /** @brief Append new string \p s, size of \p sLen bytes */
     void appendLen(const char *s, int16_t sLen);
-    /** @brief Append \p count of given characters \p c */
-    void append(char c, int16_t count = 1);
+    /** @brief Append \p repeat of given characters \p c */
+    void append(char c, int16_t repeat = 1);
     /** @brief Append formatted string */
     void appendFmt(const char *fmt, ...);
+    void appendVFmt(const char *fmt, va_list ap);
     /** @brief Trim string that is too long to fit; optionally append ellipsis ... at the \p trimPos */
     void trim(int16_t trimPos, bool addEllipsis = false, bool ignoreESC = false);
     /** @brief Erase \p len characters from string at \p pos */
@@ -56,7 +57,9 @@ public:
     String& operator =(const String &other) { *this = other.cstr(); return *this; }
     String& operator =(String &&other);
     /** @brief Convenient append operator */
+    String& operator <<(char c) { append(c); return *this; }
     String& operator <<(const char *s) { append(s); return *this; }
+    String& operator <<(const String &other) { append(other.cstr()); return *this; }
 
     /** @brief Return ESC sequence length starting at \p str */
     static unsigned escLen(const char *str);
