@@ -42,8 +42,8 @@ public:
     void insert(int16_t pos, const char *s);
     /** @brief If shorter than len - add spaces; if longer - calls trim */
     void setLength(int16_t len, bool addEllipsis = false, bool ignoreESC = false);
-    /** @brief Set size to zero; does not release buffer memory */
-    void clear();
+    /** @brief Set size to zero; release buffer memory only if capacity >= \p threshordToFree */
+    void clear(uint16_t threshordToFree = 500);
     /** @brief Return string size, in bytes */
     unsigned size() const { return mSize; }
     /** @brief Return string length, in characters, assuming UTF-8 encoding */
@@ -54,7 +54,7 @@ public:
     void reserve(uint16_t newCapacity);
     /** @brief Convenient assign operators */
     String& operator =(const char *s);
-    String& operator =(const String &other) { *this = other.cstr(); return *this; }
+    String& operator =(const String &other);
     String& operator =(String &&other);
     /** @brief Convenient append operator */
     String& operator <<(char c) { append(c); return *this; }

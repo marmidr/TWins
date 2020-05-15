@@ -288,6 +288,13 @@ static bool isFocusable(const Widget *pWgt)
     }
 }
 
+static bool isFocusable(const WID widgetId)
+{
+    if (const auto *p_wgt = getWidgetByWID(widgetId))
+        return isFocusable(p_wgt);
+    return false;
+}
+
 static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID, bool forward)
 {
     if (!pParent)
@@ -425,15 +432,31 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
                         return p;
                 }
 
+                bool border_reached = false;
+
                 if (forward)
                 {
                     if (++p_wgt == p_childs + child_cnt)
+                    {
+                        border_reached = true;
                         p_wgt = p_childs;
+                    }
                 }
                 else
                 {
                     if (--p_wgt < p_childs)
+                    {
+                        border_reached = true;
                         p_wgt = p_childs + child_cnt - 1;
+                    }
+                }
+
+                if (border_reached && pParent->type == Widget::Panel)
+                {
+                    // if pParent is Panel, go to its parent next child
+
+                    if (const auto *p = getNextFocusable(getParent(pParent), pParent->id, forward))
+                        return p;
                 }
             }
         }
@@ -498,8 +521,11 @@ static bool changeFocusTo(WID newID)
             }
         }
 
-        g.pWndState->invalidate(prev_id);
-        g.pWndState->invalidate(newID);
+        if (isFocusable(prev_id))
+            g.pWndState->invalidate(prev_id);
+        if (isFocusable(newID))
+            g.pWndState->invalidate(newID);
+
         setCursorAt(wss.pWidget);
         g.pFocusedWgt = wss.pWidget;
         return true;
@@ -894,17 +920,20 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
 
         int page_size = pWgt->size.height-2;
         int page = g.listboxHighlightIdx / page_size;
-        g.listboxHighlightIdx = page * page_size;
-        g.listboxHighlightIdx += (int)kc.mouse.row - wgtRect.coord.row - 1;
-
-        if (g.listboxHighlightIdx < 0)
-            g.listboxHighlightIdx = cnt - 1;
-
-        if (g.listboxHighlightIdx >= cnt)
-            g.listboxHighlightIdx = 0;
+        unsigned new_hlidx = page * page_size;
+        new_hlidx += (int)kc.mouse.row - wgtRect.coord.row - 1;
 
         changeFocusTo(pWgt->id);
-        g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
+        if (new_hlidx < (unsigned)cnt && (signed)new_hlidx != g.listboxHighlightIdx)
+        {
+            g.listboxHighlightIdx = new_hlidx;
+            g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
+            g.pWndState->invalidate(pWgt->id);
+        }
+    }
+    else if (kc.mouse.btn == MouseBtn::ButtonMid)
+    {
+        g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
         g.pWndState->invalidate(pWgt->id);
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)

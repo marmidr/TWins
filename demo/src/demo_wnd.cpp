@@ -472,14 +472,14 @@ static constexpr twins::Widget wndMain =
             type    : twins::Widget::Label,
             id      : ID_LABEL_FTR,
             coord   : { 2, 13 },
-            size    : { 50, 1 },
+            size    : { 70, 1 },
             link    : {},
             { label : {
                 fgColor : twins::ColorFG::White,
                 text    :  ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_CYAN "Refresh" ESC_BG_BLUE "  "
                            ESC_BOLD "F6 "           ESC_NORMAL ESC_BG_CYAN "Clr Logs" ESC_BG_BLUE "  "
                            ESC_BOLD "PgUp/PgDn "    ESC_NORMAL ESC_BG_CYAN "Menu" ESC_BG_BLUE "  "
-                           ESC_BOLD "ESC "          ESC_NORMAL ESC_BG_CYAN "Select parent"
+                           ESC_BOLD "ESC "          ESC_NORMAL ESC_BG_CYAN "Select parent" ESC_BG_BLUE
             }}
         },
         { /* NUL */ }

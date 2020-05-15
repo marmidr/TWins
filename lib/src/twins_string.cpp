@@ -228,9 +228,9 @@ void String::setLength(int16_t len, bool addEllipsis, bool ignoreESC)
         trim(len, addEllipsis, ignoreESC);
 }
 
-void String::clear()
+void String::clear(uint16_t threshordToFree)
 {
-    if (mCapacity > 1000)
+    if (mCapacity >= threshordToFree)
         free();
 
     mSize = 0;
@@ -248,9 +248,17 @@ String& String::operator=(const char *s)
     return *this;
 }
 
+String& String::operator =(const String &other)
+{
+    if (this != &other)
+        *this = other.cstr();
+
+    return *this;
+}
+
 String& String::operator=(String &&other)
 {
-    if (&other != this)
+    if (this != &other)
     {
         std::swap(mpBuff,    other.mpBuff);
         std::swap(mCapacity, other.mCapacity);
@@ -274,10 +282,11 @@ void String::reserve(uint16_t newCapacity)
 
     newCapacity++;  // extra byte for NUL
 
-    if (newCapacity - mCapacity < 32)
+    if (newCapacity & (32-1))
     {
         // avoid allocating every time 1-byte more
-        newCapacity += 32 - (newCapacity - mCapacity);
+        newCapacity &= ~(32-1);
+        newCapacity += 32;
     }
 
     if (!mpBuff)

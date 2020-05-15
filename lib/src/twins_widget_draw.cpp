@@ -181,6 +181,7 @@ static void drawWindow(const Widget *pWgt)
         popAttr();
     }
 
+    flushBuffer();
     g.parentCoord = pWgt->coord;
 
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
@@ -210,6 +211,7 @@ static void drawPanel(const Widget *pWgt)
         popAttr();
     }
 
+    flushBuffer();
     auto coord_bkp = g.parentCoord;
     g.parentCoord = my_coord;
 
@@ -261,6 +263,7 @@ static void drawLabel(const Widget *pWgt)
 
         s_line.setLength(pWgt->size.width, true, true);
         writeStr(s_line.cstr());
+        flushBuffer();
         moveBy(-pWgt->size.width, 1);
     }
 
@@ -280,8 +283,12 @@ static void drawEdit(const Widget *pWgt)
     g.str.setLength(pWgt->size.width-3, true);
     g.str.append("[^]");
 
+    bool focused = g.pWndState->isFocused(pWgt);
+    auto clbg = pWgt->edit.bgColor;
+    if (focused) ++clbg;
+
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-    pushClBg(pWgt->edit.bgColor);
+    pushClBg(clbg);
     pushClFg(pWgt->edit.fgColor);
     writeStr(g.str.cstr());
     popClFg();
@@ -435,6 +442,7 @@ static void drawPageControl(const Widget *pWgt)
     const int pg_idx = g.pWndState->getPageCtrlPageIndex(pWgt);
     // const bool focused = g.pWndState->isFocused(pWgt);
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
+    flushBuffer();
 
     for (int i = 0; i < pWgt->link.childsCnt; i++)
     {
@@ -525,8 +533,7 @@ static void drawListBox(const Widget *pWgt)
 
     if (items_cnt > pWgt->size.height-2)
         drawScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), 1}, pWgt->size.height-2, items_cnt-1, g.listboxHighlightIdx);
-
-    String s;
+    flushBuffer();
 
     for (int i = 0; i < items_visible; i++)
     {
@@ -534,22 +541,22 @@ static void drawListBox(const Widget *pWgt)
         bool is_hl_item = topitem + i == g.listboxHighlightIdx;
         moveTo(my_coord.col+1, my_coord.row + i + 1);
 
-        s.clear();
+        g.str.clear();
 
         if (topitem + i < items_cnt)
         {
-            s.append(is_current_item ? "►" : " ");
-            g.pWndState->getListBoxItem(pWgt, topitem + i, s);
-            s.setLength(pWgt->size.width-2, true, true);
+            g.str.append(is_current_item ? "►" : " ");
+            g.pWndState->getListBoxItem(pWgt, topitem + i, g.str);
+            g.str.setLength(pWgt->size.width-2, true, true);
         }
         else
         {
             // empty string - to erase old content
-            s.setLength(pWgt->size.width-2);
+            g.str.setLength(pWgt->size.width-2);
         }
 
         if (focused && is_hl_item) pushAttr(FontAttrib::Inverse);
-        writeStr(s.cstr());
+        writeStr(g.str.cstr());
         if (focused && is_hl_item) popAttr();
     }
 }
@@ -608,6 +615,7 @@ void drawWidget(const Widget *pWindowArray, WID widgetId)
     g.pWndState = pWindowArray->window.getState();
     assert(g.pWndState);
     cursorHide();
+    flushBuffer();
 
     if (widgetId == WIDGET_ID_ALL)
     {
@@ -645,6 +653,7 @@ void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t cou
     g.pWndState = pWindowArray->window.getState();
     assert(g.pWndState);
     cursorHide();
+    flushBuffer();
 
     for (unsigned i = 0; i < count; i++)
     {
