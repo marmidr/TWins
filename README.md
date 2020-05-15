@@ -32,9 +32,8 @@ Implementation is based on examples:
 - reading input
     - [x] regular characters (a..z)
     - [x] control codes (Up/Down, Del, Ctrl, Home, ...)
-- [ ] two modes: direct terminal output and buffered  
-    buffered mode is required on UART terminals due to slow refresh rate and ugly flickering
-- [x] separation layer to ease porting
+- [x] buffered terminal output
+- [x] platform abstraction layer (PAL) to ease porting
 
 ## Secondary goals
 

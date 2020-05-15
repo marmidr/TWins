@@ -232,18 +232,27 @@ public:
 
     // --- requests ---
 
-    void invalidate(twins::WID id) override
+    void invalidate(twins::WID id, bool instantly) override
     {
         // state or focus changed - widget must be repainted
-        // note: drawing here is lazy solution
-        twins::drawWidget(pWndMainArray, id);
-    }
 
+        if (instantly)
+        {
+            twins::drawWidget(pWndMainArray, id);
+            twins::flushBuffer();
+        }
+        else
+        {
+            if (!invalidatedWgts.contains(id))
+                invalidatedWgts.append(id);
+        }
+    }
 
 public:
     char lblKeycodeSeq[10];
     const char *lblKeyName = "";
     bool initialized = false;
+    twins::Vector<twins::WID> invalidatedWgts;
 
 private:
     union WgtProp
@@ -388,6 +397,9 @@ int main()
                 }
                 twins::cursorRestorePos();
             }
+
+            twins::drawWidgets(pWndMainArray, wndMainState.invalidatedWgts.data(), wndMainState.invalidatedWgts.size());
+            wndMainState.invalidatedWgts.clear();
         }
 
         twins::flushBuffer();

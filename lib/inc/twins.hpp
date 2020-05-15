@@ -201,7 +201,7 @@ public:
     virtual void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) {}
     virtual int  getRadioIndex(const twins::Widget*) { return -1; }
     // requests
-    virtual void invalidate(twins::WID id) {}
+    virtual void invalidate(twins::WID id, bool instantly = false) {}
 };
 
 struct Theme
@@ -373,6 +373,11 @@ void init(IPal *pal);
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
 
 /**
+ * @brief Delay for given number if milliseconds
+ */
+void sleepMs(uint16_t ms);
+
+/**
  * @brief Write char or string to the output
  */
 int writeChar(char c, int16_t repeat = 1);
@@ -484,7 +489,6 @@ const Widget* getWidget(const Widget *pWindowArray, WID widgetId);
  * @brief Process keyboard/mouse signal received by console
  */
 bool processKey(const Widget *pWindow, const KeyCode &kc);
-
 
 // -----------------------------------------------------------------------------
 

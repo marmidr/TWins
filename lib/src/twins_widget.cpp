@@ -698,9 +698,8 @@ static bool processKey_Button(const Widget *pWgt, const KeyCode &kc)
     {
         g.pMouseDownWgt = pWgt;
         g.pWndState->onButtonDown(pWgt);
-        g.pWndState->invalidate(pWgt->id);
-        flushBuffer();
-        pPAL->sleep(50);
+        g.pWndState->invalidate(pWgt->id, true);
+        sleepMs(50);
         g.pMouseDownWgt = nullptr;
         g.pWndState->onButtonUp(pWgt);
         g.pWndState->invalidate(pWgt->id);
@@ -1018,55 +1017,6 @@ static bool processMouse(const KeyCode &kc)
 // -----------------------------------------------------------------------------
 // ---- TWINS  P U B L I C  FUNCTIONS ------------------------------------------
 // -----------------------------------------------------------------------------
-
-void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
-{
-    if (!pPAL)
-    {
-        if (fmt)
-        {
-            printf("%s:%u: ", file, line);
-            va_list ap;
-            va_start(ap, fmt);
-            vprintf(fmt, ap);
-            va_end(ap);
-        }
-        return;
-    }
-
-    FontMemento _m;
-    cursorSavePos();
-
-    pushClBg(ColorBG::Default);
-    pushClFg(ColorFG::White);
-
-    uint16_t row = pPAL->getLogsRow();
-    moveTo(1, row);
-    insertLines(1);
-
-    // display only file name, trim the path
-    if (const char *delim = strrchr(file, '/'))
-        file = delim + 1;
-
-    time_t t = time(NULL);
-    struct tm *p_stm = localtime(&t);
-    writeStrFmt("[%2d:%02d:%02d] %s() %s:%u: ",
-        p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec,
-        func, file, line);
-
-    pushClFg(ColorFG::WhiteIntense);
-
-    if (fmt)
-    {
-        va_list ap;
-        va_start(ap, fmt);
-        writeStrVFmt(fmt, ap);
-        va_end(ap);
-    }
-
-    cursorRestorePos();
-    flushBuffer();
-}
 
 const char * toString(Widget::Type type)
 {

@@ -51,6 +51,61 @@ void init(IPal *pal)
     pPAL = pal;
 }
 
+void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
+{
+    if (!pPAL)
+    {
+        if (fmt)
+        {
+            printf("%s:%u: ", file, line);
+            va_list ap;
+            va_start(ap, fmt);
+            vprintf(fmt, ap);
+            va_end(ap);
+        }
+        return;
+    }
+
+    FontMemento _m;
+    cursorSavePos();
+
+    pushClBg(ColorBG::Default);
+    pushClFg(ColorFG::White);
+
+    uint16_t row = pPAL->getLogsRow();
+    moveTo(1, row);
+    insertLines(1);
+
+    // display only file name, trim the path
+    if (const char *delim = strrchr(file, '/'))
+        file = delim + 1;
+
+    time_t t = time(NULL);
+    struct tm *p_stm = localtime(&t);
+    writeStrFmt("[%2d:%02d:%02d] %s() %s:%u: ",
+        p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec,
+        func, file, line);
+
+    pushClFg(ColorFG::WhiteIntense);
+
+    if (fmt)
+    {
+        va_list ap;
+        va_start(ap, fmt);
+        writeStrVFmt(fmt, ap);
+        va_end(ap);
+    }
+
+    cursorRestorePos();
+    flushBuffer();
+}
+
+void sleepMs(uint16_t ms)
+{
+    if (pPAL)
+        pPAL->sleep(ms);
+}
+
 int writeChar(char c, int16_t repeat)
 {
     return pPAL ? pPAL->writeChar(c, repeat) : 0;
