@@ -9,6 +9,7 @@
 #include <string.h>
 #include <assert.h>
 #include <time.h>
+#include <stdio.h>
 #include <utility> //std::swap
 
 // -----------------------------------------------------------------------------
@@ -1020,6 +1021,19 @@ static bool processMouse(const KeyCode &kc)
 
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
 {
+    if (!pPAL)
+    {
+        if (fmt)
+        {
+            printf("%s:%u: ", file, line);
+            va_list ap;
+            va_start(ap, fmt);
+            vprintf(fmt, ap);
+            va_end(ap);
+        }
+        return;
+    }
+
     FontMemento _m;
     cursorSavePos();
 

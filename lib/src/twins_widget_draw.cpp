@@ -11,7 +11,7 @@
 
 // trick that can triple the interface drawing speed
 #ifndef TWINS_FAST_FILL
-# define TWINS_FAST_FILL    0
+# define TWINS_FAST_FILL    1
 #endif
 
 namespace twins
@@ -168,6 +168,7 @@ static void drawWindow(const Widget *pWgt)
     g.parentCoord = {0, 0};
     drawArea(pWgt->coord, pWgt->size,
         pWgt->window.bgColor, pWgt->window.fgColor, FrameStyle::Double);
+    flushBuffer();
 
     // title
     if (pWgt->window.title)
@@ -197,6 +198,7 @@ static void drawPanel(const Widget *pWgt)
 
     drawArea(my_coord, pWgt->size,
         pWgt->panel.bgColor, pWgt->panel.fgColor, FrameStyle::Single);
+    flushBuffer();
 
     // title
     if (pWgt->panel.title)
@@ -415,6 +417,7 @@ static void drawPageControl(const Widget *pWgt)
     pushClBg(getWidgetBgColor(g.pWndArray + pWgt->link.parentIdx));
     drawArea(my_coord + Coord{pWgt->pagectrl.tabWidth, 0}, pWgt->size - Size{pWgt->pagectrl.tabWidth, 0},
         ColorBG::None, ColorFG::None, FrameStyle::PgControl);
+    flushBuffer();
 
     auto coord_bkp = g.parentCoord;
     g.parentCoord = my_coord;
@@ -454,6 +457,7 @@ static void drawPageControl(const Widget *pWgt)
 
         if (g.pWndState->isVisible(p_page))
         {
+            flushBuffer();
             g.parentCoord.col += pWgt->pagectrl.tabWidth;
             drawWidgetInternal(p_page);
             g.parentCoord.col -= pWgt->pagectrl.tabWidth;
@@ -587,6 +591,8 @@ static void drawWidgetInternal(const Widget *pWgt)
 
     if (!en)
         popAttr();
+
+    flushBuffer();
 }
 
 // -----------------------------------------------------------------------------

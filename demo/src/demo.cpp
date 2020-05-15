@@ -32,7 +32,7 @@ public:
 
     ~WndMainState()
     {
-        TWINS_LOG("WgtProperty map Distribution=%u%% Buckets:%u Nodes:%u",
+        printf("WgtProperty map Distribution=%u%% Buckets:%u Nodes:%u\n",
             wgtProp.distribution(), wgtProp.bucketsCount(), wgtProp.size());
     }
 
@@ -297,17 +297,12 @@ struct DemoPAL : twins::DefaultPAL
 
     ~DemoPAL()
     {
-        TWINS_LOG("lineBuffMaxSize: %u", lineBuffMaxSize);
+        printf("lineBuffMaxSize: %u\n", lineBuffMaxSize);
     }
 
     uint16_t getLogsRow() override
     {
         return pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1;
-    }
-
-    void sleep(uint16_t ms) override
-    {
-        usleep(ms * 1000);
     }
 };
 
@@ -398,14 +393,13 @@ int main()
         twins::flushBuffer();
     }
 
-    // Window is always at [0]
-    twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
+    twins::moveTo(0, demo_pal.getLogsRow());
     twins::screenClrBelow();
     twins::writeStr(ESC_MOUSE_REPORTING_M2_OFF);
     twins::flushBuffer();
     twins::inputPosixFree();
 
-    printf("Memory stats: max chunks: %d, max memory: %d B \n",
+    printf("Memory stats: max chunks: %d, max memory: %d B\n",
         demo_pal.stats.memChunksMax, demo_pal.stats.memAllocatedMax
     );
 }

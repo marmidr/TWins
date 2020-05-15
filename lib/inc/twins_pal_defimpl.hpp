@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <time.h>
-
+#include <unistd.h>
 #include <utility> // std::move
 
 // -----------------------------------------------------------------------------
@@ -89,11 +89,15 @@ struct DefaultPAL : twins::IPal
 
     void sleep(uint16_t ms) override
     {
+        /*
         timespec ts = {};
         ts.tv_sec = ms / 1000;
         ms %= 1000;
         ts.tv_nsec = 1'000'000 * ms;
         nanosleep(&ts, nullptr);
+        */
+
+        usleep(ms * 1000);
     }
 
     uint16_t getLogsRow() override
@@ -119,6 +123,8 @@ struct DefaultPAL : twins::IPal
         auto now = getTimeStamp();
         return now - timestamp;
     }
+
+public:
 
     String lineBuff;
     uint32_t lineBuffMaxSize = 0;

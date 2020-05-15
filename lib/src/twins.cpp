@@ -59,7 +59,6 @@ int writeChar(char c, int16_t repeat)
 int writeStr(const char *s, int16_t repeat)
 {
     return pPAL ? pPAL->writeStr(s, repeat) : 0;
-
 }
 
 int writeStrFmt(const char *fmt, ...)
@@ -117,7 +116,7 @@ void pushClFg(ColorFG cl)
 {
     stackClFg.push(currentClFg);
     currentClFg = cl;
-    pPAL->writeStr(encodeCl(currentClFg));
+    writeStr(encodeCl(currentClFg));
 }
 
 void popClFg(int n)
@@ -125,13 +124,13 @@ void popClFg(int n)
     while (stackClFg.size() && n-- > 0)
         currentClFg = *stackClFg.pop();
 
-    pPAL->writeStr(encodeCl(currentClFg));
+    writeStr(encodeCl(currentClFg));
 }
 
 void resetClFg()
 {
     stackClFg.clear();
-    pPAL->writeStr(ESC_FG_DEFAULT);
+    writeStr(ESC_FG_DEFAULT);
 }
 
 // -----------------------------------------------------------------------------
@@ -140,7 +139,7 @@ void pushClBg(ColorBG cl)
 {
     stackClBg.push(currentClBg);
     currentClBg = cl;
-    pPAL->writeStr(encodeCl(currentClBg));
+    writeStr(encodeCl(currentClBg));
 }
 
 void popClBg(int n)
@@ -148,13 +147,13 @@ void popClBg(int n)
     while (stackClBg.size() && n-- > 0)
         currentClBg = *stackClBg.pop();
 
-    pPAL->writeStr(encodeCl(currentClBg));
+    writeStr(encodeCl(currentClBg));
 }
 
 void resetClBg()
 {
     stackClBg.clear();
-    pPAL->writeStr(ESC_BG_DEFAULT);
+    writeStr(ESC_BG_DEFAULT);
 }
 
 // -----------------------------------------------------------------------------
@@ -167,14 +166,14 @@ void pushAttr(FontAttrib attr)
 
     switch (attr)
     {
-    case FontAttrib::Bold:          if (!attrFaint) pPAL->writeStr(ESC_BOLD); break;
-    case FontAttrib::Faint:         attrFaint++; pPAL->writeStr(ESC_FAINT); break;
-    case FontAttrib::Italics:       pPAL->writeStr(ESC_ITALICS_ON); break;
-    case FontAttrib::Underline:     pPAL->writeStr(ESC_UNDERLINE_ON); break;
-    case FontAttrib::Blink:         pPAL->writeStr(ESC_BLINK); break;
-    case FontAttrib::Inverse:       pPAL->writeStr(ESC_INVERSE_ON); break;
-    case FontAttrib::Invisible:     pPAL->writeStr(ESC_INVISIBLE_ON); break;
-    case FontAttrib::StrikeThrough: pPAL->writeStr(ESC_STRIKETHROUGH_ON); break;
+    case FontAttrib::Bold:          if (!attrFaint) writeStr(ESC_BOLD); break;
+    case FontAttrib::Faint:         attrFaint++;    writeStr(ESC_FAINT); break;
+    case FontAttrib::Italics:       writeStr(ESC_ITALICS_ON); break;
+    case FontAttrib::Underline:     writeStr(ESC_UNDERLINE_ON); break;
+    case FontAttrib::Blink:         writeStr(ESC_BLINK); break;
+    case FontAttrib::Inverse:       writeStr(ESC_INVERSE_ON); break;
+    case FontAttrib::Invisible:     writeStr(ESC_INVISIBLE_ON); break;
+    case FontAttrib::StrikeThrough: writeStr(ESC_STRIKETHROUGH_ON); break;
     default: break;
     }
 }
@@ -187,14 +186,14 @@ void popAttr(int n)
 
         switch (*pAttr)
         {
-        case FontAttrib::Bold:          if (!attrFaint) pPAL->writeStr(ESC_NORMAL); break;
-        case FontAttrib::Faint:         if (!--attrFaint) pPAL->writeStr(ESC_NORMAL); break;
-        case FontAttrib::Italics:       pPAL->writeStr(ESC_ITALICS_OFF); break;
-        case FontAttrib::Underline:     pPAL->writeStr(ESC_UNDERLINE_OFF); break;
-        case FontAttrib::Blink:         pPAL->writeStr(ESC_BLINK_OFF); break;
-        case FontAttrib::Inverse:       pPAL->writeStr(ESC_INVERSE_OFF); break;
-        case FontAttrib::Invisible:     pPAL->writeStr(ESC_INVISIBLE_OFF); break;
-        case FontAttrib::StrikeThrough: pPAL->writeStr(ESC_STRIKETHROUGH_OFF); break;
+        case FontAttrib::Bold:          if (!attrFaint)   writeStr(ESC_NORMAL); break;
+        case FontAttrib::Faint:         if (!--attrFaint) writeStr(ESC_NORMAL); break;
+        case FontAttrib::Italics:       writeStr(ESC_ITALICS_OFF); break;
+        case FontAttrib::Underline:     writeStr(ESC_UNDERLINE_OFF); break;
+        case FontAttrib::Blink:         writeStr(ESC_BLINK_OFF); break;
+        case FontAttrib::Inverse:       writeStr(ESC_INVERSE_OFF); break;
+        case FontAttrib::Invisible:     writeStr(ESC_INVISIBLE_OFF); break;
+        case FontAttrib::StrikeThrough: writeStr(ESC_STRIKETHROUGH_OFF); break;
         default: break;
         }
     }
@@ -204,7 +203,7 @@ void resetAttr()
 {
     attrFaint = 0;
     stackAttr.clear();
-    pPAL->writeStr(ESC_ATTRIBUTES_DEFAULT);
+    writeStr(ESC_ATTRIBUTES_DEFAULT);
 }
 
 // -----------------------------------------------------------------------------
