@@ -22,6 +22,20 @@ target_include_directories(${TARGETNAME}
         inc
 )
 
+
+if (${TWINS_USE_FASTFILL})
+    target_compile_definitions(${TARGETNAME} PRIVATE -DTWINS_FAST_FILL=1)
+else()
+    target_compile_definitions(${TARGETNAME} PRIVATE -DTWINS_FAST_FILL=0)
+endif()
+
+if (${TWINS_PAL_FULLIMPL})
+    target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PAL_FULLIMPL=1)
+else()
+    target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PAL_FULLIMPL=0)
+endif()
+
+
 if (${TWINS_BUILD_UT})
     option(TWINS_USE_SANITIZERS "Use GCC sanitizers for Unit Tests" ON)
     set(GCC_SANITIZERS "")

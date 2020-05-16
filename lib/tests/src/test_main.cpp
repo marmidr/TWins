@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 #include "twins.hpp"
-#include "twins_ios_defimpl.hpp"
+#include "twins_pal_defimpl.hpp"
 
 #include <vector>
 #include <string>
@@ -14,7 +14,7 @@
 // -----------------------------------------------------------------------------
 
 // must be global due to static twins objects destroyed after main() quit
-twins::DefaultIOs tios;
+twins::DefaultPAL twins_pal;
 
 int main(int argc, char **argv)
 {
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     argc = vargs.size();
 
     testing::InitGoogleTest(&argc, vargs.data());
-    twins::init(&tios);
+    twins::init(&twins_pal);
 
     return RUN_ALL_TESTS();
 }

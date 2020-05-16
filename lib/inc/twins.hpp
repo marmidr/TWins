@@ -17,7 +17,15 @@
 #define TWINS_LOG(...)   twins::log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
 
 #ifndef __TWINS_LINK_SECRET
-#define __TWINS_LINK_SECRET void*_
+# define __TWINS_LINK_SECRET void*_
+#endif
+
+#ifndef THEME_FG_DEFS
+# define THEME_FG_DEFS
+#endif
+
+#ifndef THEME_BG_DEFS
+# define THEME_BG_DEFS
 #endif
 
 // -----------------------------------------------------------------------------
@@ -62,6 +70,7 @@ enum class ColorFG : uint8_t
     WhiteIntense,
     // begin of theme-defined colors
     ThemeBegin,
+    THEME_FG_DEFS
     ThemeEnd = 255
 };
 
@@ -89,6 +98,7 @@ enum class ColorBG : uint8_t
     WhiteIntense,
     // begin of theme-defined colors
     ThemeBegin,
+    THEME_BG_DEFS
     ThemeEnd = 255
 };
 
@@ -97,6 +107,12 @@ const char* encodeCl(ColorFG cl);
 
 /** @brief Convert color identifier to ASCII ESC code */
 const char* encodeCl(ColorBG cl);
+
+/** @brief Color increment operator */
+ColorFG operator+(ColorFG cl, uint8_t n);
+ColorBG operator+(ColorBG cl, uint8_t n);
+inline ColorFG operator++(ColorFG &cl) { cl = cl + 1; return cl; };
+inline ColorBG operator++(ColorBG &cl) { cl = cl + 1; return cl; };
 
 /**
  * @brief
@@ -133,6 +149,15 @@ enum class PgBarStyle : uint8_t
     Hash,
     Shade,
     Rectangle,
+};
+
+/**
+ * @brief Button style
+ */
+enum class ButtonStyle : uint8_t
+{
+    Simple,
+    Solid,
 };
 
 /**
@@ -176,7 +201,7 @@ public:
     virtual void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) {}
     virtual int  getRadioIndex(const twins::Widget*) { return -1; }
     // requests
-    virtual void invalidate(twins::WID id) {}
+    virtual void invalidate(twins::WID id, bool instantly = false) {}
 };
 
 struct Theme
@@ -268,15 +293,16 @@ struct Widget
         struct
         {
             const char *text;
-            int8_t      radioId;
-            int8_t      groupId;
+            uint16_t    radioId;
+            uint8_t     groupId;
         } radio;
 
         struct
         {
             const char *text;
-            uint8_t     groupId;
             ColorFG     fgColor;
+            ColorBG     bgColor;
+            ButtonStyle style;
         } button;
 
         struct
@@ -341,43 +367,45 @@ private:
 /**
  * @brief Initialize TWins
  */
-void init(IOs *ios);
+void init(IPal *pal);
 
 /** @brief used by TWINS_LOG() */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
 
-/** @brief Control wheather all succesive write are stored in a buffer and then written at once, asynchronously */
-void bufferBegin();
-void bufferEnd();
+/**
+ * @brief Delay for given number if milliseconds
+ */
+void sleepMs(uint16_t ms);
 
 /**
  * @brief Write char or string to the output
  */
-int writeChar(char c, int16_t count = 1);
-int writeStr(const char *s);
-int writeStr(const char *s, int16_t count);
+int writeChar(char c, int16_t repeat = 1);
+int writeStr(const char *s, int16_t repeat = 1);
 int writeStrFmt(const char *fmt, ...);
+int writeStrVFmt(const char *fmt, va_list ap);
+void flushBuffer(void);
 
 /**
  * @brief Foreground color stack
  */
 void pushClFg(ColorFG cl);
 void popClFg(int n = 1);
-void resetClFg();
+void resetClFg(void);
 
 /**
  * @brief Background color stack
  */
 void pushClBg(ColorBG cl);
 void popClBg(int n = 1);
-void resetClBg();
+void resetClBg(void);
 
 /**
  * @brief Font attributes stack
  */
 void pushAttr(FontAttrib attr);
 void popAttr(int n = 1);
-void resetAttr();
+void resetAttr(void);
 
 /**
  * @brief Cursor manipulation
@@ -385,12 +413,12 @@ void resetAttr();
 void moveTo(uint16_t col, uint16_t row);
 void moveToCol(uint16_t col);
 void moveBy(int16_t cols, int16_t rows);
-inline void moveToHome()            { writeStr(ESC_CURSOR_HOME); }
+inline void moveToHome(void)        { writeStr(ESC_CURSOR_HOME); }
 
-inline void cursorSavePos()         { writeStr(ESC_CURSOR_POS_SAVE); }
-inline void cursorRestorePos()      { writeStr(ESC_CURSOR_POS_RESTORE); }
-inline void cursorHide()            { writeStr(ESC_CURSOR_HIDE); }
-inline void cursorShow()            { writeStr(ESC_CURSOR_SHOW); }
+inline void cursorSavePos(void)     { writeStr(ESC_CURSOR_POS_SAVE); }
+inline void cursorRestorePos(void)  { writeStr(ESC_CURSOR_POS_RESTORE); }
+inline void cursorHide(void)        { writeStr(ESC_CURSOR_HIDE); }
+inline void cursorShow(void)        { writeStr(ESC_CURSOR_SHOW); }
 
 /**
  * @brief Lines manipulation
@@ -400,12 +428,12 @@ inline void insertLines(uint16_t count) { writeStrFmt(ESC_LINE_INSERT_FMT, count
 /**
  * @brief Screen manipulation
  */
-inline void screenClrAbove()        { writeStr(ESC_SCREEN_ERASE_ABOVE); }
-inline void screenClrBelow()        { writeStr(ESC_SCREEN_ERASE_BELOW); }
-inline void screenClrAll()          { writeStr(ESC_SCREEN_ERASE_ALL); }
+inline void screenClrAbove(void)    { writeStr(ESC_SCREEN_ERASE_ABOVE); }
+inline void screenClrBelow(void)    { writeStr(ESC_SCREEN_ERASE_BELOW); }
+inline void screenClrAll(void)      { writeStr(ESC_SCREEN_ERASE_ALL); }
 
-inline void screenSave()            { writeStr(ESC_SCREEN_SAVE); }
-inline void screenRestore()         { writeStr(ESC_SCREEN_RESTORE); }
+inline void screenSave(void)        { writeStr(ESC_SCREEN_SAVE); }
+inline void screenRestore(void)     { writeStr(ESC_SCREEN_RESTORE); }
 
 // -----------------------------------------------------------------------------
 
@@ -461,7 +489,6 @@ const Widget* getWidget(const Widget *pWindowArray, WID widgetId);
  * @brief Process keyboard/mouse signal received by console
  */
 bool processKey(const Widget *pWindow, const KeyCode &kc);
-
 
 // -----------------------------------------------------------------------------
 

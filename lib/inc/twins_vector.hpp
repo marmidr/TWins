@@ -205,10 +205,10 @@ public:
         // align count to 4
         newCapacity += (newCapacity & 0x03) ? 0x04 - (newCapacity & 0x03) : 0;
 
-        T* p_new_items = (T*)pIOs->memAlloc(newCapacity * sizeof(T));
+        T* p_new_items = (T*)pPAL->memAlloc(newCapacity * sizeof(T));
         moveContent(p_new_items, mpItems, mSize);
         initContent(p_new_items + mSize, newCapacity - mSize);
-        pIOs->memFree(mpItems);
+        pPAL->memFree(mpItems);
         mpItems = p_new_items;
         mCapacity = newCapacity;
     }
@@ -232,12 +232,12 @@ public:
 
         unsigned to_move = MIN(mSize, newSize);
 
-        T* p_new_items = (T*)pIOs->memAlloc(newSize * sizeof(T));
+        T* p_new_items = (T*)pPAL->memAlloc(newSize * sizeof(T));
         moveContent(p_new_items, mpItems, to_move);
         initContent(p_new_items + to_move, newSize - to_move);
         // if new size is smaller than old, not all entries was moved
         destroyContent();
-        pIOs->memFree(mpItems);
+        pPAL->memFree(mpItems);
 
         mpItems = p_new_items;
         mCapacity = mSize = newSize;
@@ -254,11 +254,11 @@ public:
 
         unsigned new_capacity = mSize;
 
-        T* p_new_items = (T*)pIOs->memAlloc(new_capacity * sizeof(T));
+        T* p_new_items = (T*)pPAL->memAlloc(new_capacity * sizeof(T));
         moveContent(p_new_items, mpItems, mSize);
 
         destroyContent();
-        pIOs->memFree(mpItems);
+        pPAL->memFree(mpItems);
 
         mpItems = p_new_items;
         mCapacity = new_capacity;
@@ -380,7 +380,7 @@ public:
     void clear(void)
     {
         destroyContent();
-        pIOs->memFree(mpItems);
+        pPAL->memFree(mpItems);
         mpItems = nullptr;
         mCapacity = 0;
         mSize = 0;

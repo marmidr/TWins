@@ -9,6 +9,7 @@
 #include <string.h>
 #include <assert.h>
 #include <time.h>
+#include <stdio.h>
 #include <utility> //std::swap
 
 // -----------------------------------------------------------------------------
@@ -171,7 +172,7 @@ void setCursorAt(const Widget *pWgt)
         coord.col += 1;
         break;
     case Widget::Button:
-        coord.col += 2; //(utf8len(pWgt->button.text) + 4) / 2;
+        coord.col += pWgt->button.style == ButtonStyle::Simple ? 2 : 1;
         break;
     case Widget::PageCtrl:
         coord.row += 1;
@@ -287,6 +288,13 @@ static bool isFocusable(const Widget *pWgt)
     }
 }
 
+static bool isFocusable(const WID widgetId)
+{
+    if (const auto *p_wgt = getWidgetByWID(widgetId))
+        return isFocusable(p_wgt);
+    return false;
+}
+
 static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID, bool forward)
 {
     if (!pParent)
@@ -326,12 +334,13 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
 
     assert(p_childs);
 
+    // TWINS_LOG("pParent[id:%u, %s] cur= %d", pParent->id, toString(pParent->type), focusedID);
+
     if (focusedID == WIDGET_ID_NONE)
     {
         //TWINS_LOG("Search * in %s items[%d]", toString(pParent->type), child_cnt);
 
-        // give me first focusable
-        for (uint16_t i = 0; i < child_cnt; i++)
+        auto check_wgt = [p_childs, focusedID, forward](unsigned i)
         {
             const auto *p_wgt = &p_childs[i];
             //TWINS_LOG("  %s(%d)", toString(p_wgt->type), p_wgt->id);
@@ -345,6 +354,27 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
                 if ((p_wgt = getNextFocusable(p_wgt, focusedID, forward)))
                     return p_wgt;
             }
+
+            return static_cast<const Widget*>(nullptr);
+        };
+
+        if (forward)
+        {
+            // give me first focusable
+            for (uint16_t i = 0; i < child_cnt; i++)
+            {
+                if (const auto *p_wgt = check_wgt(i))
+                    return p_wgt;
+            }
+        }
+        else
+        {
+            // give me last focusable
+            for (int16_t i = child_cnt-1; i >= 0; i--)
+            {
+                if (const auto *p_wgt = check_wgt(i))
+                    return p_wgt;
+            }
         }
     }
     else
@@ -356,21 +386,31 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
         {
             if (p_childs[i].id == focusedID)
             {
-                if (forward)
+                bool border_reached = false;
+                int16_t neighbor_idx = i + (forward ? 1 : -1);
+
+                if (neighbor_idx < 0 || neighbor_idx == child_cnt)
                 {
-                    if (i + 1 == child_cnt)
-                        p_wgt = &p_childs[0];
+                    border_reached = true;
+
+                    if (neighbor_idx < 0)
+                        neighbor_idx = child_cnt-1;
                     else
-                        p_wgt = &p_childs[i+1];
+                        neighbor_idx = 0;
+                }
+
+                if (border_reached && pParent->type == Widget::Panel)
+                {
+                    // if pParent is Panel, go to its parent next child
+                    // TWINS_LOG("call getNextFocusable()");
+                    p_wgt = getNextFocusable(getParent(pParent), pParent->id, forward);
                 }
                 else
                 {
-                    if (i > 0)
-                        p_wgt = &p_childs[i-1];
-                    else
-                        p_wgt = &p_childs[child_cnt-1];
+                    p_wgt = p_childs + neighbor_idx;
                 }
 
+                // end searching
                 break;
             }
         }
@@ -382,29 +422,41 @@ static const Widget* getNextFocusable(const Widget *pParent, const WID focusedID
             // iterate until focusable found
             for (uint16_t i = 0; i < child_cnt; i++)
             {
-                // TWINS_LOG("  %s(%d)", toString(p_wgt->type), p_wgt->id);
-
                 if (isFocusable(p_wgt))
                     return p_wgt;
 
                 if (isParent(p_wgt))
                 {
-                    //TWINS_LOG("Search parent %s(%d)", toString(p_wgt->type), p_wgt->id);
-                    if (const auto *p = getNextFocusable(p_wgt, focusedID, forward))
+                    // TWINS_LOG("call getNextFocusable()");
+                    if (const auto *p = getNextFocusable(p_wgt, WIDGET_ID_NONE, forward))
                         return p;
                 }
 
+                bool border_reached = false;
+
                 if (forward)
                 {
-                    p_wgt++;
-                    if (p_wgt == p_childs + child_cnt)
+                    if (++p_wgt == p_childs + child_cnt)
+                    {
+                        border_reached = true;
                         p_wgt = p_childs;
+                    }
                 }
                 else
                 {
-                    p_wgt--;
-                    if (p_wgt < p_childs)
+                    if (--p_wgt < p_childs)
+                    {
+                        border_reached = true;
                         p_wgt = p_childs + child_cnt - 1;
+                    }
+                }
+
+                if (border_reached && pParent->type == Widget::Panel)
+                {
+                    // if pParent is Panel, go to its parent next child
+
+                    if (const auto *p = getNextFocusable(getParent(pParent), pParent->id, forward))
+                        return p;
                 }
             }
         }
@@ -469,8 +521,11 @@ static bool changeFocusTo(WID newID)
             }
         }
 
-        g.pWndState->invalidate(prev_id);
-        g.pWndState->invalidate(newID);
+        if (isFocusable(prev_id))
+            g.pWndState->invalidate(prev_id);
+        if (isFocusable(newID))
+            g.pWndState->invalidate(newID);
+
         setCursorAt(wss.pWidget);
         g.pFocusedWgt = wss.pWidget;
         return true;
@@ -669,9 +724,8 @@ static bool processKey_Button(const Widget *pWgt, const KeyCode &kc)
     {
         g.pMouseDownWgt = pWgt;
         g.pWndState->onButtonDown(pWgt);
-        g.pWndState->invalidate(pWgt->id);
-        pIOs->flushBuff();
-        pIOs->sleep(50);
+        g.pWndState->invalidate(pWgt->id, true);
+        sleepMs(50);
         g.pMouseDownWgt = nullptr;
         g.pWndState->onButtonUp(pWgt);
         g.pWndState->invalidate(pWgt->id);
@@ -842,11 +896,12 @@ static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
-        int idx = kc.mouse.row - wgtRect.coord.row - 1;
+        int idx = g.pWndState->getPageCtrlPageIndex(pWgt);
+        int new_idx = kc.mouse.row - wgtRect.coord.row - 1;
 
-        if (idx >= 0 && idx < pWgt->link.childsCnt)
+        if (new_idx != idx && new_idx >= 0 && new_idx < pWgt->link.childsCnt)
         {
-            g.pWndState->onPageControlPageChange(pWgt, idx);
+            g.pWndState->onPageControlPageChange(pWgt, new_idx);
             g.pWndState->invalidate(pWgt->id);
         }
     }
@@ -865,17 +920,20 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
 
         int page_size = pWgt->size.height-2;
         int page = g.listboxHighlightIdx / page_size;
-        g.listboxHighlightIdx = page * page_size;
-        g.listboxHighlightIdx += (int)kc.mouse.row - wgtRect.coord.row - 1;
-
-        if (g.listboxHighlightIdx < 0)
-            g.listboxHighlightIdx = cnt - 1;
-
-        if (g.listboxHighlightIdx >= cnt)
-            g.listboxHighlightIdx = 0;
+        unsigned new_hlidx = page * page_size;
+        new_hlidx += (int)kc.mouse.row - wgtRect.coord.row - 1;
 
         changeFocusTo(pWgt->id);
-        g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
+        if (new_hlidx < (unsigned)cnt && (signed)new_hlidx != g.listboxHighlightIdx)
+        {
+            g.listboxHighlightIdx = new_hlidx;
+            g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
+            g.pWndState->invalidate(pWgt->id);
+        }
+    }
+    else if (kc.mouse.btn == MouseBtn::ButtonMid)
+    {
+        g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
         g.pWndState->invalidate(pWgt->id);
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
@@ -988,39 +1046,6 @@ static bool processMouse(const KeyCode &kc)
 // -----------------------------------------------------------------------------
 // ---- TWINS  P U B L I C  FUNCTIONS ------------------------------------------
 // -----------------------------------------------------------------------------
-
-void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
-{
-    FontMemento _m;
-    cursorSavePos();
-
-    pushClBg(ColorBG::Default);
-    pushClFg(ColorFG::White);
-
-    uint16_t row = pIOs->getLogsRow();
-    moveTo(1, row);
-    insertLines(1);
-
-    // display only file name, trim the path
-    if (const char *delim = strrchr(file, '/'))
-        file = delim + 1;
-
-    time_t t = time(NULL);
-    struct tm *p_stm = localtime(&t);
-    writeStrFmt("[%2d:%02d:%02d] %s() %s:%u: ",
-        p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec,
-        func, file, line);
-
-    pushClFg(ColorFG::WhiteIntense);
-
-    va_list ap;
-    va_start(ap, fmt);
-    pIOs->writeStrFmt(fmt, ap);
-    pIOs->flushBuff();
-    va_end(ap);
-
-    cursorRestorePos();
-}
 
 const char * toString(Widget::Type type)
 {

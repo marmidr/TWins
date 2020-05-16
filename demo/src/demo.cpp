@@ -7,7 +7,7 @@
 #include "demo_wnd.hpp"
 #include "twins.hpp"
 #include "twins_ringbuffer.hpp"
-#include "twins_ios_defimpl.hpp"
+#include "twins_pal_defimpl.hpp"
 #include "twins_vector.hpp"
 #include "twins_map.hpp"
 
@@ -30,6 +30,12 @@ public:
         initialized = true;
     }
 
+    ~WndMainState()
+    {
+        printf("WgtProperty map Distribution=%u%% Buckets:%u Nodes:%u\n",
+            wgtProp.distribution(), wgtProp.bucketsCount(), wgtProp.size());
+    }
+
     // --- events ---
 
     void onButtonDown(const twins::Widget* pWgt) override
@@ -50,17 +56,21 @@ public:
     {
         switch (pWgt->id)
         {
-            case ID_EDT_1: edt1Text = std::move(str); break;
-            case ID_EDT_2: edt2Text = std::move(str); break;
-            default: break;
+        case ID_EDT_1: edt1Text = std::move(str); break;
+        case ID_EDT_2: edt2Text = std::move(str); break;
+        default: break;
         }
         TWINS_LOG("value:%s", str.cstr());
     }
 
     void onCheckboxToggle(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_CHBX_ENBL) TWINS_LOG("CHBX_ENBL");
-        if (pWgt->id == ID_CHBX_LOCK) TWINS_LOG("CHBX_LOCK");
+        switch (pWgt->id)
+        {
+        case ID_CHBX_ENBL: TWINS_LOG("CHBX_ENBL"); break;
+        case ID_CHBX_LOCK: TWINS_LOG("CHBX_LOCK"); break;
+        default: TWINS_LOG("CHBX"); break;
+        }
 
         wgtProp[pWgt->id].chbx.checked = !wgtProp[pWgt->id].chbx.checked;
     }
@@ -222,18 +232,27 @@ public:
 
     // --- requests ---
 
-    void invalidate(twins::WID id) override
+    void invalidate(twins::WID id, bool instantly) override
     {
         // state or focus changed - widget must be repainted
-        // note: drawing here is lazy solution
-        twins::drawWidget(pWndMainArray, id);
-    }
 
+        if (instantly)
+        {
+            twins::drawWidget(pWndMainArray, id);
+            twins::flushBuffer();
+        }
+        else
+        {
+            if (!invalidatedWgts.contains(id))
+                invalidatedWgts.append(id);
+        }
+    }
 
 public:
     char lblKeycodeSeq[10];
     const char *lblKeyName = "";
     bool initialized = false;
+    twins::Vector<twins::WID> invalidatedWgts;
 
 private:
     union WgtProp
@@ -274,34 +293,29 @@ static WndMainState wndMainState;
 
 twins::IWindowState * getWindMainState()
 {
-    if (!wndMainState.initialized) wndMainState.init();
+    if (!wndMainState.initialized)
+        wndMainState.init();
     return &wndMainState;
 }
 
 twins::RingBuff<char> rbKeybInput;
 
-struct DemoIOs : twins::DefaultIOs
+struct DemoPAL : twins::DefaultPAL
 {
-    DemoIOs()
-    {
-    }
+    DemoPAL() { }
 
-    ~DemoIOs()
+    ~DemoPAL()
     {
+        printf("lineBuffMaxSize: %u\n", lineBuffMaxSize);
     }
 
     uint16_t getLogsRow() override
     {
         return pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1;
     }
-
-    void sleep(uint16_t ms) override
-    {
-        usleep(ms * 1000);
-    }
 };
 
-static DemoIOs demo_ios;
+static DemoPAL demo_pal;
 
 // -----------------------------------------------------------------------------
 
@@ -312,13 +326,13 @@ int main()
     // printf("Win1 controls: %u" "\n", wndMain.window.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
 
-    twins::init(&demo_ios);
+    twins::init(&demo_pal);
     twins::screenClrAll();
     twins::drawWidget(pWndMainArray);
     twins::inputPosixInit(100);
     twins::writeStr(ESC_MOUSE_REPORTING_M2_ON);
     rbKeybInput.init(20);
-    fflush(stdout);
+    twins::flushBuffer();
 
     for (;;)
     {
@@ -342,12 +356,12 @@ int main()
             // display decoded key
             if (kc.key == twins::Key::MouseEvent)
             {
-                // TWINS_LOG("B%c %c%c%c %03d:%03d",
-                //     '0' + (char)kc.mouse.btn,
-                //     kc.m_ctrl ? 'C' : ' ',
-                //     kc.m_alt ? 'A' : ' ',
-                //     kc.m_shift ? 'S' : ' ',
-                //     kc.mouse.col, kc.mouse.row);
+                TWINS_LOG("B%c %c%c%c %03d:%03d",
+                    '0' + (char)kc.mouse.btn,
+                    kc.m_ctrl ? 'C' : ' ',
+                    kc.m_alt ? 'A' : ' ',
+                    kc.m_shift ? 'S' : ' ',
+                    kc.mouse.col, kc.mouse.row);
             }
             else if (kc.key != twins::Key::None)
             {
@@ -357,7 +371,15 @@ int main()
             if (kc.m_spec && kc.key == twins::Key::F5)
             {
                 twins::screenClrAll();
+                twins::flushBuffer();
                 twins::drawWidget(pWndMainArray);
+            }
+            else if (kc.m_spec && kc.key == twins::Key::F6)
+            {
+                twins::cursorSavePos();
+                twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
+                twins::screenClrBelow();
+                twins::cursorRestorePos();
             }
             else
             {
@@ -375,18 +397,21 @@ int main()
                 }
                 twins::cursorRestorePos();
             }
+
+            twins::drawWidgets(pWndMainArray, wndMainState.invalidatedWgts.data(), wndMainState.invalidatedWgts.size());
+            wndMainState.invalidatedWgts.clear();
         }
 
-        fflush(stdout);
+        twins::flushBuffer();
     }
 
-    // Window is always at [0]
-    twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
+    twins::moveTo(0, demo_pal.getLogsRow());
     twins::screenClrBelow();
     twins::writeStr(ESC_MOUSE_REPORTING_M2_OFF);
+    twins::flushBuffer();
     twins::inputPosixFree();
 
-    printf("Memory stats: max chunks: %d, max memory: %d B \n",
-        demo_ios.stats.memChunksMax, demo_ios.stats.memAllocatedMax
+    printf("Memory stats: max chunks: %d, max memory: %d B\n",
+        demo_pal.stats.memChunksMax, demo_pal.stats.memAllocatedMax
     );
 }

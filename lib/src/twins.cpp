@@ -9,19 +9,15 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
 // -----------------------------------------------------------------------------
 
 namespace twins
 {
 
-/** @brief TWins I/O structure */
-IOs *pIOs;
-
-/** @brief Line buffer to avoid printing single chars */
-static twins::String lineBuff;
-
-static bool writesBuffered = false;
+/** @brief Pointer to PAL used internally by TWins */
+IPal *pPAL;
 
 /** @brief Current font colors and attributes */
 static ColorFG currentClFg = ColorFG::Default;
@@ -51,70 +47,100 @@ FontMemento::~FontMemento()
 
 // -----------------------------------------------------------------------------
 
-void init(IOs *ios)
+void init(IPal *pal)
 {
-    pIOs = ios;
+    pPAL = pal;
 }
 
-void bufferBegin()
+void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
 {
-    writesBuffered = true;
+    if (!pPAL)
+    {
+        if (fmt)
+        {
+            printf("%s:%u: ", file, line);
+            va_list ap;
+            va_start(ap, fmt);
+            vprintf(fmt, ap);
+            va_end(ap);
+        }
+        return;
+    }
+
+    FontMemento _m;
+    cursorSavePos();
+
+    pushClBg(ColorBG::Default);
+    pushClFg(ColorFG::White);
+
+    uint16_t row = pPAL->getLogsRow();
+    moveTo(1, row);
+    insertLines(1);
+
+    // display only file name, trim the path
+    if (const char *delim = strrchr(file, '/'))
+        file = delim + 1;
+
+    time_t t = time(NULL);
+    struct tm *p_stm = localtime(&t);
+    writeStrFmt("[%2d:%02d:%02d] %s() %s:%u: ",
+        p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec,
+        func, file, line);
+
+    pushClFg(ColorFG::WhiteIntense);
+
+    if (fmt)
+    {
+        va_list ap;
+        va_start(ap, fmt);
+        writeStrVFmt(fmt, ap);
+        va_end(ap);
+    }
+
+    cursorRestorePos();
+    flushBuffer();
 }
 
-void bufferEnd()
+void sleepMs(uint16_t ms)
 {
-    writesBuffered = false;
-    // TODO: flushBuffer()
+    if (pPAL)
+        pPAL->sleep(ms);
 }
 
-// TODO: these writeX functions duplicates twins::String;
-// make lineBuff work harder and use more buffering and asynchronous flush
-int writeChar(char c, int16_t count)
+int writeChar(char c, int16_t repeat)
 {
-    if (count <= 0)
-        return 0;
-    lineBuff.clear();
-    lineBuff.append(c, count);
-    return writeStr(lineBuff.cstr());
+    return pPAL ? pPAL->writeChar(c, repeat) : 0;
 }
 
-int writeStr(const char *s, int16_t count)
+int writeStr(const char *s, int16_t repeat)
 {
-    if (!s || count <= 0)
-        return 0;
-
-    if (count == 1)
-        return pIOs->writeStr(s);
-
-    lineBuff.clear();
-    lineBuff.append(s, count);
-    return writeStr(lineBuff.cstr());
-}
-
-int writeStr(const char *s)
-{
-    if (!s) return 0;
-    return pIOs->writeStr(s);
+    return pPAL ? pPAL->writeStr(s, repeat) : 0;
 }
 
 int writeStrFmt(const char *fmt, ...)
 {
-    if (!fmt) return 0;
+    if (!(fmt && pPAL))
+        return 0;
+
     va_list ap;
     va_start(ap, fmt);
-    int n = pIOs->writeStrFmt(fmt, ap);
+    int n = pPAL->writeStrVFmt(fmt, ap);
     va_end(ap);
     return n;
 }
 
-// TODO: implement full buffering
+int writeStrVFmt(const char *fmt, va_list ap)
+{
+    return pPAL ? pPAL->writeStrVFmt(fmt, ap) : 0;
+}
+
 void flushBuffer()
 {
-    // give the line buffer to the HAL so it can asynchronicaly send it and release
-    //writeStr(std::move(lineBuff));
-    //lineBuff.clear();
-    pIOs->flushBuff();
+    if (pPAL)
+        pPAL->flushBuff();
 }
+
+// -----------------------------------------------------------------------------
 
 void moveTo(uint16_t col, uint16_t row)
 {
@@ -146,7 +172,7 @@ void pushClFg(ColorFG cl)
 {
     stackClFg.push(currentClFg);
     currentClFg = cl;
-    pIOs->writeStr(encodeCl(currentClFg));
+    writeStr(encodeCl(currentClFg));
 }
 
 void popClFg(int n)
@@ -154,13 +180,13 @@ void popClFg(int n)
     while (stackClFg.size() && n-- > 0)
         currentClFg = *stackClFg.pop();
 
-    pIOs->writeStr(encodeCl(currentClFg));
+    writeStr(encodeCl(currentClFg));
 }
 
 void resetClFg()
 {
     stackClFg.clear();
-    pIOs->writeStr(ESC_FG_DEFAULT);
+    writeStr(ESC_FG_DEFAULT);
 }
 
 // -----------------------------------------------------------------------------
@@ -169,7 +195,7 @@ void pushClBg(ColorBG cl)
 {
     stackClBg.push(currentClBg);
     currentClBg = cl;
-    pIOs->writeStr(encodeCl(currentClBg));
+    writeStr(encodeCl(currentClBg));
 }
 
 void popClBg(int n)
@@ -177,13 +203,13 @@ void popClBg(int n)
     while (stackClBg.size() && n-- > 0)
         currentClBg = *stackClBg.pop();
 
-    pIOs->writeStr(encodeCl(currentClBg));
+    writeStr(encodeCl(currentClBg));
 }
 
 void resetClBg()
 {
     stackClBg.clear();
-    pIOs->writeStr(ESC_BG_DEFAULT);
+    writeStr(ESC_BG_DEFAULT);
 }
 
 // -----------------------------------------------------------------------------
@@ -196,14 +222,14 @@ void pushAttr(FontAttrib attr)
 
     switch (attr)
     {
-    case FontAttrib::Bold:          if (!attrFaint) pIOs->writeStr(ESC_BOLD); break;
-    case FontAttrib::Faint:         attrFaint++; pIOs->writeStr(ESC_FAINT); break;
-    case FontAttrib::Italics:       pIOs->writeStr(ESC_ITALICS_ON); break;
-    case FontAttrib::Underline:     pIOs->writeStr(ESC_UNDERLINE_ON); break;
-    case FontAttrib::Blink:         pIOs->writeStr(ESC_BLINK); break;
-    case FontAttrib::Inverse:       pIOs->writeStr(ESC_INVERSE_ON); break;
-    case FontAttrib::Invisible:     pIOs->writeStr(ESC_INVISIBLE_ON); break;
-    case FontAttrib::StrikeThrough: pIOs->writeStr(ESC_STRIKETHROUGH_ON); break;
+    case FontAttrib::Bold:          if (!attrFaint) writeStr(ESC_BOLD); break;
+    case FontAttrib::Faint:         attrFaint++;    writeStr(ESC_FAINT); break;
+    case FontAttrib::Italics:       writeStr(ESC_ITALICS_ON); break;
+    case FontAttrib::Underline:     writeStr(ESC_UNDERLINE_ON); break;
+    case FontAttrib::Blink:         writeStr(ESC_BLINK); break;
+    case FontAttrib::Inverse:       writeStr(ESC_INVERSE_ON); break;
+    case FontAttrib::Invisible:     writeStr(ESC_INVISIBLE_ON); break;
+    case FontAttrib::StrikeThrough: writeStr(ESC_STRIKETHROUGH_ON); break;
     default: break;
     }
 }
@@ -216,14 +242,14 @@ void popAttr(int n)
 
         switch (*pAttr)
         {
-        case FontAttrib::Bold:          if (!attrFaint) pIOs->writeStr(ESC_NORMAL); break;
-        case FontAttrib::Faint:         if (!--attrFaint) pIOs->writeStr(ESC_NORMAL); break;
-        case FontAttrib::Italics:       pIOs->writeStr(ESC_ITALICS_OFF); break;
-        case FontAttrib::Underline:     pIOs->writeStr(ESC_UNDERLINE_OFF); break;
-        case FontAttrib::Blink:         pIOs->writeStr(ESC_BLINK_OFF); break;
-        case FontAttrib::Inverse:       pIOs->writeStr(ESC_INVERSE_OFF); break;
-        case FontAttrib::Invisible:     pIOs->writeStr(ESC_INVISIBLE_OFF); break;
-        case FontAttrib::StrikeThrough: pIOs->writeStr(ESC_STRIKETHROUGH_OFF); break;
+        case FontAttrib::Bold:          if (!attrFaint)   writeStr(ESC_NORMAL); break;
+        case FontAttrib::Faint:         if (!--attrFaint) writeStr(ESC_NORMAL); break;
+        case FontAttrib::Italics:       writeStr(ESC_ITALICS_OFF); break;
+        case FontAttrib::Underline:     writeStr(ESC_UNDERLINE_OFF); break;
+        case FontAttrib::Blink:         writeStr(ESC_BLINK_OFF); break;
+        case FontAttrib::Inverse:       writeStr(ESC_INVERSE_OFF); break;
+        case FontAttrib::Invisible:     writeStr(ESC_INVISIBLE_OFF); break;
+        case FontAttrib::StrikeThrough: writeStr(ESC_STRIKETHROUGH_OFF); break;
         default: break;
         }
     }
@@ -233,7 +259,7 @@ void resetAttr()
 {
     attrFaint = 0;
     stackAttr.clear();
-    pIOs->writeStr(ESC_ATTRIBUTES_DEFAULT);
+    writeStr(ESC_ATTRIBUTES_DEFAULT);
 }
 
 // -----------------------------------------------------------------------------
