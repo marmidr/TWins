@@ -316,7 +316,7 @@ static void drawLed(const Widget *pWgt)
 
 static void drawCheckbox(const Widget *pWgt)
 {
-    const char *s_chk_state = g.pWndState->getCheckboxChecked(pWgt) ? "[x] " : "[ ] ";
+    const char *s_chk_state = g.pWndState->getCheckboxChecked(pWgt) ? "[■] " : "[ ] ";
     bool focused = g.pWndState->isFocused(pWgt);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);

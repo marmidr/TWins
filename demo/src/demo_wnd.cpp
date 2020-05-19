@@ -367,9 +367,20 @@ static constexpr twins::Widget page3Childs[] =
         link    : { (const twins::Widget[]) // set first field in union - pChilds
         {
             {
+                type    : twins::Widget::Label,
+                id      : ID_LBL_CHBXTITLE,
+                coord   : { 2, 2 },
+                size    : { 10, 1 },
+                link    : {},
+                { label : {
+                    fgColor : twins::ColorFG::White,
+                    text    : "Check list:"
+                }}
+            },
+            {
                 type    : twins::Widget::CheckBox,
                 id      : ID_CHBX_A,
-                coord   : { 2, 2 },
+                coord   : { 2, 4 },
                 size    : {},
                 link    : {},
                 { checkbox : {
@@ -379,7 +390,7 @@ static constexpr twins::Widget page3Childs[] =
             {
                 type    : twins::Widget::CheckBox,
                 id      : ID_CHBX_B,
-                coord   : { 2, 4 },
+                coord   : { 2, 5 },
                 size    : {},
                 link    : {},
                 { checkbox : {
@@ -394,6 +405,16 @@ static constexpr twins::Widget page3Childs[] =
                 link    : {},
                 { checkbox : {
                     text    : "Check C"
+                }}
+            },
+            {
+                type    : twins::Widget::CheckBox,
+                id      : ID_CHBX_D,
+                coord   : { 2, 7 },
+                size    : {},
+                link    : {},
+                { checkbox : {
+                    text    : "Check D"
                 }}
             },
 
@@ -472,14 +493,14 @@ static constexpr twins::Widget wndMain =
             type    : twins::Widget::Label,
             id      : ID_LABEL_FTR,
             coord   : { 2, 13 },
-            size    : { 70, 1 },
+            size    : { 50, 1 },
             link    : {},
             { label : {
                 fgColor : twins::ColorFG::White,
                 text    :  ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_CYAN "Refresh" ESC_BG_BLUE "  "
                            ESC_BOLD "F6 "           ESC_NORMAL ESC_BG_CYAN "Clr Logs" ESC_BG_BLUE "  "
                            ESC_BOLD "PgUp/PgDn "    ESC_NORMAL ESC_BG_CYAN "Menu" ESC_BG_BLUE "  "
-                           ESC_BOLD "ESC "          ESC_NORMAL ESC_BG_CYAN "Select parent" ESC_BG_BLUE
+                           ESC_BOLD "ESC "          ESC_NORMAL ESC_BG_CYAN "Select parent"
             }}
         },
         { /* NUL */ }

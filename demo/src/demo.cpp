@@ -129,6 +129,9 @@ public:
             return prp.pnl.enabled;
         }
 
+        if (pWgt->id == ID_CHBX_C)
+            return false;
+
         return true;
     }
 
