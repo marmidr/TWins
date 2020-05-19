@@ -71,7 +71,7 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
         }
     }
 
-    return ColorBG::None;
+    return ColorBG::Inherit;
 }
 
 static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG clFg, const FrameStyle style, bool filled = true)
@@ -88,8 +88,8 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     }
 
     // background and frame color
-    if (clBg != ColorBG::None) pushClBg(clBg);
-    if (clFg != ColorFG::None) pushClFg(clFg);
+    if (clBg != ColorBG::Inherit) pushClBg(clBg);
+    if (clFg != ColorFG::Inherit) pushClFg(clFg);
 
     // top line
     g.str.clear();
@@ -321,7 +321,7 @@ static void drawCheckbox(const Widget *pWgt)
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Bold);
-    auto clfg = pWgt->checkbox.fgColor == ColorFG::None ? ColorFG::Default : pWgt->checkbox.fgColor;
+    auto clfg = pWgt->checkbox.fgColor == ColorFG::Inherit ? ColorFG::Default : pWgt->checkbox.fgColor;
     if (focused) ++clfg;
     pushClFg(clfg);
     writeStr(s_chk_state);
@@ -350,7 +350,7 @@ static void drawButton(const Widget *pWgt)
 {
     const bool focused = g.pWndState->isFocused(pWgt);
     const bool pressed = pWgt == g.pMouseDownWgt;
-    auto clfg = pWgt->button.fgColor == ColorFG::None ? ColorFG::Default : pWgt->button.fgColor;
+    auto clfg = pWgt->button.fgColor == ColorFG::Inherit ? ColorFG::Default : pWgt->button.fgColor;
     if (focused) ++clfg;
 
     if (pWgt->button.style == ButtonStyle::Simple)
@@ -423,7 +423,7 @@ static void drawPageControl(const Widget *pWgt)
 
     pushClBg(getWidgetBgColor(g.pWndArray + pWgt->link.parentIdx));
     drawArea(my_coord + Coord{pWgt->pagectrl.tabWidth, 0}, pWgt->size - Size{pWgt->pagectrl.tabWidth, 0},
-        ColorBG::None, ColorFG::None, FrameStyle::PgControl);
+        ColorBG::Inherit, ColorFG::Inherit, FrameStyle::PgControl);
     flushBuffer();
 
     auto coord_bkp = g.parentCoord;
@@ -518,7 +518,7 @@ static void drawListBox(const Widget *pWgt)
 {
     const auto my_coord = g.parentCoord + pWgt->coord;
     drawArea(my_coord, pWgt->size,
-        ColorBG::None, ColorFG::None, FrameStyle::Single, false);
+        ColorBG::Inherit, ColorFG::Inherit, FrameStyle::Single, false);
 
     if (pWgt->size.height < 3)
         return;

@@ -50,7 +50,7 @@ struct Size
 /** @brief Foreground colors */
 enum class ColorFG : uint8_t
 {
-    None,       // Means 'No Change'
+    Inherit,       // Means 'No Change'
     Default,    // Reset to Terminal Default
     Black,
     BlackIntense,
@@ -78,7 +78,7 @@ enum class ColorFG : uint8_t
 /** @brief Background colors */
 enum class ColorBG : uint8_t
 {
-    None,       // Means 'No Change'
+    Inherit,       // Means 'No Change'
     Default,    // Reset to Terminal Default
     Black,
     BlackIntense,
