@@ -150,7 +150,6 @@ static void drawScrollBarV(const Coord coord, int height, int max, int pos)
     }
 
     const int slider_at = ((height-1) * pos) / max;
-    pushClFg(ColorFG::Default);
     // "▲▴ ▼▾ ◄◂ ►▸ ◘ █";
 
     for (int i = 0; i < height; i++)
@@ -158,8 +157,6 @@ static void drawScrollBarV(const Coord coord, int height, int max, int pos)
         moveTo(coord.col, coord.row + i);
         writeStr(i == slider_at ? "◘" : "▒");
     }
-
-    popClFg();
 }
 
 static void drawWindow(const Widget *pWgt)
@@ -507,7 +504,7 @@ static void drawListBox(const Widget *pWgt)
 {
     const auto my_coord = g.parentCoord + pWgt->coord;
     drawArea(my_coord, pWgt->size,
-        ColorBG::Inherit, ColorFG::Inherit, FrameStyle::Single, false);
+        pWgt->listbox.bgColor, pWgt->listbox.fgColor, FrameStyle::Single, false);
 
     if (pWgt->size.height < 3)
         return;
@@ -548,6 +545,9 @@ static void drawListBox(const Widget *pWgt)
         writeStr(g.str.cstr());
         if (focused && is_hl_item) popAttr();
     }
+
+    popClFg();
+    popClBg();
 }
 
 static void drawDropDownList(const Widget *pWgt)

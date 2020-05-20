@@ -57,11 +57,13 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
     {
         if (fmt)
         {
-            printf("%s:%u: ", file, line);
+            printf("%s:%u: " ESC_BOLD, file, line);
             va_list ap;
             va_start(ap, fmt);
             vprintf(fmt, ap);
             va_end(ap);
+            printf("" ESC_NORMAL "\n");
+            fflush(stdout);
         }
         return;
     }
@@ -163,6 +165,22 @@ void moveBy(int16_t cols, int16_t rows)
         writeStrFmt(ESC_CURSOR_UP_FMT, -rows);
     else if (rows > 0)
         writeStrFmt(ESC_CURSOR_DOWN_FMT, rows);
+}
+
+void mouseMode(MouseMode mode)
+{
+    switch (mode)
+    {
+    case MouseMode::Off:
+        writeStr(ESC_MOUSE_REPORTING_M1_OFF ESC_MOUSE_REPORTING_M2_OFF);
+        break;
+    case MouseMode::M1:
+        writeStr(ESC_MOUSE_REPORTING_M1_ON);
+        break;
+    case MouseMode::M2:
+        writeStr(ESC_MOUSE_REPORTING_M2_ON);
+        break;
+    }
 }
 
 // -----------------------------------------------------------------------------

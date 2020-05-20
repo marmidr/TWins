@@ -285,8 +285,8 @@ struct Widget
         struct
         {
             const char *text;
-            ColorFG     fgColor;
             ColorBG     bgColor;
+            ColorFG     fgColor;
             ButtonStyle style;
         } button;
 
@@ -317,6 +317,8 @@ struct Widget
 
         struct
         {
+            ColorBG     bgColor;
+            ColorFG     fgColor;
         } listbox;
 
         struct
@@ -360,6 +362,14 @@ private:
     uint8_t szFg;
     uint8_t szBg;
     uint8_t szAttr;
+};
+
+/** @brief */
+enum class MouseMode : uint8_t
+{
+    Off,
+    M1,
+    M2
 };
 
 // -----------------------------------------------------------------------------
@@ -434,6 +444,11 @@ inline void screenClrAll(void)      { writeStr(ESC_SCREEN_ERASE_ALL); }
 
 inline void screenSave(void)        { writeStr(ESC_SCREEN_SAVE); }
 inline void screenRestore(void)     { writeStr(ESC_SCREEN_RESTORE); }
+
+/**
+ * @brief Mouse reporting
+ */
+void mouseMode(MouseMode mode);
 
 // -----------------------------------------------------------------------------
 

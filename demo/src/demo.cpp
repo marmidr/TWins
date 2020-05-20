@@ -225,7 +225,7 @@ public:
         if (itemIdx == 3)
             out.appendFmt(ESC_BOLD "Item" ESC_NORMAL " 0034567890123456789*");
         else
-            out.appendFmt(ESC_FG_GREEN_INTENSE "Item" ESC_FG_WHITE " %03d", itemIdx);
+            out.appendFmt(ESC_FG_BLACK "Item" ESC_FG_BLUE " %03d", itemIdx);
     }
 
     int getRadioIndex(const twins::Widget* pWgt) override
@@ -333,7 +333,7 @@ int main()
     twins::screenClrAll();
     twins::drawWidget(pWndMainArray);
     twins::inputPosixInit(100);
-    twins::writeStr(ESC_MOUSE_REPORTING_M2_ON);
+    twins::mouseMode(twins::MouseMode::M2);
     rbKeybInput.init(20);
     twins::flushBuffer();
 
@@ -371,7 +371,15 @@ int main()
                 TWINS_LOG("Key: '%s' %s", kc.name, key_handled ? "(handled)" : "");
             }
 
-            if (kc.m_spec && kc.key == twins::Key::F5)
+            if (kc.m_spec && kc.key == twins::Key::F4)
+            {
+                static bool mouse_on = true;
+                mouse_on = !mouse_on;
+                TWINS_LOG("Mouse %s", mouse_on ? "ON" : "OFF");
+                twins::mouseMode(mouse_on ? twins::MouseMode::M2 : twins::MouseMode::Off);
+                twins::flushBuffer();
+            }
+            else if (kc.m_spec && kc.key == twins::Key::F5)
             {
                 twins::screenClrAll();
                 twins::flushBuffer();

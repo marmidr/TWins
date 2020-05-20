@@ -172,8 +172,8 @@ static constexpr twins::Widget page1Childs[] =
         size    : {},
         { button : {
             text    : "YES",
-            fgColor : twins::ColorFG::White,
             bgColor : twins::ColorBG::Green,
+            fgColor : twins::ColorFG::White,
             style   : twins::ButtonStyle::Solid
         }}
     },
@@ -194,8 +194,8 @@ static constexpr twins::Widget page1Childs[] =
         size    : {},
         { button : {
             text    : "CANCEL",
-            fgColor : twins::ColorFG::White,
             bgColor : twins::ColorBG::BlackIntense,
+            fgColor : twins::ColorFG::White,
             style   : twins::ButtonStyle::Solid
         }}
     },
@@ -253,7 +253,8 @@ static constexpr twins::Widget page2Childs[] =
         coord   : { 2, 2 },
         size    : { 20, 8 },
         { listbox : {
-            //
+            bgColor :   twins::ColorBG::White,
+            fgColor :   twins::ColorFG::Green
         }}
     },
     {
@@ -312,8 +313,8 @@ static constexpr twins::Widget page3Childs[] =
                 coord   : { 1, 1 },
                 size    : { 30, 1 },
                 { edit : {
-                    bgColor     : twins::ColorBG::BlueIntense,
-                    fgColor     : twins::ColorFG::White,
+                    bgColor     : twins::ColorBG::Cyan,
+                    fgColor     : twins::ColorFG::Black,
                 }}
             },
             {
@@ -322,8 +323,8 @@ static constexpr twins::Widget page3Childs[] =
                 coord   : { 1, 3 },
                 size    : { 30, 1 },
                 { edit : {
-                    bgColor     : twins::ColorBG::BlueIntense,
-                    fgColor     : twins::ColorFG::White,
+                    bgColor     : twins::ColorBG::Yellow,
+                    fgColor     : twins::ColorFG::Black,
                 }}
             },
             { /* NUL */ }
@@ -351,7 +352,7 @@ static constexpr twins::Widget page3Childs[] =
                 type    : twins::Widget::Label,
                 id      : ID_LBL_CHBXTITLE,
                 coord   : { 2, 2 },
-                size    : { 10, 1 },
+                size    : { 14, 1 },
                 { label : {
                     fgColor : twins::ColorFG::White,
                     text    : "Check list:"
@@ -470,13 +471,12 @@ static constexpr twins::Widget wndMain =
             type    : twins::Widget::Label,
             id      : ID_LABEL_FTR,
             coord   : { 2, 13 },
-            size    : { 50, 1 },
+            size    : { 76, 1 },
             { label : {
                 fgColor : twins::ColorFG::White,
-                text    :  ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_CYAN "Refresh" ESC_BG_BLUE "  "
+                text    :  ESC_BOLD "F4 "           ESC_NORMAL ESC_BG_CYAN "Mouse On/Off" ESC_BG_BLUE "  "
+                           ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_CYAN "Refresh" ESC_BG_BLUE "  "
                            ESC_BOLD "F6 "           ESC_NORMAL ESC_BG_CYAN "Clr Logs" ESC_BG_BLUE "  "
-                           ESC_BOLD "PgUp/PgDn "    ESC_NORMAL ESC_BG_CYAN "Menu" ESC_BG_BLUE "  "
-                           ESC_BOLD "ESC "          ESC_NORMAL ESC_BG_CYAN "Select parent"
             }}
         },
         { /* NUL */ }
