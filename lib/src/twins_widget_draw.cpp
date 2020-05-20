@@ -285,7 +285,7 @@ static void drawEdit(const Widget *pWgt)
 
     bool focused = g.pWndState->isFocused(pWgt);
     auto clbg = pWgt->edit.bgColor;
-    if (focused) ++clbg;
+    intenseClIf(focused, clbg);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
@@ -322,7 +322,7 @@ static void drawCheckbox(const Widget *pWgt)
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Bold);
     auto clfg = pWgt->checkbox.fgColor == ColorFG::Inherit ? ColorFG::Default : pWgt->checkbox.fgColor;
-    if (focused) ++clfg;
+    intenseClIf(focused, clfg);
     pushClFg(clfg);
     writeStr(s_chk_state);
     writeStr(pWgt->checkbox.text);
@@ -337,7 +337,7 @@ static void drawRadio(const Widget *pWgt)
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     auto clfg = ColorFG::White;
-    if (focused) ++clfg;
+    intenseClIf(focused, clfg);
     if (focused) pushAttr(FontAttrib::Bold);
     pushClFg(clfg);
     writeStr(s_radio_state);
@@ -351,10 +351,11 @@ static void drawButton(const Widget *pWgt)
     const bool focused = g.pWndState->isFocused(pWgt);
     const bool pressed = pWgt == g.pMouseDownWgt;
     auto clfg = pWgt->button.fgColor == ColorFG::Inherit ? ColorFG::Default : pWgt->button.fgColor;
-    if (focused) ++clfg;
+    intenseClIf(focused, clfg);
 
     if (pWgt->button.style == ButtonStyle::Simple)
     {
+        FontMemento _m;
         g.str.clear();
         g.str.append(focused ? "[<" : "[ ");
         g.str.append(pWgt->button.text);
@@ -362,56 +363,44 @@ static void drawButton(const Widget *pWgt)
 
         moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
         pushAttr(FontAttrib::Bold);
-        pushClFg(clfg);
         if (pressed) pushAttr(FontAttrib::Inverse);
+        pushClFg(clfg);
         writeStr(g.str.cstr());
-        if (pressed) popAttr();
-        popClFg();
-        popAttr();
     }
     else
     {
-        g.str.clear();
-        g.str << " " << pWgt->button.text << " ";
+        {
+            FontMemento _m;
+            g.str.clear();
+            g.str << " " << pWgt->button.text << " ";
 
-        moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-        pushAttr(FontAttrib::Bold);
-        pushClBg(pWgt->button.bgColor);
-        pushClFg(clfg);
-        if (pressed) pushAttr(FontAttrib::Inverse);
-        writeStr(g.str.cstr());
-        if (pressed) popAttr();
-        popClFg();
-        popClBg();
-        popAttr();
+            moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
+            pushAttr(FontAttrib::Bold);
+            if (pressed) pushAttr(FontAttrib::Inverse);
+            pushClBg(pWgt->button.bgColor);
+            pushClFg(clfg);
+            writeStr(g.str.cstr());
+        }
+
+        auto shadow_len = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
 
         if (pressed)
         {
-            // erase shadow after
+            // erase trailing shadow
             writeStr(" ");
             // erase shadow below
-            g.str.clear();
-            auto l = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
-            g.str.append(" ", l);
-
             moveTo(g.parentCoord.col + pWgt->coord.col + 1, g.parentCoord.row + pWgt->coord.row + 1);
-            writeStr(g.str.cstr());
+            writeStr(" ", shadow_len);
         }
         else
         {
             // trailing shadow
             pushClFg(ColorFG::Black);
             writeStr("▄");
-            popClFg();
 
-            // shadow
-            g.str.clear();
-            auto l = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
-            g.str.append("▀", l);
-
+            // shadow below
             moveTo(g.parentCoord.col + pWgt->coord.col + 1, g.parentCoord.row + pWgt->coord.row + 1);
-            pushClFg(ColorFG::Black);
-            writeStr(g.str.cstr());
+            writeStr("▀", shadow_len);
             popClFg();
         }
     }

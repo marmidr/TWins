@@ -71,17 +71,25 @@ const char* encodeCl(ColorBG cl)
     return "";
 }
 
-ColorBG operator+(ColorBG cl, uint8_t n)
+ColorFG intenseCl(ColorFG cl)
 {
-    if (cl > ColorBG::Default && cl < ColorBG::ThemeEnd)
-        cl = ColorBG((int)cl + n);
+    // normal -> intense
+    if (cl > ColorFG::Default && cl < ColorFG::ThemeEnd)
+        return ColorFG((int)cl + 1);
+
+    // Theme: get intense version
+
     return cl;
 }
 
-ColorFG operator+(ColorFG cl, uint8_t n)
+ColorBG intenseCl(ColorBG cl)
 {
-    if (cl > ColorFG::Default && cl < ColorFG::ThemeEnd)
-        cl = ColorFG((int)cl + n);
+    // normal -> intense
+    if (cl > ColorBG::Default && cl < ColorBG::ThemeEnd)
+        return ColorBG((int)cl + 1);
+
+    // Theme: get intense version
+
     return cl;
 }
 
