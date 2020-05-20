@@ -239,22 +239,6 @@ struct Widget
     Coord   coord;
     Size    size;
 
-    /** parent <- this -> childs linking */
-    union
-    {
-        __TWINS_LINK_SECRET;
-        //
-        struct
-        {
-            /** in constexpr the pointer cannot be calculated, thus,
-              * we use flat Widgets array index instead */
-            uint8_t ownIdx;     /// set in compile-time
-            uint8_t parentIdx;  /// set in compile-time
-            uint8_t childsIdx;  /// set in compile-time
-            uint8_t childsCnt;  /// set in compile-time
-        };
-    } link;
-
     /** In this union each type of Widget has it's own space */
     union
     {
@@ -344,6 +328,21 @@ struct Widget
         } canvas;
     };
 
+    /** parent <- this -> childs linking */
+    union
+    {
+        __TWINS_LINK_SECRET;
+        //
+        struct
+        {
+            /** in constexpr the pointer cannot be calculated, thus,
+              * we use flat Widgets array index instead */
+            uint8_t ownIdx;     /// set in compile-time
+            uint8_t parentIdx;  /// set in compile-time
+            uint8_t childsIdx;  /// set in compile-time
+            uint8_t childsCnt;  /// set in compile-time
+        };
+    } link;
 };
 
 static constexpr WID WIDGET_ID_NONE = 0;    // convenient; default value points to nothing
