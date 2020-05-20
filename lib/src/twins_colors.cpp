@@ -61,6 +61,12 @@ const char* encodeCl(ColorFG cl)
 {
     if ((int)cl < arrSize(mapClFg))
         return mapClFg[(int)cl];
+
+    #ifdef TWINS_THEME
+    if (INRANGE(cl, ColorFG::ThemeBegin, ColorFG::ThemeEnd))
+        return encodeClTheme(cl);
+    #endif
+
     return "";
 }
 
@@ -68,16 +74,25 @@ const char* encodeCl(ColorBG cl)
 {
     if ((int)cl < arrSize(mapClBg))
         return mapClBg[(int)cl];
+
+    #ifdef TWINS_THEME
+    if (INRANGE(cl, ColorBG::ThemeBegin, ColorBG::ThemeEnd))
+        return encodeClTheme(cl);
+    #endif
+
     return "";
 }
 
 ColorFG intenseCl(ColorFG cl)
 {
     // normal -> intense
-    if (cl > ColorFG::Default && cl < ColorFG::ThemeEnd)
+    if (cl > ColorFG::Default && cl < ColorFG::WhiteIntense)
         return ColorFG((int)cl + 1);
 
-    // Theme: get intense version
+    #ifdef TWINS_THEME
+    if (INRANGE(cl, ColorFG::ThemeBegin, ColorFG::ThemeEnd))
+        return intenseClTheme(cl);
+    #endif
 
     return cl;
 }
@@ -85,10 +100,13 @@ ColorFG intenseCl(ColorFG cl)
 ColorBG intenseCl(ColorBG cl)
 {
     // normal -> intense
-    if (cl > ColorBG::Default && cl < ColorBG::ThemeEnd)
+    if (cl > ColorBG::Default && cl < ColorBG::WhiteIntense)
         return ColorBG((int)cl + 1);
 
-    // Theme: get intense version
+    #ifdef TWINS_THEME
+    if (INRANGE(cl, ColorBG::ThemeBegin, ColorBG::ThemeEnd))
+        return intenseClTheme(cl);
+    #endif
 
     return cl;
 }

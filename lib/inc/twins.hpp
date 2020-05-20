@@ -14,18 +14,18 @@
 
 // -----------------------------------------------------------------------------
 
-#define TWINS_LOG(...)   twins::log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
+#define TWINS_LOG(...)          twins::log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
 
 #ifndef __TWINS_LINK_SECRET
-# define __TWINS_LINK_SECRET void*_
+# define __TWINS_LINK_SECRET    void*_
 #endif
 
-#ifndef THEME_FG_DEFS
-# define THEME_FG_DEFS
-#endif
-
-#ifndef THEME_BG_DEFS
-# define THEME_BG_DEFS
+#ifdef TWINS_THEME
+// TWINS_THEME is path to header file provided by CMake
+# include TWINS_THEME
+#else
+# define TWINS_THEME_FG
+# define TWINS_THEME_BG
 #endif
 
 // -----------------------------------------------------------------------------
@@ -50,8 +50,8 @@ struct Size
 /** @brief Foreground colors */
 enum class ColorFG : uint8_t
 {
-    Inherit,       // Means 'No Change'
-    Default,    // Reset to Terminal Default
+    Inherit,
+    Default,    // Reset to terminal default
     Black,
     BlackIntense,
     Red,
@@ -70,16 +70,15 @@ enum class ColorFG : uint8_t
     WhiteIntense,
     // begin of theme-defined colors
     ThemeBegin,
-    THEME_FG_DEFS
+    TWINS_THEME_FG
     ThemeEnd = 255
 };
-
 
 /** @brief Background colors */
 enum class ColorBG : uint8_t
 {
-    Inherit,       // Means 'No Change'
-    Default,    // Reset to Terminal Default
+    Inherit,
+    Default,    // Reset to terminal default
     Black,
     BlackIntense,
     Red,
@@ -98,25 +97,33 @@ enum class ColorBG : uint8_t
     WhiteIntense,
     // begin of theme-defined colors
     ThemeBegin,
-    THEME_BG_DEFS
+    TWINS_THEME_BG
     ThemeEnd = 255
 };
 
 /** @brief Convert color identifier to ASCII ESC code */
 const char* encodeCl(ColorFG cl);
-
-/** @brief Convert color identifier to ASCII ESC code */
 const char* encodeCl(ColorBG cl);
+#ifdef TWINS_THEME
+// implemented in user code:
+const char* encodeClTheme(ColorFG cl);
+const char* encodeClTheme(ColorBG cl);
+#endif
 
 /** @brief Color intensification */
 ColorFG intenseCl(ColorFG cl);
 ColorBG intenseCl(ColorBG cl);
+#ifdef TWINS_THEME
+// implemented in user code:
+ColorFG intenseClTheme(ColorFG cl);
+ColorBG intenseClTheme(ColorBG cl);
+#endif
 
 template<typename CL>
-void intenseClIf(bool cond, CL &cl) { if (cond) cl = intenseCl(cl); }
+inline void intenseClIf(bool cond, CL &cl) { if (cond) cl = intenseCl(cl); }
 
 /**
- * @brief
+ * @brief Font attributes; some of them may be combined
  */
 enum class FontAttrib : uint8_t
 {
@@ -147,9 +154,9 @@ enum class FrameStyle : uint8_t
  */
 enum class PgBarStyle : uint8_t
 {
-    Hash,
-    Shade,
-    Rectangle,
+    Hash,       // #
+    Shade,      //  ▒
+    Rectangle,  // □
 };
 
 /**
@@ -203,10 +210,6 @@ public:
     virtual int  getRadioIndex(const twins::Widget*) { return -1; }
     // requests
     virtual void invalidate(twins::WID id, bool instantly = false) {}
-};
-
-struct Theme
-{
 };
 
 /**

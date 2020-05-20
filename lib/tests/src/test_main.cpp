@@ -13,6 +13,18 @@
 
 // -----------------------------------------------------------------------------
 
+namespace twins
+{
+
+const char* encodeClTheme(ColorFG cl)  { return ""; }
+const char* encodeClTheme(ColorBG cl)  { return ""; }
+ColorFG intenseClTheme(ColorFG cl) { return cl; }
+ColorBG intenseClTheme(ColorBG cl) { return cl; }
+
+}
+
+// -----------------------------------------------------------------------------
+
 // must be global due to static twins objects destroyed after main() quit
 twins::DefaultPAL twins_pal;
 

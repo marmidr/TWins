@@ -9,6 +9,64 @@
 
 // -----------------------------------------------------------------------------
 
+// Theme support enabled - user must provide theme colors
+namespace twins
+{
+
+const char* encodeClTheme(ColorFG cl)
+{
+    switch (cl)
+    {
+    // double-state colors
+    case ColorFG::Checkbox:         return ESC_FG_YELLOW;
+    case ColorFG::CheckboxIntense:  return ESC_FG_YELLOW_INTENSE;
+    case ColorFG::Radio:            return ESC_FG_GREEN;
+    case ColorFG::RadioIntense:     return ESC_FG_GREEN_INTENSE;
+    // one-state colors
+    case ColorFG::Window:           return ESC_FG_WHITE;
+    case ColorFG::Label:            return ESC_FG_WHITE;
+    case ColorFG::Listbox:          return ESC_FG_GREEN;
+    case ColorFG::Button:           return ESC_FG_BLACK;
+    case ColorFG::ButtonGreen:      return ESC_FG_WHITE;
+    case ColorFG::ButtonRed:        return ESC_FG_WHITE;
+    case ColorFG::ButtonOrange:     return ESC_FG_RGB(139, 0, 0);
+    default:                        return ESC_FG_DEFAULT;
+    }
+}
+
+const char* encodeClTheme(ColorBG cl)
+{
+    switch (cl)
+    {
+    case ColorBG::Window:       return ESC_BG_BLUE;
+    case ColorBG::Listbox:      return ESC_BG_WHITE;
+    case ColorBG::Button:       return ESC_BG_BLACK_INTENSE;
+    case ColorBG::ButtonGreen:  return ESC_BG_GREEN;
+    case ColorBG::ButtonRed:    return ESC_BG_RED;
+    case ColorBG::ButtonOrange: return ESC_BG_RGB(255, 165, 0);
+    default:                    return ESC_BG_DEFAULT;
+    }
+}
+
+ColorFG intenseClTheme(ColorFG cl)
+{
+    switch (cl)
+    {
+    case ColorFG::Checkbox: return ColorFG::CheckboxIntense;
+    case ColorFG::Radio:    return ColorFG::RadioIntense;
+    default:                return cl;
+    }
+}
+
+ColorBG intenseClTheme(ColorBG cl)
+{
+    return cl;
+}
+
+}
+
+// -----------------------------------------------------------------------------
+
 static constexpr twins::Widget pnlStateChilds[] =
 {
     {
@@ -172,8 +230,8 @@ static constexpr twins::Widget page1Childs[] =
         size    : {},
         { button : {
             text    : "YES",
-            bgColor : twins::ColorBG::Green,
-            fgColor : twins::ColorFG::White,
+            bgColor : twins::ColorBG::ButtonGreen,
+            fgColor : twins::ColorFG::ButtonGreen,
             style   : twins::ButtonStyle::Solid
         }}
     },
@@ -184,7 +242,9 @@ static constexpr twins::Widget page1Childs[] =
         size    : {},
         { button : {
             text    : "NO",
-            fgColor : twins::ColorFG::Yellow,
+            bgColor : twins::ColorBG::ButtonOrange,
+            fgColor : twins::ColorFG::ButtonOrange,
+            style   : twins::ButtonStyle::Solid
         }}
     },
     {
@@ -194,9 +254,9 @@ static constexpr twins::Widget page1Childs[] =
         size    : {},
         { button : {
             text    : "CANCEL",
-            bgColor : twins::ColorBG::BlackIntense,
+            bgColor : {},
             fgColor : twins::ColorFG::White,
-            style   : twins::ButtonStyle::Solid
+            style   : twins::ButtonStyle::Simple
         }}
     },
     {
