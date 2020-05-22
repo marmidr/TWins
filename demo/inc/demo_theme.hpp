@@ -20,6 +20,7 @@
     ButtonGreen,        \
     ButtonRed,          \
     ButtonOrange,       \
+    PanelChbox,         \
 
 #define TWINS_THEME_BG  \
     Window,             \
@@ -28,5 +29,6 @@
     ButtonGreen,        \
     ButtonRed,          \
     ButtonOrange,       \
+    PanelChbox,         \
 
 // -----------------------------------------------------------------------------

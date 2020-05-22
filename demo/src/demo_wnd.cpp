@@ -13,6 +13,8 @@
 namespace twins
 {
 
+// RGB color values: https://en.wikipedia.org/wiki/Web_colors
+
 const char* encodeClTheme(ColorFG cl)
 {
     switch (cl)
@@ -29,7 +31,8 @@ const char* encodeClTheme(ColorFG cl)
     case ColorFG::Button:           return ESC_FG_BLACK;
     case ColorFG::ButtonGreen:      return ESC_FG_WHITE;
     case ColorFG::ButtonRed:        return ESC_FG_WHITE;
-    case ColorFG::ButtonOrange:     return ESC_FG_RGB(139, 0, 0);
+    case ColorFG::ButtonOrange:     return ESC_FG_RGB(139, 0,   0);
+    case ColorFG::PanelChbox:       return ESC_FG_RGB(0,   0, 205);
     default:                        return ESC_FG_DEFAULT;
     }
 }
@@ -43,7 +46,8 @@ const char* encodeClTheme(ColorBG cl)
     case ColorBG::Button:       return ESC_BG_BLACK_INTENSE;
     case ColorBG::ButtonGreen:  return ESC_BG_GREEN;
     case ColorBG::ButtonRed:    return ESC_BG_RED;
-    case ColorBG::ButtonOrange: return ESC_BG_RGB(255, 165, 0);
+    case ColorBG::ButtonOrange: return ESC_BG_RGB(255, 165,   0);
+    case ColorBG::PanelChbox:   return ESC_BG_RGB(135, 206, 235);
     default:                    return ESC_BG_DEFAULT;
     }
 }
@@ -325,7 +329,8 @@ static constexpr twins::Widget page2Childs[] =
         { radio : {
             text    : "YES",
             radioId : 0,
-            groupId : 1
+            groupId : 1,
+            fgColor : twins::ColorFG::Radio
         }}
     },
     {
@@ -336,7 +341,8 @@ static constexpr twins::Widget page2Childs[] =
         { radio : {
             text    : "NO",
             radioId : 1,
-            groupId : 1
+            groupId : 1,
+            fgColor : twins::ColorFG::Yellow
         }}
     },
     {
@@ -364,6 +370,7 @@ static constexpr twins::Widget page3Childs[] =
             title       : {},
             bgColor     : twins::ColorBG::White,
             fgColor     : twins::ColorFG::White,
+            noFrame     : true
         }},
         link    : { (const twins::Widget[]) // set first field in union - pChilds
         {
@@ -403,8 +410,8 @@ static constexpr twins::Widget page3Childs[] =
         size    : { 22, 10 },
         { panel : {
             title       : {},
-            bgColor     : twins::ColorBG::Blue,
-            fgColor     : twins::ColorFG::White,
+            bgColor     : twins::ColorBG::PanelChbox,
+            fgColor     : twins::ColorFG::PanelChbox,
         }},
         link    : { (const twins::Widget[]) // set first field in union - pChilds
         {
@@ -415,7 +422,7 @@ static constexpr twins::Widget page3Childs[] =
                 size    : { 14, 1 },
                 { label : {
                     text    : "Check list:",
-                    fgColor : twins::ColorFG::White,
+                    fgColor : twins::ColorFG::Blue,
                 }}
             },
             {
@@ -424,7 +431,8 @@ static constexpr twins::Widget page3Childs[] =
                 coord   : { 2, 4 },
                 size    : {},
                 { checkbox : {
-                    text    : "Check A"
+                    text    : "Check A",
+                    fgColor : twins::ColorFG::Green
                 }}
             },
             {

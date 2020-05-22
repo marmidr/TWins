@@ -258,6 +258,7 @@ struct Widget
             const char *title;
             ColorBG     bgColor;
             ColorFG     fgColor;
+            bool        noFrame;
         } panel;
 
         struct

@@ -89,6 +89,9 @@ ColorFG intenseCl(ColorFG cl)
     if (cl > ColorFG::Default && cl < ColorFG::WhiteIntense)
         return ColorFG((int)cl + 1);
 
+    if (cl == ColorFG::Default) // may not be correct
+        return ColorFG::WhiteIntense;
+
     #ifdef TWINS_THEME
     if (INRANGE(cl, ColorFG::ThemeBegin, ColorFG::ThemeEnd))
         return intenseClTheme(cl);
@@ -102,6 +105,9 @@ ColorBG intenseCl(ColorBG cl)
     // normal -> intense
     if (cl > ColorBG::Default && cl < ColorBG::WhiteIntense)
         return ColorBG((int)cl + 1);
+
+    if (cl == ColorBG::Default) // may not be correct
+        return ColorBG::BlackIntense;
 
     #ifdef TWINS_THEME
     if (INRANGE(cl, ColorBG::ThemeBegin, ColorBG::ThemeEnd))
