@@ -44,7 +44,7 @@ const char* encodeClTheme(ColorBG cl)
     case ColorBG::Window:       return ESC_BG_BLUE;
     case ColorBG::Listbox:      return ESC_BG_WHITE;
     case ColorBG::Button:       return ESC_BG_BLACK_INTENSE;
-    case ColorBG::ButtonGreen:  return ESC_BG_GREEN;
+    case ColorBG::ButtonGreen:  return ESC_BG_RGB(107, 142,  35);
     case ColorBG::ButtonRed:    return ESC_BG_RED;
     case ColorBG::ButtonOrange: return ESC_BG_RGB(255, 165,   0);
     case ColorBG::PanelChbox:   return ESC_BG_RGB(135, 206, 235);
@@ -155,7 +155,7 @@ static constexpr twins::Widget page1Childs[] =
                 size    : { 16, 1 },
                 { label : {
                     text    : "Time≡" __TIME__,
-                    fgColor : twins::ColorFG::Magenta,
+                    fgColor : twins::ColorFG::White,
                 }}
             },
             { /* NUL */ }
@@ -474,7 +474,7 @@ static constexpr twins::Widget page3Childs[] =
                 coord   : { 2, 2 },
                 size    : { 14, 1 },
                 { label : {
-                    text    : "Check list:",
+                    text    : ESC_BOLD "Check list:" ESC_NORMAL,
                     fgColor : twins::ColorFG::Blue,
                 }}
             },
@@ -484,7 +484,7 @@ static constexpr twins::Widget page3Childs[] =
                 coord   : { 2, 4 },
                 size    : {},
                 { checkbox : {
-                    text    : "Check A",
+                    text    : "Check A ",
                     fgColor : twins::ColorFG::Green
                 }}
             },
@@ -494,7 +494,7 @@ static constexpr twins::Widget page3Childs[] =
                 coord   : { 2, 5 },
                 size    : {},
                 { checkbox : {
-                    text    : "Check B"
+                    text    : "Check B "
                 }}
             },
             {
@@ -503,7 +503,7 @@ static constexpr twins::Widget page3Childs[] =
                 coord   : { 2, 6 },
                 size    : {},
                 { checkbox : {
-                    text    : "Check C"
+                    text    : "Check C "
                 }}
             },
             {
@@ -512,7 +512,7 @@ static constexpr twins::Widget page3Childs[] =
                 coord   : { 2, 7 },
                 size    : {},
                 { checkbox : {
-                    text    : "Check D"
+                    text    : "Check D "
                 }}
             },
 
@@ -607,7 +607,9 @@ static constexpr twins::Widget wndMain =
             { label : {
                 text    :  ESC_BOLD "F4 "           ESC_NORMAL ESC_BG_CYAN "Mouse On/Off" ESC_BG_BLUE "  "
                            ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_CYAN "Refresh" ESC_BG_BLUE "  "
-                           ESC_BOLD "F6 "           ESC_NORMAL ESC_BG_CYAN "Clr Logs" ESC_BG_BLUE "  ",
+                           ESC_BOLD "F6 "           ESC_NORMAL ESC_BG_CYAN "Clr Logs" ESC_BG_BLUE "  "
+                           ESC_BOLD "F11/F12 "      ESC_NORMAL ESC_BG_CYAN "Change Page" ESC_BG_BLUE "  "
+                           ,
                 fgColor : twins::ColorFG::White,
             }}
         },

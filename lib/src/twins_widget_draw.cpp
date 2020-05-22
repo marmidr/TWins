@@ -61,7 +61,7 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
     switch (pWgt->type)
     {
     case Widget::Window:
-        // this is terminator-case
+        // this is terminating case
         return pWgt->window.bgColor;
     case Widget::Panel:
         if (pWgt->panel.bgColor != ColorBG::Inherit)
@@ -94,6 +94,7 @@ static ColorFG getWidgetFgColor(const Widget *pWgt)
     switch (pWgt->type)
     {
     case Widget::Window:
+        // this is terminating case
         return pWgt->window.fgColor;
     case Widget::Panel:
         if (pWgt->panel.fgColor != ColorFG::Inherit)
@@ -122,10 +123,6 @@ static ColorFG getWidgetFgColor(const Widget *pWgt)
     case Widget::Led:
         if (pWgt->led.fgColor != ColorFG::Inherit)
             return pWgt->led.fgColor;
-        break;
-    case Widget::Page:
-        if (pWgt->page.fgColor != ColorFG::Inherit)
-            return pWgt->page.fgColor;
         break;
     case Widget::ProgressBar:
         if (pWgt->progressbar.fgColor != ColorFG::Inherit)
@@ -518,10 +515,16 @@ static void drawPageControl(const Widget *pWgt)
         g.str.setLength(pWgt->pagectrl.tabWidth, true, true);
 
         moveTo(my_coord.col, my_coord.row + i + 1);
-        pushClFg(getWidgetFgColor(p_page));
-        if (/* focused && */ i == pg_idx) pushAttr(FontAttrib::Inverse);
+
+        // for Page we do not want inherit after it's title color
+        auto clfg = p_page->page.fgColor;
+        if (clfg == ColorFG::Inherit)
+            clfg = getWidgetFgColor(p_page);
+
+        pushClFg(clfg);
+        if (i == pg_idx) pushAttr(FontAttrib::Inverse);
         writeStr(g.str.cstr());
-        if (/* focused && */ i == pg_idx) popAttr();
+        if (i == pg_idx) popAttr();
         popClFg();
 
         if (g.pWndState->isVisible(p_page))
