@@ -52,6 +52,11 @@ enum WndMainIDs
                     ID_CHBX_B,
                     ID_CHBX_C,
                     ID_CHBX_D,
+            ID_PAGE_4,
+                ID_PANEL_EMPTY_1,
+                    ID_LBL_EMPTY_1,
+                ID_PANEL_EMPTY_2,
+                    ID_LBL_EMPTY_2,
         ID_LABEL_FTR,
 };
 

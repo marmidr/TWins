@@ -295,10 +295,16 @@ static bool isFocusable(const WID widgetId)
     return false;
 }
 
-static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool forward)
+static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool forward, const Widget *pFirstParent = nullptr)
 {
     if (!pParent)
         return nullptr;
+
+    if (pParent == pFirstParent)
+    {
+        // TWINS_LOG("full loop detected");
+        return nullptr;
+    }
 
     const Widget *p_childs = {};
     uint16_t child_cnt = 0;
@@ -333,9 +339,20 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
         return nullptr;
     }
 
+    if (child_cnt == 0)
+        return nullptr;
+
+    if (!pFirstParent && (pParent->type == Widget::Panel || pParent->type == Widget::Page))
+    {
+        // it must be Panel or Page because while traversing we never step below Page level
+        // TWINS_LOG("1st parent[id:%u, %s]", pParent->id, toString(pParent->type));
+        pFirstParent = pParent;
+    }
+
     assert(p_childs);
     const Widget *p_wgt = nullptr;
-    // TWINS_LOG("pParent[id:%u, %s] cur= %d", pParent->id, toString(pParent->type), focusedID);
+
+    // TWINS_LOG("pParent[id:%u, %s] cur= %d", pParent->id, toString(pParent->type), focusedID); twins::sleepMs(200);
 
     if (focusedID == WIDGET_ID_NONE)
     {
@@ -347,7 +364,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
             return p_wgt;
 
         if (isParent(p_wgt))
-            if (const auto *p = getNextFocusable(p_wgt, WIDGET_ID_NONE, forward))
+            if (const auto *p = getNextFocusable(p_wgt, WIDGET_ID_NONE, forward, pFirstParent))
                 return p;
     }
     else
@@ -362,8 +379,11 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
         assert(p_wgt < p_childs + child_cnt);
     }
 
-    // TWINS_LOG("Search in %s childs[%d]", toString(pParent->type), child_cnt);
+
+    // TWINS_LOG("search in %s childs[%d]", toString(pParent->type), child_cnt);
     // iterate until focusable found or childs border reached
+    assert(p_wgt);
+
     for (uint16_t i = 0; i < child_cnt; i++)
     {
         p_wgt += forward ? 1 : -1;
@@ -372,7 +392,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
         {
             // border reached: if we are on Panel, jump to panel's parent next child
             if (pParent->type == Widget::Panel)
-                return getNextFocusable(getParent(pParent), pParent->id, forward);
+                return getNextFocusable(getParent(pParent), pParent->id, forward, pFirstParent);
 
             if (p_wgt > p_childs) p_wgt = p_childs;
             else                  p_wgt = p_childs + child_cnt - 1;
@@ -382,7 +402,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
             return p_wgt;
 
         if (isParent(p_wgt))
-            if (const auto *p = getNextFocusable(p_wgt, WIDGET_ID_NONE, forward))
+            if (const auto *p = getNextFocusable(p_wgt, WIDGET_ID_NONE, forward, pFirstParent))
                 return p;
     }
 

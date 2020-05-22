@@ -145,6 +145,7 @@ public:
         if (pWgt->id == ID_PAGE_1) return pgcPage == 0;
         if (pWgt->id == ID_PAGE_2) return pgcPage == 1;
         if (pWgt->id == ID_PAGE_3) return pgcPage == 2;
+        if (pWgt->id == ID_PAGE_4) return pgcPage == 3;
 
         return true;
     }

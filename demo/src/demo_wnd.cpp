@@ -359,6 +359,59 @@ static constexpr twins::Widget page2Childs[] =
     { /* NUL */ }
 };
 
+static constexpr twins::Widget page4Childs[] =
+{
+    {
+        type    : twins::Widget::Panel,
+        id      : ID_PANEL_EMPTY_1,
+        coord   : { 2, 2 },
+        size    : { 20, 8 },
+        { panel : {
+            title   :   "A",
+            fgColor :   {},
+            bgColor :   {},
+        }},
+        link    : { (const twins::Widget[])
+        {
+            {
+                type    : twins::Widget::Label,
+                id      : ID_LBL_EMPTY_1,
+                coord   : { 10, 4 },
+                size    : { 5, 1 },
+                { label : {
+                    text    : "-A-",
+                }}
+            },
+            { /* NUL */ }
+        }}
+    },
+    {
+        type    : twins::Widget::Panel,
+        id      : ID_PANEL_EMPTY_2,
+        coord   : { 25, 2 },
+        size    : { 20, 8 },
+        { panel : {
+            title   :   "B",
+            fgColor :   {},
+            bgColor :   {},
+        }},
+        link    : { (const twins::Widget[])
+        {
+            {
+                type    : twins::Widget::Label,
+                id      : ID_LBL_EMPTY_2,
+                coord   : { 10, 4 },
+                size    : { 5, 1 },
+                { label : {
+                    text    : "-B-",
+                }}
+            },
+            { /* NUL */ }
+        }}
+    },
+    { /* NUL */ }
+};
+
 static constexpr twins::Widget page3Childs[] =
 {
     {
@@ -482,9 +535,9 @@ static constexpr twins::Widget wndMain =
     coord   : { 15, 1 },
     size    : { 80, 15 },
     { window : {
+        title       : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
         fgColor     : twins::ColorFG::White,
         bgColor     : twins::ColorBG::Blue,
-        title       : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
         getState    : getWindMainState,
     }},
     link    : { (const twins::Widget[])
@@ -531,6 +584,17 @@ static constexpr twins::Widget wndMain =
                         fgColor     : twins::ColorFG::Yellow,
                     }},
                     link    : { page3Childs }
+                },
+                {
+                    type    : twins::Widget::Page,
+                    id      : ID_PAGE_4,
+                    coord   : {},
+                    size    : {},
+                    { page : {
+                        title       : "Inactiv",
+                        fgColor     : twins::ColorFG::White,
+                    }},
+                    link    : { page4Childs }
                 },
                 { /* NUL */ }
             }}

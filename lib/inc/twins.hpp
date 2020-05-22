@@ -247,9 +247,9 @@ struct Widget
     {
         struct
         {
+            const char *    title;
             ColorFG         fgColor;
             ColorBG         bgColor;
-            const char *    title;
             IWindowState *  (*getState)();
         } window;
 
