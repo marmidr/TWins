@@ -255,15 +255,15 @@ struct Widget
 
         struct
         {
+            const char *title;
             ColorBG     bgColor;
             ColorFG     fgColor;
-            const char *title;
         } panel;
 
         struct
         {
-            ColorFG     fgColor;
             const char *text;
+            ColorFG     fgColor;
         } label;
 
         struct
@@ -283,6 +283,7 @@ struct Widget
             const char *text;
             uint16_t    radioId;
             uint8_t     groupId;
+            ColorFG     fgColor;
         } radio;
 
         struct
@@ -295,10 +296,10 @@ struct Widget
 
         struct
         {
+            const char *text;
             ColorBG     bgColorOff;
             ColorBG     bgColorOn;
             ColorFG     fgColor;
-            const char *text;
         } led;
 
         struct
@@ -308,8 +309,8 @@ struct Widget
 
         struct
         {
-            ColorFG     fgColor;
             const char *title;
+            ColorFG     fgColor;
         } page;
 
         struct

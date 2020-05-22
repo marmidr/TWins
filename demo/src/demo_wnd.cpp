@@ -75,10 +75,10 @@ static constexpr twins::Widget pnlStateChilds[] =
         coord   : { 2, 1 },
         size    : {},
         { led : {
+            text        : "(BATT)",
             bgColorOff  : twins::ColorBG::White,
             bgColorOn   : twins::ColorBG::Magenta,
             fgColor     : twins::ColorFG::Black,
-            text        : "(BATT)"
         }}
     },
     {
@@ -87,10 +87,10 @@ static constexpr twins::Widget pnlStateChilds[] =
         coord   : { 9, 1 },
         size    : {},
         { led : {
+            text        : "(LOCK)",
             bgColorOff  : twins::ColorBG::White,
             bgColorOn   : twins::ColorBG::Green,
             fgColor     : twins::ColorFG::Black,
-            text        : "(LOCK)"
         }}
     },
     {
@@ -99,10 +99,10 @@ static constexpr twins::Widget pnlStateChilds[] =
         coord   : { 16, 1 },
         size    : {},
         { led : {
+            text        : "(PUMP)",
             bgColorOff  : twins::ColorBG::White,
             bgColorOn   : twins::ColorBG::Yellow,
             fgColor     : twins::ColorFG::Black,
-            text        : "(PUMP)"
         }}
     },
     // at the end of child's array must lay terminating element;
@@ -118,9 +118,9 @@ static constexpr twins::Widget page1Childs[] =
         coord   : { 1, 1 },
         size    : { 21, 5 },
         { panel : {
+            title       : "VER",
             bgColor     : twins::ColorBG::Green,
             fgColor     : twins::ColorFG::White,
-            title       : "VER",
         }},
         link    : { (const twins::Widget[]) // set first field in union - pChilds
         {
@@ -130,8 +130,8 @@ static constexpr twins::Widget page1Childs[] =
                 coord   : { 2, 1 },
                 size    : { 12, 1 },
                 { label : {
+                    text    : "FwVer: 1.1",
                     fgColor : twins::ColorFG::YellowIntense,
-                    text    : "FwVer: 1.1"
                 }}
             },
             {
@@ -140,8 +140,8 @@ static constexpr twins::Widget page1Childs[] =
                 coord   : { 2, 2 },
                 size    : { 15, 1 },
                 { label : {
+                    text    : "Date•" __DATE__,
                     fgColor : twins::ColorFG::Black,
-                    text    : "Date•" __DATE__
                 }}
             },
             {
@@ -150,8 +150,8 @@ static constexpr twins::Widget page1Childs[] =
                 coord   : { 2, 3 },
                 size    : { 16, 1 },
                 { label : {
+                    text    : "Time≡" __TIME__,
                     fgColor : twins::ColorFG::Magenta,
-                    text    : "Time≡" __TIME__
                 }}
             },
             { /* NUL */ }
@@ -163,9 +163,9 @@ static constexpr twins::Widget page1Childs[] =
         coord   : { 30, 1 },
         size    : { 25, 3 },
         { panel : {
+            title       : "STATE: Leds",
             bgColor     : twins::ColorBG::White,
             fgColor     : twins::ColorFG::Blue,
-            title       : "STATE: Leds",
         }},
         link    : { pnlStateChilds }
     },
@@ -175,9 +175,9 @@ static constexpr twins::Widget page1Childs[] =
         coord   : { 1, 7 },
         size    : { 26, 4 },
         { panel : {
+            title       : "KEY-CODES",
             bgColor     : twins::ColorBG::Cyan,
             fgColor     : twins::ColorFG::White,
-            title       : "KEY-CODES",
         }},
         link    : { (const twins::Widget[])
         {
@@ -187,8 +187,8 @@ static constexpr twins::Widget page1Childs[] =
                 coord   : { 2, 1 },
                 size    : { 22, 1 },
                 { label : {
+                    text    : nullptr, // use callback to get text
                     fgColor : twins::ColorFG::White,
-                    text    : nullptr // use callback to get text
                 }}
             },
             {
@@ -197,8 +197,8 @@ static constexpr twins::Widget page1Childs[] =
                 coord   : { 2, 2 },
                 size    : { 17, 1 },
                 { label : {
+                    text    : nullptr, // use callback to get text
                     fgColor : twins::ColorFG::White,
-                    text    : nullptr // use callback to get text
                 }}
             },
             { /* NUL */ }
@@ -300,11 +300,11 @@ static constexpr twins::Widget page2Childs[] =
         coord   : { 24, 2 },
         size    : { 35, 4 },
         { label : {
-            fgColor : twins::ColorFG::YellowIntense,
             text    : "  ▫▫▫▫▫ " ESC_INVERSE_ON "ListBox" ESC_INVERSE_OFF " ▫▫▫▫▫" "\n"
                       "• " ESC_UNDERLINE_ON "Up/Down" ESC_UNDERLINE_OFF " -> change item" "\n"
                       "• " ESC_UNDERLINE_ON "PgUp/PgDown" ESC_UNDERLINE_OFF " -> scroll page" "\n"
-                      "• " ESC_UNDERLINE_ON "Enter" ESC_UNDERLINE_OFF " -> select the item"
+                      "• " ESC_UNDERLINE_ON "Enter" ESC_UNDERLINE_OFF " -> select the item",
+            fgColor : twins::ColorFG::YellowIntense,
         }}
     },
     {
@@ -361,9 +361,9 @@ static constexpr twins::Widget page3Childs[] =
         coord   : { 2, 1 },
         size    : { 32, 5 },
         { panel : {
+            title       : {},
             bgColor     : twins::ColorBG::White,
             fgColor     : twins::ColorFG::White,
-            title       : {},
         }},
         link    : { (const twins::Widget[]) // set first field in union - pChilds
         {
@@ -402,9 +402,9 @@ static constexpr twins::Widget page3Childs[] =
         coord   : { 36, 1 },
         size    : { 22, 10 },
         { panel : {
+            title       : {},
             bgColor     : twins::ColorBG::Blue,
             fgColor     : twins::ColorFG::White,
-            title       : {},
         }},
         link    : { (const twins::Widget[]) // set first field in union - pChilds
         {
@@ -414,8 +414,8 @@ static constexpr twins::Widget page3Childs[] =
                 coord   : { 2, 2 },
                 size    : { 14, 1 },
                 { label : {
+                    text    : "Check list:",
                     fgColor : twins::ColorFG::White,
-                    text    : "Check list:"
                 }}
             },
             {
@@ -497,8 +497,8 @@ static constexpr twins::Widget wndMain =
                     coord   : {},
                     size    : {},
                     { page : {
-                        fgColor     : twins::ColorFG::Yellow,
                         title       : "Version",
+                        fgColor     : twins::ColorFG::Yellow,
                     }},
                     link    : { page1Childs }
                 },
@@ -508,8 +508,8 @@ static constexpr twins::Widget wndMain =
                     coord   : {},
                     size    : {},
                     { page : {
-                        fgColor     : twins::ColorFG::White,
                         title       : "Service ∑",
+                        fgColor     : twins::ColorFG::White,
                     }},
                     link    : { page2Childs }
                 },
@@ -519,8 +519,8 @@ static constexpr twins::Widget wndMain =
                     coord   : {},
                     size    : {},
                     { page : {
-                        fgColor     : twins::ColorFG::Yellow,
                         title       : "Diagnostics",
+                        fgColor     : twins::ColorFG::Yellow,
                     }},
                     link    : { page3Childs }
                 },
@@ -533,10 +533,10 @@ static constexpr twins::Widget wndMain =
             coord   : { 2, 13 },
             size    : { 76, 1 },
             { label : {
-                fgColor : twins::ColorFG::White,
                 text    :  ESC_BOLD "F4 "           ESC_NORMAL ESC_BG_CYAN "Mouse On/Off" ESC_BG_BLUE "  "
                            ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_CYAN "Refresh" ESC_BG_BLUE "  "
-                           ESC_BOLD "F6 "           ESC_NORMAL ESC_BG_CYAN "Clr Logs" ESC_BG_BLUE "  "
+                           ESC_BOLD "F6 "           ESC_NORMAL ESC_BG_CYAN "Clr Logs" ESC_BG_BLUE "  ",
+                fgColor : twins::ColorFG::White,
             }}
         },
         { /* NUL */ }
