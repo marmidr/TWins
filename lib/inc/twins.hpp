@@ -247,8 +247,8 @@ struct Widget
     {
         struct
         {
-            ColorBG         bgColor;
             ColorFG         fgColor;
+            ColorBG         bgColor;
             const char *    title;
             IWindowState *  (*getState)();
         } window;
@@ -256,8 +256,8 @@ struct Widget
         struct
         {
             const char *title;
-            ColorBG     bgColor;
             ColorFG     fgColor;
+            ColorBG     bgColor;
             bool        noFrame;
         } panel;
 
@@ -269,8 +269,8 @@ struct Widget
 
         struct
         {
-            ColorBG     bgColor;
             ColorFG     fgColor;
+            ColorBG     bgColor;
         } edit;
 
         struct
@@ -290,17 +290,17 @@ struct Widget
         struct
         {
             const char *text;
-            ColorBG     bgColor;
             ColorFG     fgColor;
+            ColorBG     bgColor;
             ButtonStyle style;
         } button;
 
         struct
         {
             const char *text;
+            ColorFG     fgColor;
             ColorBG     bgColorOff;
             ColorBG     bgColorOn;
-            ColorFG     fgColor;
         } led;
 
         struct
@@ -322,8 +322,8 @@ struct Widget
 
         struct
         {
-            ColorBG     bgColor;
             ColorFG     fgColor;
+            ColorBG     bgColor;
         } listbox;
 
         struct

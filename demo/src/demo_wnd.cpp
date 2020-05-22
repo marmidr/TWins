@@ -80,9 +80,9 @@ static constexpr twins::Widget pnlStateChilds[] =
         size    : {},
         { led : {
             text        : "(BATT)",
+            fgColor     : twins::ColorFG::Black,
             bgColorOff  : twins::ColorBG::White,
             bgColorOn   : twins::ColorBG::Magenta,
-            fgColor     : twins::ColorFG::Black,
         }}
     },
     {
@@ -92,9 +92,9 @@ static constexpr twins::Widget pnlStateChilds[] =
         size    : {},
         { led : {
             text        : "(LOCK)",
+            fgColor     : twins::ColorFG::Black,
             bgColorOff  : twins::ColorBG::White,
             bgColorOn   : twins::ColorBG::Green,
-            fgColor     : twins::ColorFG::Black,
         }}
     },
     {
@@ -104,9 +104,9 @@ static constexpr twins::Widget pnlStateChilds[] =
         size    : {},
         { led : {
             text        : "(PUMP)",
+            fgColor     : twins::ColorFG::Black,
             bgColorOff  : twins::ColorBG::White,
             bgColorOn   : twins::ColorBG::Yellow,
-            fgColor     : twins::ColorFG::Black,
         }}
     },
     // at the end of child's array must lay terminating element;
@@ -123,8 +123,8 @@ static constexpr twins::Widget page1Childs[] =
         size    : { 21, 5 },
         { panel : {
             title       : "VER",
-            bgColor     : twins::ColorBG::Green,
             fgColor     : twins::ColorFG::White,
+            bgColor     : twins::ColorBG::Green,
         }},
         link    : { (const twins::Widget[]) // set first field in union - pChilds
         {
@@ -168,8 +168,8 @@ static constexpr twins::Widget page1Childs[] =
         size    : { 25, 3 },
         { panel : {
             title       : "STATE: Leds",
-            bgColor     : twins::ColorBG::White,
             fgColor     : twins::ColorFG::Blue,
+            bgColor     : twins::ColorBG::White,
         }},
         link    : { pnlStateChilds }
     },
@@ -180,8 +180,8 @@ static constexpr twins::Widget page1Childs[] =
         size    : { 26, 4 },
         { panel : {
             title       : "KEY-CODES",
-            bgColor     : twins::ColorBG::Cyan,
             fgColor     : twins::ColorFG::White,
+            bgColor     : twins::ColorBG::Cyan,
         }},
         link    : { (const twins::Widget[])
         {
@@ -234,8 +234,8 @@ static constexpr twins::Widget page1Childs[] =
         size    : {},
         { button : {
             text    : "YES",
-            bgColor : twins::ColorBG::ButtonGreen,
             fgColor : twins::ColorFG::ButtonGreen,
+            bgColor : twins::ColorBG::ButtonGreen,
             style   : twins::ButtonStyle::Solid
         }}
     },
@@ -246,8 +246,8 @@ static constexpr twins::Widget page1Childs[] =
         size    : {},
         { button : {
             text    : "NO",
-            bgColor : twins::ColorBG::ButtonOrange,
             fgColor : twins::ColorFG::ButtonOrange,
+            bgColor : twins::ColorBG::ButtonOrange,
             style   : twins::ButtonStyle::Solid
         }}
     },
@@ -258,8 +258,8 @@ static constexpr twins::Widget page1Childs[] =
         size    : {},
         { button : {
             text    : "CANCEL",
-            bgColor : {},
             fgColor : twins::ColorFG::White,
+            bgColor : {},
             style   : twins::ButtonStyle::Simple
         }}
     },
@@ -317,8 +317,8 @@ static constexpr twins::Widget page2Childs[] =
         coord   : { 2, 2 },
         size    : { 20, 8 },
         { listbox : {
+            fgColor :   twins::ColorFG::Green,
             bgColor :   twins::ColorBG::White,
-            fgColor :   twins::ColorFG::Green
         }}
     },
     {
@@ -368,8 +368,8 @@ static constexpr twins::Widget page3Childs[] =
         size    : { 32, 5 },
         { panel : {
             title       : {},
-            bgColor     : twins::ColorBG::White,
             fgColor     : twins::ColorFG::White,
+            bgColor     : twins::ColorBG::White,
             noFrame     : true
         }},
         link    : { (const twins::Widget[]) // set first field in union - pChilds
@@ -380,8 +380,8 @@ static constexpr twins::Widget page3Childs[] =
                 coord   : { 1, 1 },
                 size    : { 30, 1 },
                 { edit : {
-                    bgColor     : twins::ColorBG::Cyan,
                     fgColor     : twins::ColorFG::Black,
+                    bgColor     : twins::ColorBG::Cyan,
                 }}
             },
             {
@@ -390,8 +390,8 @@ static constexpr twins::Widget page3Childs[] =
                 coord   : { 1, 3 },
                 size    : { 30, 1 },
                 { edit : {
-                    bgColor     : twins::ColorBG::Yellow,
                     fgColor     : twins::ColorFG::Black,
+                    bgColor     : twins::ColorBG::Yellow,
                 }}
             },
             { /* NUL */ }
@@ -410,8 +410,8 @@ static constexpr twins::Widget page3Childs[] =
         size    : { 22, 10 },
         { panel : {
             title       : {},
-            bgColor     : twins::ColorBG::PanelChbox,
             fgColor     : twins::ColorFG::PanelChbox,
+            bgColor     : twins::ColorBG::PanelChbox,
         }},
         link    : { (const twins::Widget[]) // set first field in union - pChilds
         {
@@ -482,8 +482,8 @@ static constexpr twins::Widget wndMain =
     coord   : { 15, 1 },
     size    : { 80, 15 },
     { window : {
-        bgColor     : twins::ColorBG::Blue,
         fgColor     : twins::ColorFG::White,
+        bgColor     : twins::ColorBG::Blue,
         title       : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
         getState    : getWindMainState,
     }},
