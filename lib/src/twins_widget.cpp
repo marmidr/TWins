@@ -306,6 +306,9 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
         return nullptr;
     }
 
+    if (pParent->id == focusedID)
+        return nullptr;
+
     const Widget *p_childs = {};
     uint16_t child_cnt = 0;
 
@@ -496,6 +499,9 @@ static const Widget *findMainPgControl()
 
 static void pgControlChangePage(const Widget *pWgt, bool next)
 {
+    assert(pWgt);
+    assert(pWgt->type == Widget::PageCtrl);
+
     int idx = g.pWndState->getPageCtrlPageIndex(pWgt);
     idx += next ? 1 : -1;
     if (idx < 0)                     idx = pWgt->link.childsCnt -1;
@@ -505,15 +511,18 @@ static void pgControlChangePage(const Widget *pWgt, bool next)
     g.pWndState->onPageControlPageChange(pWgt, idx);
     g.pWndState->invalidate(pWgt->id);
 
-    // TODO: cancel EDIT mode ?
+    // cancel EDIT mode
+    g.editState.pWgt = nullptr;
 
     if (const auto *p_wgt = getWidgetByWID(g.pWndState->getFocusedID()))
     {
+        //TWINS_LOG("focused id=%d (%s)", p_wgt->id, toString(p_wgt->type));
         g.pFocusedWgt = p_wgt;
         setCursorAt(p_wgt);
     }
     else
     {
+        g.pFocusedWgt = p_wgt;
         moveToHome();
     }
 }
