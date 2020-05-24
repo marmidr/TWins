@@ -341,6 +341,8 @@ unsigned String::escLen(const char *str)
             case '^':
             case '~':
                 return n+1;
+            case 'M':
+                return 6;
             default:
                 if (c >= 'A' && c <= 'Z' && c != 'O') return n+1;
                 if (c >= 'a' && c <= 'z') return n+1;

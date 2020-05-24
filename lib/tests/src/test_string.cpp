@@ -379,6 +379,10 @@ TEST(STRING, escLen)
     EXPECT_EQ(3, twins::String::escLen("\eOP"));
     // C-S-F1
     EXPECT_EQ(5, twins::String::escLen("\e[23@"));
+    // Mouse l-click
+    EXPECT_EQ(6, twins::String::escLen("\e[M !!"));
+    // Mouse wheel down
+    EXPECT_EQ(6, twins::String::escLen("\e[Ma$\""));
 }
 
 TEST(STRING, u8lenIgnoreEsc)
