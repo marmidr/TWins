@@ -19,6 +19,8 @@ clone:
 pipelines:
   default:
     - step:
+        caches:
+          - pip
         script: # Modify the commands below to build your repository.
           - apt-get update
           - apt-get install -y cmake
@@ -27,5 +29,10 @@ pipelines:
           - mkdir build
           - cd build
           - cmake -DTWINS_USE_SANITIZERS=OFF ..
-          - make -j
+          - make -j4
           - ctest -V
+          - apt-get install -y python-pip
+          - pip install cpp-coveralls gcovr
+          #- coveralls -b . -r .. -i "lib" -E ".*/lib/tests/.*" -t xyTXxJUFndVGPY153wKb3aLwb8P71CAwr
+          - coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t xyTXxJUFndVGPY153wKb3aLwb8P71CAwr
+

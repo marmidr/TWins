@@ -1,5 +1,8 @@
 # TWins in brief
 
+master: [![Coverage Status](https://coveralls.io/repos/bitbucket/mmidor/twins/badge.svg?branch=master)](https://coveralls.io/bitbucket/mmidor/twins?branch=master) 
+dev: [![Coverage Status](https://coveralls.io/repos/bitbucket/mmidor/twins/badge.svg?branch=dev)](https://coveralls.io/bitbucket/mmidor/twins?branch=dev)
+
 `TWins` is a C++ library designed to allow a developer to create graphical terminal applications on non-os platforms, like bare Cortex-M3.
 It provides basic facilities required by interactive applications such as screen and cursor management, keyboard input, keymaps, color codes.
 Additional it allows to define terminal windows and it's widgets in a convenient way as const tree of `twins::Widget` structures.
@@ -57,7 +60,7 @@ Implementation is based on examples:
     - [x] select widget by mouse
 - notifications
     - [x] notify event per widget type (button clicked, checkbox toggled)
-- [ ] color theme for window
+- [x] color theme for window
 - [x] keyboard handler returns if key was handled by active widget
 - [x] support for mouse click
 
@@ -68,7 +71,7 @@ Tests are enabled by default, Demo has to be enabled in commandline or in `ccmak
 
 ```bash
 mkdir build && cd build
-cmake -DTWINS_BUILD_DEMO=ON ..
+cmake -DTWINS_BUILD_DEMO=ON -DTWINS_THEME_PATH="demo/inc/demo_theme.hpp" ..
 make -j
 ctest -V
 ```

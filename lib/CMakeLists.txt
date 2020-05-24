@@ -35,6 +35,12 @@ else()
     target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PAL_FULLIMPL=0)
 endif()
 
+if (TWINS_THEME_PATH STREQUAL "")
+else()
+    set(TWINS_THEME_PATH ${PROJECT_SOURCE_DIR}/${TWINS_THEME_PATH})
+    message(STATUS "TWins theme location: ${TWINS_THEME_PATH}")
+    target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_THEME="${TWINS_THEME_PATH}")
+endif()
 
 if (${TWINS_BUILD_UT})
     option(TWINS_USE_SANITIZERS "Use GCC sanitizers for Unit Tests" ON)

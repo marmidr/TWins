@@ -94,8 +94,8 @@
 #define ESC_FG_WHITE                    ANSI_CSI("37m")
 #define ESC_FG_WHITE_INTENSE            ANSI_CSI("97m")
 
-#define ESC_FG_RGB(r,g,b)               ANSI_CSI("38;2;" #r ";" #g ";" #b ";m") // r,g,b: 0..255
-#define ESC_FG_GRAY(n)                  ANSI_CSI("38;5;" #n "m")                // n: 232 (black) .. 255 (white)
+#define ESC_FG_RGB(r,g,b)               ANSI_CSI("38;2;" #r ";" #g ";" #b "m")  // r,g,b: 0..255
+#define ESC_FG_COLOR(n)                 ANSI_CSI("38;5;" #n "m")                // n: 1..255
 #define ESC_FG_DEFAULT                  ANSI_CSI("39m")
 
 
@@ -116,8 +116,8 @@
 #define ESC_BG_WHITE                    ANSI_CSI("47m")
 #define ESC_BG_WHITE_INTENSE            ANSI_CSI("107m")
 
-#define ESC_BG_RGB(r,g,b)               ANSI_CSI("48;2;" #r ";" #g ";" #b ";m") // r,g,b: 0..255
-#define ESC_BG_GRAY(n)                  ANSI_CSI("48;5;" #n "m")                // n: 232 (black) .. 255 (white)
+#define ESC_BG_RGB(r,g,b)               ANSI_CSI("48;2;" #r ";" #g ";" #b "m")  // r,g,b: 0..255
+#define ESC_BG_COLOR(n)                 ANSI_CSI("48;5;" #n "m")                // n: 1..255
 #define ESC_BG_DEFAULT                  ANSI_CSI("49m")
 
 /** Put Foreground and Background colors to their defaults */

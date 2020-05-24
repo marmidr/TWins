@@ -38,7 +38,7 @@ struct EditState
 /** Global state object */
 struct Glob
 {
-    Coord   parentCoord;            // current widget left-top position
+    Coord   parentCoord;            // current widget's parent left-top position
     String  str;                    // common string buff for widget drawers
     const Widget *pWndArray = {};   // array of Window widgets
     IWindowState *pWndState = {};   //

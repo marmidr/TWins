@@ -272,3 +272,35 @@ TEST(ANSI_INPUTDECODER, CR_LF_CR)
     decodeInputSeq(input, kc);
     EXPECT_EQ(twins::Key::Tab, kc.key);
 }
+
+TEST(ANSI_INPUTDECODER, Mouse_click_at_11)
+{
+    twins::decodeInputSeqReset();
+    twins::RingBuff<char> input(rbBuffer);
+    twins::KeyCode kc;
+
+    input.write("\e[M !!");
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::MouseEvent, kc.key);
+    EXPECT_EQ(twins::MouseBtn::ButtonLeft, kc.mouse.btn);
+    EXPECT_EQ(1, kc.mouse.col);
+    EXPECT_EQ(1, kc.mouse.row);
+    EXPECT_EQ(0, kc.mod_all);
+}
+
+TEST(ANSI_INPUTDECODER, Mouse_wheel_down)
+{
+    twins::decodeInputSeqReset();
+    twins::RingBuff<char> input(rbBuffer);
+    twins::KeyCode kc;
+
+    input.write("\e[Ma$\"");
+
+    decodeInputSeq(input, kc);
+    EXPECT_EQ(twins::Key::MouseEvent, kc.key);
+    EXPECT_EQ(twins::MouseBtn::WheelDown, kc.mouse.btn);
+    EXPECT_EQ(4, kc.mouse.col);
+    EXPECT_EQ(2, kc.mouse.row);
+    EXPECT_EQ(0, kc.mod_all);
+}

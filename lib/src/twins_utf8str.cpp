@@ -112,6 +112,7 @@ int utf8len(char const *str)
     return len;
 }
 
+/*
 int utf8nlen(char const *str, int strsize)
 {
     int len = 0;
@@ -137,3 +138,4 @@ int utf8nlen(char const *str, int strsize)
 
     return len;
 }
+*/

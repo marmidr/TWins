@@ -55,23 +55,88 @@ static void drawWidgetInternal(const Widget *pWgt);
 
 static ColorBG getWidgetBgColor(const Widget *pWgt)
 {
-    if (pWgt)
+    if (!pWgt)
+        return ColorBG::Default;
+
+    switch (pWgt->type)
     {
-        switch (pWgt->type)
-        {
-        case Widget::Window:
-            return pWgt->window.bgColor; break;
-        case Widget::Panel:
-            return pWgt->panel.bgColor; break;
-        case Widget::Page:
-        case Widget::PageCtrl:
-            return getWidgetBgColor(g.pWndArray + pWgt->link.parentIdx);
-        default:
-            break;
-        }
+    case Widget::Window:
+        // this is terminating case
+        return pWgt->window.bgColor;
+    case Widget::Panel:
+        if (pWgt->panel.bgColor != ColorBG::Inherit)
+            return pWgt->panel.bgColor;
+        break;
+    case Widget::Edit:
+        if (pWgt->edit.bgColor != ColorBG::Inherit)
+            return pWgt->edit.bgColor;
+        break;
+    case Widget::Button:
+        if (pWgt->button.bgColor != ColorBG::Inherit)
+            return pWgt->button.bgColor;
+        break;
+    case Widget::ListBox:
+        if (pWgt->listbox.bgColor != ColorBG::Inherit)
+            return pWgt->listbox.bgColor;
+        break;
+    default:
+        break;
     }
 
-    return ColorBG::None;
+    return getWidgetBgColor(g.pWndArray + pWgt->link.parentIdx);
+}
+
+static ColorFG getWidgetFgColor(const Widget *pWgt)
+{
+    if (!pWgt)
+        return ColorFG::Default;
+
+    switch (pWgt->type)
+    {
+    case Widget::Window:
+        // this is terminating case
+        return pWgt->window.fgColor;
+    case Widget::Panel:
+        if (pWgt->panel.fgColor != ColorFG::Inherit)
+            return pWgt->panel.fgColor;
+        break;
+    case Widget::Label:
+        if (pWgt->label.fgColor != ColorFG::Inherit)
+            return pWgt->label.fgColor;
+        break;
+    case Widget::Edit:
+        if (pWgt->edit.fgColor != ColorFG::Inherit)
+            return pWgt->edit.fgColor;
+        break;
+    case Widget::CheckBox:
+        if (pWgt->checkbox.fgColor != ColorFG::Inherit)
+            return pWgt->checkbox.fgColor;
+        break;
+    case Widget::Radio:
+        if (pWgt->radio.fgColor != ColorFG::Inherit)
+            return pWgt->radio.fgColor;
+        break;
+    case Widget::Button:
+        if (pWgt->button.fgColor != ColorFG::Inherit)
+            return pWgt->button.fgColor;
+        break;
+    case Widget::Led:
+        if (pWgt->led.fgColor != ColorFG::Inherit)
+            return pWgt->led.fgColor;
+        break;
+    case Widget::ProgressBar:
+        if (pWgt->progressbar.fgColor != ColorFG::Inherit)
+            return pWgt->progressbar.fgColor;
+        break;
+    case Widget::ListBox:
+        if (pWgt->listbox.fgColor != ColorFG::Inherit)
+            return pWgt->listbox.fgColor;
+        break;
+    default:
+        break;
+    }
+
+    return getWidgetFgColor(g.pWndArray + pWgt->link.parentIdx);
 }
 
 static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG clFg, const FrameStyle style, bool filled = true)
@@ -88,8 +153,8 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     }
 
     // background and frame color
-    if (clBg != ColorBG::None) pushClBg(clBg);
-    if (clFg != ColorFG::None) pushClFg(clFg);
+    if (clBg != ColorBG::Inherit) pushClBg(clBg);
+    if (clFg != ColorFG::Inherit) pushClFg(clFg);
 
     // top line
     g.str.clear();
@@ -139,6 +204,8 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     g.str.append(frame[8]);
     moveBy(-size.width, 1);
     writeStr(g.str.cstr());
+
+    // here the Fg and Bg colors are not restored
 }
 
 static void drawScrollBarV(const Coord coord, int height, int max, int pos)
@@ -150,7 +217,6 @@ static void drawScrollBarV(const Coord coord, int height, int max, int pos)
     }
 
     const int slider_at = ((height-1) * pos) / max;
-    pushClFg(ColorFG::Default);
     // "▲▴ ▼▾ ◄◂ ►▸ ◘ █";
 
     for (int i = 0; i < height; i++)
@@ -158,8 +224,6 @@ static void drawScrollBarV(const Coord coord, int height, int max, int pos)
         moveTo(coord.col, coord.row + i);
         writeStr(i == slider_at ? "◘" : "▒");
     }
-
-    popClFg();
 }
 
 static void drawWindow(const Widget *pWgt)
@@ -198,7 +262,8 @@ static void drawPanel(const Widget *pWgt)
     const auto my_coord = g.parentCoord + pWgt->coord;
 
     drawArea(my_coord, pWgt->size,
-        pWgt->panel.bgColor, pWgt->panel.fgColor, FrameStyle::Single);
+        pWgt->panel.bgColor, pWgt->panel.fgColor,
+        pWgt->panel.noFrame ? FrameStyle::None : FrameStyle::Single);
     flushBuffer();
 
     // title
@@ -236,7 +301,7 @@ static void drawLabel(const Widget *pWgt)
         g.pWndState->getLabelText(pWgt, g.str);
 
     // setup colors
-    pushClFg(pWgt->label.fgColor);
+    pushClFg(getWidgetFgColor(pWgt));
 
     // print all lines
     const char *p_line = g.str.cstr();
@@ -284,12 +349,12 @@ static void drawEdit(const Widget *pWgt)
     g.str.append("[^]");
 
     bool focused = g.pWndState->isFocused(pWgt);
-    auto clbg = pWgt->edit.bgColor;
-    if (focused) ++clbg;
+    auto clbg = getWidgetBgColor(pWgt);
+    intenseClIf(focused, clbg);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
-    pushClFg(pWgt->edit.fgColor);
+    pushClFg(getWidgetFgColor(pWgt));
     writeStr(g.str.cstr());
     popClFg();
     popClBg();
@@ -297,7 +362,7 @@ static void drawEdit(const Widget *pWgt)
 
 static void drawLed(const Widget *pWgt)
 {
-    auto bgCl = g.pWndState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
+    auto clbg = g.pWndState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
     g.str.clear();
 
     if (pWgt->led.text)
@@ -307,8 +372,8 @@ static void drawLed(const Widget *pWgt)
 
     // led text
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-    pushClBg(bgCl);
-    pushClFg(pWgt->led.fgColor);
+    pushClBg(clbg);
+    pushClFg(getWidgetFgColor(pWgt));
     writeStr(g.str.cstr());
     popClFg();
     popClBg();
@@ -316,13 +381,13 @@ static void drawLed(const Widget *pWgt)
 
 static void drawCheckbox(const Widget *pWgt)
 {
-    const char *s_chk_state = g.pWndState->getCheckboxChecked(pWgt) ? "[x] " : "[ ] ";
+    const char *s_chk_state = g.pWndState->getCheckboxChecked(pWgt) ? "[■] " : "[ ] ";
     bool focused = g.pWndState->isFocused(pWgt);
+    auto clfg = getWidgetFgColor(pWgt);
+    intenseClIf(focused, clfg);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Bold);
-    auto clfg = pWgt->checkbox.fgColor == ColorFG::None ? ColorFG::Default : pWgt->checkbox.fgColor;
-    if (focused) ++clfg;
     pushClFg(clfg);
     writeStr(s_chk_state);
     writeStr(pWgt->checkbox.text);
@@ -334,10 +399,10 @@ static void drawRadio(const Widget *pWgt)
 {
     const char *s_radio_state = pWgt->radio.radioId == g.pWndState->getRadioIndex(pWgt) ? "(●) " : "( ) ";
     bool focused = g.pWndState->isFocused(pWgt);
+    auto clfg = getWidgetFgColor(pWgt);
+    intenseClIf(focused, clfg);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-    auto clfg = ColorFG::White;
-    if (focused) ++clfg;
     if (focused) pushAttr(FontAttrib::Bold);
     pushClFg(clfg);
     writeStr(s_radio_state);
@@ -350,69 +415,62 @@ static void drawButton(const Widget *pWgt)
 {
     const bool focused = g.pWndState->isFocused(pWgt);
     const bool pressed = pWgt == g.pMouseDownWgt;
-    auto clfg = pWgt->button.fgColor == ColorFG::None ? ColorFG::Default : pWgt->button.fgColor;
-    if (focused) ++clfg;
+    auto clfg = getWidgetFgColor(pWgt);
+    intenseClIf(focused, clfg);
 
     if (pWgt->button.style == ButtonStyle::Simple)
     {
+        FontMemento _m;
         g.str.clear();
         g.str.append(focused ? "[<" : "[ ");
         g.str.append(pWgt->button.text);
         g.str.append(focused ? ">]" : " ]");
 
         moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-        pushAttr(FontAttrib::Bold);
-        pushClFg(clfg);
+        if (focused) pushAttr(FontAttrib::Bold);
         if (pressed) pushAttr(FontAttrib::Inverse);
+        pushClFg(clfg);
         writeStr(g.str.cstr());
-        if (pressed) popAttr();
-        popClFg();
-        popAttr();
     }
     else
     {
-        g.str.clear();
-        g.str << " " << pWgt->button.text << " ";
+        {
+            FontMemento _m;
+            g.str.clear();
+            g.str << " " << pWgt->button.text << " ";
 
-        moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
-        pushAttr(FontAttrib::Bold);
-        pushClBg(pWgt->button.bgColor);
-        pushClFg(clfg);
-        if (pressed) pushAttr(FontAttrib::Inverse);
-        writeStr(g.str.cstr());
-        if (pressed) popAttr();
-        popClFg();
-        popClBg();
-        popAttr();
+            moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
+            if (focused) pushAttr(FontAttrib::Bold);
+            if (pressed) pushAttr(FontAttrib::Inverse);
+            pushClBg(getWidgetBgColor(pWgt));
+            pushClFg(clfg);
+            writeStr(g.str.cstr());
+        }
+
+        auto shadow_len = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
 
         if (pressed)
         {
-            // erase shadow after
+            // erase trailing shadow
+            pushClBg(getWidgetBgColor(getParent(pWgt)));
             writeStr(" ");
             // erase shadow below
-            g.str.clear();
-            auto l = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
-            g.str.append(" ", l);
-
             moveTo(g.parentCoord.col + pWgt->coord.col + 1, g.parentCoord.row + pWgt->coord.row + 1);
-            writeStr(g.str.cstr());
+            writeStr(" ", shadow_len);
+            popClBg();
         }
         else
         {
             // trailing shadow
+            pushClBg(getWidgetBgColor(getParent(pWgt)));
             pushClFg(ColorFG::Black);
             writeStr("▄");
-            popClFg();
 
-            // shadow
-            g.str.clear();
-            auto l = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
-            g.str.append("▀", l);
-
+            // shadow below
             moveTo(g.parentCoord.col + pWgt->coord.col + 1, g.parentCoord.row + pWgt->coord.row + 1);
-            pushClFg(ColorFG::Black);
-            writeStr(g.str.cstr());
+            writeStr("▀", shadow_len);
             popClFg();
+            popClBg();
         }
     }
 }
@@ -421,9 +479,9 @@ static void drawPageControl(const Widget *pWgt)
 {
     const auto my_coord = g.parentCoord + pWgt->coord;
 
-    pushClBg(getWidgetBgColor(g.pWndArray + pWgt->link.parentIdx));
+    pushClBg(getWidgetBgColor(pWgt));
     drawArea(my_coord + Coord{pWgt->pagectrl.tabWidth, 0}, pWgt->size - Size{pWgt->pagectrl.tabWidth, 0},
-        ColorBG::None, ColorFG::None, FrameStyle::PgControl);
+        ColorBG::Inherit, ColorFG::Inherit, FrameStyle::PgControl);
     flushBuffer();
 
     auto coord_bkp = g.parentCoord;
@@ -457,10 +515,16 @@ static void drawPageControl(const Widget *pWgt)
         g.str.setLength(pWgt->pagectrl.tabWidth, true, true);
 
         moveTo(my_coord.col, my_coord.row + i + 1);
-        pushClFg(p_page->page.fgColor);
-        if (/* focused && */ i == pg_idx) pushAttr(FontAttrib::Inverse);
+
+        // for Page we do not want inherit after it's title color
+        auto clfg = p_page->page.fgColor;
+        if (clfg == ColorFG::Inherit)
+            clfg = getWidgetFgColor(p_page);
+
+        pushClFg(clfg);
+        if (i == pg_idx) pushAttr(FontAttrib::Inverse);
         writeStr(g.str.cstr());
-        if (/* focused && */ i == pg_idx) popAttr();
+        if (i == pg_idx) popAttr();
         popClFg();
 
         if (g.pWndState->isVisible(p_page))
@@ -505,7 +569,7 @@ static void drawProgressBar(const Widget *pWgt)
     g.str.append(style_data[style][0], fill);
     g.str.append(style_data[style][1], pWgt->size.width - fill);
 
-    pushClFg(pWgt->progressbar.fgColor);
+    pushClFg(getWidgetFgColor(pWgt));
     writeStr(g.str.cstr());
     popClFg();
 
@@ -518,7 +582,7 @@ static void drawListBox(const Widget *pWgt)
 {
     const auto my_coord = g.parentCoord + pWgt->coord;
     drawArea(my_coord, pWgt->size,
-        ColorBG::None, ColorFG::None, FrameStyle::Single, false);
+        pWgt->listbox.bgColor, pWgt->listbox.fgColor, FrameStyle::Single, false);
 
     if (pWgt->size.height < 3)
         return;
@@ -559,6 +623,9 @@ static void drawListBox(const Widget *pWgt)
         writeStr(g.str.cstr());
         if (focused && is_hl_item) popAttr();
     }
+
+    popClFg();
+    popClBg();
 }
 
 static void drawDropDownList(const Widget *pWgt)
@@ -630,7 +697,7 @@ void drawWidget(const Widget *pWindowArray, WID widgetId)
         {
             g.parentCoord = wss.parentCoord;
             // set parent's background color
-            pushClBg(getWidgetBgColor(g.pWndArray + wss.pWidget->link.parentIdx));
+            pushClBg(getWidgetBgColor(wss.pWidget));
             drawWidgetInternal(wss.pWidget);
             popClBg();
         }
@@ -663,7 +730,7 @@ void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t cou
         {
             g.parentCoord = wss.parentCoord;
             // set parent's background color
-            pushClBg(getWidgetBgColor(g.pWndArray + wss.pWidget->link.parentIdx));
+            pushClBg(getWidgetBgColor(wss.pWidget));
             drawWidgetInternal(wss.pWidget);
             popClBg();
         }

@@ -14,18 +14,18 @@
 
 // -----------------------------------------------------------------------------
 
-#define TWINS_LOG(...)   twins::log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
+#define TWINS_LOG(...)          twins::log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
 
 #ifndef __TWINS_LINK_SECRET
-# define __TWINS_LINK_SECRET void*_
+# define __TWINS_LINK_SECRET    void*_
 #endif
 
-#ifndef THEME_FG_DEFS
-# define THEME_FG_DEFS
-#endif
-
-#ifndef THEME_BG_DEFS
-# define THEME_BG_DEFS
+#ifdef TWINS_THEME
+// TWINS_THEME is path to header file provided by CMake
+# include TWINS_THEME
+#else
+# define TWINS_THEME_FG
+# define TWINS_THEME_BG
 #endif
 
 // -----------------------------------------------------------------------------
@@ -50,8 +50,8 @@ struct Size
 /** @brief Foreground colors */
 enum class ColorFG : uint8_t
 {
-    None,       // Means 'No Change'
-    Default,    // Reset to Terminal Default
+    Inherit,
+    Default,    // Reset to terminal default
     Black,
     BlackIntense,
     Red,
@@ -70,16 +70,15 @@ enum class ColorFG : uint8_t
     WhiteIntense,
     // begin of theme-defined colors
     ThemeBegin,
-    THEME_FG_DEFS
+    TWINS_THEME_FG
     ThemeEnd = 255
 };
-
 
 /** @brief Background colors */
 enum class ColorBG : uint8_t
 {
-    None,       // Means 'No Change'
-    Default,    // Reset to Terminal Default
+    Inherit,
+    Default,    // Reset to terminal default
     Black,
     BlackIntense,
     Red,
@@ -98,24 +97,33 @@ enum class ColorBG : uint8_t
     WhiteIntense,
     // begin of theme-defined colors
     ThemeBegin,
-    THEME_BG_DEFS
+    TWINS_THEME_BG
     ThemeEnd = 255
 };
 
 /** @brief Convert color identifier to ASCII ESC code */
 const char* encodeCl(ColorFG cl);
-
-/** @brief Convert color identifier to ASCII ESC code */
 const char* encodeCl(ColorBG cl);
+#ifdef TWINS_THEME
+// implemented in user code:
+const char* encodeClTheme(ColorFG cl);
+const char* encodeClTheme(ColorBG cl);
+#endif
 
-/** @brief Color increment operator */
-ColorFG operator+(ColorFG cl, uint8_t n);
-ColorBG operator+(ColorBG cl, uint8_t n);
-inline ColorFG operator++(ColorFG &cl) { cl = cl + 1; return cl; };
-inline ColorBG operator++(ColorBG &cl) { cl = cl + 1; return cl; };
+/** @brief Color intensification */
+ColorFG intenseCl(ColorFG cl);
+ColorBG intenseCl(ColorBG cl);
+#ifdef TWINS_THEME
+// implemented in user code:
+ColorFG intenseClTheme(ColorFG cl);
+ColorBG intenseClTheme(ColorBG cl);
+#endif
+
+template<typename CL>
+inline void intenseClIf(bool cond, CL &cl) { if (cond) cl = intenseCl(cl); }
 
 /**
- * @brief
+ * @brief Font attributes; some of them may be combined
  */
 enum class FontAttrib : uint8_t
 {
@@ -146,9 +154,9 @@ enum class FrameStyle : uint8_t
  */
 enum class PgBarStyle : uint8_t
 {
-    Hash,
-    Shade,
-    Rectangle,
+    Hash,       // #
+    Shade,      //  ▒
+    Rectangle,  // □
 };
 
 /**
@@ -204,10 +212,6 @@ public:
     virtual void invalidate(twins::WID id, bool instantly = false) {}
 };
 
-struct Theme
-{
-};
-
 /**
  * @brief Widget structure as union of members for different types;
  *        such construction can be const-defined and demands small memory
@@ -238,6 +242,99 @@ struct Widget
     Coord   coord;
     Size    size;
 
+    /** In this union each type of Widget has it's own space */
+    union
+    {
+        struct
+        {
+            const char *    title;
+            ColorFG         fgColor;
+            ColorBG         bgColor;
+            IWindowState *  (*getState)();
+        } window;
+
+        struct
+        {
+            const char *title;
+            ColorFG     fgColor;
+            ColorBG     bgColor;
+            bool        noFrame;
+        } panel;
+
+        struct
+        {
+            const char *text;
+            ColorFG     fgColor;
+        } label;
+
+        struct
+        {
+            ColorFG     fgColor;
+            ColorBG     bgColor;
+        } edit;
+
+        struct
+        {
+            const char *text;
+            ColorFG     fgColor;
+        } checkbox;
+
+        struct
+        {
+            const char *text;
+            uint16_t    radioId;
+            uint8_t     groupId;
+            ColorFG     fgColor;
+        } radio;
+
+        struct
+        {
+            const char *text;
+            ColorFG     fgColor;
+            ColorBG     bgColor;
+            ButtonStyle style;
+        } button;
+
+        struct
+        {
+            const char *text;
+            ColorFG     fgColor;
+            ColorBG     bgColorOff;
+            ColorBG     bgColorOn;
+        } led;
+
+        struct
+        {
+            uint8_t     tabWidth;
+        } pagectrl;
+
+        struct
+        {
+            const char *title;
+            ColorFG     fgColor;
+        } page;
+
+        struct
+        {
+            ColorFG     fgColor;
+            PgBarStyle  style;
+        } progressbar;
+
+        struct
+        {
+            ColorFG     fgColor;
+            ColorBG     bgColor;
+        } listbox;
+
+        struct
+        {
+        } dropdownlist;
+
+        struct
+        {
+        } canvas;
+    };
+
     /** parent <- this -> childs linking */
     union
     {
@@ -253,96 +350,6 @@ struct Widget
             uint8_t childsCnt;  /// set in compile-time
         };
     } link;
-
-    /** In this union each type of Widget has it's own space */
-    union
-    {
-        struct
-        {
-            ColorBG         bgColor;
-            ColorFG         fgColor;
-            const char *    title;
-            IWindowState *  (*getState)();
-        } window;
-
-        struct
-        {
-            ColorBG     bgColor;
-            ColorFG     fgColor;
-            const char *title;
-        } panel;
-
-        struct
-        {
-            ColorFG     fgColor;
-            const char *text;
-        } label;
-
-        struct
-        {
-            ColorBG     bgColor;
-            ColorFG     fgColor;
-        } edit;
-
-        struct
-        {
-            const char *text;
-            ColorFG     fgColor;
-        } checkbox;
-
-        struct
-        {
-            const char *text;
-            uint16_t    radioId;
-            uint8_t     groupId;
-        } radio;
-
-        struct
-        {
-            const char *text;
-            ColorFG     fgColor;
-            ColorBG     bgColor;
-            ButtonStyle style;
-        } button;
-
-        struct
-        {
-            ColorBG     bgColorOff;
-            ColorBG     bgColorOn;
-            ColorFG     fgColor;
-            const char *text;
-        } led;
-
-        struct
-        {
-            uint8_t     tabWidth;
-        } pagectrl;
-
-        struct
-        {
-            ColorFG     fgColor;
-            const char *title;
-        } page;
-
-        struct
-        {
-            ColorFG     fgColor;
-            PgBarStyle  style;
-        } progressbar;
-
-        struct
-        {
-        } listbox;
-
-        struct
-        {
-        } dropdownlist;
-
-        struct
-        {
-        } canvas;
-    };
-
 };
 
 static constexpr WID WIDGET_ID_NONE = 0;    // convenient; default value points to nothing
@@ -360,6 +367,14 @@ private:
     uint8_t szFg;
     uint8_t szBg;
     uint8_t szAttr;
+};
+
+/** @brief */
+enum class MouseMode : uint8_t
+{
+    Off,
+    M1,
+    M2
 };
 
 // -----------------------------------------------------------------------------
@@ -434,6 +449,11 @@ inline void screenClrAll(void)      { writeStr(ESC_SCREEN_ERASE_ALL); }
 
 inline void screenSave(void)        { writeStr(ESC_SCREEN_SAVE); }
 inline void screenRestore(void)     { writeStr(ESC_SCREEN_RESTORE); }
+
+/**
+ * @brief Mouse reporting
+ */
+void mouseMode(MouseMode mode);
 
 // -----------------------------------------------------------------------------
 
