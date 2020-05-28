@@ -28,7 +28,7 @@ pipelines:
           - g++ --version
           - mkdir build
           - cd build
-          - cmake -DTWINS_USE_SANITIZERS=OFF ..
+          - cmake -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON ..
           - make -j4
           - ctest -V
           - apt-get install -y python-pip

@@ -5,7 +5,22 @@
 ################################################################################
 
 cmake_minimum_required(VERSION 3.10)
-project (TWins C CXX)
+
+# https://stackoverflow.com/questions/42716466/how-can-i-tell-within-a-cmakelists-txt-whether-its-used-with-add-subdirectory
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    # message("I am top-level project.")
+    # https://stackoverflow.com/questions/6594796/how-do-i-make-cmake-output-into-a-bin-dir
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    # specify the C++ standard
+    set(CMAKE_CXX_STANDARD  14)
+    set(CMAKE_CXX_STANDARD_REQUIRED True)
+    # C++ flags
+    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wall")
+else()
+    # message("I am called from other project with add_subdirectory().")
+endif()
 
 # Help:
 # https://cmake.org/cmake/help/latest/manual/cmake-commands.7.html
@@ -17,18 +32,6 @@ project (TWins C CXX)
 # message("CTEST_BINARY_DIRECTORY=${CTEST_BINARY_DIRECTORY}")
 # message("PROJECT_BINARY_DIR=${PROJECT_BINARY_DIR}")
 
-# https://stackoverflow.com/questions/6594796/how-do-i-make-cmake-output-into-a-bin-dir
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-# specify the C++ standard
-set(CMAKE_CXX_STANDARD  14)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-# C++ flags
-set(CMAKE_CXX_FLAGS "-Wall")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g")
 
 # https://medium.com/@alasher/colored-c-compiler-output-with-ninja-clang-gcc-10bfe7f2b949
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -37,11 +40,11 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     add_compile_options(-fcolor-diagnostics)
 endif ()
 
-#
-option(TWINS_BUILD_UT "Build TWins Unit Tests" ON)
-option(TWINS_USE_FASTFILL "Use ANSI repeat code for faster line fill" ON)
-option(TWINS_PAL_FULLIMPL "Disable in case of incompatible platform" ON)
-set(TWINS_THEME_PATH "" CACHE STRING "Full path to theme.hpp")
+
+# build target switches
+option(TWINS_BUILD_UT "Build TWins Unit Tests" OFF)
+option(TWINS_BUILD_DEMO "Build TWins Demo App" OFF)
+
 
 if (${TWINS_BUILD_UT})
     # enable CTest
@@ -52,10 +55,12 @@ if (${TWINS_BUILD_UT})
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 endif()
 
+
+# add library code
 add_subdirectory(lib)
 
-option(TWINS_BUILD_DEMO "Build TWins Demo app" OFF)
 
+# add library demo
 if (${TWINS_BUILD_DEMO})
     add_subdirectory(demo)
 endif()

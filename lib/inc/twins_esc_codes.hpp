@@ -26,10 +26,9 @@
 
 // -----------------------------------------------------------------------------
 
-#define ANSI_ESC(x)     "\033" x          //
-#define ANSI_CSI(x)     ANSI_ESC("[" x)   // Control Sequence Introducer
-#define ANSI_OSC(x)     ANSI_ESC("]" x)   // Operating System Command
-#define ANSI_ST(x)      ANSI_ESC("\\" x)  // String Terminator
+#define ANSI_CSI(x)     "\033" "["  x  // Control Sequence Introducer
+#define ANSI_OSC(x)     "\033" "]"  x  // Operating System Command
+#define ANSI_ST(x)      "\033" "\\" x  // String Terminator
 
 /*******************************************************************************
  * @name Text Display Modifier Escape Sequences

@@ -40,7 +40,7 @@ TEST_F(STRING_Test, clear)
         EXPECT_EQ(0, pal.stats.memChunks);
 
         s.clear();
-        EXPECT_EQ("", s.cstr());
+        EXPECT_STREQ("", s.cstr());
         EXPECT_EQ(0, s.size());
         EXPECT_EQ(0, s.u8len());
         EXPECT_EQ(0, pal.stats.memChunks);

@@ -4,6 +4,11 @@
 #   https://bitbucket.org/mmidor/twins/
 ################################################################################
 
+option(TWINS_USE_FASTFILL "Use ANSI repeat code for faster line fill" ON)
+option(TWINS_PAL_FULLIMPL "Disable in case of incompatible platform" ON)
+set(TWINS_THEME_PATH "" CACHE STRING "Full path to theme.hpp")
+
+
 set(TARGETNAME twins)
 
 add_library(${TARGETNAME}
