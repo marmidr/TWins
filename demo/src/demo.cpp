@@ -311,7 +311,6 @@ struct DemoPAL : twins::DefaultPAL
     ~DemoPAL()
     {
         printf("lineBuffMaxSize: %u\n", lineBuffMaxSize);
-        printf("%s%s", twins::encodeClTheme(twins::ColorFG::White), "");
     }
 
     uint16_t getLogsRow() override

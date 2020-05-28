@@ -7,8 +7,10 @@
 cmake_minimum_required(VERSION 3.10)
 
 # https://stackoverflow.com/questions/42716466/how-can-i-tell-within-a-cmakelists-txt-whether-its-used-with-add-subdirectory
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     # message("I am top-level project.")
+    project(TWins C CXX)
+
     # https://stackoverflow.com/questions/6594796/how-do-i-make-cmake-output-into-a-bin-dir
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -18,6 +20,10 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(CMAKE_CXX_STANDARD_REQUIRED True)
     # C++ flags
     set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wall")
+
+    if (NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+    endif()
 else()
     # message("I am called from other project with add_subdirectory().")
 endif()
@@ -50,7 +56,7 @@ if (${TWINS_BUILD_UT})
     # enable CTest
     enable_testing()
     if (NOT TARGET gtest)
-        add_subdirectory(extern/googletest)
+        add_subdirectory(extern/googletest EXCLUDE_FROM_ALL )
     endif()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 endif()

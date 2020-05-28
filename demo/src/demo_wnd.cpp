@@ -31,8 +31,8 @@ const char* encodeClTheme(ColorFG cl)
     case ColorFG::Button:           return ESC_FG_BLACK;
     case ColorFG::ButtonGreen:      return ESC_FG_WHITE;
     case ColorFG::ButtonRed:        return ESC_FG_WHITE;
-    case ColorFG::ButtonOrange:     return ESC_FG_RGB(139, 0,   0);
-    case ColorFG::PanelChbox:       return ESC_FG_RGB(0,   0, 205);
+    case ColorFG::ButtonOrange:     return ESC_FG_DarkRed;
+    case ColorFG::PanelChbox:       return ESC_FG_MediumBlue;
     default:                        return ESC_FG_DEFAULT;
     }
 }
@@ -41,14 +41,14 @@ const char* encodeClTheme(ColorBG cl)
 {
     switch (cl)
     {
-    case ColorBG::Window:       return ESC_BG_BLUE;
-    case ColorBG::Listbox:      return ESC_BG_WHITE;
-    case ColorBG::Button:       return ESC_BG_BLACK_INTENSE;
-    case ColorBG::ButtonGreen:  return ESC_BG_RGB(107, 142,  35);
-    case ColorBG::ButtonRed:    return ESC_BG_RED;
-    case ColorBG::ButtonOrange: return ESC_BG_RGB(255, 165,   0);
-    case ColorBG::PanelChbox:   return ESC_BG_RGB(135, 206, 235);
-    default:                    return ESC_BG_DEFAULT;
+    case ColorBG::Window:           return ESC_BG_MidnightBlue;
+    case ColorBG::Listbox:          return ESC_BG_WHITE;
+    case ColorBG::Button:           return ESC_BG_BLACK_INTENSE;
+    case ColorBG::ButtonGreen:      return ESC_BG_OliveDrab;
+    case ColorBG::ButtonRed:        return ESC_BG_RED;
+    case ColorBG::ButtonOrange:     return ESC_BG_Orange;
+    case ColorBG::PanelChbox:       return ESC_BG_Gainsboro;
+    default:                        return ESC_BG_DEFAULT;
     }
 }
 
@@ -56,9 +56,9 @@ ColorFG intenseClTheme(ColorFG cl)
 {
     switch (cl)
     {
-    case ColorFG::Checkbox: return ColorFG::CheckboxIntense;
-    case ColorFG::Radio:    return ColorFG::RadioIntense;
-    default:                return cl;
+    case ColorFG::Checkbox:         return ColorFG::CheckboxIntense;
+    case ColorFG::Radio:            return ColorFG::RadioIntense;
+    default:                        return cl;
     }
 }
 
@@ -537,7 +537,7 @@ static constexpr twins::Widget wndMain =
     { window : {
         title       : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
         fgColor     : twins::ColorFG::White,
-        bgColor     : twins::ColorBG::Blue,
+        bgColor     : twins::ColorBG::Window,
         getState    : getWindMainState,
     }},
     link    : { (const twins::Widget[])
