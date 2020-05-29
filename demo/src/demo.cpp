@@ -310,7 +310,7 @@ struct DemoPAL : twins::DefaultPAL
 
     ~DemoPAL()
     {
-        printf("lineBuffMaxSize: %u\n", lineBuffMaxSize);
+        printf(ESC_BOLD "lineBuffMaxSize: %u\n" ESC_NORMAL, lineBuffMaxSize);
     }
 
     uint16_t getLogsRow() override
@@ -423,7 +423,7 @@ int main()
     twins::flushBuffer();
     twins::inputPosixFree();
 
-    printf("Memory stats: max chunks: %d, max memory: %d B\n",
+    printf(ESC_BOLD "Memory stats: max chunks: %d, max memory: %d B\n" ESC_NORMAL,
         demo_pal.stats.memChunksMax, demo_pal.stats.memAllocatedMax
     );
 }

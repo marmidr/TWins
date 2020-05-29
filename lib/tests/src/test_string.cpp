@@ -395,7 +395,7 @@ TEST(STRING, u8lenIgnoreEsc)
 
     EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("ĄBĆ\e[A"));
     EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("\e[AĄBĆ"));
-    EXPECT_EQ(4, twins::String::u8lenIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ"));
+    EXPECT_EQ(4, twins::String::u8lenIgnoreEsc("Ą\e[ABĆ\e[48;2;255;255;255mĘ"));
 }
 
 TEST(STRING, u8skipIgnoreEsc)

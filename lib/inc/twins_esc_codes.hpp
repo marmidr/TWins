@@ -74,6 +74,9 @@
  * @name Text Color Control Sequences
  */
 
+// 4/8/24-bit ANSI colors
+// https://en.wikipedia.org/wiki/ANSI_escape_code
+
 //@{
 
 #define ESC_FG_BLACK                    ANSI_CSI("30m")

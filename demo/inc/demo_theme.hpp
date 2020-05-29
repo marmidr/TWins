@@ -30,5 +30,7 @@
     ButtonRed,          \
     ButtonOrange,       \
     PanelChbox,         \
+    PanelVer,           \
+    PanelKeyCodes,      \
 
 // -----------------------------------------------------------------------------

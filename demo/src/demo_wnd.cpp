@@ -25,7 +25,7 @@ const char* encodeClTheme(ColorFG cl)
     case ColorFG::Radio:            return ESC_FG_GREEN;
     case ColorFG::RadioIntense:     return ESC_FG_GREEN_INTENSE;
     // one-state colors
-    case ColorFG::Window:           return ESC_FG_WHITE;
+    case ColorFG::Window:           return ESC_FG_COLOR(158);
     case ColorFG::Label:            return ESC_FG_WHITE;
     case ColorFG::Listbox:          return ESC_FG_GREEN;
     case ColorFG::Button:           return ESC_FG_BLACK;
@@ -48,6 +48,8 @@ const char* encodeClTheme(ColorBG cl)
     case ColorBG::ButtonRed:        return ESC_BG_RED;
     case ColorBG::ButtonOrange:     return ESC_BG_Orange;
     case ColorBG::PanelChbox:       return ESC_BG_Gainsboro;
+    case ColorBG::PanelVer:         return ESC_BG_COLOR(106);
+    case ColorBG::PanelKeyCodes:    return ESC_BG_COLOR(169);
     default:                        return ESC_BG_DEFAULT;
     }
 }
@@ -124,7 +126,7 @@ static constexpr twins::Widget page1Childs[] =
         { panel : {
             title       : "VER",
             fgColor     : twins::ColorFG::White,
-            bgColor     : twins::ColorBG::Green,
+            bgColor     : twins::ColorBG::PanelVer,
         }},
         link    : { (const twins::Widget[]) // set first field in union - pChilds
         {
@@ -181,7 +183,7 @@ static constexpr twins::Widget page1Childs[] =
         { panel : {
             title       : "KEY-CODES",
             fgColor     : twins::ColorFG::White,
-            bgColor     : twins::ColorBG::Cyan,
+            bgColor     : twins::ColorBG::PanelKeyCodes,
         }},
         link    : { (const twins::Widget[])
         {
@@ -536,7 +538,7 @@ static constexpr twins::Widget wndMain =
     size    : { 80, 15 },
     { window : {
         title       : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
-        fgColor     : twins::ColorFG::White,
+        fgColor     : twins::ColorFG::Window,
         bgColor     : twins::ColorBG::Window,
         getState    : getWindMainState,
     }},
@@ -605,10 +607,11 @@ static constexpr twins::Widget wndMain =
             coord   : { 2, 13 },
             size    : { 76, 1 },
             { label : {
-                text    :  ESC_BOLD "F4 "           ESC_NORMAL ESC_BG_CYAN "Mouse On/Off" ESC_BG_BLUE "  "
-                           ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_CYAN "Refresh" ESC_BG_BLUE "  "
-                           ESC_BOLD "F6 "           ESC_NORMAL ESC_BG_CYAN "Clr Logs" ESC_BG_BLUE "  "
-                           ESC_BOLD "F11/F12 "      ESC_NORMAL ESC_BG_CYAN "Change Page" ESC_BG_BLUE "  "
+                text    :  ESC_BG_BLUE " "
+                           ESC_BOLD "F4 "           ESC_NORMAL ESC_BG_COLOR(26) "Mouse On/Off" ESC_BG_BLUE "  "
+                           ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_COLOR(26) "Refresh" ESC_BG_BLUE "  "
+                           ESC_BOLD "F6 "           ESC_NORMAL ESC_BG_COLOR(26) "Clr Logs" ESC_BG_BLUE "  "
+                           ESC_BOLD "F11/F12 "      ESC_NORMAL ESC_BG_COLOR(26) "Change Page" ESC_BG_BLUE "  "
                            ,
                 fgColor : twins::ColorFG::White,
             }}

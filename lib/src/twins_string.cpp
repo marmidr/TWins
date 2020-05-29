@@ -324,7 +324,9 @@ unsigned String::escLen(const char *str)
     // - A..Z
     // - a..z
     // - @, ^, ~
-    constexpr int esc_max_seq_len = 7;
+
+    // ESC_BG_RGB(r,g,b)    \e[48;2;255;255;255m
+    constexpr int esc_max_seq_len = 20;
 
     if (str && *str == '\e')
     {
