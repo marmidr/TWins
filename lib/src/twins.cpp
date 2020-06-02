@@ -36,6 +36,9 @@ FontMemento::FontMemento()
     szFg = stackClFg.size();
     szBg = stackClBg.size();
     szAttr = stackAttr.size();
+
+    // stackClFg.push(currentClFg);
+    // stackClBg.push(currentClBg);
 }
 
 FontMemento::~FontMemento()

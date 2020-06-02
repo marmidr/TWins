@@ -53,6 +53,8 @@ Implementation is based on examples:
     - [ ] dropdown list
     - [x] canvas
     - [ ] scrollbar
+    - [ ] horizontal page control
+    - [ ] scrollable text box
 - navigation
     - [x] widgets navigation by Tab/Esc key
     - [x] render focused widget state

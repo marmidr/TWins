@@ -265,6 +265,7 @@ struct Widget
         {
             const char *text;
             ColorFG     fgColor;
+            ColorBG     bgColor;
         } label;
 
         struct

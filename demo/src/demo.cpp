@@ -25,7 +25,8 @@ public:
         focusedId.resize(wndMainNumPages);
 
         for (auto &wid : focusedId)
-            wid = twins::WIDGET_ID_NONE;
+            // wid = twins::WIDGET_ID_NONE;
+            wid = ID_WND;
 
         initialized = true;
     }
@@ -419,7 +420,7 @@ int main()
 
     twins::moveTo(0, demo_pal.getLogsRow());
     twins::screenClrBelow();
-    twins::writeStr(ESC_MOUSE_REPORTING_M2_OFF);
+    twins::mouseMode(twins::MouseMode::Off);
     twins::flushBuffer();
     twins::inputPosixFree();
 

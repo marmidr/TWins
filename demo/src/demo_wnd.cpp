@@ -50,6 +50,12 @@ const char* encodeClTheme(ColorBG cl)
     case ColorBG::PanelChbox:       return ESC_BG_Gainsboro;
     case ColorBG::PanelVer:         return ESC_BG_COLOR(106);
     case ColorBG::PanelKeyCodes:    return ESC_BG_COLOR(169);
+    case ColorBG::LabelBlue:        return ESC_BG_DarkBlue;
+    case ColorBG::Edit1:            return ESC_BG_CYAN;
+    case ColorBG::Edit1Intense:     return ESC_BG_CYAN_INTENSE;
+    case ColorBG::Edit2:            return ESC_BG_GREEN;
+    case ColorBG::Edit2Intense:     return ESC_BG_GREEN_INTENSE;
+    case ColorBG::LabelFtr:         return ESC_BG_Navy;
     default:                        return ESC_BG_DEFAULT;
     }
 }
@@ -66,7 +72,12 @@ ColorFG intenseClTheme(ColorFG cl)
 
 ColorBG intenseClTheme(ColorBG cl)
 {
-    return cl;
+    switch (cl)
+    {
+    case ColorBG::Edit1:            return ColorBG::Edit1Intense;
+    case ColorBG::Edit2:            return ColorBG::Edit2Intense;
+    default:                        return cl;
+    }
 }
 
 }
@@ -311,6 +322,7 @@ static constexpr twins::Widget page2Childs[] =
                       "• " ESC_UNDERLINE_ON "PgUp/PgDown" ESC_UNDERLINE_OFF " -> scroll page" "\n"
                       "• " ESC_UNDERLINE_ON "Enter" ESC_UNDERLINE_OFF " -> select the item",
             fgColor : twins::ColorFG::YellowIntense,
+            bgColor : twins::ColorBG::LabelBlue,
         }}
     },
     {
@@ -361,59 +373,6 @@ static constexpr twins::Widget page2Childs[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget page4Childs[] =
-{
-    {
-        type    : twins::Widget::Panel,
-        id      : ID_PANEL_EMPTY_1,
-        coord   : { 2, 2 },
-        size    : { 20, 8 },
-        { panel : {
-            title   :   "A",
-            fgColor :   {},
-            bgColor :   {},
-        }},
-        link    : { (const twins::Widget[])
-        {
-            {
-                type    : twins::Widget::Label,
-                id      : ID_LBL_EMPTY_1,
-                coord   : { 10, 4 },
-                size    : { 5, 1 },
-                { label : {
-                    text    : "-A-",
-                }}
-            },
-            { /* NUL */ }
-        }}
-    },
-    {
-        type    : twins::Widget::Panel,
-        id      : ID_PANEL_EMPTY_2,
-        coord   : { 25, 2 },
-        size    : { 20, 8 },
-        { panel : {
-            title   :   "B",
-            fgColor :   {},
-            bgColor :   {},
-        }},
-        link    : { (const twins::Widget[])
-        {
-            {
-                type    : twins::Widget::Label,
-                id      : ID_LBL_EMPTY_2,
-                coord   : { 10, 4 },
-                size    : { 5, 1 },
-                { label : {
-                    text    : "-B-",
-                }}
-            },
-            { /* NUL */ }
-        }}
-    },
-    { /* NUL */ }
-};
-
 static constexpr twins::Widget page3Childs[] =
 {
     {
@@ -436,7 +395,7 @@ static constexpr twins::Widget page3Childs[] =
                 size    : { 30, 1 },
                 { edit : {
                     fgColor     : twins::ColorFG::Black,
-                    bgColor     : twins::ColorBG::Cyan,
+                    bgColor     : twins::ColorBG::Edit1,
                 }}
             },
             {
@@ -446,7 +405,7 @@ static constexpr twins::Widget page3Childs[] =
                 size    : { 30, 1 },
                 { edit : {
                     fgColor     : twins::ColorFG::Black,
-                    bgColor     : twins::ColorBG::Yellow,
+                    bgColor     : twins::ColorBG::Edit2,
                 }}
             },
             { /* NUL */ }
@@ -524,6 +483,59 @@ static constexpr twins::Widget page3Childs[] =
     { /* NUL */ }
 };
 
+static constexpr twins::Widget page4Childs[] =
+{
+    {
+        type    : twins::Widget::Panel,
+        id      : ID_PANEL_EMPTY_1,
+        coord   : { 2, 2 },
+        size    : { 20, 8 },
+        { panel : {
+            title   :   "A",
+            fgColor :   {},
+            bgColor :   {},
+        }},
+        link    : { (const twins::Widget[])
+        {
+            {
+                type    : twins::Widget::Label,
+                id      : ID_LBL_EMPTY_1,
+                coord   : { 10, 4 },
+                size    : { 5, 1 },
+                { label : {
+                    text    : "-A-",
+                }}
+            },
+            { /* NUL */ }
+        }}
+    },
+    {
+        type    : twins::Widget::Panel,
+        id      : ID_PANEL_EMPTY_2,
+        coord   : { 25, 2 },
+        size    : { 20, 8 },
+        { panel : {
+            title   :   "B",
+            fgColor :   {},
+            bgColor :   {},
+        }},
+        link    : { (const twins::Widget[])
+        {
+            {
+                type    : twins::Widget::Label,
+                id      : ID_LBL_EMPTY_2,
+                coord   : { 10, 4 },
+                size    : { 5, 1 },
+                { label : {
+                    text    : "-B-",
+                }}
+            },
+            { /* NUL */ }
+        }}
+    },
+    { /* NUL */ }
+};
+
 static constexpr twins::Widget wndMain =
 {
     // NOTE: all members must be initialized, in order they are declared,
@@ -537,7 +549,7 @@ static constexpr twins::Widget wndMain =
     coord   : { 15, 1 },
     size    : { 80, 15 },
     { window : {
-        title       : "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
+        title       : ESC_FG_WHITE_INTENSE "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
         fgColor     : twins::ColorFG::Window,
         bgColor     : twins::ColorBG::Window,
         getState    : getWindMainState,
@@ -604,16 +616,18 @@ static constexpr twins::Widget wndMain =
         {
             type    : twins::Widget::Label,
             id      : ID_LABEL_FTR,
-            coord   : { 2, 13 },
-            size    : { 76, 1 },
+            coord   : { 1, 13 },
+            size    : { 78, 1 },
             { label : {
-                text    :  ESC_BG_BLUE " "
-                           ESC_BOLD "F4 "           ESC_NORMAL ESC_BG_COLOR(26) "Mouse On/Off" ESC_BG_BLUE "  "
-                           ESC_BOLD "F5 "           ESC_NORMAL ESC_BG_COLOR(26) "Refresh" ESC_BG_BLUE "  "
-                           ESC_BOLD "F6 "           ESC_NORMAL ESC_BG_COLOR(26) "Clr Logs" ESC_BG_BLUE "  "
-                           ESC_BOLD "F11/F12 "      ESC_NORMAL ESC_BG_COLOR(26) "Change Page" ESC_BG_BLUE "  "
+                text    :  " "
+                           ESC_BOLD "F4 "           ESC_NORMAL "Mouse On/Off"   "  "
+                           ESC_BOLD "F5 "           ESC_NORMAL "Refresh"        "  "
+                           ESC_BOLD "F6 "           ESC_NORMAL "Clr Logs"       "  "
+                           ESC_BOLD "F11/F12 "      ESC_NORMAL "Change Page"    "  "
+                           "\u2581" "\u2582" "\u2583" "\u2584" "\u2585" "\u2586" "\u2587" "\u2588" "\U0001F569"
                            ,
                 fgColor : twins::ColorFG::White,
+                bgColor : twins::ColorBG::LabelFtr,
             }}
         },
         { /* NUL */ }
