@@ -464,7 +464,16 @@ static bool changeFocusTo(WID newID)
             {
                 int idx, cnt;
                 g.pWndState->getListBoxState(wss.pWidget, idx, cnt);
-                g.listboxHighlightIdx = idx;
+                if (idx < 0 && cnt > 0)
+                {
+                    idx = 0;
+                    g.listboxHighlightIdx = idx;
+                    g.pWndState->onListBoxSelect(wss.pWidget, g.listboxHighlightIdx);
+                }
+                else
+                {
+                    g.listboxHighlightIdx = idx;
+                }
             }
         }
 
@@ -708,7 +717,8 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
     {
     case Key::Enter:
     {
-        g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
+        if (g.listboxHighlightIdx >= 0)
+            g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
         g.pWndState->invalidate(pWgt->id);
         return true;
     }

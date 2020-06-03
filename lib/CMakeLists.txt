@@ -20,6 +20,7 @@ add_library(${TARGETNAME}
     src/twins_string.cpp
     src/twins_input_posix.cpp
     src/twins_ansi_esc_decoder.cpp
+    src/twins_utils.cpp
 )
 
 target_include_directories(${TARGETNAME}
