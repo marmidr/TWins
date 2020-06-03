@@ -394,6 +394,14 @@ int main()
                 twins::screenClrBelow();
                 twins::cursorRestorePos();
             }
+            else if (kc.m_spec && kc.m_ctrl && (kc.key == twins::Key::PgUp || kc.key == twins::Key::PgDown))
+            {
+                twins::mainPgControlChangePage(pWndMainArray, kc.key == twins::Key::PgDown);
+            }
+            else if (kc.m_spec && (kc.key == twins::Key::F9 || kc.key == twins::Key::F10))
+            {
+                twins::mainPgControlChangePage(pWndMainArray, kc.key == twins::Key::F10);
+            }
             else
             {
                 twins::cursorSavePos();

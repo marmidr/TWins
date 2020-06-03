@@ -511,6 +511,12 @@ const Widget* getWidget(const Widget *pWindowArray, WID widgetId);
  */
 bool processKey(const Widget *pWindow, const KeyCode &kc);
 
+/**
+ * @brief As the PgUp/PgDn are often used by consoles, let the user decide
+ *        when to change page
+ */
+void mainPgControlChangePage(const Widget *pWindowArray, bool next);
+
 // -----------------------------------------------------------------------------
 
 } // namespace
