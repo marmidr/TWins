@@ -10,7 +10,7 @@ add_executable(${TARGETNAME}
     src/test_main.cpp
     src/test_ansi_esc_decoder.cpp
     src/test_string.cpp
-    src/test_twins.cpp
+    src/test_utils.cpp
     src/test_stack.cpp
     src/test_vector.cpp
     src/test_map.cpp

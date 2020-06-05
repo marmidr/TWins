@@ -10,10 +10,10 @@
 
 // -----------------------------------------------------------------------------
 
-namespace twins
+namespace twins::util
 {
 
-twins::Vector<twins::String> splitWords(const char *str, const char *delim)
+Vector<StringRange> splitWords(const char *str, const char *delim)
 {
     if (!str || !*str)
         return {};
@@ -22,8 +22,8 @@ twins::Vector<twins::String> splitWords(const char *str, const char *delim)
 
     unsigned nwords = 1;
 
-    twins::Vector<twins::String> out;
-    size_t span = 0;
+    Vector<StringRange> out;
+    unsigned span = 0;
 
     const char *pstr = str;
     // skip whitespaces
@@ -47,7 +47,49 @@ twins::Vector<twins::String> splitWords(const char *str, const char *delim)
     // put each word into separate cell
     while ((span = strcspn(pstr, delim)) > 0)
     {
-        twins::String s;
+        out.append(StringRange{pstr, span});
+        pstr += span;
+        pstr += strspn(pstr, delim);
+    }
+
+    return out;
+}
+
+Vector<String> splitWordsCpy(const char *str, const char *delim)
+{
+    if (!str || !*str)
+        return {};
+    if (!delim || !*delim)
+        return {};
+
+    unsigned nwords = 1;
+
+    Vector<String> out;
+    unsigned span = 0;
+
+    const char *pstr = str;
+    // skip whitespaces
+    while ((span = strspn(pstr, delim)) > 0)
+        pstr += span;
+
+    // count words
+    while ((span = strcspn(pstr, delim)) > 0)
+    {
+        nwords++;
+        pstr += span;
+        pstr += strspn(pstr, delim);
+    }
+
+    out.reserve(nwords);
+    pstr = str;
+    // skip whitespaces
+    while ((span = strspn(pstr, delim)) > 0)
+        pstr += span;
+
+    // put each word into separate cell
+    while ((span = strcspn(pstr, delim)) > 0)
+    {
+        String s;
         s.appendLen(pstr, span);
         out.append(std::move(s));
         pstr += span;
@@ -57,7 +99,7 @@ twins::Vector<twins::String> splitWords(const char *str, const char *delim)
     return out;
 }
 
-twins::String wordWrap(const char *str, uint16_t maxLineLen, const char *newLine)
+String wordWrap(const char *str, uint16_t maxLineLen, const char *newLine)
 {
     if (maxLineLen < 1)
         return {};
@@ -66,7 +108,8 @@ twins::String wordWrap(const char *str, uint16_t maxLineLen, const char *newLine
     if (!newLine || !*newLine)
         return {};
 
-    auto words = splitWords(str);
+    // TODO: use splitWords()
+    auto words = splitWordsCpy(str);
     unsigned line_len = 0;
     twins::String out;
 
@@ -107,6 +150,26 @@ twins::String wordWrap(const char *str, uint16_t maxLineLen, const char *newLine
             }
         }
     }
+
+    return out;
+}
+
+Vector<StringRange> splitLines(const char *str)
+{
+    if (!str || !*str)
+        return {};
+
+    Vector<StringRange> out;
+
+    while (const char *nl = strchr(str, '\n'))
+    {
+        // possible and allowed: nl == str
+        out.append(StringRange{str, (unsigned)(nl-str)});
+        str = nl+1;
+    }
+
+    if (*str)
+        out.append(StringRange{str, (unsigned)strlen(str)});
 
     return out;
 }

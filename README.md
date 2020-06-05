@@ -66,6 +66,12 @@ Implementation is based on examples:
 - [x] keyboard handler returns if key was handled by active widget
 - [x] support for mouse click
 
+## Prerequisites
+
+```bash
+sudo apt install g++ cmake cmake-curses-gui
+```
+
 ## How to build
 
 Project is CMake-based and contains two targets: *TWinsDemo* and *TWinsUT*.  
