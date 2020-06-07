@@ -62,9 +62,9 @@ public:
     String& operator <<(const String &other) { append(other.cstr()); return *this; }
 
     /** @brief Return ESC sequence length starting at \p str */
-    static unsigned escLen(const char *str);
-    /** @brief Return length of UTF-8 string \p str , ignoring ESC sequences inside it */
-    static unsigned u8lenIgnoreEsc(const char *str);
+    static unsigned escLen(const char *str, const char *strEnd = nullptr);
+    /** @brief Return length of UTF-8 string \p str, ignoring ESC sequences inside it */
+    static unsigned u8len(const char *str, const char *strEnd = nullptr, bool ignoreESC = false);
     /** @brief Return pointer to \p str moved by \p toSkip UTF-8 characters, omitting ESC sequences */
     static const char* u8skipIgnoreEsc(const char *str, unsigned toSkip);
 

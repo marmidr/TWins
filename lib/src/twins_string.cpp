@@ -220,10 +220,10 @@ void String::setLength(int16_t len, bool addEllipsis, bool ignoreESC)
     if (len < 0)
         return;
 
-    int u8len = ignoreESC ? u8lenIgnoreEsc(mpBuff) : utf8len(mpBuff);
+    int u8length = u8len(ignoreESC);
 
-    if (u8len <= len)
-        append(' ', len - u8len);
+    if (u8length <= len)
+        append(' ', len - u8length);
     else
         trim(len, addEllipsis, ignoreESC);
 }
@@ -269,10 +269,7 @@ String& String::operator=(String &&other)
 
 unsigned String::u8len(bool ignoreESC) const
 {
-    if (ignoreESC)
-        return u8lenIgnoreEsc(mpBuff);
-    else
-        return (unsigned)utf8len(mpBuff);
+    return u8len(mpBuff, mpBuff + mSize, ignoreESC);
 }
 
 void String::reserve(uint16_t newCapacity)
@@ -318,7 +315,7 @@ void String::free()
     mSize = 0;
 }
 
-unsigned String::escLen(const char *str)
+unsigned String::escLen(const char *str, const char *strEnd)
 {
     // ESC sequence always ends with:
     // - A..Z
@@ -326,14 +323,20 @@ unsigned String::escLen(const char *str)
     // - @, ^, ~
 
     // ESC_BG_RGB(r,g,b)    \e[48;2;255;255;255m
-    constexpr int esc_max_seq_len = 20;
+    constexpr uint8_t esc_max_seq_len = 20;
+    unsigned max_sl;
+
+    if (strEnd && (strEnd - str < esc_max_seq_len))
+        max_sl = strEnd - str;
+    else
+        max_sl = esc_max_seq_len;
 
     if (str && *str == '\e')
     {
-        unsigned n = 1;
-        while (n < esc_max_seq_len)
+        unsigned sl = 1;
+        while (sl < max_sl)
         {
-            const char c = str[n];
+            const char c = str[sl];
 
             switch (c)
             {
@@ -342,42 +345,49 @@ unsigned String::escLen(const char *str)
             case '@':
             case '^':
             case '~':
-                return n+1;
+                return sl + 1;
             case 'M':
-                return 6;
+                return ((max_sl >= 6) && (strnlen(str, 6) >= 6)) ? 6 : 0;
             default:
-                if (c >= 'A' && c <= 'Z' && c != 'O') return n+1;
-                if (c >= 'a' && c <= 'z') return n+1;
+                if (c >= 'A' && c <= 'Z' && c != 'O')
+                    return sl + 1;
+                if (c >= 'a' && c <= 'z')
+                    return sl + 1;
                 break;
             }
 
-            n++;
+            sl++;
         }
     }
 
     return 0;
 }
 
-unsigned String::u8lenIgnoreEsc(const char *str)
+unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC)
 {
     if (!str || !*str)
         return 0;
 
-    const char *str_end = str + strlen(str);
+    if (!ignoreESC)
+        return (unsigned)utf8len(str);
+
+    if (!strEnd)
+        strEnd = str + strlen(str);
+
     unsigned len = 0;
 
-    while (str < str_end)
+    while (str < strEnd)
     {
-        unsigned esc_len = escLen(str);
+        unsigned esc_len = escLen(str, strEnd);
         bool seq_found = esc_len > 0;
 
-        for (; esc_len && (str < str_end); )
+        for (; esc_len && (str < strEnd); )
         {
             str += esc_len;
-            esc_len = escLen(str);
+            esc_len = escLen(str, strEnd);
         }
 
-        if (str < str_end)
+        if (str < strEnd)
         {
             if (int u8_len = utf8seqlen(str))
             {

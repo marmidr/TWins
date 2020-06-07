@@ -108,22 +108,22 @@ String wordWrap(const char *str, uint16_t maxLineLen, const char *newLine)
     if (!newLine || !*newLine)
         return {};
 
-    // TODO: use splitWords()
-    auto words = splitWordsCpy(str);
+    auto words = splitWords(str);
     unsigned line_len = 0;
     twins::String out;
+    out.reserve(strlen(str));
 
     for (const auto &s : words)
     {
-        auto s_len = s.u8len(true);
+        auto s_len = twins::String::u8len(s.data, s.data + s.size, true);
 
         if (s_len > maxLineLen)
         {
             if (line_len > 0)
                 out << newLine;
 
-            // TODO: this may break ESC sequence
-            out.appendLen(s.cstr(), maxLineLen-1);
+            // TODO: this may break ESC sequence; splitWords should also split ESC sequences
+            out.appendLen(s.data, maxLineLen-1);
             out << "…" << newLine;
             line_len = 0;
         }
@@ -131,7 +131,7 @@ String wordWrap(const char *str, uint16_t maxLineLen, const char *newLine)
         {
             if (line_len + s_len <= maxLineLen)
             {
-                out << s;
+                out.appendLen(s.data, s.size);
                 line_len += s_len;
             }
             else
@@ -139,7 +139,7 @@ String wordWrap(const char *str, uint16_t maxLineLen, const char *newLine)
                 if (out.size() > 0)
                     out << newLine;
 
-                out << s;
+                out.appendLen(s.data, s.size);
                 line_len = s_len;
             }
 

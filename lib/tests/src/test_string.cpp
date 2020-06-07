@@ -383,19 +383,26 @@ TEST(STRING, escLen)
     EXPECT_EQ(6, twins::String::escLen("\e[M !!"));
     // Mouse wheel down
     EXPECT_EQ(6, twins::String::escLen("\e[Ma$\""));
+
+    // Home - incomplete
+    EXPECT_EQ(0, twins::String::escLen("\e[1"));
+    //  Mouse wheel down - incomplete
+    EXPECT_EQ(0, twins::String::escLen("\e[Ma"));
+    //  Mouse wheel down - incomplete
+    EXPECT_EQ(0, twins::String::escLen("\e[Ma$\"", "\e[Ma$\""+5));
 }
 
-TEST(STRING, u8lenIgnoreEsc)
+TEST(STRING, u8len_IgnoreEsc)
 {
-    EXPECT_EQ(0, twins::String::u8lenIgnoreEsc(nullptr));
-    EXPECT_EQ(0, twins::String::u8lenIgnoreEsc(""));
+    EXPECT_EQ(0, twins::String::u8len(nullptr));
+    EXPECT_EQ(0, twins::String::u8len(""));
 
-    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("ABC"));
-    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("ĄBĆ"));
+    EXPECT_EQ(3, twins::String::u8len("ABC", nullptr, true));
+    EXPECT_EQ(3, twins::String::u8len("ĄBĆ", nullptr, true));
 
-    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("ĄBĆ\e[A"));
-    EXPECT_EQ(3, twins::String::u8lenIgnoreEsc("\e[AĄBĆ"));
-    EXPECT_EQ(4, twins::String::u8lenIgnoreEsc("Ą\e[ABĆ\e[48;2;255;255;255mĘ"));
+    EXPECT_EQ(3, twins::String::u8len("ĄBĆ\e[A", nullptr, true));
+    EXPECT_EQ(3, twins::String::u8len("\e[AĄBĆ", nullptr, true));
+    EXPECT_EQ(4, twins::String::u8len("Ą\e[ABĆ\e[48;2;255;255;255mĘ", nullptr, true));
 }
 
 TEST(STRING, u8skipIgnoreEsc)

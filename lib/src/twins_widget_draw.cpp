@@ -453,7 +453,7 @@ static void drawButton(const Widget *pWgt)
             writeStr(g.str.cstr());
         }
 
-        auto shadow_len = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
+        auto shadow_len = 2 + String::u8len(pWgt->button.text, nullptr, true);
 
         if (pressed)
         {
