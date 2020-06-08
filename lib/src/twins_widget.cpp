@@ -464,7 +464,16 @@ static bool changeFocusTo(WID newID)
             {
                 int idx, cnt;
                 g.pWndState->getListBoxState(wss.pWidget, idx, cnt);
-                g.listboxHighlightIdx = idx;
+                if (idx < 0 && cnt > 0)
+                {
+                    idx = 0;
+                    g.listboxHighlightIdx = idx;
+                    g.pWndState->onListBoxSelect(wss.pWidget, g.listboxHighlightIdx);
+                }
+                else
+                {
+                    g.listboxHighlightIdx = idx;
+                }
             }
         }
 
@@ -708,7 +717,8 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
     {
     case Key::Enter:
     {
-        g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
+        if (g.listboxHighlightIdx >= 0)
+            g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
         g.pWndState->invalidate(pWgt->id);
         return true;
     }
@@ -1117,23 +1127,6 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
                 key_processed = changeFocusTo(new_id);
                 break;
             }
-            case Key::PgUp:
-            case Key::PgDown:
-            case Key::F11:
-            case Key::F12:
-            {
-                // Ctrl+PgUp/PgDown will be directed to window's first PageControl widget
-                if (const auto *p_wgt = findMainPgControl())
-                {
-                    auto curr_id = g.pWndState->getFocusedID();
-                    if (kc.m_ctrl || curr_id == p_wgt->id || (kc.key == Key::F11 || kc.key == Key::F12))
-                    {
-                        processKey_PageCtrl(p_wgt, kc);
-                        key_processed = true;
-                    }
-                }
-                break;
-            }
             default:
                 break;
             }
@@ -1142,6 +1135,19 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
 
     g.pWndArray = nullptr; g.pWndState = nullptr;
     return key_processed;
+}
+
+void mainPgControlChangePage(const Widget *pWindowArray, bool next)
+{
+    assert(pWindowArray);
+    g.pWndArray = pWindowArray;
+    g.pWndState = pWindowArray->window.getState();
+    assert(g.pWndState);
+
+    if (const auto *p_wgt = findMainPgControl())
+        pgControlChangePage(p_wgt, next);
+
+    g.pWndArray = nullptr; g.pWndState = nullptr;
 }
 
 // -----------------------------------------------------------------------------

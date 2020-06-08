@@ -30,5 +30,13 @@
     ButtonRed,          \
     ButtonOrange,       \
     PanelChbox,         \
+    PanelVer,           \
+    PanelKeyCodes,      \
+    LabelBlue,          \
+    LabelFtr,           \
+    Edit1,              \
+    Edit1Intense,       \
+    Edit2,              \
+    Edit2Intense,       \
 
 // -----------------------------------------------------------------------------

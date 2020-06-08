@@ -265,6 +265,7 @@ struct Widget
         {
             const char *text;
             ColorFG     fgColor;
+            ColorBG     bgColor;
         } label;
 
         struct
@@ -397,6 +398,7 @@ void sleepMs(uint16_t ms);
  */
 int writeChar(char c, int16_t repeat = 1);
 int writeStr(const char *s, int16_t repeat = 1);
+int writeStrLen(const char *s, uint16_t sLen);
 int writeStrFmt(const char *fmt, ...);
 int writeStrVFmt(const char *fmt, va_list ap);
 void flushBuffer(void);
@@ -509,6 +511,12 @@ const Widget* getWidget(const Widget *pWindowArray, WID widgetId);
  * @brief Process keyboard/mouse signal received by console
  */
 bool processKey(const Widget *pWindow, const KeyCode &kc);
+
+/**
+ * @brief As the PgUp/PgDn are often used by consoles, let the user decide
+ *        when to change page
+ */
+void mainPgControlChangePage(const Widget *pWindowArray, bool next);
 
 // -----------------------------------------------------------------------------
 

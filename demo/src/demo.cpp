@@ -25,7 +25,8 @@ public:
         focusedId.resize(wndMainNumPages);
 
         for (auto &wid : focusedId)
-            wid = twins::WIDGET_ID_NONE;
+            // wid = twins::WIDGET_ID_NONE;
+            wid = ID_WND;
 
         initialized = true;
     }
@@ -310,8 +311,7 @@ struct DemoPAL : twins::DefaultPAL
 
     ~DemoPAL()
     {
-        printf("lineBuffMaxSize: %u\n", lineBuffMaxSize);
-        printf("%s%s", twins::encodeClTheme(twins::ColorFG::White), "");
+        printf(ESC_BOLD "lineBuffMaxSize: %u\n" ESC_NORMAL, lineBuffMaxSize);
     }
 
     uint16_t getLogsRow() override
@@ -394,6 +394,14 @@ int main()
                 twins::screenClrBelow();
                 twins::cursorRestorePos();
             }
+            else if (kc.m_spec && kc.m_ctrl && (kc.key == twins::Key::PgUp || kc.key == twins::Key::PgDown))
+            {
+                twins::mainPgControlChangePage(pWndMainArray, kc.key == twins::Key::PgDown);
+            }
+            else if (kc.m_spec && (kc.key == twins::Key::F9 || kc.key == twins::Key::F10))
+            {
+                twins::mainPgControlChangePage(pWndMainArray, kc.key == twins::Key::F10);
+            }
             else
             {
                 twins::cursorSavePos();
@@ -420,11 +428,11 @@ int main()
 
     twins::moveTo(0, demo_pal.getLogsRow());
     twins::screenClrBelow();
-    twins::writeStr(ESC_MOUSE_REPORTING_M2_OFF);
+    twins::mouseMode(twins::MouseMode::Off);
     twins::flushBuffer();
     twins::inputPosixFree();
 
-    printf("Memory stats: max chunks: %d, max memory: %d B\n",
+    printf(ESC_BOLD "Memory stats: max chunks: %d, max memory: %d B\n" ESC_NORMAL,
         demo_pal.stats.memChunksMax, demo_pal.stats.memAllocatedMax
     );
 }

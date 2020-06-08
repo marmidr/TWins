@@ -4,6 +4,11 @@
 #   https://bitbucket.org/mmidor/twins/
 ################################################################################
 
+option(TWINS_USE_FASTFILL "Use ANSI repeat code for faster line fill" ON)
+option(TWINS_PAL_FULLIMPL "Disable in case of incompatible platform" ON)
+set(TWINS_THEME_PATH "" CACHE STRING "Full path to theme.hpp")
+
+
 set(TARGETNAME twins)
 
 add_library(${TARGETNAME}
@@ -15,6 +20,7 @@ add_library(${TARGETNAME}
     src/twins_string.cpp
     src/twins_input_posix.cpp
     src/twins_ansi_esc_decoder.cpp
+    src/twins_utils.cpp
 )
 
 target_include_directories(${TARGETNAME}

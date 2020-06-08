@@ -67,6 +67,10 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
         if (pWgt->panel.bgColor != ColorBG::Inherit)
             return pWgt->panel.bgColor;
         break;
+    case Widget::Label:
+        if (pWgt->label.bgColor != ColorBG::Inherit)
+            return pWgt->label.bgColor;
+        break;
     case Widget::Edit:
         if (pWgt->edit.bgColor != ColorBG::Inherit)
             return pWgt->edit.bgColor;
@@ -302,6 +306,7 @@ static void drawLabel(const Widget *pWgt)
 
     // setup colors
     pushClFg(getWidgetFgColor(pWgt));
+    pushClBg(getWidgetBgColor(pWgt));
 
     // print all lines
     const char *p_line = g.str.cstr();
@@ -334,6 +339,7 @@ static void drawLabel(const Widget *pWgt)
 
     // restore colors
     popClFg();
+    popClBg();
 }
 
 static void drawEdit(const Widget *pWgt)
@@ -447,7 +453,7 @@ static void drawButton(const Widget *pWgt)
             writeStr(g.str.cstr());
         }
 
-        auto shadow_len = 2 + String::u8lenIgnoreEsc(pWgt->button.text);
+        auto shadow_len = 2 + String::u8len(pWgt->button.text, nullptr, true);
 
         if (pressed)
         {

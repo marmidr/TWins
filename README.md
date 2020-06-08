@@ -7,8 +7,8 @@ dev: [![Coverage Status](https://coveralls.io/repos/bitbucket/mmidor/twins/badge
 It provides basic facilities required by interactive applications such as screen and cursor management, keyboard input, keymaps, color codes.
 Additional it allows to define terminal windows and it's widgets in a convenient way as const tree of `twins::Widget` structures.
 
-![example 1](doc/sshot3.png)
-![example 2](doc/sshot4.png)
+![example 1](doc/sshot5.png)
+![example 2](doc/sshot6.png)
 
 Wikipedia: [reference color tables for different terminals](https://en.m.wikipedia.org/wiki/ANSI_escape_code)
 
@@ -53,6 +53,8 @@ Implementation is based on examples:
     - [ ] dropdown list
     - [x] canvas
     - [ ] scrollbar
+    - [ ] horizontal page control
+    - [ ] scrollable text box
 - navigation
     - [x] widgets navigation by Tab/Esc key
     - [x] render focused widget state
@@ -63,6 +65,12 @@ Implementation is based on examples:
 - [x] color theme for window
 - [x] keyboard handler returns if key was handled by active widget
 - [x] support for mouse click
+
+## Prerequisites
+
+```bash
+sudo apt install g++ cmake cmake-curses-gui
+```
 
 ## How to build
 
