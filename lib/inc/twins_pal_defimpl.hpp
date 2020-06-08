@@ -52,6 +52,12 @@ struct DefaultPAL : twins::IPal
         return lineBuff.size() - sz;
     }
 
+    int writeStrLen(const char *s, uint16_t sLen) override
+    {
+        lineBuff.appendLen(s, sLen);
+        return sLen;
+    }
+
     int writeStrVFmt(const char *fmt, va_list ap) override
     {
         auto sz = lineBuff.size();

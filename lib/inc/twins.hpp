@@ -398,6 +398,7 @@ void sleepMs(uint16_t ms);
  */
 int writeChar(char c, int16_t repeat = 1);
 int writeStr(const char *s, int16_t repeat = 1);
+int writeStrLen(const char *s, uint16_t sLen);
 int writeStrFmt(const char *fmt, ...);
 int writeStrVFmt(const char *fmt, va_list ap);
 void flushBuffer(void);

@@ -122,6 +122,11 @@ int writeStr(const char *s, int16_t repeat)
     return pPAL ? pPAL->writeStr(s, repeat) : 0;
 }
 
+int writeStrLen(const char *s, uint16_t sLen)
+{
+    return pPAL ? pPAL->writeStrLen(s, sLen) : 0;
+}
+
 int writeStrFmt(const char *fmt, ...)
 {
     if (!(fmt && pPAL))
