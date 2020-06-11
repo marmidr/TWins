@@ -11,6 +11,8 @@
 
 // -----------------------------------------------------------------------------
 
+#define MKSTDSTR(range) std::string(range.data, range.size).c_str()
+
 TEST(UTILS, splitWords)
 {
     {
@@ -29,75 +31,70 @@ TEST(UTILS, splitWords)
     }
 
     {
+        auto words = twins::util::splitWords("  \t \n ", "\t\n ", true);
+        EXPECT_EQ(1, words.size());
+    }
+
+    {
         auto words = twins::util::splitWords("abc");
         EXPECT_EQ(1, words.size());
-        // EXPECT_STREQ("abc", words[0].cstr());
+        EXPECT_STREQ("abc", MKSTDSTR(words[0]));
     }
 
     {
         auto words = twins::util::splitWords(" abc def ");
         ASSERT_EQ(2, words.size());
-        // EXPECT_STREQ("abc", words[0].cstr());
-        // EXPECT_STREQ("def", words[1].cstr());
+
+        EXPECT_STREQ("abc", MKSTDSTR(words[0]));
+        EXPECT_STREQ("def", MKSTDSTR(words[1]));
+    }
+
+    {
+        auto words = twins::util::splitWords(" \t abc def ", "\t ", true);
+        ASSERT_EQ(5, words.size());
+
+        EXPECT_STREQ(" \t ", MKSTDSTR(words[0]));
+        EXPECT_STREQ("abc",  MKSTDSTR(words[1]));
+        EXPECT_STREQ(" ",    MKSTDSTR(words[2]));
+        EXPECT_STREQ("def",  MKSTDSTR(words[3]));
+        EXPECT_STREQ(" ",    MKSTDSTR(words[4]));
     }
 
     {
         auto words = twins::util::splitWords(" abc\n def   g ");
         ASSERT_EQ(3, words.size());
-        // EXPECT_STREQ("abc", words[0].cstr());
-        // EXPECT_STREQ("def", words[1].cstr());
-        // EXPECT_STREQ("g", words[2].cstr());
+        EXPECT_STREQ("abc", MKSTDSTR(words[0]));
+        EXPECT_STREQ("def", MKSTDSTR(words[1]));
+        EXPECT_STREQ("g",   MKSTDSTR(words[2]));
     }
 
     {
         auto words = twins::util::splitWords(" abc def ", ",");
         ASSERT_EQ(1, words.size());
-        // EXPECT_STREQ(" abc def ", words[0].cstr());
-    }
-}
-
-TEST(UTILS, splitWordsCpy)
-{
-    {
-        auto words = twins::util::splitWordsCpy(nullptr);
-        EXPECT_EQ(0, words.size());
+        EXPECT_STREQ(" abc def ", MKSTDSTR(words[0]));
     }
 
     {
-        auto words = twins::util::splitWordsCpy("");
-        EXPECT_EQ(0, words.size());
+        auto words = twins::util::splitWords("abc\e[cDE f", " ");
+        ASSERT_EQ(4, words.size());
+        EXPECT_STREQ("abc",  MKSTDSTR(words[0]));
+        EXPECT_STREQ("\e[c", MKSTDSTR(words[1]));
+        EXPECT_STREQ("DE",   MKSTDSTR(words[2]));
+        EXPECT_STREQ("f",    MKSTDSTR(words[3]));
     }
 
     {
-        auto words = twins::util::splitWordsCpy("  \t \n ");
-        EXPECT_EQ(0, words.size());
-    }
-
-    {
-        auto words = twins::util::splitWordsCpy("abc");
-        EXPECT_EQ(1, words.size());
-        EXPECT_STREQ("abc", words[0].cstr());
-    }
-
-    {
-        auto words = twins::util::splitWordsCpy(" abc def ");
+        auto words = twins::util::splitWords("\e[c D", " ");
         ASSERT_EQ(2, words.size());
-        EXPECT_STREQ("abc", words[0].cstr());
-        EXPECT_STREQ("def", words[1].cstr());
+        EXPECT_STREQ("\e[c", MKSTDSTR(words[0]));
+        EXPECT_STREQ("D",    MKSTDSTR(words[1]));
     }
 
     {
-        auto words = twins::util::splitWordsCpy(" abc\n def   g ");
-        ASSERT_EQ(3, words.size());
-        EXPECT_STREQ("abc", words[0].cstr());
-        EXPECT_STREQ("def", words[1].cstr());
-        EXPECT_STREQ("g", words[2].cstr());
-    }
-
-    {
-        auto words = twins::util::splitWordsCpy(" abc def ", ",");
-        ASSERT_EQ(1, words.size());
-        EXPECT_STREQ(" abc def ", words[0].cstr());
+        auto words = twins::util::splitWords(" \e[c   D", " ");
+        ASSERT_EQ(2, words.size());
+        EXPECT_STREQ("\e[c", MKSTDSTR(words[0]));
+        EXPECT_STREQ("D",    MKSTDSTR(words[1]));
     }
 }
 
@@ -114,35 +111,36 @@ TEST(UTILS, wordWrap)
     }
 
     {
-        auto s = twins::util::wordWrap("ab cdę fghi z", 3, ".");
-        EXPECT_STREQ("ab .cdę.fg….z ", s.cstr());
+        auto s = twins::util::wordWrap("ab cdę fghi z", 3, " ", ".");
+        EXPECT_STREQ("ab .cdę .fg….z", s.cstr());
     }
 
     {
-        auto s = twins::util::wordWrap("ab  cdę   fghi", 20, ".");
-        EXPECT_STREQ("ab cdę fghi ", s.cstr());
+        auto s = twins::util::wordWrap("ab cdę   fghi", 20, " ", ".");
+        EXPECT_STREQ("ab cdę   fghi", s.cstr());
     }
 
     {
-        auto s = twins::util::wordWrap("abc de", 2, "|");
+        auto s = twins::util::wordWrap("abc de", 2, " ", "|");
         EXPECT_STREQ("a…|de", s.cstr());
     }
 
     {
-        auto s = twins::util::wordWrap(" ab\n   ćde \t fg ", 3, ".");
-        EXPECT_STREQ("ab .ćde.fg ", s.cstr());
+        // test for proper \n handling
+        auto s = twins::util::wordWrap("ab\n   ćde \t fg  ", 3, " \t\n", ".");
+        EXPECT_STREQ("ab\n   .ćde \t .fg  ", s.cstr());
     }
 
     {
-        auto s = twins::util::wordWrap("ab cd ęfgh i jk", 5, ".");
-        EXPECT_STREQ("ab cd.ęfgh .i jk ", s.cstr());
+        auto s = twins::util::wordWrap("ab cd ęfgh i  jk", 5, " ", ".");
+        EXPECT_STREQ("ab cd .ęfgh .i  jk", s.cstr());
     }
 
     {
-        auto s = twins::util::wordWrap("ab  \e[1mcd\e[0m  ęfgh i jk", 5, ".");
-        EXPECT_STREQ("ab \e[1mcd\e[0m.ęfgh .i jk ", s.cstr());
+        // test for ESC sequence handling
+        auto s = twins::util::wordWrap("AB\e[1mCD\e[0mE  ęfgh", 5, " ", ".");
+        EXPECT_STREQ("AB\e[1mCD\e[0mE  .ęfgh", s.cstr());
     }
-
 }
 
 TEST(UTILS, splitLines)

@@ -180,7 +180,7 @@ void setCursorAt(const Widget *pWgt)
         break;
     case Widget::ListBox:
         {
-            int idx, cnt;
+            int idx = 0, cnt = 0;
             g.pWndState->getListBoxState(pWgt, idx, cnt);
 
             int page_size = pWgt->size.height-2;
@@ -318,25 +318,27 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
     case Widget::Window:
     case Widget::Panel:
     case Widget::Page:
+    {
         p_childs  = g.pWndArray + pParent->link.childsIdx;
         child_cnt = pParent->link.childsCnt;
         break;
+    }
     case Widget::PageCtrl:
+    {
+        // get selected page childrens
+        int idx = g.pWndState->getPageCtrlPageIndex(pParent);
+        if (idx >= 0 && idx < pParent->link.childsCnt)
         {
-            // get selected page childrens
-            int idx = g.pWndState->getPageCtrlPageIndex(pParent);
-            if (idx >= 0 && idx < pParent->link.childsCnt)
-            {
-                pParent   = g.pWndArray + pParent->link.childsIdx + idx;
-                p_childs  = g.pWndArray + pParent->link.childsIdx;
-                child_cnt = pParent->link.childsCnt;
-            }
-            else
-            {
-                return nullptr;
-            }
+            pParent   = g.pWndArray + pParent->link.childsIdx + idx;
+            p_childs  = g.pWndArray + pParent->link.childsIdx;
+            child_cnt = pParent->link.childsCnt;
+        }
+        else
+        {
+            return nullptr;
         }
         break;
+    }
     default:
         TWINS_LOG("-E- no-parent widget");
         return nullptr;
@@ -462,7 +464,7 @@ static bool changeFocusTo(WID newID)
         {
             if (wss.pWidget->type == Widget::ListBox)
             {
-                int idx, cnt;
+                int idx = 0, cnt = 0;
                 g.pWndState->getListBoxState(wss.pWidget, idx, cnt);
                 if (idx < 0 && cnt > 0)
                 {
@@ -723,16 +725,16 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
         return true;
     }
     case Key::Up:
-        delta = -1;
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? -1 : 0;
         break;
     case Key::Down:
-        delta = 1;
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? 1 : 0;
         break;
     case Key::PgUp:
-        delta = kc.m_ctrl ? 0 : -(pWgt->size.height-2);
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? -(pWgt->size.height-2) : 0;
         break;
     case Key::PgDown:
-        delta = kc.m_ctrl ? 0 :pWgt->size.height-2;
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? pWgt->size.height-2 : 0;
         break;
     default:
         break;
@@ -740,7 +742,7 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
 
     if (delta != 0)
     {
-        int idx, cnt;
+        int idx = 0, cnt = 0;
         g.pWndState->getListBoxState(pWgt, idx, cnt);
         g.listboxHighlightIdx += delta;
 
@@ -774,29 +776,29 @@ static bool processKey(const KeyCode &kc)
 
     switch (p_wgt->type)
     {
-        case Widget::Edit:
-            key_handled = processKey_Edit(p_wgt, kc);
-            break;
-        case Widget::CheckBox:
-            key_handled = processKey_CheckBox(p_wgt, kc);
-            break;
-        case Widget::Radio:
-            key_handled = processKey_Radio(p_wgt, kc);
-            break;
-        case Widget::Button:
-            key_handled = processKey_Button(p_wgt, kc);
-            break;
-        case Widget::PageCtrl:
-            key_handled = processKey_PageCtrl(p_wgt, kc);
-            break;
-        case Widget::ListBox:
-            key_handled = processKey_ListBox(p_wgt, kc);
-            break;
-        case Widget::DropDownList:
-            key_handled = processKey_DropDownList(p_wgt, kc);
-            break;
-        default:
-            break;
+    case Widget::Edit:
+        key_handled = processKey_Edit(p_wgt, kc);
+        break;
+    case Widget::CheckBox:
+        key_handled = processKey_CheckBox(p_wgt, kc);
+        break;
+    case Widget::Radio:
+        key_handled = processKey_Radio(p_wgt, kc);
+        break;
+    case Widget::Button:
+        key_handled = processKey_Button(p_wgt, kc);
+        break;
+    case Widget::PageCtrl:
+        key_handled = processKey_PageCtrl(p_wgt, kc);
+        break;
+    case Widget::ListBox:
+        key_handled = processKey_ListBox(p_wgt, kc);
+        break;
+    case Widget::DropDownList:
+        key_handled = processKey_DropDownList(p_wgt, kc);
+        break;
+    default:
+        break;
     }
 
     return key_handled;
@@ -878,7 +880,7 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
 {
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
-        int idx, cnt;
+        int idx = 0, cnt = 0;
         g.pWndState->getListBoxState(pWgt, idx, cnt);
 
         int page_size = pWgt->size.height-2;
@@ -901,7 +903,7 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
     {
-        int idx, cnt;
+        int idx = 0, cnt = 0;
         g.pWndState->getListBoxState(pWgt, idx, cnt);
         int delta = kc.mouse.btn == MouseBtn::WheelUp ? -1 : 1;
         if (kc.m_ctrl) delta *= pWgt->size.height-2;

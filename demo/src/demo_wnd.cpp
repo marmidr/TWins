@@ -488,10 +488,10 @@ static constexpr twins::Widget page4Childs[] =
     {
         type    : twins::Widget::Panel,
         id      : ID_PANEL_EMPTY_1,
-        coord   : { 2, 2 },
-        size    : { 20, 8 },
+        coord   : { 5, 1 },
+        size    : { 20, 10 },
         { panel : {
-            title   :   "A",
+            title   :   "Word-wrap",
             fgColor :   {},
             bgColor :   {},
         }},
@@ -500,10 +500,12 @@ static constexpr twins::Widget page4Childs[] =
             {
                 type    : twins::Widget::Label,
                 id      : ID_LBL_EMPTY_1,
-                coord   : { 10, 4 },
-                size    : { 5, 1 },
+                coord   : { 2, 1 },
+                size    : { 16, 8 },
                 { label : {
-                    text    : "-A-",
+                    text    : {},
+                    fgColor : twins::ColorFG::White,
+                    bgColor : twins::ColorBG::Blue
                 }}
             },
             { /* NUL */ }
@@ -512,10 +514,10 @@ static constexpr twins::Widget page4Childs[] =
     {
         type    : twins::Widget::Panel,
         id      : ID_PANEL_EMPTY_2,
-        coord   : { 25, 2 },
-        size    : { 20, 8 },
+        coord   : { 40, 1 },
+        size    : { 12, 10 },
         { panel : {
-            title   :   "B",
+            title   :   "...",
             fgColor :   {},
             bgColor :   {},
         }},
@@ -524,10 +526,10 @@ static constexpr twins::Widget page4Childs[] =
             {
                 type    : twins::Widget::Label,
                 id      : ID_LBL_EMPTY_2,
-                coord   : { 10, 4 },
+                coord   : { 2, 2 },
                 size    : { 5, 1 },
                 { label : {
-                    text    : "-B-",
+                    text    : "---",
                 }}
             },
             { /* NUL */ }
@@ -620,10 +622,10 @@ static constexpr twins::Widget wndMain =
             size    : { 78, 1 },
             { label : {
                 text    :  " "
-                           ESC_BOLD "F4 "           ESC_NORMAL "Mouse On/Off"   "  "
-                           ESC_BOLD "F5 "           ESC_NORMAL "Refresh"        "  "
-                           ESC_BOLD "F6 "           ESC_NORMAL "Clr Logs"       "  "
-                           ESC_BOLD "F9/F10 "      ESC_NORMAL "Change Page"    "  "
+                           ESC_BOLD "F4 "       ESC_NORMAL "Mouse On/Off"   "  "
+                           ESC_BOLD "F5 "       ESC_NORMAL "Refresh"        "  "
+                           ESC_BOLD "F6 "       ESC_NORMAL "Clr Logs"       "  "
+                           ESC_BOLD "F9/F10 "   ESC_NORMAL "Change Page"    "  "
                            "\u2581" "\u2582" "\u2583" "\u2584" "\u2585" "\u2586" "\u2587" "\u2588" "\U0001F569"
                            ,
                 fgColor : twins::ColorFG::White,

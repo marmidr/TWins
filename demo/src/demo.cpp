@@ -5,11 +5,13 @@
  *****************************************************************************/
 
 #include "demo_wnd.hpp"
+
 #include "twins.hpp"
 #include "twins_ringbuffer.hpp"
 #include "twins_pal_defimpl.hpp"
 #include "twins_vector.hpp"
 #include "twins_map.hpp"
+#include "twins_utils.hpp"
 
 #include <stdio.h>
 #include <string.h>
@@ -184,6 +186,18 @@ public:
         if (pWgt->id == ID_LABEL_KEYNAME)
         {
             out.appendFmt("KEY[%zu]:%s", strlen(lblKeyName), lblKeyName);
+        }
+
+        if (pWgt->id == ID_LBL_EMPTY_1)
+        {
+            const char *s =
+                ESC_BOLD "Name:\n" ESC_NORMAL
+                "  20 Hits on 2\n"
+                ESC_BOLD "Description:\n" ESC_NORMAL
+                "  Latest, most lo♡ed radio hits. ❤"
+                ;
+                // note: the ❤ is double-width glyph (U+1F90D)
+            out = twins::util::wordWrap(s, pWgt->size.width, " \n", "\n  ");
         }
     }
 

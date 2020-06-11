@@ -27,17 +27,25 @@ using StringRange = twins::util::Range<const char>;
 
 
 /** @brief Split string into separate words using any of \p delim characters as delimiters
- *  @return vector of pointers to the beginning of text lines */
-twins::Vector<twins::util::StringRange> splitWords(const char *str, const char *delim = " \t\n");
+ *  @param str input string
+ *  @param delim set of whitespace characters delimiting words
+ *  @param storeDelim if true, every second entry returned is delimiter before next word
+ *  @return vector of pointers to the beginning of text lines
+ */
+twins::Vector<twins::util::StringRange> splitWords(const char *str, const char *delim = " \t\n", bool storeDelim = false);
 
-/** @brief Split string into separate words using any of \p delim characters as delimiters */
-twins::Vector<twins::String> splitWordsCpy(const char *str, const char *delim = " \t\n");
-
-/** @brief Insert \p newLine and ellipsis to ensure the line length is always < \p maxLineLen */
-twins::String wordWrap(const char *str, uint16_t maxLineLen, const char *newLine = "\n");
+/** @brief Insert \p newLine and ellipsis to ensure the line length is always < \p maxLineLen
+ *  @param str input string
+ *  @param maxLineLen max number of printable characters that fits into line of text
+ *  @param delim set of characters where word wrap can occur
+ *  @param separator sequence to insert to break too long line
+*/
+twins::String wordWrap(const char *str, uint16_t maxLineLen, const char *delim = " \t", const char *separator = "\n");
 
 /** @brief Split lines using newline character
- *  @return vector of pointers to the beginning of text lines */
+ *  @param str input string
+ *  @return vector of pointers to the beginning of text lines
+ */
 twins::Vector<twins::util::StringRange> splitLines(const char *str);
 
 // -----------------------------------------------------------------------------

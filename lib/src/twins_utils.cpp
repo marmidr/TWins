@@ -13,14 +13,25 @@
 namespace twins::util
 {
 
-Vector<StringRange> splitWords(const char *str, const char *delim)
+inline const char* strnchr(const char *str, int strSz, char c)
+{
+    while (strSz-- > 0)
+    {
+        if (*str == c) return str;
+        str++;
+    }
+
+    return nullptr;
+}
+
+Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDelim)
 {
     if (!str || !*str)
         return {};
     if (!delim || !*delim)
         return {};
 
-    unsigned nwords = 1;
+    unsigned n_words = 1;
 
     Vector<StringRange> out;
     unsigned span = 0;
@@ -33,121 +44,130 @@ Vector<StringRange> splitWords(const char *str, const char *delim)
     // count words
     while ((span = strcspn(pstr, delim)) > 0)
     {
-        nwords++;
+        n_words++;
         pstr += span;
         pstr += strspn(pstr, delim);
     }
 
-    out.reserve(nwords);
+    // prepare output
+    if (storeDelim) n_words *= 2;
+    out.reserve(n_words);
     pstr = str;
+
     // skip whitespaces
     while ((span = strspn(pstr, delim)) > 0)
         pstr += span;
 
+    if (storeDelim && (pstr > str))
+        out.append(StringRange{str, unsigned(pstr - str)});
+
     // put each word into separate cell
     while ((span = strcspn(pstr, delim)) > 0)
     {
-        out.append(StringRange{pstr, span});
+        if (const char *pesc = strnchr(pstr, span, '\e'))
+        {
+            // span contains ESC sequence - store it separately
+
+            // append text before ESC
+            if (pesc > pstr)
+                out.append(StringRange{pstr, unsigned(pesc - pstr)});
+            auto esc_len = String::escLen(pesc);
+
+            // append ESC seq
+            out.append(StringRange{pesc, esc_len});
+
+            // append text after ESC
+            pesc += esc_len;
+            if (pesc < pstr + span)
+                out.append(StringRange{pesc, unsigned(pstr + span - pesc)});
+        }
+        else
+        {
+            // store word
+            out.append(StringRange{pstr, span});
+        }
+
         pstr += span;
-        pstr += strspn(pstr, delim);
+        // check delimiters length
+        span = strspn(pstr, delim);
+        // store delimiter and skip it
+        if (storeDelim) out.append(StringRange{pstr, span});
+        pstr += span;
     }
 
     return out;
 }
 
-Vector<String> splitWordsCpy(const char *str, const char *delim)
-{
-    if (!str || !*str)
-        return {};
-    if (!delim || !*delim)
-        return {};
-
-    unsigned nwords = 1;
-
-    Vector<String> out;
-    unsigned span = 0;
-
-    const char *pstr = str;
-    // skip whitespaces
-    while ((span = strspn(pstr, delim)) > 0)
-        pstr += span;
-
-    // count words
-    while ((span = strcspn(pstr, delim)) > 0)
-    {
-        nwords++;
-        pstr += span;
-        pstr += strspn(pstr, delim);
-    }
-
-    out.reserve(nwords);
-    pstr = str;
-    // skip whitespaces
-    while ((span = strspn(pstr, delim)) > 0)
-        pstr += span;
-
-    // put each word into separate cell
-    while ((span = strcspn(pstr, delim)) > 0)
-    {
-        String s;
-        s.appendLen(pstr, span);
-        out.append(std::move(s));
-        pstr += span;
-        pstr += strspn(pstr, delim);
-    }
-
-    return out;
-}
-
-String wordWrap(const char *str, uint16_t maxLineLen, const char *newLine)
+String wordWrap(const char *str, uint16_t maxLineLen, const char *delim, const char *separator)
 {
     if (maxLineLen < 1)
         return {};
     if (!str || !*str)
         return {};
-    if (!newLine || !*newLine)
+    if (!delim || !*delim)
+        return {};
+    if (!separator || !*separator)
         return {};
 
-    auto words = splitWords(str);
+    auto words = splitWords(str, delim, true);
     unsigned line_len = 0;
-    twins::String out;
-    out.reserve(strlen(str));
+    String out;
+    out.reserve(strlen(str) + words.size());
 
-    for (const auto &s : words)
+    for (auto &w : words)
     {
-        auto s_len = twins::String::u8len(s.data, s.data + s.size, true);
-
-        if (s_len > maxLineLen)
+        // w is a ESC sequence
+        if (*w.data == '\e')
         {
-            if (line_len > 0)
-                out << newLine;
+            // append entire sequence and treat it as zero-length
+            out.appendLen(w.data, w.size);
+            continue;
+        }
 
-            // TODO: this may break ESC sequence; splitWords should also split ESC sequences
-            out.appendLen(s.data, maxLineLen-1);
-            out << "…" << newLine;
-            line_len = 0;
+        // w is a delimiter char or sequence
+        if (strchr(delim, *w.data))
+        {
+            // check if w contains \n and adjust line length accordingly
+            if (const char *nl = strnchr(w.data, w.size, '\n'))
+            {
+                out.appendLen(w.data, w.size);
+                line_len = w.size - (nl - w.data);
+                continue;
+            }
+
+            if (line_len > 0)
+            {
+                out.appendLen(w.data, w.size);
+                line_len += w.size;
+            }
+            continue;
+        }
+
+        auto word_len = twins::String::u8len(w.data, w.data + w.size, true);
+
+        if (line_len + word_len <= maxLineLen)
+        {
+            out.appendLen(w.data, w.size);
+            line_len += word_len;
         }
         else
         {
-            if (line_len + s_len <= maxLineLen)
+            if (word_len > maxLineLen)
             {
-                out.appendLen(s.data, s.size);
-                line_len += s_len;
-            }
-            else
-            {
-                if (out.size() > 0)
-                    out << newLine;
+                if (line_len > 0)
+                    out << separator;
 
-                out.appendLen(s.data, s.size);
-                line_len = s_len;
+                out.appendLen(w.data, maxLineLen-1);
+                out << "…" << separator;
+                line_len = 0;
+                continue;
             }
 
-            if (line_len < maxLineLen)
-            {
-                out << " ";
-                line_len++;
-            }
+            if (out.size() > 0)
+                out << separator;
+
+            out.appendLen(w.data, w.size);
+            line_len = word_len;
         }
     }
 

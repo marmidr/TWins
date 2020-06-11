@@ -486,6 +486,7 @@ static void drawPageControl(const Widget *pWgt)
     const auto my_coord = g.parentCoord + pWgt->coord;
 
     pushClBg(getWidgetBgColor(pWgt));
+    pushClFg(getWidgetFgColor(pWgt));
     drawArea(my_coord + Coord{pWgt->pagectrl.tabWidth, 0}, pWgt->size - Size{pWgt->pagectrl.tabWidth, 0},
         ColorBG::Inherit, ColorFG::Inherit, FrameStyle::PgControl);
     flushBuffer();
@@ -543,6 +544,7 @@ static void drawPageControl(const Widget *pWgt)
     }
 
     popClBg();
+    popClFg();
     g.parentCoord = coord_bkp;
 }
 
