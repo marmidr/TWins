@@ -16,9 +16,47 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <functional>
 
 // -----------------------------------------------------------------------------
 
+void showPopup(const char* title, std::function<void()> onYes, std::function<void()> onNo);
+
+// struct holding window stack
+struct
+{
+    void pushWnd(const twins::Widget *window)
+    {
+        m_widgets.append(window);
+    }
+    void popWnd()
+    {
+        if (m_widgets.size()) m_widgets.remove(m_widgets.size()-1);
+    }
+    const twins::Widget *window()
+    {
+        assert(m_widgets.size());
+        return *m_widgets.back();
+    }
+    twins::IWindowState *state()
+    {
+        return window()->window.getState();
+    }
+    void redraw()
+    {
+        for (auto w : m_widgets)
+            twins::drawWidget(w);
+        twins::flushBuffer();
+    }
+
+    const auto begin() { return m_widgets.begin(); }
+    const auto end() { return m_widgets.end(); }
+
+private:
+    twins::Vector<const twins::Widget *> m_widgets;
+} currWnd;
+
+// state of Main window
 class WndMainState : public twins::IWindowState
 {
 public:
@@ -45,14 +83,21 @@ public:
     {
         if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
         if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
-        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("BTN_CANCEL");
+        if (pWgt->id == ID_BTN_POPUP)   TWINS_LOG("BTN_CANCEL");
     }
 
     void onButtonUp(const twins::Widget* pWgt) override
     {
         if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
         if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
-        if (pWgt->id == ID_BTN_CANCEL)  TWINS_LOG("BTN_CANCEL");
+        if (pWgt->id == ID_BTN_POPUP)
+        {
+            TWINS_LOG("BTN_POPUP");
+            showPopup("Lorem Titlum",
+                [] { TWINS_LOG(ESC_BG_DarkGreen "Choice: YES" ESC_BG_DEFAULT); },
+                [] { TWINS_LOG(ESC_BG_Firebrick "Choice: NO" ESC_BG_DEFAULT); }
+            );
+        }
     }
 
     void onEditChange(const twins::Widget* pWgt, twins::String &&str) override
@@ -145,6 +190,7 @@ public:
 
     bool isVisible(const twins::Widget* pWgt) override
     {
+        //if (pWgt->id == ID_WND)    return currWnd.window() == pWgt; // always visible
         if (pWgt->id == ID_PAGE_1) return pgcPage == 0;
         if (pWgt->id == ID_PAGE_2) return pgcPage == 1;
         if (pWgt->id == ID_PAGE_3) return pgcPage == 2;
@@ -205,9 +251,9 @@ public:
     {
         switch (pWgt->id)
         {
-            case ID_EDT_1: out = edt1Text; break;
-            case ID_EDT_2: out = edt2Text; break;
-            default: break;
+        case ID_EDT_1: out = edt1Text; break;
+        case ID_EDT_2: out = edt2Text; break;
+        default: break;
         }
     }
 
@@ -257,7 +303,7 @@ public:
 
         if (instantly)
         {
-            twins::drawWidget(pWndMainArray, id);
+            twins::drawWidget(pWndMainWidgets, id);
             twins::flushBuffer();
         }
         else
@@ -306,16 +352,122 @@ private:
     wids_t focusedId;
 };
 
+// state of Popup window
+class WndYesNoState : public twins::IWindowState
+{
+public:
+    void init()
+    {
+        focusedId = IDYN_WND;
+        initialized = true;
+    }
+
+    // --- events ---
+
+    void onButtonUp(const twins::Widget* pWgt) override
+    {
+        if (pWgt->id == IDYN_BTN_YES && onYES)
+            onYES();
+
+        if (pWgt->id == IDYN_BTN_NO && onNO)
+            onNO();
+
+        currWnd.popWnd();
+        currWnd.redraw();
+    }
+
+    // --- widgets state queries ---
+
+    void getWindowCoord(const twins::Widget* pWgt, twins::Coord &coord) override
+    {
+        // calc location on the main window center
+        coord.col = (pWndMainWidgets[0].size.width - pWgt->size.width) / 2;
+        coord.col += pWndMainWidgets[0].coord.col;
+        coord.row = (pWndMainWidgets[0].size.height - pWgt->size.height) / 2;
+        coord.row += pWndMainWidgets[0].coord.row;
+    }
+
+    void getWindowTitle(const twins::Widget* pWgt, twins::String &title) override
+    {
+        title = wndTitle;
+    }
+
+    twins::WID& getFocusedID() override
+    {
+        return focusedId;
+    }
+
+    bool isFocused(const twins::Widget* pWgt) override
+    {
+        return pWgt->id == focusedId;
+    }
+
+    bool isVisible(const twins::Widget* pWgt) override
+    {
+        if (pWgt->id == IDYN_WND)
+            return currWnd.window() == pWgt;
+
+        return true;
+    }
+
+    void getLabelText(const twins::Widget* pWgt, twins::String &out) override
+    {
+        if (pWgt->id == IDYN_LBL_MSG)
+        {
+            out = twins::util::wordWrap("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+                pWgt->size.width);
+        }
+    }
+
+    // --- requests ---
+
+    void invalidate(twins::WID id, bool /* instantly */) override
+    {
+        // state or focus changed - widget must be repainted
+        twins::drawWidget(pWndYesNoWidgets, id);
+        twins::flushBuffer();
+    }
+
+public:
+    bool initialized = false;
+    std::function<void()> onYES;
+    std::function<void()> onNO;
+    twins::String wndTitle;
+
+private:
+    twins::WID focusedId;
+};
+
 // -----------------------------------------------------------------------------
 
 static WndMainState wndMainState;
+static WndYesNoState wndYesNoState;
 
-twins::IWindowState * getWindMainState()
+twins::IWindowState * getWndMainState()
 {
     if (!wndMainState.initialized)
         wndMainState.init();
     return &wndMainState;
 }
+
+twins::IWindowState * getWndYesNoState()
+{
+    if (!wndYesNoState.initialized)
+        wndYesNoState.init();
+    return &wndYesNoState;
+}
+
+void showPopup(const char* title, std::function<void()> onYes, std::function<void()> onNo)
+{
+    wndYesNoState.wndTitle = title;
+    wndYesNoState.onYES = onYes;
+    wndYesNoState.onNO = onNo;
+
+    currWnd.pushWnd(pWndYesNoWidgets);
+    currWnd.redraw();
+}
+
+// -----------------------------------------------------------------------------
 
 twins::RingBuff<char> rbKeybInput;
 
@@ -330,7 +482,7 @@ struct DemoPAL : twins::DefaultPAL
 
     uint16_t getLogsRow() override
     {
-        return pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1;
+        return pWndMainWidgets[0].coord.row + pWndMainWidgets[0].size.height + 1;
     }
 };
 
@@ -347,7 +499,9 @@ int main()
 
     twins::init(&demo_pal);
     twins::screenClrAll();
-    twins::drawWidget(pWndMainArray);
+    currWnd.pushWnd(pWndMainWidgets);
+    currWnd.redraw();
+
     twins::inputPosixInit(100);
     twins::mouseMode(twins::MouseMode::M2);
     rbKeybInput.init(20);
@@ -369,7 +523,8 @@ int main()
             wndMainState.lblKeycodeSeq[sizeof(wndMainState.lblKeycodeSeq)-1] = '\0';
 
             twins::decodeInputSeq(rbKeybInput, kc);
-            bool key_handled = twins::processKey(pWndMainArray, kc);
+            // pass key to top-window
+            bool key_handled = twins::processKey(currWnd.window(), kc);
             wndMainState.lblKeyName = kc.name;
 
             // display decoded key
@@ -399,31 +554,35 @@ int main()
             {
                 twins::screenClrAll();
                 twins::flushBuffer();
-                twins::drawWidget(pWndMainArray);
+
+                // draw windows from bottom to top
+                currWnd.redraw();
             }
             else if (kc.m_spec && kc.key == twins::Key::F6)
             {
                 twins::cursorSavePos();
-                twins::moveTo(0, pWndMainArray[0].coord.row + pWndMainArray[0].size.height + 1);
+                twins::moveTo(0, demo_pal.getLogsRow());
                 twins::screenClrBelow();
                 twins::cursorRestorePos();
             }
             else if (kc.m_spec && kc.m_ctrl && (kc.key == twins::Key::PgUp || kc.key == twins::Key::PgDown))
             {
-                twins::mainPgControlChangePage(pWndMainArray, kc.key == twins::Key::PgDown);
+                if (currWnd.window() == pWndMainWidgets)
+                    twins::mainPgControlChangePage(pWndMainWidgets, kc.key == twins::Key::PgDown);
             }
             else if (kc.m_spec && (kc.key == twins::Key::F9 || kc.key == twins::Key::F10))
             {
-                twins::mainPgControlChangePage(pWndMainArray, kc.key == twins::Key::F10);
+                if (currWnd.window() == pWndMainWidgets)
+                    twins::mainPgControlChangePage(pWndMainWidgets, kc.key == twins::Key::F10);
             }
-            else
+            else if (currWnd.window() == pWndMainWidgets)
             {
                 twins::cursorSavePos();
-                twins::drawWidgets(pWndMainArray, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+                twins::drawWidgets(pWndMainWidgets, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
 
                 if (kc.mod_all != KEY_MOD_SPECIAL)
                 {
-                    twins::drawWidgets(pWndMainArray,
+                    twins::drawWidgets(pWndMainWidgets,
                     {
                         ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP,
                         ID_PRGBAR_1, ID_PRGBAR_2, ID_PRGBAR_3,
@@ -433,8 +592,11 @@ int main()
                 twins::cursorRestorePos();
             }
 
-            twins::drawWidgets(pWndMainArray, wndMainState.invalidatedWgts.data(), wndMainState.invalidatedWgts.size());
-            wndMainState.invalidatedWgts.clear();
+            if (currWnd.window() == pWndMainWidgets)
+            {
+                twins::drawWidgets(pWndMainWidgets, wndMainState.invalidatedWgts.data(), wndMainState.invalidatedWgts.size());
+                wndMainState.invalidatedWgts.clear();
+            }
         }
 
         twins::flushBuffer();
@@ -446,7 +608,7 @@ int main()
     twins::flushBuffer();
     twins::inputPosixFree();
 
-    printf(ESC_BOLD "Memory stats: max chunks: %d, max memory: %d B\n" ESC_NORMAL,
+    printf(ESC_BOLD "Memory stats: max chunks: %d, max allocated: %d B\n" ESC_NORMAL,
         demo_pal.stats.memChunksMax, demo_pal.stats.memAllocatedMax
     );
 }

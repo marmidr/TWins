@@ -1,7 +1,6 @@
 # TWins in brief
 
-master: [![Coverage Status](https://coveralls.io/repos/bitbucket/mmidor/twins/badge.svg?branch=master)](https://coveralls.io/bitbucket/mmidor/twins?branch=master) 
-dev: [![Coverage Status](https://coveralls.io/repos/bitbucket/mmidor/twins/badge.svg?branch=dev)](https://coveralls.io/bitbucket/mmidor/twins?branch=dev)
+[![Coverage Status](https://coveralls.io/repos/bitbucket/mmidor/twins/badge.svg?branch=master)](https://coveralls.io/bitbucket/mmidor/twins?branch=master) 
 
 `TWins` is a C++ library designed to allow a developer to create graphical terminal applications on non-os platforms, like bare Cortex-M3.
 It provides basic facilities required by interactive applications such as screen and cursor management, keyboard input, keymaps, color codes.

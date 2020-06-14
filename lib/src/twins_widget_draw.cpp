@@ -87,7 +87,7 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
         break;
     }
 
-    return getWidgetBgColor(g.pWndArray + pWgt->link.parentIdx);
+    return getWidgetBgColor(g.pWndWidgets + pWgt->link.parentIdx);
 }
 
 static ColorFG getWidgetFgColor(const Widget *pWgt)
@@ -140,10 +140,10 @@ static ColorFG getWidgetFgColor(const Widget *pWgt)
         break;
     }
 
-    return getWidgetFgColor(g.pWndArray + pWgt->link.parentIdx);
+    return getWidgetFgColor(g.pWndWidgets + pWgt->link.parentIdx);
 }
 
-static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG clFg, const FrameStyle style, bool filled = true)
+static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG clFg, const FrameStyle style, bool filled = true, bool shadow = false)
 {
     moveTo(coord.col, coord.row);
 
@@ -171,6 +171,8 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
 #endif
     g.str.append(frame[2]);
     writeStr(g.str.cstr());
+    moveBy(-size.width, 1);
+    flushBuffer();
 
     // lines in the middle
     g.str.clear();
@@ -189,11 +191,19 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
         g.str.appendFmt(ESC_CURSOR_FORWARD_FMT, size.width - 2);
     }
     g.str.append(frame[5]);
+    if (shadow)
+    {
+        // trailing shadow
+        g.str << ESC_FG_BLACK;
+        g.str << "█";
+        g.str << encodeCl(clFg);
+    }
 
     for (int r = coord.row + 1; r < coord.row + size.height - 1; r++)
     {
-        moveBy(-size.width, 1);
         writeStr(g.str.cstr());
+        moveBy(-(size.width + shadow), 1);
+        flushBuffer();
     }
 
     // bottom line
@@ -206,13 +216,36 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     g.str.append(frame[7], size.width - 2);
 #endif
     g.str.append(frame[8]);
-    moveBy(-size.width, 1);
+    if (shadow)
+    {
+        // trailing shadow
+        g.str << ESC_FG_BLACK;
+        g.str << "█";
+    }
     writeStr(g.str.cstr());
+    flushBuffer();
+
+    if (shadow)
+    {
+        moveBy(-size.width, 1);
+        g.str.clear();
+        // trailing shadow
+        // g.str = ESC_FG_BLACK;
+    #if TWINS_FAST_FILL
+        g.str.append("█");
+        g.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 1);
+    #else
+        g.str.append("█", size.width);
+    #endif
+        writeStr(g.str.cstr());
+        writeStr(encodeCl(clFg));
+        flushBuffer();
+    }
 
     // here the Fg and Bg colors are not restored
 }
 
-static void drawScrollBarV(const Coord coord, int height, int max, int pos)
+static void drawListScrollBarV(const Coord coord, int height, int max, int pos)
 {
     if (pos > max)
     {
@@ -232,33 +265,39 @@ static void drawScrollBarV(const Coord coord, int height, int max, int pos)
 
 static void drawWindow(const Widget *pWgt)
 {
-    // TODO: if this is Popup, send SAVE_SCREEN command and RESTORE_SCREEN on hide
+    Coord wnd_coord = pWgt->coord;
     g.parentCoord = {0, 0};
-    drawArea(pWgt->coord, pWgt->size,
-        pWgt->window.bgColor, pWgt->window.fgColor, FrameStyle::Double);
-    flushBuffer();
+    g.pWndState->getWindowCoord(pWgt, wnd_coord);
+
+    drawArea(wnd_coord, pWgt->size,
+        pWgt->window.bgColor, pWgt->window.fgColor, FrameStyle::Double, true, pWgt->window.isPopup);
 
     // title
+    String wnd_title;
     if (pWgt->window.title)
+        wnd_title << pWgt->window.title;
+    else
+        g.pWndState->getWindowTitle(pWgt, wnd_title);
+
+    if (wnd_title.size())
     {
-        auto capt_len = utf8len(pWgt->window.title);
-        moveTo(pWgt->coord.col + (pWgt->size.width - capt_len - 4)/2,
-            pWgt->coord.row);
+        auto capt_len = wnd_title.u8len(true);
+        moveTo(wnd_coord.col + (pWgt->size.width - capt_len - 4)/2, wnd_coord.row);
         pushAttr(FontAttrib::Bold);
-        writeStrFmt("╡ %s ╞", pWgt->window.title);
+        writeStrFmt("╡ %s ╞", wnd_title.cstr());
         popAttr();
     }
 
     flushBuffer();
-    g.parentCoord = pWgt->coord;
+    g.parentCoord = wnd_coord;
 
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
-        drawWidgetInternal(&g.pWndArray[i]);
+        drawWidgetInternal(&g.pWndWidgets[i]);
 
     // reset colors set by frame drawer
     popClBg();
     popClFg();
-    moveTo(0, pWgt->coord.row + pWgt->size.height);
+    moveTo(0, wnd_coord.row + pWgt->size.height);
 }
 
 static void drawPanel(const Widget *pWgt)
@@ -285,7 +324,7 @@ static void drawPanel(const Widget *pWgt)
     g.parentCoord = my_coord;
 
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
-        drawWidgetInternal(&g.pWndArray[i]);
+        drawWidgetInternal(&g.pWndWidgets[i]);
 
     g.parentCoord = coord_bkp;
 
@@ -514,7 +553,7 @@ static void drawPageControl(const Widget *pWgt)
         if (i == pWgt->size.height-1)
             break;
 
-        const auto *p_page = &g.pWndArray[pWgt->link.childsIdx + i];
+        const auto *p_page = &g.pWndWidgets[pWgt->link.childsIdx + i];
 
         // draw page title
         g.str.clear();
@@ -552,7 +591,7 @@ static void drawPage(const Widget *pWgt)
 {
     // draw childrens
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
-        drawWidgetInternal(&g.pWndArray[i]);
+        drawWidgetInternal(&g.pWndWidgets[i]);
 }
 
 static void drawProgressBar(const Widget *pWgt)
@@ -604,7 +643,7 @@ static void drawListBox(const Widget *pWgt)
     const bool focused = g.pWndState->isFocused(pWgt);
 
     if (items_cnt > pWgt->size.height-2)
-        drawScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), 1}, pWgt->size.height-2, items_cnt-1, g.listboxHighlightIdx);
+        drawListScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), 1}, pWgt->size.height-2, items_cnt-1, g.listboxHighlightIdx);
     flushBuffer();
 
     for (int i = 0; i < items_visible; i++)
@@ -681,20 +720,21 @@ static void drawWidgetInternal(const Widget *pWgt)
 // ---- TWINS  P U B L I C  FUNCTIONS ------------------------------------------
 // -----------------------------------------------------------------------------
 
-void drawWidget(const Widget *pWindowArray, WID widgetId)
+void drawWidget(const Widget *pWindowWidgets, WID widgetId)
 {
     // bool glob_clear = !(g.pWndArray || g.pWndState);
-    assert(pWindowArray);
-    assert(pWindowArray->type == Widget::Window);
-    g.pWndArray = pWindowArray;
-    g.pWndState = pWindowArray->window.getState();
+    assert(pWindowWidgets);
+    assert(pWindowWidgets->type == Widget::Window);
+    g.pWndWidgets = pWindowWidgets;
+    g.pWndState = pWindowWidgets->window.getState();
     assert(g.pWndState);
     cursorHide();
     flushBuffer();
 
     if (widgetId == WIDGET_ID_ALL)
     {
-        drawWidgetInternal(pWindowArray);
+        if (g.pWndState->isVisible(pWindowWidgets))
+            drawWidgetInternal(pWindowWidgets);
     }
     else
     {
@@ -719,13 +759,13 @@ void drawWidget(const Widget *pWindowArray, WID widgetId)
     cursorShow();
 }
 
-void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t count)
+void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t count)
 {
     // bool glob_clear = !(g.pWndArray || g.pWndState);
-    assert(pWindowArray);
-    assert(pWindowArray->type == Widget::Window);
-    g.pWndArray = pWindowArray;
-    g.pWndState = pWindowArray->window.getState();
+    assert(pWindowWidgets);
+    assert(pWindowWidgets->type == Widget::Window);
+    g.pWndWidgets = pWindowWidgets;
+    g.pWndState = pWindowWidgets->window.getState();
     assert(g.pWndState);
     cursorHide();
     flushBuffer();

@@ -50,6 +50,7 @@ const char* encodeClTheme(ColorBG cl)
     case ColorBG::PanelChbox:       return ESC_BG_Gainsboro;
     case ColorBG::PanelVer:         return ESC_BG_COLOR(106);
     case ColorBG::PanelKeyCodes:    return ESC_BG_COLOR(169);
+    case ColorBG::PanelLeds:        return ESC_BG_LightBlue;
     case ColorBG::LabelBlue:        return ESC_BG_DarkBlue;
     case ColorBG::Edit1:            return ESC_BG_CYAN;
     case ColorBG::Edit1Intense:     return ESC_BG_CYAN_INTENSE;
@@ -182,7 +183,7 @@ static constexpr twins::Widget page1Childs[] =
         { panel : {
             title       : "STATE: Leds",
             fgColor     : twins::ColorFG::Blue,
-            bgColor     : twins::ColorBG::White,
+            bgColor     : twins::ColorBG::PanelLeds,
         }},
         link    : { pnlStateChilds }
     },
@@ -266,11 +267,11 @@ static constexpr twins::Widget page1Childs[] =
     },
     {
         type    : twins::Widget::Button,
-        id      : ID_BTN_CANCEL,
+        id      : ID_BTN_POPUP,
         coord   : { 45, 7 },
         size    : {},
         { button : {
-            text    : "CANCEL",
+            text    : "POPUP",
             fgColor : twins::ColorFG::White,
             bgColor : {},
             style   : twins::ButtonStyle::Simple
@@ -554,7 +555,8 @@ static constexpr twins::Widget wndMain =
         title       : ESC_FG_WHITE_INTENSE "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
         fgColor     : twins::ColorFG::Window,
         bgColor     : twins::ColorBG::Window,
-        getState    : getWindMainState,
+        isPopup     : {},
+        getState    : getWndMainState,
     }},
     link    : { (const twins::Widget[])
     {
@@ -636,8 +638,79 @@ static constexpr twins::Widget wndMain =
     }}
 };
 
+
+
+static constexpr twins::Widget wndYesNo =
+{
+    type    : twins::Widget::Window,
+    id      : IDYN_WND,
+    coord   : { },
+    size    : { 34, 10 },
+    { window : {
+        title       : {},
+        fgColor     : twins::ColorFG::Blue,
+        bgColor     : twins::ColorBG::White,
+        isPopup     : true,
+        getState    : getWndYesNoState,
+    }},
+    link    : { (const twins::Widget[])
+    {
+        {
+            type    : twins::Widget::Label,
+            id      : IDYN_LBL_MSG,
+            coord   : { 2, 2 },
+            size    : { 30, 4 },
+            { label : {
+                text    : {},
+                fgColor : {},
+                bgColor : {},
+            }}
+        },
+        {
+            type    : twins::Widget::Button,
+            id      : IDYN_BTN_YES,
+            coord   : { 5, 7 },
+            size    : {},
+            { button : {
+                text    : "YES",
+                fgColor : twins::ColorFG::ButtonGreen,
+                bgColor : twins::ColorBG::ButtonGreen,
+                style   : twins::ButtonStyle::Solid
+            }}
+        },
+        {
+            type    : twins::Widget::Button,
+            id      : IDYN_BTN_NO,
+            coord   : { 13, 7 },
+            size    : {},
+            { button : {
+                text    : "NO",
+                fgColor : twins::ColorFG::ButtonRed,
+                bgColor : twins::ColorBG::ButtonRed,
+                style   : twins::ButtonStyle::Solid
+            }}
+        },
+        {
+            type    : twins::Widget::Button,
+            id      : IDYN_BTN_CANCEL,
+            coord   : { 20, 7 },
+            size    : {},
+            { button : {
+                text    : "CANCEL",
+                fgColor : twins::ColorFG::White,
+                bgColor : twins::ColorBG::BlackIntense,
+                style   : twins::ButtonStyle::Solid
+            }}
+        },
+        { /* NUL */ }
+    }}
+};
+
 // -----------------------------------------------------------------------------
 
-constexpr auto wndMainArray = twins::transforWindowDefinition<&wndMain>();
-const twins::Widget * pWndMainArray = wndMainArray.begin();
+constexpr auto wndMainWidgets = twins::transforWindowDefinition<&wndMain>();
+const twins::Widget * pWndMainWidgets = wndMainWidgets.begin();
 const uint16_t wndMainNumPages = twins::getPagesCount(&wndMain);
+
+constexpr auto wndYesNoWidgets = twins::transforWindowDefinition<&wndYesNo>();
+const twins::Widget * pWndYesNoWidgets = wndYesNoWidgets.begin();

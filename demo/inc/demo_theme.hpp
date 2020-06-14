@@ -32,6 +32,7 @@
     PanelChbox,         \
     PanelVer,           \
     PanelKeyCodes,      \
+    PanelLeds,          \
     LabelBlue,          \
     LabelFtr,           \
     Edit1,              \

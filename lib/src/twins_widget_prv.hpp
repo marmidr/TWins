@@ -40,7 +40,7 @@ struct Glob
 {
     Coord   parentCoord;            // current widget's parent left-top position
     String  str;                    // common string buff for widget drawers
-    const Widget *pWndArray = {};   // array of Window widgets
+    const Widget *pWndWidgets = {}; // array of Window widgets
     IWindowState *pWndState = {};   //
     const Widget *pFocusedWgt = {}; //
     const Widget *pMouseDownWgt = {}; //
@@ -60,13 +60,13 @@ struct WidgetSearchStruct
 
 // -----------------------------------------------------------------------------
 
-// require g.pWndArray set
+// require g.pWindowWidgets set
 bool getWidgetWSS(WidgetSearchStruct &wss);
 const Widget* getWidgetByWID(const WID widgetId);
 const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect);
 void setCursorAt(const Widget *pWgt);
 
-// does not require g.pWndArray
+// does not require g.pWindowWidgets
 const Widget* getParent(const Widget *pWgt);
 
 // -----------------------------------------------------------------------------

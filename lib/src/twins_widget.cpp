@@ -33,7 +33,7 @@ bool getWidgetWSS(WidgetSearchStruct &wss)
     if (wss.searchedID == WIDGET_ID_NONE)
         return false;
 
-    const Widget *p_wgt = g.pWndArray;
+    const Widget *p_wgt = g.pWndWidgets;
 
     for (;; p_wgt++)
     {
@@ -53,9 +53,13 @@ bool getWidgetWSS(WidgetSearchStruct &wss)
 
     for (;;)
     {
-        const auto *p_parent = g.pWndArray + parent_idx;
+        const auto *p_parent = g.pWndWidgets + parent_idx;
         wss.isVisible &= g.pWndState->isVisible(p_parent);
-        wss.parentCoord += p_parent->coord;
+
+        Coord coord = p_parent->coord;
+        if (p_parent->type == Widget::Type::Window)
+            g.pWndState->getWindowCoord(p_parent, coord);
+        wss.parentCoord += coord;
 
         if (p_parent->type == Widget::Type::PageCtrl)
             wss.parentCoord.col += p_parent->pagectrl.tabWidth;
@@ -71,9 +75,9 @@ bool getWidgetWSS(WidgetSearchStruct &wss)
 
 const Widget* getWidgetByWID(const WID widgetId)
 {
-    for (unsigned i = 0; g.pWndArray[i].type != Widget::None; i++)
-        if (g.pWndArray[i].id == widgetId)
-            return &g.pWndArray[i];
+    for (unsigned i = 0; g.pWndWidgets[i].type != Widget::None; i++)
+        if (g.pWndWidgets[i].id == widgetId)
+            return &g.pWndWidgets[i];
 
     return nullptr;
 }
@@ -93,11 +97,11 @@ const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
     Rect best_rect;
     best_rect.setMax();
 
-    for (unsigned i = 0; g.pWndArray[i].type != Widget::None; i++)
+    for (unsigned i = 0; g.pWndWidgets[i].type != Widget::None; i++)
     {
         bool stop_searching = true;
         Rect r;
-        const auto *p_wgt = g.pWndArray + i;
+        const auto *p_wgt = g.pWndWidgets + i;
         r.coord = getScreenCoord(p_wgt);
         r.size = p_wgt->size;
 
@@ -221,12 +225,12 @@ static bool isRectWithin(const Rect& i, const Rect& e)
 
 static void invalidateRadioGroup(const Widget *pRadio)
 {
-    const Widget *p_parent = g.pWndArray + pRadio->link.parentIdx;
+    const Widget *p_parent = g.pWndWidgets + pRadio->link.parentIdx;
     const auto group_id = pRadio->radio.groupId;
 
     for (unsigned i = 0; i < p_parent->link.childsCnt; i++)
     {
-        const auto *p_wgt = g.pWndArray + p_parent->link.childsIdx + i;
+        const auto *p_wgt = g.pWndWidgets + p_parent->link.childsIdx + i;
         if (p_wgt->type == Widget::Type::Radio && p_wgt->radio.groupId == group_id)
             g.pWndState->invalidate(p_wgt->id);
     }
@@ -239,7 +243,7 @@ static bool isVisible(const Widget *pWgt)
 
     for (; vis;)
     {
-        const auto *p_parent = g.pWndArray + parent_idx;
+        const auto *p_parent = g.pWndWidgets + parent_idx;
         vis &= g.pWndState->isVisible(p_parent);
 
         if (parent_idx == 0)
@@ -319,7 +323,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
     case Widget::Panel:
     case Widget::Page:
     {
-        p_childs  = g.pWndArray + pParent->link.childsIdx;
+        p_childs  = g.pWndWidgets + pParent->link.childsIdx;
         child_cnt = pParent->link.childsCnt;
         break;
     }
@@ -329,8 +333,8 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
         int idx = g.pWndState->getPageCtrlPageIndex(pParent);
         if (idx >= 0 && idx < pParent->link.childsCnt)
         {
-            pParent   = g.pWndArray + pParent->link.childsIdx + idx;
-            p_childs  = g.pWndArray + pParent->link.childsIdx;
+            pParent   = g.pWndWidgets + pParent->link.childsIdx + idx;
+            p_childs  = g.pWndWidgets + pParent->link.childsIdx;
             child_cnt = pParent->link.childsCnt;
         }
         else
@@ -421,11 +425,11 @@ static WID getNextToFocus(const WID focusedID, bool forward)
     if (!getWidgetWSS(wss))
     {
         // here, find may fail only if invalid focusedID was given
-        wss.pWidget = g.pWndArray;
+        wss.pWidget = g.pWndWidgets;
     }
 
     // use the parent to get next widget
-    if (auto *p_next = getNextFocusable(g.pWndArray + wss.pWidget->link.parentIdx, focusedID, forward))
+    if (auto *p_next = getNextFocusable(g.pWndWidgets + wss.pWidget->link.parentIdx, focusedID, forward))
     {
         return p_next->id;
     }
@@ -436,13 +440,13 @@ static WID getNextToFocus(const WID focusedID, bool forward)
 static WID getParentToFocus(WID focusedID)
 {
     if (focusedID == WIDGET_ID_NONE)
-        return g.pWndArray[0].id;
+        return g.pWndWidgets[0].id;
 
     WidgetSearchStruct wss { searchedID : focusedID };
 
     if (getWidgetWSS(wss))
     {
-        const auto *p_wgt = &g.pWndArray[wss.pWidget->link.parentIdx];
+        const auto *p_wgt = &g.pWndWidgets[wss.pWidget->link.parentIdx];
         g.parentCoord -= wss.pWidget->coord;
         return p_wgt->id;
     }
@@ -453,6 +457,7 @@ static WID getParentToFocus(WID focusedID)
 static bool changeFocusTo(WID newID)
 {
     auto &curr_id = g.pWndState->getFocusedID();
+    TWINS_LOG("curr_id=%d, newID=%d", curr_id, newID);
 
     if (newID != curr_id)
     {
@@ -494,12 +499,12 @@ static bool changeFocusTo(WID newID)
 
 static const Widget *findMainPgControl()
 {
-    assert(g.pWndArray);
-    const auto *p_wnd = &g.pWndArray[0];
+    assert(g.pWndWidgets);
+    const auto *p_wnd = &g.pWndWidgets[0];
 
     for (unsigned i = 0; i < p_wnd->link.childsCnt; i++)
     {
-        const auto *p_wgt = g.pWndArray + p_wnd->link.childsIdx + i;
+        const auto *p_wgt = g.pWndWidgets + p_wnd->link.childsIdx + i;
 
         if (p_wgt->type == Widget::PageCtrl)
             return p_wgt;
@@ -1040,6 +1045,8 @@ const char * toString(Widget::Type type)
 Coord getScreenCoord(const Widget *pWgt)
 {
     Coord coord = pWgt->coord;
+    if (pWgt->type == Widget::Type::Window)
+        g.pWndState->getWindowCoord(pWgt, coord);
 
     if (pWgt->link.ownIdx > 0)
     {
@@ -1048,10 +1055,22 @@ Coord getScreenCoord(const Widget *pWgt)
 
         for (;;)
         {
-            coord += p_parent->coord;
+            if (p_parent->type == Widget::Type::Window)
+            {
+                Coord wnd_coord = p_parent->coord;
+                // getWindowCoord is optional
+                g.pWndState->getWindowCoord(p_parent, wnd_coord);
+                coord += wnd_coord;
+            }
+            else
+            {
+                coord += p_parent->coord;
+            }
 
             if (p_parent->type == Widget::Type::PageCtrl)
+            {
                 coord.col += p_parent->pagectrl.tabWidth;
+            }
 
             // top-level parent reached
             if (p_parent->link.ownIdx == 0)
@@ -1077,24 +1096,24 @@ WID getPageID(const Widget *pPageControl, int8_t pageIdx)
     return p_page->id;
 }
 
-const Widget* getWidget(const Widget *pWindowArray, WID widgetId)
+const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId)
 {
-    assert(pWindowArray);
-    assert(pWindowArray->type == Widget::Window);
+    assert(pWindowWidgets);
+    assert(pWindowWidgets->type == Widget::Window);
 
-    const Widget *p_arr_bkp = g.pWndArray;
-    g.pWndArray = pWindowArray;
+    const Widget *p_arr_bkp = g.pWndWidgets;
+    g.pWndWidgets = pWindowWidgets;
     const auto *p_wgt = getWidgetByWID(widgetId);
-    g.pWndArray = p_arr_bkp;
+    g.pWndWidgets = p_arr_bkp;
     return p_wgt;
 }
 
-bool processKey(const Widget *pWindowArray, const KeyCode &kc)
+bool processKey(const Widget *pWindowWidgets, const KeyCode &kc)
 {
-    assert(pWindowArray);
-    assert(pWindowArray->type == Widget::Window);
-    g.pWndArray = pWindowArray;
-    g.pWndState = pWindowArray->window.getState();
+    assert(pWindowWidgets);
+    assert(pWindowWidgets->type == Widget::Window);
+    g.pWndWidgets = pWindowWidgets;
+    g.pWndState = pWindowWidgets->window.getState();
     assert(g.pWndState);
     bool key_processed = false;
 
@@ -1135,21 +1154,21 @@ bool processKey(const Widget *pWindowArray, const KeyCode &kc)
         }
     }
 
-    g.pWndArray = nullptr; g.pWndState = nullptr;
+    g.pWndWidgets = nullptr; g.pWndState = nullptr;
     return key_processed;
 }
 
-void mainPgControlChangePage(const Widget *pWindowArray, bool next)
+void mainPgControlChangePage(const Widget *pWindowWidgets, bool next)
 {
-    assert(pWindowArray);
-    g.pWndArray = pWindowArray;
-    g.pWndState = pWindowArray->window.getState();
+    assert(pWindowWidgets);
+    g.pWndWidgets = pWindowWidgets;
+    g.pWndState = pWindowWidgets->window.getState();
     assert(g.pWndState);
 
     if (const auto *p_wgt = findMainPgControl())
         pgControlChangePage(p_wgt, next);
 
-    g.pWndArray = nullptr; g.pWndState = nullptr;
+    g.pWndWidgets = nullptr; g.pWndState = nullptr;
 }
 
 // -----------------------------------------------------------------------------

@@ -198,6 +198,8 @@ public:
     virtual bool isVisible(const twins::Widget*) { return true; }
     virtual WID& getFocusedID() = 0;
     // widget-specific queries
+    virtual void getWindowCoord(const twins::Widget* pWgt, twins::Coord &coord) {}
+    virtual void getWindowTitle(const twins::Widget* pWgt, twins::String &title) {}
     virtual bool getCheckboxChecked(const twins::Widget*) { return false; }
     virtual void getLabelText(const twins::Widget*, twins::String &out) {}
     virtual void getEditText(const twins::Widget*, twins::String &out) {}
@@ -250,6 +252,7 @@ struct Widget
             const char *    title;
             ColorFG         fgColor;
             ColorBG         bgColor;
+            bool            isPopup;
             IWindowState *  (*getState)();
         } window;
 
@@ -469,22 +472,22 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output);
 /**
  * @brief Draw single widget or entire window
  */
-void drawWidget(const Widget *pWindowArray, WID widgetId = WIDGET_ID_ALL);
+void drawWidget(const Widget *pWindowWidgets, WID widgetId = WIDGET_ID_ALL);
 
 /**
  * @brief Draw selected widgets
  */
-void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t count);
+void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t count);
 
 template<int N>
-inline void drawWidgets(const Widget *pWindowArray, const WID (&widgetIds)[N])
+inline void drawWidgets(const Widget *pWindowWidgets, const WID (&widgetIds)[N])
 {
-    drawWidgets(pWindowArray, widgetIds, N);
+    drawWidgets(pWindowWidgets, widgetIds, N);
 }
 
-inline void drawWidgets(const Widget *pWindowArray, const std::initializer_list<WID> &ids)
+inline void drawWidgets(const Widget *pWindowWidgets, const std::initializer_list<WID> &ids)
 {
-    drawWidgets(pWindowArray, ids.begin(), ids.size());
+    drawWidgets(pWindowWidgets, ids.begin(), ids.size());
 }
 
 /**
@@ -505,7 +508,7 @@ WID getPageID(const Widget *pPageControl, int8_t pageIdx);
 /**
  * @brief Return widget from its ID or \b nullptr
  */
-const Widget* getWidget(const Widget *pWindowArray, WID widgetId);
+const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId);
 
 /**
  * @brief Process keyboard/mouse signal received by console
@@ -516,7 +519,7 @@ bool processKey(const Widget *pWindow, const KeyCode &kc);
  * @brief As the PgUp/PgDn are often used by consoles, let the user decide
  *        when to change page
  */
-void mainPgControlChangePage(const Widget *pWindowArray, bool next);
+void mainPgControlChangePage(const Widget *pWindowWidgets, bool next);
 
 // -----------------------------------------------------------------------------
 

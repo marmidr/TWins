@@ -31,7 +31,7 @@ enum WndMainIDs
                 ID_CHBX_LOCK,
                 ID_BTN_YES,
                 ID_BTN_NO,
-                ID_BTN_CANCEL,
+                ID_BTN_POPUP,
                 ID_PRGBAR_1,
                 ID_PRGBAR_2,
                 ID_PRGBAR_3,
@@ -60,8 +60,23 @@ enum WndMainIDs
         ID_LABEL_FTR,
 };
 
+
+// popup window IDs
+enum WndYesNoIDs
+{
+    IDYN_INVALID,
+    IDYN_WND,
+        IDYN_LBL_MSG,
+        IDYN_BTN_YES,
+        IDYN_BTN_NO,
+        IDYN_BTN_CANCEL
+};
+
 // -----------------------------------------------------------------------------
 
-extern twins::IWindowState * getWindMainState();
-extern const twins::Widget * pWndMainArray;
+extern twins::IWindowState * getWndMainState();
+extern const twins::Widget * pWndMainWidgets;
 extern const uint16_t wndMainNumPages;
+
+extern twins::IWindowState * getWndYesNoState();
+extern const twins::Widget * pWndYesNoWidgets;
