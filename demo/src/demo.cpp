@@ -12,6 +12,7 @@
 #include "twins_vector.hpp"
 #include "twins_map.hpp"
 #include "twins_utils.hpp"
+#include "twins_wndstack.hpp"
 
 #include <stdio.h>
 #include <string.h>
@@ -20,41 +21,10 @@
 
 // -----------------------------------------------------------------------------
 
-void showPopup(const char* title, std::function<void()> onYes, std::function<void()> onNo);
+void showPopup(twins::String title, twins::String message, std::function<void()> onYes, std::function<void()> onNo);
 
-// struct holding window stack
-struct
-{
-    void pushWnd(const twins::Widget *window)
-    {
-        m_widgets.append(window);
-    }
-    void popWnd()
-    {
-        if (m_widgets.size()) m_widgets.remove(m_widgets.size()-1);
-    }
-    const twins::Widget *window()
-    {
-        assert(m_widgets.size());
-        return *m_widgets.back();
-    }
-    twins::IWindowState *state()
-    {
-        return window()->window.getState();
-    }
-    void redraw()
-    {
-        for (auto w : m_widgets)
-            twins::drawWidget(w);
-        twins::flushBuffer();
-    }
+static twins::WndStack wndStack;
 
-    const auto begin() { return m_widgets.begin(); }
-    const auto end() { return m_widgets.end(); }
-
-private:
-    twins::Vector<const twins::Widget *> m_widgets;
-} currWnd;
 
 // state of Main window
 class WndMainState : public twins::IWindowState
@@ -94,6 +64,8 @@ public:
         {
             TWINS_LOG("BTN_POPUP");
             showPopup("Lorem Titlum",
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+                "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
                 [] { TWINS_LOG(ESC_BG_DarkGreen "Choice: YES" ESC_BG_DEFAULT); },
                 [] { TWINS_LOG(ESC_BG_Firebrick "Choice: NO" ESC_BG_DEFAULT); }
             );
@@ -372,8 +344,7 @@ public:
         if (pWgt->id == IDYN_BTN_NO && onNO)
             onNO();
 
-        currWnd.popWnd();
-        currWnd.redraw();
+        wndStack.popWnd();
     }
 
     // --- widgets state queries ---
@@ -405,7 +376,7 @@ public:
     bool isVisible(const twins::Widget* pWgt) override
     {
         if (pWgt->id == IDYN_WND)
-            return currWnd.window() == pWgt;
+            return wndStack.window() == pWgt;
 
         return true;
     }
@@ -414,8 +385,7 @@ public:
     {
         if (pWgt->id == IDYN_LBL_MSG)
         {
-            out = twins::util::wordWrap("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
-                pWgt->size.width);
+            out = twins::util::wordWrap(wndMessage.cstr(), pWgt->size.width);
         }
     }
 
@@ -433,6 +403,7 @@ public:
     std::function<void()> onYES;
     std::function<void()> onNO;
     twins::String wndTitle;
+    twins::String wndMessage;
 
 private:
     twins::WID focusedId;
@@ -457,14 +428,14 @@ twins::IWindowState * getWndYesNoState()
     return &wndYesNoState;
 }
 
-void showPopup(const char* title, std::function<void()> onYes, std::function<void()> onNo)
+void showPopup(twins::String title, twins::String message, std::function<void()> onYes, std::function<void()> onNo)
 {
-    wndYesNoState.wndTitle = title;
+    wndYesNoState.wndTitle = std::move(title);
+    wndYesNoState.wndMessage = std::move(message);
     wndYesNoState.onYES = onYes;
     wndYesNoState.onNO = onNo;
 
-    currWnd.pushWnd(pWndYesNoWidgets);
-    currWnd.redraw();
+    wndStack.pushWnd(pWndYesNoWidgets);
 }
 
 // -----------------------------------------------------------------------------
@@ -499,8 +470,7 @@ int main()
 
     twins::init(&demo_pal);
     twins::screenClrAll();
-    currWnd.pushWnd(pWndMainWidgets);
-    currWnd.redraw();
+    wndStack.pushWnd(pWndMainWidgets);
 
     twins::inputPosixInit(100);
     twins::mouseMode(twins::MouseMode::M2);
@@ -524,7 +494,7 @@ int main()
 
             twins::decodeInputSeq(rbKeybInput, kc);
             // pass key to top-window
-            bool key_handled = twins::processKey(currWnd.window(), kc);
+            bool key_handled = twins::processKey(wndStack.window(), kc);
             wndMainState.lblKeyName = kc.name;
 
             // display decoded key
@@ -556,7 +526,7 @@ int main()
                 twins::flushBuffer();
 
                 // draw windows from bottom to top
-                currWnd.redraw();
+                wndStack.redraw();
             }
             else if (kc.m_spec && kc.key == twins::Key::F6)
             {
@@ -567,15 +537,15 @@ int main()
             }
             else if (kc.m_spec && kc.m_ctrl && (kc.key == twins::Key::PgUp || kc.key == twins::Key::PgDown))
             {
-                if (currWnd.window() == pWndMainWidgets)
+                if (wndStack.window() == pWndMainWidgets)
                     twins::mainPgControlChangePage(pWndMainWidgets, kc.key == twins::Key::PgDown);
             }
             else if (kc.m_spec && (kc.key == twins::Key::F9 || kc.key == twins::Key::F10))
             {
-                if (currWnd.window() == pWndMainWidgets)
+                if (wndStack.window() == pWndMainWidgets)
                     twins::mainPgControlChangePage(pWndMainWidgets, kc.key == twins::Key::F10);
             }
-            else if (currWnd.window() == pWndMainWidgets)
+            else if (wndStack.window() == pWndMainWidgets)
             {
                 twins::cursorSavePos();
                 twins::drawWidgets(pWndMainWidgets, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
@@ -592,7 +562,7 @@ int main()
                 twins::cursorRestorePos();
             }
 
-            if (currWnd.window() == pWndMainWidgets)
+            if (wndStack.window() == pWndMainWidgets)
             {
                 twins::drawWidgets(pWndMainWidgets, wndMainState.invalidatedWgts.data(), wndMainState.invalidatedWgts.size());
                 wndMainState.invalidatedWgts.clear();

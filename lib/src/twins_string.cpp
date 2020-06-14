@@ -12,12 +12,19 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 #include <utility> //std::swap
 
 // -----------------------------------------------------------------------------
 
 namespace twins
 {
+
+String::String(const char*s)
+{
+    assert(pPAL);
+    append(s);
+}
 
 String::String(String &&other)
 {

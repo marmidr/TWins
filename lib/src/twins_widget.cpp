@@ -457,7 +457,7 @@ static WID getParentToFocus(WID focusedID)
 static bool changeFocusTo(WID newID)
 {
     auto &curr_id = g.pWndState->getFocusedID();
-    TWINS_LOG("curr_id=%d, newID=%d", curr_id, newID);
+    // TWINS_LOG("curr_id=%d, newID=%d", curr_id, newID);
 
     if (newID != curr_id)
     {
