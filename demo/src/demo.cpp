@@ -121,7 +121,7 @@ public:
             radioId = pWgt->radio.radioId;
     }
 
-    void onCanvasDraw(const twins::Widget* pWgt) override
+    void onCustomWidgetDraw(const twins::Widget* pWgt) override
     {
         auto coord = twins::getScreenCoord(pWgt);
         auto sz = pWgt->size;
@@ -132,7 +132,7 @@ public:
         twins::writeChar('-', sz.width);
     }
 
-    void onCanvasMouseEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
+    void onCustomWidgetInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         twins::moveTo(kc.mouse.col, kc.mouse.row);
         twins::writeChar('0' + (int)kc.mouse.btn);

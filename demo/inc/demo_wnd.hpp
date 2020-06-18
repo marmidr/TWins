@@ -45,7 +45,7 @@ enum WndMainIDs
                 ID_PANEL_EDT,
                     ID_EDT_1,
                     ID_EDT_2,
-                ID_CANVAS,
+                ID_CUSTOMWGT1,
                 ID_PANEL_CHBX,
                     ID_LBL_CHBXTITLE,
                     ID_CHBX_A,

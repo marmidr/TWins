@@ -934,9 +934,9 @@ static void processMouse_DropDownList(const Widget *pWgt, const Rect &wgtRect, c
     }
 }
 
-static void processMouse_Canvas(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+static void processMouse_CustomWgt(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
-    g.pWndState->onCanvasMouseEvt(pWgt, kc);
+    g.pWndState->onCustomWidgetInputEvt(pWgt, kc);
 }
 
 static bool processMouse(const KeyCode &kc)
@@ -998,8 +998,8 @@ static bool processMouse(const KeyCode &kc)
     case Widget::DropDownList:
         processMouse_DropDownList(p_wgt, rct, kc);
         break;
-    case Widget::Canvas:
-        processMouse_Canvas(p_wgt, rct, kc);
+    case Widget::CustomWgt:
+        processMouse_CustomWgt(p_wgt, rct, kc);
         break;
     default:
         moveToHome();
@@ -1037,7 +1037,7 @@ const char * toString(Widget::Type type)
     CASE_WGT_STR(ProgressBar)
     CASE_WGT_STR(ListBox)
     CASE_WGT_STR(DropDownList)
-    CASE_WGT_STR(Canvas)
+    CASE_WGT_STR(CustomWgt)
     default: return "?";
     }
 }

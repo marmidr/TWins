@@ -50,10 +50,11 @@ Implementation is based on examples:
     - [x] progress bar
     - [x] list
     - [ ] dropdown list
-    - [x] canvas
+    - [x] custom widget base
     - [ ] scrollbar
     - [ ] horizontal page control
     - [ ] scrollable text box
+    - [x] popup windows
 - navigation
     - [x] widgets navigation by Tab/Esc key
     - [x] render focused widget state

@@ -190,8 +190,8 @@ public:
     virtual void onListBoxSelect(const twins::Widget* pWgt, uint16_t highlightIdx) {}
     virtual void onListBoxChange(const twins::Widget* pWgt, uint16_t newIdx) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
-    virtual void onCanvasDraw(const twins::Widget* pWgt) {}
-    virtual void onCanvasMouseEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
+    virtual void onCustomWidgetDraw(const twins::Widget* pWgt) {}
+    virtual void onCustomWidgetInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
     // common state queries
     virtual bool isEnabled(const twins::Widget*) { return true; }
     virtual bool isFocused(const twins::Widget*) { return false; }
@@ -236,7 +236,7 @@ struct Widget
         ProgressBar,
         ListBox,
         DropDownList,
-        Canvas,
+        CustomWgt,
     };
 
     Type    type = {};

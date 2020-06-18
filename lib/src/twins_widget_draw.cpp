@@ -679,9 +679,9 @@ static void drawDropDownList(const Widget *pWgt)
 {
 }
 
-static void drawCanvas(const Widget *pWgt)
+static void drawCustomWgt(const Widget *pWgt)
 {
-    g.pWndState->onCanvasDraw(pWgt);
+    g.pWndState->onCustomWidgetDraw(pWgt);
 }
 
 // -----------------------------------------------------------------------------
@@ -706,7 +706,7 @@ static void drawWidgetInternal(const Widget *pWgt)
     case Widget::ProgressBar:   drawProgressBar(pWgt); break;
     case Widget::ListBox:       drawListBox(pWgt); break;;
     case Widget::DropDownList:  drawDropDownList(pWgt); break;
-    case Widget::Canvas:        drawCanvas(pWgt); break;
+    case Widget::CustomWgt:     drawCustomWgt(pWgt); break;
     default:                    break;
     }
 

@@ -413,8 +413,8 @@ static constexpr twins::Widget page3Childs[] =
         }}
     },
     {
-        type    : twins::Widget::Canvas,
-        id      : ID_CANVAS,
+        type    : twins::Widget::CustomWgt,
+        id      : ID_CUSTOMWGT1,
         coord   : { 2, 6 },
         size    : { 32, 4 },
     },
