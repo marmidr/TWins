@@ -192,6 +192,7 @@ public:
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
     virtual void onCustomWidgetDraw(const twins::Widget* pWgt) {}
     virtual void onCustomWidgetInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
+    virtual bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) { return false; }
     // common state queries
     virtual bool isEnabled(const twins::Widget*) { return true; }
     virtual bool isFocused(const twins::Widget*) { return false; }

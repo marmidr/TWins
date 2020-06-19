@@ -138,6 +138,12 @@ public:
         twins::writeChar('0' + (int)kc.mouse.btn);
     }
 
+    bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
+    {
+        TWINS_LOG("onWindowUnhandledInputEvt(%s)", kc.name);
+        return false;
+    }
+
     // --- widgets state queries ---
 
     bool isEnabled(const twins::Widget* pWgt) override
@@ -345,6 +351,16 @@ public:
             onNO();
 
         wndStack.popWnd();
+    }
+
+    bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
+    {
+        if (kc.key == twins::Key::Esc)
+        {
+            wndStack.popWnd();
+            return true;
+        }
+        return false;
     }
 
     // --- widgets state queries ---

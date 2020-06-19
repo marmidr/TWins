@@ -447,11 +447,11 @@ static WID getParentToFocus(WID focusedID)
     if (getWidgetWSS(wss))
     {
         const auto *p_wgt = &g.pWndWidgets[wss.pWidget->link.parentIdx];
-        g.parentCoord -= wss.pWidget->coord;
+        // g.parentCoord -= wss.pWidget->coord;
         return p_wgt->id;
     }
 
-    return WIDGET_ID_NONE;
+    return g.pWndWidgets[0].id;
 }
 
 static bool changeFocusTo(WID newID)
@@ -1152,6 +1152,9 @@ bool processKey(const Widget *pWindowWidgets, const KeyCode &kc)
                 break;
             }
         }
+
+        if (!key_processed)
+            key_processed = g.pWndState->onWindowUnhandledInputEvt(g.pWndWidgets, kc);
     }
 
     g.pWndWidgets = nullptr; g.pWndState = nullptr;
