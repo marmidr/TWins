@@ -623,34 +623,40 @@ static void drawProgressBar(const Widget *pWgt)
     // ████░░░░░░░░░░░
     // [####.........]
     // [■■■■□□□□□□□□□]
+    //  ▁▂▃▄▅▆▇█ - for vertical ▂▄▆█
 }
 
 static void drawListBox(const Widget *pWgt)
 {
     const auto my_coord = g.parentCoord + pWgt->coord;
     drawArea(my_coord, pWgt->size,
-        pWgt->listbox.bgColor, pWgt->listbox.fgColor, FrameStyle::Single, false);
+        pWgt->listbox.bgColor, pWgt->listbox.fgColor,
+        pWgt->listbox.noFrame ? FrameStyle::None : FrameStyle::Single, false);
 
     if (pWgt->size.height < 3)
         return;
 
     int item_idx = 0;
     int items_cnt = 0;
+    const uint8_t frame_size = !pWgt->listbox.noFrame;
     g.pWndState->getListBoxState(pWgt, item_idx, items_cnt);
 
-    const uint8_t items_visible = pWgt->size.height - 2;
+    const uint8_t items_visible = pWgt->size.height - (frame_size * 2);
     const uint8_t topitem = (g.listboxHighlightIdx / items_visible) * items_visible;
     const bool focused = g.pWndState->isFocused(pWgt);
 
-    if (items_cnt > pWgt->size.height-2)
-        drawListScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), 1}, pWgt->size.height-2, items_cnt-1, g.listboxHighlightIdx);
+    if (items_cnt > items_visible)
+    {
+        drawListScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), frame_size},
+            items_visible, items_cnt-1, g.listboxHighlightIdx);
+    }
     flushBuffer();
 
     for (int i = 0; i < items_visible; i++)
     {
         bool is_current_item = topitem + i == item_idx;
         bool is_hl_item = topitem + i == g.listboxHighlightIdx;
-        moveTo(my_coord.col+1, my_coord.row + i + 1);
+        moveTo(my_coord.col + frame_size, my_coord.row + i + frame_size);
 
         g.str.clear();
 
@@ -658,12 +664,12 @@ static void drawListBox(const Widget *pWgt)
         {
             g.str.append(is_current_item ? "►" : " ");
             g.pWndState->getListBoxItem(pWgt, topitem + i, g.str);
-            g.str.setLength(pWgt->size.width-2, true, true);
+            g.str.setLength(pWgt->size.width - 1 - frame_size, true, true);
         }
         else
         {
             // empty string - to erase old content
-            g.str.setLength(pWgt->size.width-2);
+            g.str.setLength(pWgt->size.width - frame_size);
         }
 
         if (focused && is_hl_item) pushAttr(FontAttrib::Inverse);
@@ -677,6 +683,7 @@ static void drawListBox(const Widget *pWgt)
 
 static void drawDropDownList(const Widget *pWgt)
 {
+    // TODO:
 }
 
 static void drawCustomWgt(const Widget *pWgt)

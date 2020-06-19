@@ -157,7 +157,7 @@ const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
 void setCursorAt(const Widget *pWgt)
 {
     if (!pWgt)
-     return;
+        return;
 
     Coord coord = getScreenCoord(pWgt);
 
@@ -185,13 +185,14 @@ void setCursorAt(const Widget *pWgt)
     case Widget::ListBox:
         {
             int idx = 0, cnt = 0;
+            const uint8_t frame_size = !pWgt->listbox.noFrame;
             g.pWndState->getListBoxState(pWgt, idx, cnt);
 
-            int page_size = pWgt->size.height-2;
+            int page_size = pWgt->size.height - (frame_size * 2);
             int row = g.listboxHighlightIdx % page_size;
 
-            coord.col += 1;
-            coord.row += 1 + row;
+            coord.col += frame_size;
+            coord.row += frame_size + row;
         }
         break;
     case Widget::DropDownList:

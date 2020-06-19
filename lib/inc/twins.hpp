@@ -329,6 +329,7 @@ struct Widget
         {
             ColorFG     fgColor;
             ColorBG     bgColor;
+            bool        noFrame;
         } listbox;
 
         struct

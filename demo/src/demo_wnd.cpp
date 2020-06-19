@@ -332,8 +332,9 @@ static constexpr twins::Widget page2Childs[] =
         coord   : { 2, 2 },
         size    : { 20, 8 },
         { listbox : {
-            fgColor :   twins::ColorFG::Green,
-            bgColor :   twins::ColorBG::White,
+            fgColor : twins::ColorFG::Green,
+            bgColor : twins::ColorBG::White,
+            noFrame : false
         }}
     },
     {
