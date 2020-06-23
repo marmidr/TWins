@@ -13,7 +13,7 @@
 namespace twins::util
 {
 
-inline const char* strnchr(const char *str, int strSz, char c)
+const char* strnchr(const char *str, int strSz, char c)
 {
     while (strSz-- > 0)
     {

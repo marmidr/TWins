@@ -493,9 +493,9 @@ static constexpr twins::Widget page4Childs[] =
         coord   : { 5, 1 },
         size    : { 20, 10 },
         { panel : {
-            title   :   "Word-wrap",
-            fgColor :   {},
-            bgColor :   {},
+            title   : "Word-wrap",
+            fgColor : {},
+            bgColor : {},
         }},
         link    : { (const twins::Widget[])
         {
@@ -519,9 +519,9 @@ static constexpr twins::Widget page4Childs[] =
         coord   : { 40, 1 },
         size    : { 12, 10 },
         { panel : {
-            title   :   "...",
-            fgColor :   {},
-            bgColor :   {},
+            title   : "...",
+            fgColor : {},
+            bgColor : {},
         }},
         link    : { (const twins::Widget[])
         {
@@ -536,6 +536,21 @@ static constexpr twins::Widget page4Childs[] =
             },
             { /* NUL */ }
         }}
+    },
+    { /* NUL */ }
+};
+
+static constexpr twins::Widget page5Childs[] =
+{
+    {
+        type    : twins::Widget::TextBox,
+        id      : ID_TBX_LOREMIPSUM,
+        coord   : { 5, 1 },
+        size    : { 40, 10 },
+        { textbox : {
+            fgColor : twins::ColorFG::White,
+            bgColor : {},
+        }},
     },
     { /* NUL */ }
 };
@@ -614,6 +629,17 @@ static constexpr twins::Widget wndMain =
                         fgColor     : twins::ColorFG::White,
                     }},
                     link    : { page4Childs }
+                },
+                {
+                    type    : twins::Widget::Page,
+                    id      : ID_PAGE_5,
+                    coord   : {},
+                    size    : {},
+                    { page : {
+                        title       : "Text Box",
+                        fgColor     : twins::ColorFG::White,
+                    }},
+                    link    : { page5Childs }
                 },
                 { /* NUL */ }
             }}

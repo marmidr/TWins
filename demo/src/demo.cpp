@@ -38,6 +38,15 @@ public:
             // wid = twins::WIDGET_ID_NONE;
             wid = ID_WND;
 
+        txtBoxText = ESC_BOLD
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam arcu magna, placerat sit amet libero at, aliquam fermentum augue.\n"
+                    ESC_NORMAL
+                    ESC_FG_Gold
+                    "Morbi egestas consectetur malesuada. Mauris vehicula, libero eget tempus ullamcorper, nisi lorem efficitur velit, vel bibendum augue eros vel lorem. Duis vestibulum magna a ornare bibendum. Curabitur eleifend dictum odio, eu ultricies nunc eleifend et.\n"
+                    "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.\n"
+                    ESC_FG_GreenYellow
+                    "Interdum et malesuada fames ac ante ipsum primis in faucibus. Aenean malesuada lacus leo, a eleifend lorem suscipit sed.\n" "▄";
+
         initialized = true;
     }
 
@@ -173,6 +182,7 @@ public:
         if (pWgt->id == ID_PAGE_2) return pgcPage == 1;
         if (pWgt->id == ID_PAGE_3) return pgcPage == 2;
         if (pWgt->id == ID_PAGE_4) return pgcPage == 3;
+        if (pWgt->id == ID_PAGE_5) return pgcPage == 4;
 
         return true;
     }
@@ -273,6 +283,19 @@ public:
         return radioId;
     }
 
+    void getTextBoxContent(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines) override
+    {
+        if (txtBoxLines.size() == 0)
+        {
+            auto wrapped = twins::util::wordWrap(txtBoxText.cstr(), pWgt->size.width-2, " \n");
+            txtBoxText = std::move(wrapped);
+            // txtBoxLines only keeps pointers to txtBoxText
+            txtBoxLines = twins::util::splitLines(txtBoxText.cstr());
+        }
+
+        *ppLines = &txtBoxLines;
+    }
+
     // --- requests ---
 
     void invalidate(twins::WID id, bool instantly) override
@@ -323,7 +346,9 @@ private:
     int  radioId = 0;
     twins::String edt1Text;
     twins::String edt2Text;
+    twins::String txtBoxText;
     twins::Map<twins::WID, WgtProp> wgtProp;
+    twins::Vector<twins::StringRange> txtBoxLines;
 
     // focused WID separate for each page
     using wids_t = twins::Vector<twins::WID>;

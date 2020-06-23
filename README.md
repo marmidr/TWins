@@ -53,7 +53,7 @@ Implementation is based on examples:
     - [x] custom widget base
     - [ ] scrollbar
     - [ ] horizontal page control
-    - [ ] scrollable text box
+    - [x] scrollable text box
     - [x] popup windows
 - navigation
     - [x] widgets navigation by Tab/Esc key

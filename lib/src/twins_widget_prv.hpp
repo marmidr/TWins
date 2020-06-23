@@ -45,7 +45,8 @@ struct Glob
     const Widget *pFocusedWgt = {}; //
     const Widget *pMouseDownWgt = {}; //
     EditState editState;            // state of Edit being modified
-    int listboxHighlightIdx;        // focused Listbox index of highlighted row
+    int listboxHighlightIdx = {};   // focused ListBox index of highlighted row
+    int textboxTopLine = {};        // focused TextBox first line displayed out of provided
 };
 
 extern Glob g;

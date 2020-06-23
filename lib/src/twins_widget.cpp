@@ -5,6 +5,7 @@
  *****************************************************************************/
 
 #include "twins_widget_prv.hpp"
+#include "twins_utils.hpp"
 
 #include <string.h>
 #include <assert.h>
@@ -197,6 +198,8 @@ void setCursorAt(const Widget *pWgt)
         break;
     case Widget::DropDownList:
         break;
+    case Widget::TextBox:
+        break;
     default:
         break;
     }
@@ -287,6 +290,7 @@ static bool isFocusable(const Widget *pWgt)
     //case Widget::PageCtrl:
     case Widget::ListBox:
     case Widget::DropDownList:
+    case Widget::TextBox:
         return g.pWndState->isEnabled(pWgt);
     default:
         return false;
@@ -482,6 +486,11 @@ static bool changeFocusTo(WID newID)
                 {
                     g.listboxHighlightIdx = idx;
                 }
+            }
+
+            if (wss.pWidget->type == Widget::TextBox)
+            {
+                g.textboxTopLine = 0;
             }
         }
 
@@ -774,6 +783,51 @@ static bool processKey_DropDownList(const Widget *pWgt, const KeyCode &kc)
     return false;
 }
 
+static bool processKey_TextBox(const Widget *pWgt, const KeyCode &kc)
+{
+    int delta = 0;
+
+    switch (kc.key)
+    {
+    case Key::Up:
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? -1 : 0;
+        break;
+    case Key::Down:
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? 1 : 0;
+        break;
+    case Key::PgUp:
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? -(pWgt->size.height-2) : 0;
+        break;
+    case Key::PgDown:
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? pWgt->size.height-2 : 0;
+        break;
+    default:
+        break;
+    }
+
+    if (delta != 0)
+    {
+        const twins::Vector<twins::StringRange> *p_lines = nullptr;
+        g.pWndState->getTextBoxContent(pWgt, &p_lines);
+
+        if (p_lines)
+        {
+            g.textboxTopLine += delta;
+
+            if (g.textboxTopLine < 0)
+                g.textboxTopLine = 0;
+
+            if (g.textboxTopLine > (int)p_lines->size() - pWgt->size.height + 2)
+                g.textboxTopLine = p_lines->size() - pWgt->size.height + 2;
+
+            g.pWndState->invalidate(pWgt->id);
+        }
+        return true;
+    }
+
+    return false;
+}
+
 static bool processKey(const KeyCode &kc)
 {
     auto focused_id = g.pWndState->getFocusedID();
@@ -805,6 +859,9 @@ static bool processKey(const KeyCode &kc)
         break;
     case Widget::DropDownList:
         key_handled = processKey_DropDownList(p_wgt, kc);
+        break;
+    case Widget::TextBox:
+        key_handled = processKey_TextBox(p_wgt, kc);
         break;
     default:
         break;
@@ -950,6 +1007,33 @@ static void processMouse_CustomWgt(const Widget *pWgt, const Rect &wgtRect, cons
     g.pWndState->onCustomWidgetInputEvt(pWgt, kc);
 }
 
+static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+{
+    if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
+    {
+        const twins::Vector<twins::StringRange> *p_lines = nullptr;
+        g.pWndState->getTextBoxContent(pWgt, &p_lines);
+
+        if (p_lines)
+        {
+            int delta = kc.mouse.btn == MouseBtn::WheelUp ? -1 : 1;
+            if (kc.m_ctrl) delta *= pWgt->size.height-2;
+
+            g.textboxTopLine += delta;
+
+            if (g.textboxTopLine < 0)
+                g.textboxTopLine = 0;
+
+            if (g.textboxTopLine > (int)p_lines->size() - pWgt->size.height + 2)
+                g.textboxTopLine = p_lines->size() - pWgt->size.height + 2;
+
+            changeFocusTo(pWgt->id);
+            g.pWndState->invalidate(pWgt->id);
+        }
+    }
+}
+
+
 static bool processMouse(const KeyCode &kc)
 {
     if (kc.mouse.btn == MouseBtn::ButtonGoBack || kc.mouse.btn == MouseBtn::ButtonGoForward)
@@ -1012,6 +1096,9 @@ static bool processMouse(const KeyCode &kc)
     case Widget::CustomWgt:
         processMouse_CustomWgt(p_wgt, rct, kc);
         break;
+    case Widget::TextBox:
+        processMouse_TextBox(p_wgt, rct, kc);
+        break;
     default:
         moveToHome();
         g.pMouseDownWgt = nullptr;
@@ -1049,6 +1136,7 @@ const char * toString(Widget::Type type)
     CASE_WGT_STR(ListBox)
     CASE_WGT_STR(DropDownList)
     CASE_WGT_STR(CustomWgt)
+    CASE_WGT_STR(TextBox)
     default: return "?";
     }
 }

@@ -5,6 +5,8 @@
  *****************************************************************************/
 
 #include "twins_widget_prv.hpp"
+#include "twins_utils.hpp"
+
 #include <assert.h>
 
 // -----------------------------------------------------------------------------
@@ -689,6 +691,69 @@ static void drawCustomWgt(const Widget *pWgt)
     g.pWndState->onCustomWidgetDraw(pWgt);
 }
 
+static void drawTextBox(const Widget *pWgt)
+{
+    FontMemento _m;
+    const auto my_coord = g.parentCoord + pWgt->coord;
+
+    drawArea(my_coord, pWgt->size,
+        pWgt->textbox.bgColor, pWgt->textbox.fgColor,
+        FrameStyle::Single);
+
+    if (pWgt->size.height < 3)
+        return;
+
+    const uint8_t lines_visible = pWgt->size.height - 2;
+    const twins::Vector<twins::StringRange> *p_lines = nullptr;
+
+    g.pWndState->getTextBoxContent(pWgt, &p_lines);
+    if (!p_lines)
+        return;
+
+    assert(g.textboxTopLine >= 0);
+    assert(g.textboxTopLine <= p_lines->size());
+
+    // if (g.textboxTopLine >= p_lines->size())
+    //     g.textboxTopLine = p_lines->size();
+
+    drawListScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), 1},
+        lines_visible, p_lines->size() - lines_visible, g.textboxTopLine);
+
+    flushBuffer();
+
+    // scan invisible lines for ESC sequences: colors, font attributes
+    g.str.clear();
+    for (int i = 0; i < g.textboxTopLine; i++)
+    {
+        auto sr = (*p_lines)[i];
+        while (const char *esc = twins::util::strnchr(sr.data, sr.size, '\e'))
+        {
+            auto esclen = String::escLen(esc, sr.data + sr.size);
+            g.str.appendLen(esc, esclen);
+
+            sr.size -= esc - sr.data + 1;
+            sr.data = esc + 1;
+        }
+    }
+    writeStr(g.str.cstr());
+
+    // draw lines
+    for (int i = 0; i < lines_visible; i++)
+    {
+        if (g.textboxTopLine + i >= (int)p_lines->size())
+            break;
+
+        const auto &sr = (*p_lines)[g.textboxTopLine + i];
+        g.str.clear();
+        g.str.appendLen(sr.data, sr.size);
+        g.str.setLength(pWgt->size.width - 2, true, true);
+        moveTo(my_coord.col + 1, my_coord.row + i + 1);
+        writeStr(g.str.cstr());
+    }
+
+    flushBuffer();
+}
+
 // -----------------------------------------------------------------------------
 
 static void drawWidgetInternal(const Widget *pWgt)
@@ -712,6 +777,7 @@ static void drawWidgetInternal(const Widget *pWgt)
     case Widget::ListBox:       drawListBox(pWgt); break;;
     case Widget::DropDownList:  drawDropDownList(pWgt); break;
     case Widget::CustomWgt:     drawCustomWgt(pWgt); break;
+    case Widget::TextBox:       drawTextBox(pWgt); break;
     default:                    break;
     }
 
