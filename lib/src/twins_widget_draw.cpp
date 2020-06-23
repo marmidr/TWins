@@ -628,6 +628,7 @@ static void drawProgressBar(const Widget *pWgt)
 
 static void drawListBox(const Widget *pWgt)
 {
+    FontMemento _m;
     const auto my_coord = g.parentCoord + pWgt->coord;
     drawArea(my_coord, pWgt->size,
         pWgt->listbox.bgColor, pWgt->listbox.fgColor,
@@ -669,16 +670,13 @@ static void drawListBox(const Widget *pWgt)
         else
         {
             // empty string - to erase old content
-            g.str.setLength(pWgt->size.width - frame_size);
+            g.str.setLength(pWgt->size.width - (frame_size * 2));
         }
 
         if (focused && is_hl_item) pushAttr(FontAttrib::Inverse);
         writeStr(g.str.cstr());
         if (focused && is_hl_item) popAttr();
     }
-
-    popClFg();
-    popClBg();
 }
 
 static void drawDropDownList(const Widget *pWgt)

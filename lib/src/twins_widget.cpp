@@ -725,7 +725,10 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
     {
     case Key::Enter:
     {
-        if (g.listboxHighlightIdx >= 0)
+        int idx = 0, cnt = 0;
+        g.pWndState->getListBoxState(pWgt, idx, cnt);
+
+        if (g.listboxHighlightIdx >= 0 && g.listboxHighlightIdx != idx)
             g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
         g.pWndState->invalidate(pWgt->id);
         return true;
@@ -884,7 +887,7 @@ static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const
 
 static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
-    if (kc.mouse.btn == MouseBtn::ButtonLeft)
+    if (kc.mouse.btn == MouseBtn::ButtonLeft || kc.mouse.btn == MouseBtn::ButtonMid)
     {
         int idx = 0, cnt = 0;
         g.pWndState->getListBoxState(pWgt, idx, cnt);
@@ -893,18 +896,25 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
         int page = g.listboxHighlightIdx / page_size;
         unsigned new_hlidx = page * page_size;
         new_hlidx += (int)kc.mouse.row - wgtRect.coord.row - 1;
-
         changeFocusTo(pWgt->id);
-        if (new_hlidx < (unsigned)cnt && (signed)new_hlidx != g.listboxHighlightIdx)
+
+        if (kc.mouse.btn == MouseBtn::ButtonLeft)
         {
-            g.listboxHighlightIdx = new_hlidx;
-            g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
-            g.pWndState->invalidate(pWgt->id);
+            if (new_hlidx < (unsigned)cnt && (signed)new_hlidx != g.listboxHighlightIdx)
+            {
+                g.listboxHighlightIdx = new_hlidx;
+                g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
+            }
         }
-    }
-    else if (kc.mouse.btn == MouseBtn::ButtonMid)
-    {
-        g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
+        else
+        {
+            if (new_hlidx < (unsigned)cnt && new_hlidx != (unsigned)idx)
+            {
+                g.listboxHighlightIdx = new_hlidx;
+                g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
+            }
+        }
+
         g.pWndState->invalidate(pWgt->id);
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)

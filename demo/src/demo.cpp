@@ -318,7 +318,7 @@ private:
 
     int  pgbarPos = 0;
     int  pgcPage = 0;
-    int  listBoxItemIdx = 0;
+    int  listBoxItemIdx = -1;
     int  listBoxItemsCount = 20;
     int  radioId = 0;
     twins::String edt1Text;
