@@ -545,8 +545,18 @@ static constexpr twins::Widget page5Childs[] =
     {
         type    : twins::Widget::TextBox,
         id      : ID_TBX_LOREMIPSUM,
-        coord   : { 5, 1 },
+        coord   : { 3, 1 },
         size    : { 40, 10 },
+        { textbox : {
+            fgColor : twins::ColorFG::White,
+            bgColor : {},
+        }},
+    },
+    {
+        type    : twins::Widget::TextBox,
+        id      : ID_TBX_1LINE,
+        coord   : { 46, 1 },
+        size    : { 12, 10 },
         { textbox : {
             fgColor : twins::ColorFG::White,
             bgColor : {},

@@ -283,17 +283,23 @@ public:
         return radioId;
     }
 
-    void getTextBoxContent(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines) override
+    void getTextBoxLines(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, bool &changed) override
     {
-        if (txtBoxLines.size() == 0)
-        {
-            auto wrapped = twins::util::wordWrap(txtBoxText.cstr(), pWgt->size.width-2, " \n");
-            txtBoxText = std::move(wrapped);
-            // txtBoxLines only keeps pointers to txtBoxText
-            txtBoxLines = twins::util::splitLines(txtBoxText.cstr());
-        }
+        if (pWgt->id == ID_TBX_LOREMIPSUM)
+        {}
 
-        *ppLines = &txtBoxLines;
+        changed = txtBoxText.isDirty();
+        txtBoxText.config(pWgt->size.width-2, " \n");
+
+        // if (txtBoxLines.size() == 0)
+        // {
+        //     auto wrapped = twins::util::wordWrap(txtBoxText.cstr(), pWgt->size.width-2, " \n");
+        //     txtBoxText = std::move(wrapped);
+        //     // txtBoxLines only keeps pointers to txtBoxText
+        //     txtBoxLines = twins::util::splitLines(txtBoxText.cstr());
+        // }
+
+        *ppLines = &txtBoxText.getLines();
     }
 
     // --- requests ---
@@ -346,9 +352,8 @@ private:
     int  radioId = 0;
     twins::String edt1Text;
     twins::String edt2Text;
-    twins::String txtBoxText;
     twins::Map<twins::WID, WgtProp> wgtProp;
-    twins::Vector<twins::StringRange> txtBoxLines;
+    twins::util::WrappedString txtBoxText;
 
     // focused WID separate for each page
     using wids_t = twins::Vector<twins::WID>;

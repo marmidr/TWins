@@ -186,3 +186,43 @@ TEST(UTILS, splitLines)
         EXPECT_EQ(3, vec[3].size);
     }
 }
+
+TEST(UTILS, WrappedString_empty)
+{
+    twins::util::WrappedString ws;
+    EXPECT_FALSE(ws.isDirty());
+    EXPECT_EQ(0, ws.getLines().size());
+}
+
+TEST(UTILS, WrappedString_getlines)
+{
+    twins::util::WrappedString ws;
+    EXPECT_FALSE(ws.getSourceStr().size());
+
+    ws = "\e[1m" "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam arcu magna, placerat sit amet libero at, aliquam fermentum augue.\n" "\e[0m";
+    EXPECT_TRUE(ws.getSourceStr().size());
+    EXPECT_FALSE(ws.getWrappedStr().size());
+    EXPECT_TRUE(ws.isDirty());
+
+    ws.updateLines();
+    EXPECT_TRUE(ws.getWrappedStr().size());
+    EXPECT_FALSE(ws.isDirty());
+
+    ws.config(10);
+    EXPECT_TRUE(ws.isDirty());
+    EXPECT_EQ(16, ws.getLines().size());
+}
+
+TEST(UTILS, WrappedString_assign)
+{
+    twins::util::WrappedString ws;
+    twins::String s; s = "abc";
+    EXPECT_FALSE(ws.getSourceStr().size());
+    ws = s;
+    EXPECT_EQ(3, ws.getSourceStr().size());
+
+    ws.getSourceStr().clear();
+    EXPECT_EQ(0, ws.getSourceStr().size());
+    ws = std::move(s);
+    EXPECT_EQ(3, ws.getSourceStr().size());
+}

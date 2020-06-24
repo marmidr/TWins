@@ -184,18 +184,18 @@ void setCursorAt(const Widget *pWgt)
         coord.row += g.pWndState->getPageCtrlPageIndex(pWgt);
         break;
     case Widget::ListBox:
-        {
-            int idx = 0, cnt = 0;
-            const uint8_t frame_size = !pWgt->listbox.noFrame;
-            g.pWndState->getListBoxState(pWgt, idx, cnt);
+    {
+        int idx = 0, cnt = 0;
+        const uint8_t frame_size = !pWgt->listbox.noFrame;
+        g.pWndState->getListBoxState(pWgt, idx, cnt);
 
-            int page_size = pWgt->size.height - (frame_size * 2);
-            int row = g.listboxHighlightIdx % page_size;
+        int page_size = pWgt->size.height - (frame_size * 2);
+        int row = g.listboxHighlightIdx % page_size;
 
-            coord.col += frame_size;
-            coord.row += frame_size + row;
-        }
+        coord.col += frame_size;
+        coord.row += frame_size + row;
         break;
+    }
     case Widget::DropDownList:
         break;
     case Widget::TextBox:
@@ -808,7 +808,9 @@ static bool processKey_TextBox(const Widget *pWgt, const KeyCode &kc)
     if (delta != 0)
     {
         const twins::Vector<twins::StringRange> *p_lines = nullptr;
-        g.pWndState->getTextBoxContent(pWgt, &p_lines);
+        bool changed = false;
+        g.pWndState->getTextBoxLines(pWgt, &p_lines, changed);
+        if (changed) g.textboxTopLine = 0;
 
         if (p_lines)
         {
@@ -1009,10 +1011,14 @@ static void processMouse_CustomWgt(const Widget *pWgt, const Rect &wgtRect, cons
 
 static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
+    changeFocusTo(pWgt->id);
+
     if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
     {
         const twins::Vector<twins::StringRange> *p_lines = nullptr;
-        g.pWndState->getTextBoxContent(pWgt, &p_lines);
+        bool changed = false;
+        g.pWndState->getTextBoxLines(pWgt, &p_lines, changed);
+        if (changed) g.textboxTopLine = 0;
 
         if (p_lines)
         {

@@ -59,6 +59,7 @@ enum WndMainIDs
                     ID_LBL_EMPTY_2,
             ID_PAGE_5,
                 ID_TBX_LOREMIPSUM,
+                ID_TBX_1LINE,
         ID_LABEL_FTR,
 };
 

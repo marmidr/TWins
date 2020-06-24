@@ -705,13 +705,16 @@ static void drawTextBox(const Widget *pWgt)
 
     const uint8_t lines_visible = pWgt->size.height - 2;
     const twins::Vector<twins::StringRange> *p_lines = nullptr;
-
-    g.pWndState->getTextBoxContent(pWgt, &p_lines);
+    bool changed = false;
+    g.pWndState->getTextBoxLines(pWgt, &p_lines, changed);
     if (!p_lines)
         return;
 
     assert(g.textboxTopLine >= 0);
     assert(g.textboxTopLine <= p_lines->size());
+
+    if (changed)
+        g.textboxTopLine = 0;
 
     // if (g.textboxTopLine >= p_lines->size())
     //     g.textboxTopLine = p_lines->size();

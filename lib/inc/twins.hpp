@@ -215,7 +215,7 @@ public:
     virtual void getListBoxState(const twins::Widget*, int &itemIdx, int &itemsCount) { itemIdx = 0; itemsCount = 0; }
     virtual void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) {}
     virtual int  getRadioIndex(const twins::Widget*) { return -1; }
-    virtual void getTextBoxContent(const twins::Widget*, const twins::Vector<twins::StringRange> **ppLines) {}
+    virtual void getTextBoxLines(const twins::Widget*, const twins::Vector<twins::StringRange> **ppLines, bool &changed) {}
     // requests
     virtual void invalidate(twins::WID id, bool instantly = false) {}
 };
