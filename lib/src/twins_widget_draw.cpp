@@ -251,7 +251,7 @@ static void drawListScrollBarV(const Coord coord, int height, int max, int pos)
 {
     if (pos > max)
     {
-        TWINS_LOG("pos %d > max %d", pos, max);
+        // TWINS_LOG("pos (%d) > max (%d)", pos, max);
         return;
     }
 
@@ -639,34 +639,33 @@ static void drawListBox(const Widget *pWgt)
     if (pWgt->size.height < 3)
         return;
 
-    int item_idx = 0;
-    int items_cnt = 0;
+    int16_t idx = 0, selidx = 0, cnt = 0;
     const uint8_t frame_size = !pWgt->listbox.noFrame;
-    g.pWndState->getListBoxState(pWgt, item_idx, items_cnt);
+    g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
 
-    const uint8_t items_visible = pWgt->size.height - (frame_size * 2);
-    const uint8_t topitem = (g.listboxHighlightIdx / items_visible) * items_visible;
+    const uint16_t items_visible = pWgt->size.height - (frame_size * 2);
+    const uint16_t top_item = (selidx / items_visible) * items_visible;
     const bool focused = g.pWndState->isFocused(pWgt);
 
-    if (items_cnt > items_visible)
+    if (cnt > items_visible)
     {
         drawListScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), frame_size},
-            items_visible, items_cnt-1, g.listboxHighlightIdx);
+            items_visible, cnt-1, selidx);
     }
     flushBuffer();
 
     for (int i = 0; i < items_visible; i++)
     {
-        bool is_current_item = topitem + i == item_idx;
-        bool is_hl_item = topitem + i == g.listboxHighlightIdx;
+        bool is_current_item = top_item + i == idx;
+        bool is_sel_item = top_item + i == selidx;
         moveTo(my_coord.col + frame_size, my_coord.row + i + frame_size);
 
         g.str.clear();
 
-        if (topitem + i < items_cnt)
+        if (top_item + i < cnt)
         {
             g.str.append(is_current_item ? "►" : " ");
-            g.pWndState->getListBoxItem(pWgt, topitem + i, g.str);
+            g.pWndState->getListBoxItem(pWgt, top_item + i, g.str);
             g.str.setLength(pWgt->size.width - 1 - frame_size, true, true);
         }
         else
@@ -675,9 +674,9 @@ static void drawListBox(const Widget *pWgt)
             g.str.setLength(pWgt->size.width - (frame_size * 2));
         }
 
-        if (focused && is_hl_item) pushAttr(FontAttrib::Inverse);
+        if (focused && is_sel_item) pushAttr(FontAttrib::Inverse);
         writeStr(g.str.cstr());
-        if (focused && is_hl_item) popAttr();
+        if (focused && is_sel_item) popAttr();
     }
 }
 

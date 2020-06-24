@@ -191,8 +191,8 @@ public:
     virtual void onEditChange(const twins::Widget* pWgt, twins::String &&str) {}
     virtual void onCheckboxToggle(const twins::Widget* pWgt) {}
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
-    virtual void onListBoxSelect(const twins::Widget* pWgt, uint16_t highlightIdx) {}
-    virtual void onListBoxChange(const twins::Widget* pWgt, uint16_t newIdx) {}
+    virtual void onListBoxSelect(const twins::Widget* pWgt, int16_t selIdx) {}
+    virtual void onListBoxChange(const twins::Widget* pWgt, int16_t newIdx) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
     virtual void onCustomWidgetDraw(const twins::Widget* pWgt) {}
     virtual void onCustomWidgetInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
@@ -212,7 +212,7 @@ public:
     virtual void getLedText(const twins::Widget*, twins::String &out) {}
     virtual void getProgressBarState(const twins::Widget*, int &pos, int &max) {}
     virtual int  getPageCtrlPageIndex(const twins::Widget*) { return 0; }
-    virtual void getListBoxState(const twins::Widget*, int &itemIdx, int &itemsCount) { itemIdx = 0; itemsCount = 0; }
+    virtual void getListBoxState(const twins::Widget*, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount) { itemIdx = 0; selIdx = 0; itemsCount = 0; }
     virtual void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) {}
     virtual int  getRadioIndex(const twins::Widget*) { return -1; }
     virtual void getTextBoxLines(const twins::Widget*, const twins::Vector<twins::StringRange> **ppLines, bool &changed) {}

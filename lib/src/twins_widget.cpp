@@ -185,12 +185,12 @@ void setCursorAt(const Widget *pWgt)
         break;
     case Widget::ListBox:
     {
-        int idx = 0, cnt = 0;
+        int16_t idx = 0, selidx = 0, cnt = 0;
         const uint8_t frame_size = !pWgt->listbox.noFrame;
-        g.pWndState->getListBoxState(pWgt, idx, cnt);
+        g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
 
         int page_size = pWgt->size.height - (frame_size * 2);
-        int row = g.listboxHighlightIdx % page_size;
+        int row = selidx % page_size;
 
         coord.col += frame_size;
         coord.row += frame_size + row;
@@ -468,23 +468,18 @@ static bool changeFocusTo(WID newID)
     {
         auto prev_id = curr_id;
         curr_id = newID;
-
         WidgetSearchStruct wss { searchedID : newID };
+
         if (getWidgetWSS(wss))
         {
             if (wss.pWidget->type == Widget::ListBox)
             {
-                int idx = 0, cnt = 0;
-                g.pWndState->getListBoxState(wss.pWidget, idx, cnt);
+                int16_t idx = 0, selidx = 0, cnt = 0;
+                g.pWndState->getListBoxState(wss.pWidget, idx, selidx, cnt);
+
                 if (idx < 0 && cnt > 0)
                 {
-                    idx = 0;
-                    g.listboxHighlightIdx = idx;
-                    g.pWndState->onListBoxSelect(wss.pWidget, g.listboxHighlightIdx);
-                }
-                else
-                {
-                    g.listboxHighlightIdx = idx;
+                    g.pWndState->onListBoxSelect(wss.pWidget, selidx);
                 }
             }
 
@@ -729,16 +724,17 @@ static bool processKey_PageCtrl(const Widget *pWgt, const KeyCode &kc)
 static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
 {
     int delta = 0;
+    const uint16_t items_visible = pWgt->size.height-2;
 
     switch (kc.key)
     {
     case Key::Enter:
     {
-        int idx = 0, cnt = 0;
-        g.pWndState->getListBoxState(pWgt, idx, cnt);
+        int16_t idx = 0, selidx = 0, cnt = 0;
+        g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
 
-        if (g.listboxHighlightIdx >= 0 && g.listboxHighlightIdx != idx)
-            g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
+        if (selidx >= 0 && selidx != idx)
+            g.pWndState->onListBoxChange(pWgt, selidx);
         g.pWndState->invalidate(pWgt->id);
         return true;
     }
@@ -749,10 +745,10 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
         delta = kc.mod_all == KEY_MOD_SPECIAL ? 1 : 0;
         break;
     case Key::PgUp:
-        delta = kc.mod_all == KEY_MOD_SPECIAL ? -(pWgt->size.height-2) : 0;
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? -items_visible : 0;
         break;
     case Key::PgDown:
-        delta = kc.mod_all == KEY_MOD_SPECIAL ? pWgt->size.height-2 : 0;
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? items_visible : 0;
         break;
     default:
         break;
@@ -760,17 +756,17 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
 
     if (delta != 0)
     {
-        int idx = 0, cnt = 0;
-        g.pWndState->getListBoxState(pWgt, idx, cnt);
-        g.listboxHighlightIdx += delta;
+        int16_t idx = 0, selidx = 0, cnt = 0;
+        g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
+        selidx += delta;
 
-        if (g.listboxHighlightIdx < 0)
-            g.listboxHighlightIdx = cnt - 1;
+        if (selidx < 0)
+            selidx = cnt - 1;
 
-        if (g.listboxHighlightIdx >= cnt)
-            g.listboxHighlightIdx = 0;
+        if (selidx >= cnt)
+            selidx = 0;
 
-        g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
+        g.pWndState->onListBoxSelect(pWgt, selidx);
         g.pWndState->invalidate(pWgt->id);
         return true;
     }
@@ -786,6 +782,7 @@ static bool processKey_DropDownList(const Widget *pWgt, const KeyCode &kc)
 static bool processKey_TextBox(const Widget *pWgt, const KeyCode &kc)
 {
     int delta = 0;
+    const uint16_t lines_visible = pWgt->size.height - 2;
 
     switch (kc.key)
     {
@@ -796,10 +793,10 @@ static bool processKey_TextBox(const Widget *pWgt, const KeyCode &kc)
         delta = kc.mod_all == KEY_MOD_SPECIAL ? 1 : 0;
         break;
     case Key::PgUp:
-        delta = kc.mod_all == KEY_MOD_SPECIAL ? -(pWgt->size.height-2) : 0;
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? -lines_visible : 0;
         break;
     case Key::PgDown:
-        delta = kc.mod_all == KEY_MOD_SPECIAL ? pWgt->size.height-2 : 0;
+        delta = kc.mod_all == KEY_MOD_SPECIAL ? lines_visible : 0;
         break;
     default:
         break;
@@ -816,11 +813,11 @@ static bool processKey_TextBox(const Widget *pWgt, const KeyCode &kc)
         {
             g.textboxTopLine += delta;
 
+            if (g.textboxTopLine > (int)p_lines->size() - lines_visible)
+                g.textboxTopLine = p_lines->size() - lines_visible;
+
             if (g.textboxTopLine < 0)
                 g.textboxTopLine = 0;
-
-            if (g.textboxTopLine > (int)p_lines->size() - pWgt->size.height + 2)
-                g.textboxTopLine = p_lines->size() - pWgt->size.height + 2;
 
             g.pWndState->invalidate(pWgt->id);
         }
@@ -946,31 +943,32 @@ static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const
 
 static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
+    const uint16_t items_visible = pWgt->size.height-2;
+
     if (kc.mouse.btn == MouseBtn::ButtonLeft || kc.mouse.btn == MouseBtn::ButtonMid)
     {
-        int idx = 0, cnt = 0;
-        g.pWndState->getListBoxState(pWgt, idx, cnt);
+        int16_t idx = 0, selidx = 0, cnt = 0;
+        g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
 
-        int page_size = pWgt->size.height-2;
-        int page = g.listboxHighlightIdx / page_size;
-        unsigned new_hlidx = page * page_size;
-        new_hlidx += (int)kc.mouse.row - wgtRect.coord.row - 1;
+        int page = selidx / items_visible;
+        unsigned new_selidx = page * items_visible;
+        new_selidx += (int)kc.mouse.row - wgtRect.coord.row - 1;
         changeFocusTo(pWgt->id);
 
         if (kc.mouse.btn == MouseBtn::ButtonLeft)
         {
-            if (new_hlidx < (unsigned)cnt && (signed)new_hlidx != g.listboxHighlightIdx)
+            if (new_selidx < (unsigned)cnt && (signed)new_selidx != selidx)
             {
-                g.listboxHighlightIdx = new_hlidx;
-                g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
+                selidx = new_selidx;
+                g.pWndState->onListBoxSelect(pWgt, selidx);
             }
         }
         else
         {
-            if (new_hlidx < (unsigned)cnt && new_hlidx != (unsigned)idx)
+            if (new_selidx < (unsigned)cnt && new_selidx != (unsigned)idx)
             {
-                g.listboxHighlightIdx = new_hlidx;
-                g.pWndState->onListBoxChange(pWgt, g.listboxHighlightIdx);
+                selidx = new_selidx;
+                g.pWndState->onListBoxChange(pWgt, selidx);
             }
         }
 
@@ -978,20 +976,20 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
     {
-        int idx = 0, cnt = 0;
-        g.pWndState->getListBoxState(pWgt, idx, cnt);
+        int16_t idx = 0, selidx = 0, cnt = 0;
+        g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
         int delta = kc.mouse.btn == MouseBtn::WheelUp ? -1 : 1;
-        if (kc.m_ctrl) delta *= pWgt->size.height-2;
-        g.listboxHighlightIdx += delta;
+        if (kc.m_ctrl) delta *= items_visible;
+        selidx += delta;
 
-        if (g.listboxHighlightIdx < 0)
-            g.listboxHighlightIdx = cnt - 1;
+        if (selidx < 0)
+            selidx = cnt - 1;
 
-        if (g.listboxHighlightIdx >= cnt)
-            g.listboxHighlightIdx = 0;
+        if (selidx >= cnt)
+            selidx = 0;
 
         changeFocusTo(pWgt->id);
-        g.pWndState->onListBoxSelect(pWgt, g.listboxHighlightIdx);
+        g.pWndState->onListBoxSelect(pWgt, selidx);
         g.pWndState->invalidate(pWgt->id);
     }
 }
@@ -1023,15 +1021,16 @@ static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const 
         if (p_lines)
         {
             int delta = kc.mouse.btn == MouseBtn::WheelUp ? -1 : 1;
-            if (kc.m_ctrl) delta *= pWgt->size.height-2;
+            const uint16_t lines_visible = pWgt->size.height - 2;
+            if (kc.m_ctrl) delta *= lines_visible;
 
             g.textboxTopLine += delta;
 
+            if (g.textboxTopLine > (int)p_lines->size() - lines_visible)
+                g.textboxTopLine = p_lines->size() - lines_visible;
+
             if (g.textboxTopLine < 0)
                 g.textboxTopLine = 0;
-
-            if (g.textboxTopLine > (int)p_lines->size() - pWgt->size.height + 2)
-                g.textboxTopLine = p_lines->size() - pWgt->size.height + 2;
 
             changeFocusTo(pWgt->id);
             g.pWndState->invalidate(pWgt->id);

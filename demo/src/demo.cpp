@@ -38,7 +38,7 @@ public:
             // wid = twins::WIDGET_ID_NONE;
             wid = ID_WND;
 
-        txtBoxText = ESC_BOLD
+        txtBox1Text = ESC_BOLD
                     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam arcu magna, placerat sit amet libero at, aliquam fermentum augue.\n"
                     ESC_NORMAL
                     ESC_FG_Gold
@@ -46,7 +46,7 @@ public:
                     "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.\n"
                     ESC_FG_GreenYellow
                     "Interdum et malesuada fames ac ante ipsum primis in faucibus. Aenean malesuada lacus leo, a eleifend lorem suscipit sed.\n" "▄";
-
+        txtBox2Text = "Lorem ipsum ▄";
         initialized = true;
     }
 
@@ -109,16 +109,17 @@ public:
         if (pWgt->id == ID_PGCONTROL) pgcPage = newPageIdx;
     }
 
-    void onListBoxSelect(const twins::Widget* pWgt, uint16_t highlightIdx) override
+    void onListBoxSelect(const twins::Widget* pWgt, int16_t selIdx) override
     {
-        TWINS_LOG("LISTBOX_SELECT(%u)", highlightIdx);
+        wgtProp[pWgt->id].lbx.selIdx = selIdx;
+        TWINS_LOG("LISTBOX_SELECT(%u)", selIdx);
     }
 
-    void onListBoxChange(const twins::Widget* pWgt, uint16_t newIdx) override
+    void onListBoxChange(const twins::Widget* pWgt, int16_t newIdx) override
     {
         if (pWgt->id == ID_LISTBOX)
         {
-            listBoxItemIdx = newIdx;
+            wgtProp[pWgt->id].lbx.itemIdx = newIdx;
             TWINS_LOG("LISTBOX_CHANGE(%u)", newIdx);
         }
     }
@@ -264,9 +265,10 @@ public:
         return pgcPage;
     }
 
-    void getListBoxState(const twins::Widget*, int &itemIdx, int &itemsCount) override
+    void getListBoxState(const twins::Widget* pWgt, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount) override
     {
-        itemIdx = listBoxItemIdx;
+        itemIdx = wgtProp[pWgt->id].lbx.itemIdx;
+        selIdx = wgtProp[pWgt->id].lbx.selIdx;
         itemsCount = listBoxItemsCount;
     }
 
@@ -286,20 +288,17 @@ public:
     void getTextBoxLines(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, bool &changed) override
     {
         if (pWgt->id == ID_TBX_LOREMIPSUM)
-        {}
-
-        changed = txtBoxText.isDirty();
-        txtBoxText.config(pWgt->size.width-2, " \n");
-
-        // if (txtBoxLines.size() == 0)
-        // {
-        //     auto wrapped = twins::util::wordWrap(txtBoxText.cstr(), pWgt->size.width-2, " \n");
-        //     txtBoxText = std::move(wrapped);
-        //     // txtBoxLines only keeps pointers to txtBoxText
-        //     txtBoxLines = twins::util::splitLines(txtBoxText.cstr());
-        // }
-
-        *ppLines = &txtBoxText.getLines();
+        {
+            changed = txtBox1Text.isDirty();
+            txtBox1Text.config(pWgt->size.width-2, " \n");
+            *ppLines = &txtBox1Text.getLines();
+        }
+        else
+        {
+            changed = txtBox2Text.isDirty();
+            txtBox2Text.config(pWgt->size.width-2, " \n");
+            *ppLines = &txtBox2Text.getLines();
+        }
     }
 
     // --- requests ---
@@ -343,17 +342,23 @@ private:
         {
             bool enabled;
         } pnl;
+
+        struct
+        {
+            int16_t itemIdx;
+            int16_t selIdx;
+        } lbx;
     };
 
     int  pgbarPos = 0;
     int  pgcPage = 0;
-    int  listBoxItemIdx = -1;
-    int  listBoxItemsCount = 20;
     int  radioId = 0;
+    int16_t listBoxItemsCount = 20;
     twins::String edt1Text;
     twins::String edt2Text;
     twins::Map<twins::WID, WgtProp> wgtProp;
-    twins::util::WrappedString txtBoxText;
+    twins::util::WrappedString txtBox1Text;
+    twins::util::WrappedString txtBox2Text;
 
     // focused WID separate for each page
     using wids_t = twins::Vector<twins::WID>;
