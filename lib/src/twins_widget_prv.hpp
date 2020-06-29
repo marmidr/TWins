@@ -31,7 +31,7 @@ struct Rect
 struct EditState
 {
     const Widget *pWgt = nullptr;
-    uint8_t cursorCol;
+    int16_t cursorPos = 0;
     String  str;
 };
 

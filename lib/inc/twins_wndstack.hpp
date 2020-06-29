@@ -52,7 +52,11 @@ struct WndStack
     void redraw()
     {
         for (auto p_wnd : m_windows)
+        {
             twins::drawWidget(p_wnd);
+            // signal that invalidate list must be cleared
+            p_wnd->window.getState()->invalidate(WIDGET_ID_NONE);
+        }
         twins::flushBuffer();
     }
 

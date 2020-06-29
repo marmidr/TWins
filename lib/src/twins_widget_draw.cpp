@@ -386,13 +386,46 @@ static void drawLabel(const Widget *pWgt)
 static void drawEdit(const Widget *pWgt)
 {
     g.str.clear();
+    int16_t display_pos = 0;
+    const int16_t max_w = pWgt->size.width-3;
 
     if (g.editState.pWgt)
+    {
+        // in edit mode; similar calculation in setCursorAt()
         g.str = g.editState.str;
-    else
-        g.pWndState->getEditText(pWgt, g.str);
+        auto cursor_pos = g.editState.cursorPos;
+        auto delta = (max_w/2);
 
-    g.str.setLength(pWgt->size.width-3, true);
+        while (cursor_pos >= max_w-1)
+        {
+            cursor_pos -= delta;
+            display_pos += delta;
+        }
+    }
+    else
+    {
+        g.pWndState->getEditText(pWgt, g.str);
+    }
+
+    const int txt_len = g.str.u8len();
+
+    if (display_pos > 0)
+    {
+        auto *str_beg = String::u8skipIgnoreEsc(g.str.cstr(), display_pos + 1);
+        String s("◁");
+        s << str_beg;
+        g.str = std::move(s);
+    }
+
+    if (display_pos + max_w <= txt_len)
+    {
+        g.str.setLength(pWgt->size.width-3-1);
+        g.str.append("▷");
+    }
+    else
+    {
+        g.str.setLength(pWgt->size.width-3);
+    }
     g.str.append("[^]");
 
     bool focused = g.pWndState->isFocused(pWgt);

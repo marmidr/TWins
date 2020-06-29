@@ -47,6 +47,8 @@ public:
                     ESC_FG_GreenYellow
                     "Interdum et malesuada fames ac ante ipsum primis in faucibus. Aenean malesuada lacus leo, a eleifend lorem suscipit sed.\n" "▄";
         txtBox2Text = "Lorem ipsum ▄";
+        edt1Text = "00 11 22 33 44 55 66 77 88 99 aa bb cc dd";
+        edt2Text = "0000";
         initialized = true;
     }
 
@@ -90,6 +92,22 @@ public:
         default: break;
         }
         TWINS_LOG("value:%s", str.cstr());
+    }
+
+    bool onEditInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos) override
+    {
+        if (pWgt->id == ID_EDT_2)
+        {
+            // TODO: num edit
+            if (!(kc.mod_all == 0 && kc.utf8[0] >= '0' && kc.utf8[0] <= '9'))
+            {
+                // reject non-numbers
+                twins::writeStr(ESC_BELL);
+                twins::flushBuffer();
+                return true;
+            }
+        }
+        return false;
     }
 
     void onCheckboxToggle(const twins::Widget* pWgt) override
@@ -142,10 +160,11 @@ public:
         twins::writeChar('-', sz.width);
     }
 
-    void onCustomWidgetInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
+    bool onCustomWidgetInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         twins::moveTo(kc.mouse.col, kc.mouse.row);
         twins::writeChar('0' + (int)kc.mouse.btn);
+        return true;
     }
 
     bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
@@ -305,8 +324,13 @@ public:
 
     void invalidate(twins::WID id, bool instantly) override
     {
-        // state or focus changed - widget must be repainted
+        if (id == twins::WIDGET_ID_NONE)
+        {
+            invalidatedWgts.clear();
+            return;
+        }
 
+        // state or focus changed - widget must be repainted
         if (instantly)
         {
             twins::drawWidget(pWndMainWidgets, id);

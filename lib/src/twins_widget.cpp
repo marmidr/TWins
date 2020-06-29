@@ -166,9 +166,21 @@ void setCursorAt(const Widget *pWgt)
     {
     case Widget::Edit:
         if (g.editState.pWgt == pWgt)
-            coord.col += g.editState.cursorCol;
+        {
+            const int16_t max_w = pWgt->size.width-3;
+            coord.col += g.editState.cursorPos;
+            auto cursor_pos = g.editState.cursorPos;
+            auto delta = (max_w/2);
+            while (cursor_pos >= max_w-1)
+            {
+                coord.col -= delta;
+                cursor_pos -= delta;
+            }
+        }
         else
+        {
             coord.col += pWgt->size.width-2;
+        }
         break;
     case Widget::CheckBox:
         coord.col += 1;
@@ -552,11 +564,15 @@ static void pgControlChangePage(const Widget *pWgt, bool next)
 
 static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
 {
+    if (g.pWndState->onEditInputEvt(pWgt, kc, g.editState.str, g.editState.cursorPos))
+        return true;
+
     bool key_handled = false;
 
-    // TODO: solve cursor beyound control for long strings
     if (g.editState.pWgt)
     {
+        auto cursor_pos = g.editState.cursorPos;
+
         if (kc.m_spec)
         {
             switch (kc.key)
@@ -569,8 +585,8 @@ static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
                 break;
             case Key::Tab:
                 // real TAB may have different widths and require extra processing
-                g.editState.str.insert(g.editState.cursorCol, "    ");
-                g.editState.cursorCol++;
+                g.editState.str.insert(cursor_pos, "    ");
+                cursor_pos += 4;
                 g.pWndState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
@@ -582,53 +598,59 @@ static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
                 key_handled = true;
                 break;
             case Key::Backspace:
-                if (g.editState.cursorCol > 0)
+                if (cursor_pos > 0)
                 {
                     if (kc.m_ctrl)
                     {
-                        g.editState.str.erase(0, g.editState.cursorCol);
-                        g.editState.cursorCol = 0;
+                        g.editState.str.erase(0, cursor_pos);
+                        cursor_pos = 0;
                     }
                     else
                     {
-                        g.editState.str.erase(g.editState.cursorCol-1);
-                        g.editState.cursorCol--;
+                        g.editState.str.erase(cursor_pos-1);
+                        cursor_pos--;
                     }
                     g.pWndState->invalidate(pWgt->id);
                 }
+                key_handled = true;
                 break;
             case Key::Delete:
                 if (kc.m_ctrl)
-                    g.editState.str.trim(g.editState.cursorCol);
+                    g.editState.str.trim(cursor_pos);
                 else
-                    g.editState.str.erase(g.editState.cursorCol);
+                    g.editState.str.erase(cursor_pos);
 
+                key_handled = true;
                 g.pWndState->invalidate(pWgt->id);
                 break;
             case Key::Up:
             case Key::Down:
                 break;
             case Key::Left:
-                if (g.editState.cursorCol > 0)
+                if (cursor_pos > 0)
                 {
-                    g.editState.cursorCol --;
+                    cursor_pos --;
                     g.pWndState->invalidate(pWgt->id);
                 }
+                key_handled = true;
                 break;
             case Key::Right:
-                if (g.editState.cursorCol < g.editState.str.u8len())
+                if (cursor_pos < (signed)g.editState.str.u8len())
                 {
-                    g.editState.cursorCol++;
+                    cursor_pos++;
                     g.pWndState->invalidate(pWgt->id);
                 }
+                key_handled = true;
                 break;
             case Key::Home:
-                g.editState.cursorCol = 0;
+                cursor_pos = 0;
                 g.pWndState->invalidate(pWgt->id);
+                key_handled = true;
                 break;
             case Key::End:
-                g.editState.cursorCol = g.editState.str.u8len();
+                cursor_pos = g.editState.str.u8len();
                 g.pWndState->invalidate(pWgt->id);
+                key_handled = true;
                 break;
             default:
                 break;
@@ -636,17 +658,20 @@ static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
         }
         else
         {
-            g.editState.str.insert(g.editState.cursorCol, kc.utf8);
-            g.editState.cursorCol++;
+            g.editState.str.insert(cursor_pos, kc.utf8);
+            cursor_pos++;
             g.pWndState->invalidate(pWgt->id);
+            key_handled = true;
         }
+
+        g.editState.cursorPos = cursor_pos;
     }
     else if (kc.key == Key::Enter)
     {
         // enter edit mode
         g.editState.pWgt = pWgt;
         g.pWndState->getEditText(pWgt, g.editState.str);
-        g.editState.cursorCol = g.editState.str.u8len();
+        g.editState.cursorPos = g.editState.str.u8len();
         g.pWndState->invalidate(pWgt->id);
         key_handled = true;
     }
