@@ -5,8 +5,10 @@
  *****************************************************************************/
 
 #include "twins_utils.hpp"
+#include "twins.hpp"
 
 #include <string.h>
+#include <stdlib.h>
 
 // -----------------------------------------------------------------------------
 
@@ -192,6 +194,54 @@ Vector<StringRange> splitLines(const char *str)
         out.append(StringRange{str, (unsigned)strlen(str)});
 
     return out;
+}
+
+// -----------------------------------------------------------------------------
+
+bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos, int64_t clampMin, int64_t clampMax)
+{
+    if (kc.mod_all == 0)
+    {
+        switch (kc.key)
+        {
+        case twins::Key::Enter:
+        case twins::Key::Esc:
+            return false;
+        default:
+            break;
+        }
+
+        // reject non-digits and avoid too long numbers
+        // 0x7fffffffffffffff = 9223372036854775807
+        if (kc.utf8[0] < '0' || kc.utf8[0] > '9' || str.size() >= 19)
+        {
+            twins::writeStr(ESC_BELL);
+            twins::flushBuffer();
+            return true;
+        }
+    }
+
+    switch (kc.key)
+    {
+    case twins::Key::Up:
+    case twins::Key::Down:
+    {
+        int64_t n = atoll(str.cstr());
+        int delta = kc.m_ctrl && kc.m_shift ? 100 : (kc.m_ctrl ? 10 : 1);
+        if (kc.key == twins::Key::Down) delta *= -1;
+        n += delta;
+        if (n < clampMin) n = clampMin;
+        if (n > clampMax) n = clampMax;
+
+        str.clear();
+        str.appendFmt("%ld", n);
+        cursorPos = str.size();
+        return true;
+    }
+    default:
+        break;
+    }
+    return false;
 }
 
 // -----------------------------------------------------------------------------

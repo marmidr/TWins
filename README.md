@@ -44,7 +44,7 @@ Implementation is based on examples:
     - [x] panel
     - [x] static label / led
     - [x] check box
-    - [ ] edit field (text/number)
+    - [x] edit field (text/number)
     - [x] radio button
     - [x] page control
     - [x] progress bar

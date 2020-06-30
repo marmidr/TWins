@@ -11,6 +11,7 @@
 #include "twins_common.hpp"
 
 #include <assert.h>
+#include <limits.h>
 
 // -----------------------------------------------------------------------------
 
@@ -128,6 +129,11 @@ private:
     String      m_wrappedStr;
     Vector<StringRange> m_lines;
 };
+
+// -----------------------------------------------------------------------------
+
+/** @brief Default twins::Edit key handler for NumEdit */
+bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos, int64_t clampMin = LONG_MIN, int64_t clampMax = LONG_MAX);
 
 // -----------------------------------------------------------------------------
 
