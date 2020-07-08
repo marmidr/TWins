@@ -83,7 +83,7 @@ const char* encodeCl(ColorBG cl)
     return "";
 }
 
-ColorFG intenseCl(ColorFG cl)
+ColorFG intensifyCl(ColorFG cl)
 {
     // normal -> intense
     if (cl > ColorFG::Default && cl < ColorFG::WhiteIntense)
@@ -94,13 +94,13 @@ ColorFG intenseCl(ColorFG cl)
 
     #ifdef TWINS_THEME
     if (INRANGE(cl, ColorFG::ThemeBegin, ColorFG::ThemeEnd))
-        return intenseClTheme(cl);
+        return intensifyClTheme(cl);
     #endif
 
     return cl;
 }
 
-ColorBG intenseCl(ColorBG cl)
+ColorBG intensifyCl(ColorBG cl)
 {
     // normal -> intense
     if (cl > ColorBG::Default && cl < ColorBG::WhiteIntense)
@@ -111,7 +111,7 @@ ColorBG intenseCl(ColorBG cl)
 
     #ifdef TWINS_THEME
     if (INRANGE(cl, ColorBG::ThemeBegin, ColorBG::ThemeEnd))
-        return intenseClTheme(cl);
+        return intensifyClTheme(cl);
     #endif
 
     return cl;

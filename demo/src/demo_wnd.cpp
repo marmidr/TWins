@@ -61,7 +61,7 @@ const char* encodeClTheme(ColorBG cl)
     }
 }
 
-ColorFG intenseClTheme(ColorFG cl)
+ColorFG intensifyClTheme(ColorFG cl)
 {
     switch (cl)
     {
@@ -71,7 +71,7 @@ ColorFG intenseClTheme(ColorFG cl)
     }
 }
 
-ColorBG intenseClTheme(ColorBG cl)
+ColorBG intensifyClTheme(ColorBG cl)
 {
     switch (cl)
     {

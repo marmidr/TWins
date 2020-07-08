@@ -304,6 +304,7 @@ static void drawWindow(const Widget *pWgt)
 
 static void drawPanel(const Widget *pWgt)
 {
+    FontMemento _m;
     const auto my_coord = g.parentCoord + pWgt->coord;
 
     drawArea(my_coord, pWgt->size,
@@ -329,10 +330,6 @@ static void drawPanel(const Widget *pWgt)
         drawWidgetInternal(&g.pWndWidgets[i]);
 
     g.parentCoord = coord_bkp;
-
-    // reset colors set by frame drawer
-    popClBg();
-    popClFg();
 }
 
 static void drawLabel(const Widget *pWgt)
@@ -430,7 +427,7 @@ static void drawEdit(const Widget *pWgt)
 
     bool focused = g.pWndState->isFocused(pWgt);
     auto clbg = getWidgetBgColor(pWgt);
-    intenseClIf(focused, clbg);
+    intensifyClIf(focused, clbg);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
@@ -464,7 +461,7 @@ static void drawCheckbox(const Widget *pWgt)
     const char *s_chk_state = g.pWndState->getCheckboxChecked(pWgt) ? "[■] " : "[ ] ";
     bool focused = g.pWndState->isFocused(pWgt);
     auto clfg = getWidgetFgColor(pWgt);
-    intenseClIf(focused, clfg);
+    intensifyClIf(focused, clfg);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Bold);
@@ -480,7 +477,7 @@ static void drawRadio(const Widget *pWgt)
     const char *s_radio_state = pWgt->radio.radioId == g.pWndState->getRadioIndex(pWgt) ? "(●) " : "( ) ";
     bool focused = g.pWndState->isFocused(pWgt);
     auto clfg = getWidgetFgColor(pWgt);
-    intenseClIf(focused, clfg);
+    intensifyClIf(focused, clfg);
 
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Bold);
@@ -496,7 +493,7 @@ static void drawButton(const Widget *pWgt)
     const bool focused = g.pWndState->isFocused(pWgt);
     const bool pressed = pWgt == g.pMouseDownWgt;
     auto clfg = getWidgetFgColor(pWgt);
-    intenseClIf(focused, clfg);
+    intensifyClIf(focused, clfg);
 
     if (pWgt->button.style == ButtonStyle::Simple)
     {
@@ -743,7 +740,7 @@ static void drawTextBox(const Widget *pWgt)
         return;
 
     assert(g.textboxTopLine >= 0);
-    assert(g.textboxTopLine <= p_lines->size());
+    assert(g.textboxTopLine <= (int)p_lines->size());
 
     if (changed)
         g.textboxTopLine = 0;

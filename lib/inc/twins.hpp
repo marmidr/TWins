@@ -111,16 +111,16 @@ const char* encodeClTheme(ColorBG cl);
 #endif
 
 /** @brief Color intensification */
-ColorFG intenseCl(ColorFG cl);
-ColorBG intenseCl(ColorBG cl);
+ColorFG intensifyCl(ColorFG cl);
+ColorBG intensifyCl(ColorBG cl);
 #ifdef TWINS_THEME
 // implemented in user code:
-ColorFG intenseClTheme(ColorFG cl);
-ColorBG intenseClTheme(ColorBG cl);
+ColorFG intensifyClTheme(ColorFG cl);
+ColorBG intensifyClTheme(ColorBG cl);
 #endif
 
 template<typename CL>
-inline void intenseClIf(bool cond, CL &cl) { if (cond) cl = intenseCl(cl); }
+inline void intensifyClIf(bool cond, CL &cl) { if (cond) cl = intensifyCl(cl); }
 
 /**
  * @brief Font attributes; some of them may be combined

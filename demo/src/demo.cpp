@@ -215,11 +215,11 @@ public:
 
         if (pWgt->id == ID_LABEL_KEYSEQ)
         {
-            out.appendFmt("SEQ[%zu]:", strlen(lblKeycodeSeq));
+            out.appendFmt("SEQ[%zu]:", lblKeycodeSeq.size());
 
-            for (unsigned i = 0; i < sizeof(lblKeycodeSeq); i++)
+            for (unsigned i = 0; i < lblKeycodeSeq.size(); i++)
             {
-                uint8_t c = lblKeycodeSeq[i];
+                uint8_t c = lblKeycodeSeq.cstr()[i];
                 if (!c) break;
 
                 if (c < ' ')
@@ -231,7 +231,7 @@ public:
 
         if (pWgt->id == ID_LABEL_KEYNAME)
         {
-            out.appendFmt("KEY[%zu]:%s", strlen(lblKeyName), lblKeyName);
+            out.appendFmt("KEY[%zu]:%s", lblKeyName.size(), lblKeyName.cstr());
         }
 
         if (pWgt->id == ID_LBL_EMPTY_1)
@@ -336,8 +336,8 @@ public:
     }
 
 public:
-    char lblKeycodeSeq[10];
-    const char *lblKeyName = "";
+    twins::String lblKeycodeSeq;
+    twins::String lblKeyName;
     bool initialized = false;
     twins::Vector<twins::WID> invalidatedWgts;
 
@@ -555,9 +555,12 @@ int main()
         if (rbKeybInput.size())
         {
             // display input buffer
-            memset(wndMainState.lblKeycodeSeq, 0, sizeof(wndMainState.lblKeycodeSeq));
-            rbKeybInput.copy(wndMainState.lblKeycodeSeq, sizeof(wndMainState.lblKeycodeSeq)-1);
-            wndMainState.lblKeycodeSeq[sizeof(wndMainState.lblKeycodeSeq)-1] = '\0';
+            {
+                char seq[10];
+                rbKeybInput.copy(seq, sizeof(seq)-1);
+                seq[sizeof(seq)-1] = '\0';
+                wndMainState.lblKeycodeSeq = seq;
+            }
 
             twins::decodeInputSeq(rbKeybInput, kc);
             // pass key to top-window
@@ -578,6 +581,8 @@ int main()
             {
                 TWINS_LOG("Key: '%s' %s", kc.name, key_handled ? "(handled)" : "");
             }
+
+
 
             if (kc.m_spec && kc.key == twins::Key::F4)
             {
@@ -612,8 +617,11 @@ int main()
                 if (wndStack.window() == pWndMainWidgets)
                     twins::mainPgControlChangePage(pWndMainWidgets, kc.key == twins::Key::F10);
             }
-            else if (wndStack.window() == pWndMainWidgets)
+
+
+            if (wndStack.window() == pWndMainWidgets)
             {
+                // keyboard code
                 twins::cursorSavePos();
                 twins::drawWidgets(pWndMainWidgets, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
 
