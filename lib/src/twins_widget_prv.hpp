@@ -31,7 +31,7 @@ struct Rect
 struct EditState
 {
     const Widget *pWgt = nullptr;
-    uint8_t cursorCol;
+    int16_t cursorPos = 0;
     String  str;
 };
 
@@ -40,12 +40,12 @@ struct Glob
 {
     Coord   parentCoord;            // current widget's parent left-top position
     String  str;                    // common string buff for widget drawers
-    const Widget *pWndArray = {};   // array of Window widgets
+    const Widget *pWndWidgets = {}; // array of Window widgets
     IWindowState *pWndState = {};   //
     const Widget *pFocusedWgt = {}; //
     const Widget *pMouseDownWgt = {}; //
     EditState editState;            // state of Edit being modified
-    int listboxHighlightIdx;        // focused Listbox index of highlighted row
+    int textboxTopLine = {};        // focused TextBox first line displayed out of provided
 };
 
 extern Glob g;
@@ -60,13 +60,13 @@ struct WidgetSearchStruct
 
 // -----------------------------------------------------------------------------
 
-// require g.pWndArray set
+// require g.pWindowWidgets set
 bool getWidgetWSS(WidgetSearchStruct &wss);
 const Widget* getWidgetByWID(const WID widgetId);
 const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect);
 void setCursorAt(const Widget *pWgt);
 
-// does not require g.pWndArray
+// does not require g.pWindowWidgets
 const Widget* getParent(const Widget *pWgt);
 
 // -----------------------------------------------------------------------------

@@ -111,16 +111,16 @@ const char* encodeClTheme(ColorBG cl);
 #endif
 
 /** @brief Color intensification */
-ColorFG intenseCl(ColorFG cl);
-ColorBG intenseCl(ColorBG cl);
+ColorFG intensifyCl(ColorFG cl);
+ColorBG intensifyCl(ColorBG cl);
 #ifdef TWINS_THEME
 // implemented in user code:
-ColorFG intenseClTheme(ColorFG cl);
-ColorBG intenseClTheme(ColorBG cl);
+ColorFG intensifyClTheme(ColorFG cl);
+ColorBG intensifyClTheme(ColorBG cl);
 #endif
 
 template<typename CL>
-inline void intenseClIf(bool cond, CL &cl) { if (cond) cl = intenseCl(cl); }
+inline void intensifyClIf(bool cond, CL &cl) { if (cond) cl = intensifyCl(cl); }
 
 /**
  * @brief Font attributes; some of them may be combined
@@ -176,6 +176,10 @@ using WID = int16_t;
 /** @brief Forward declaration */
 struct Widget;
 
+template <class T>
+class Vector;
+
+
 /** @brief Window state and event handler */
 class IWindowState
 {
@@ -185,19 +189,23 @@ public:
     virtual void onButtonDown(const twins::Widget* pWgt) {}
     virtual void onButtonUp(const twins::Widget* pWgt) {}
     virtual void onEditChange(const twins::Widget* pWgt, twins::String &&str) {}
+    virtual bool onEditInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos) { return false; }
     virtual void onCheckboxToggle(const twins::Widget* pWgt) {}
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
-    virtual void onListBoxSelect(const twins::Widget* pWgt, uint16_t highlightIdx) {}
-    virtual void onListBoxChange(const twins::Widget* pWgt, uint16_t newIdx) {}
+    virtual void onListBoxSelect(const twins::Widget* pWgt, int16_t selIdx) {}
+    virtual void onListBoxChange(const twins::Widget* pWgt, int16_t newIdx) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
-    virtual void onCanvasDraw(const twins::Widget* pWgt) {}
-    virtual void onCanvasMouseEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
+    virtual void onCustomWidgetDraw(const twins::Widget* pWgt) {}
+    virtual bool onCustomWidgetInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) { return false; }
+    virtual bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) { return false; }
     // common state queries
     virtual bool isEnabled(const twins::Widget*) { return true; }
     virtual bool isFocused(const twins::Widget*) { return false; }
     virtual bool isVisible(const twins::Widget*) { return true; }
     virtual WID& getFocusedID() = 0;
     // widget-specific queries
+    virtual void getWindowCoord(const twins::Widget*, twins::Coord &coord) {}
+    virtual void getWindowTitle(const twins::Widget*, twins::String &title) {}
     virtual bool getCheckboxChecked(const twins::Widget*) { return false; }
     virtual void getLabelText(const twins::Widget*, twins::String &out) {}
     virtual void getEditText(const twins::Widget*, twins::String &out) {}
@@ -205,9 +213,10 @@ public:
     virtual void getLedText(const twins::Widget*, twins::String &out) {}
     virtual void getProgressBarState(const twins::Widget*, int &pos, int &max) {}
     virtual int  getPageCtrlPageIndex(const twins::Widget*) { return 0; }
-    virtual void getListBoxState(const twins::Widget*, int &itemIdx, int &itemsCount) { itemIdx = 0; itemsCount = 0; }
+    virtual void getListBoxState(const twins::Widget*, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount) {}
     virtual void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) {}
     virtual int  getRadioIndex(const twins::Widget*) { return -1; }
+    virtual void getTextBoxLines(const twins::Widget*, const twins::Vector<twins::StringRange> **ppLines, bool &changed) {}
     // requests
     virtual void invalidate(twins::WID id, bool instantly = false) {}
 };
@@ -234,7 +243,8 @@ struct Widget
         ProgressBar,
         ListBox,
         DropDownList,
-        Canvas,
+        CustomWgt,
+        TextBox,
     };
 
     Type    type = {};
@@ -250,6 +260,7 @@ struct Widget
             const char *    title;
             ColorFG         fgColor;
             ColorBG         bgColor;
+            bool            isPopup;
             IWindowState *  (*getState)();
         } window;
 
@@ -325,6 +336,7 @@ struct Widget
         {
             ColorFG     fgColor;
             ColorBG     bgColor;
+            bool        noFrame;
         } listbox;
 
         struct
@@ -333,7 +345,9 @@ struct Widget
 
         struct
         {
-        } canvas;
+            ColorFG     fgColor;
+            ColorBG     bgColor;
+        } textbox;
     };
 
     /** parent <- this -> childs linking */
@@ -469,22 +483,22 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output);
 /**
  * @brief Draw single widget or entire window
  */
-void drawWidget(const Widget *pWindowArray, WID widgetId = WIDGET_ID_ALL);
+void drawWidget(const Widget *pWindowWidgets, WID widgetId = WIDGET_ID_ALL);
 
 /**
  * @brief Draw selected widgets
  */
-void drawWidgets(const Widget *pWindowArray, const WID *pWidgetIds, uint16_t count);
+void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t count);
 
 template<int N>
-inline void drawWidgets(const Widget *pWindowArray, const WID (&widgetIds)[N])
+inline void drawWidgets(const Widget *pWindowWidgets, const WID (&widgetIds)[N])
 {
-    drawWidgets(pWindowArray, widgetIds, N);
+    drawWidgets(pWindowWidgets, widgetIds, N);
 }
 
-inline void drawWidgets(const Widget *pWindowArray, const std::initializer_list<WID> &ids)
+inline void drawWidgets(const Widget *pWindowWidgets, const std::initializer_list<WID> &ids)
 {
-    drawWidgets(pWindowArray, ids.begin(), ids.size());
+    drawWidgets(pWindowWidgets, ids.begin(), ids.size());
 }
 
 /**
@@ -505,7 +519,7 @@ WID getPageID(const Widget *pPageControl, int8_t pageIdx);
 /**
  * @brief Return widget from its ID or \b nullptr
  */
-const Widget* getWidget(const Widget *pWindowArray, WID widgetId);
+const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId);
 
 /**
  * @brief Process keyboard/mouse signal received by console
@@ -516,7 +530,7 @@ bool processKey(const Widget *pWindow, const KeyCode &kc);
  * @brief As the PgUp/PgDn are often used by consoles, let the user decide
  *        when to change page
  */
-void mainPgControlChangePage(const Widget *pWindowArray, bool next);
+void mainPgControlChangePage(const Widget *pWindowWidgets, bool next);
 
 // -----------------------------------------------------------------------------
 

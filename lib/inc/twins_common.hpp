@@ -34,11 +34,13 @@ namespace twins
 // forward decl
 class String;
 
+
 /**
  * @brief Template returning length of array of type T
  */
 template<unsigned N, typename T>
 unsigned arrSize(const T (&arr)[N]) { return N; }
+
 
 /**
  * @brief array template usefull in const expressions
@@ -54,6 +56,18 @@ struct Array
 
     T data[N] = {};
 };
+
+
+/** @brief Structure to store pointer to first element and their number */
+template <typename T>
+struct Range
+{
+    T* data = {};
+    unsigned size = {};
+};
+
+using StringRange = twins::Range<const char>;
+
 
 /**
  * @brief Platform Abstraction Layer for easy porting
@@ -84,6 +98,7 @@ struct IPal
     virtual uint32_t getTimeStamp() = 0;
     virtual uint32_t getTimeDiff(uint32_t timestamp) = 0;
 };
+
 
 // pointer set by init()
 extern IPal *pPAL;

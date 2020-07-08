@@ -50,6 +50,7 @@ const char* encodeClTheme(ColorBG cl)
     case ColorBG::PanelChbox:       return ESC_BG_Gainsboro;
     case ColorBG::PanelVer:         return ESC_BG_COLOR(106);
     case ColorBG::PanelKeyCodes:    return ESC_BG_COLOR(169);
+    case ColorBG::PanelLeds:        return ESC_BG_LightBlue;
     case ColorBG::LabelBlue:        return ESC_BG_DarkBlue;
     case ColorBG::Edit1:            return ESC_BG_CYAN;
     case ColorBG::Edit1Intense:     return ESC_BG_CYAN_INTENSE;
@@ -60,7 +61,7 @@ const char* encodeClTheme(ColorBG cl)
     }
 }
 
-ColorFG intenseClTheme(ColorFG cl)
+ColorFG intensifyClTheme(ColorFG cl)
 {
     switch (cl)
     {
@@ -70,7 +71,7 @@ ColorFG intenseClTheme(ColorFG cl)
     }
 }
 
-ColorBG intenseClTheme(ColorBG cl)
+ColorBG intensifyClTheme(ColorBG cl)
 {
     switch (cl)
     {
@@ -182,7 +183,7 @@ static constexpr twins::Widget page1Childs[] =
         { panel : {
             title       : "STATE: Leds",
             fgColor     : twins::ColorFG::Blue,
-            bgColor     : twins::ColorBG::White,
+            bgColor     : twins::ColorBG::PanelLeds,
         }},
         link    : { pnlStateChilds }
     },
@@ -266,11 +267,11 @@ static constexpr twins::Widget page1Childs[] =
     },
     {
         type    : twins::Widget::Button,
-        id      : ID_BTN_CANCEL,
+        id      : ID_BTN_POPUP,
         coord   : { 45, 7 },
         size    : {},
         { button : {
-            text    : "CANCEL",
+            text    : "POPUP",
             fgColor : twins::ColorFG::White,
             bgColor : {},
             style   : twins::ButtonStyle::Simple
@@ -331,8 +332,9 @@ static constexpr twins::Widget page2Childs[] =
         coord   : { 2, 2 },
         size    : { 20, 8 },
         { listbox : {
-            fgColor :   twins::ColorFG::Green,
-            bgColor :   twins::ColorBG::White,
+            fgColor : twins::ColorFG::Green,
+            bgColor : twins::ColorBG::White,
+            noFrame : false
         }}
     },
     {
@@ -412,8 +414,8 @@ static constexpr twins::Widget page3Childs[] =
         }}
     },
     {
-        type    : twins::Widget::Canvas,
-        id      : ID_CANVAS,
+        type    : twins::Widget::CustomWgt,
+        id      : ID_CUSTOMWGT1,
         coord   : { 2, 6 },
         size    : { 32, 4 },
     },
@@ -488,22 +490,24 @@ static constexpr twins::Widget page4Childs[] =
     {
         type    : twins::Widget::Panel,
         id      : ID_PANEL_EMPTY_1,
-        coord   : { 2, 2 },
-        size    : { 20, 8 },
+        coord   : { 5, 1 },
+        size    : { 20, 10 },
         { panel : {
-            title   :   "A",
-            fgColor :   {},
-            bgColor :   {},
+            title   : "Word-wrap",
+            fgColor : {},
+            bgColor : {},
         }},
         link    : { (const twins::Widget[])
         {
             {
                 type    : twins::Widget::Label,
                 id      : ID_LBL_EMPTY_1,
-                coord   : { 10, 4 },
-                size    : { 5, 1 },
+                coord   : { 2, 1 },
+                size    : { 16, 8 },
                 { label : {
-                    text    : "-A-",
+                    text    : {},
+                    fgColor : twins::ColorFG::White,
+                    bgColor : twins::ColorBG::Blue
                 }}
             },
             { /* NUL */ }
@@ -512,26 +516,51 @@ static constexpr twins::Widget page4Childs[] =
     {
         type    : twins::Widget::Panel,
         id      : ID_PANEL_EMPTY_2,
-        coord   : { 25, 2 },
-        size    : { 20, 8 },
+        coord   : { 40, 1 },
+        size    : { 12, 10 },
         { panel : {
-            title   :   "B",
-            fgColor :   {},
-            bgColor :   {},
+            title   : "...",
+            fgColor : {},
+            bgColor : {},
         }},
         link    : { (const twins::Widget[])
         {
             {
                 type    : twins::Widget::Label,
                 id      : ID_LBL_EMPTY_2,
-                coord   : { 10, 4 },
+                coord   : { 2, 2 },
                 size    : { 5, 1 },
                 { label : {
-                    text    : "-B-",
+                    text    : "---",
                 }}
             },
             { /* NUL */ }
         }}
+    },
+    { /* NUL */ }
+};
+
+static constexpr twins::Widget page5Childs[] =
+{
+    {
+        type    : twins::Widget::TextBox,
+        id      : ID_TBX_LOREMIPSUM,
+        coord   : { 3, 1 },
+        size    : { 40, 10 },
+        { textbox : {
+            fgColor : twins::ColorFG::White,
+            bgColor : {},
+        }},
+    },
+    {
+        type    : twins::Widget::TextBox,
+        id      : ID_TBX_1LINE,
+        coord   : { 46, 1 },
+        size    : { 12, 10 },
+        { textbox : {
+            fgColor : twins::ColorFG::White,
+            bgColor : {},
+        }},
     },
     { /* NUL */ }
 };
@@ -552,7 +581,8 @@ static constexpr twins::Widget wndMain =
         title       : ESC_FG_WHITE_INTENSE "Service Menu " ESC_UNDERLINE_ON "(Ctrl+D quit)" ESC_UNDERLINE_OFF,
         fgColor     : twins::ColorFG::Window,
         bgColor     : twins::ColorBG::Window,
-        getState    : getWindMainState,
+        isPopup     : {},
+        getState    : getWndMainState,
     }},
     link    : { (const twins::Widget[])
     {
@@ -610,6 +640,17 @@ static constexpr twins::Widget wndMain =
                     }},
                     link    : { page4Childs }
                 },
+                {
+                    type    : twins::Widget::Page,
+                    id      : ID_PAGE_5,
+                    coord   : {},
+                    size    : {},
+                    { page : {
+                        title       : "Text Box",
+                        fgColor     : twins::ColorFG::White,
+                    }},
+                    link    : { page5Childs }
+                },
                 { /* NUL */ }
             }}
         },
@@ -620,10 +661,10 @@ static constexpr twins::Widget wndMain =
             size    : { 78, 1 },
             { label : {
                 text    :  " "
-                           ESC_BOLD "F4 "           ESC_NORMAL "Mouse On/Off"   "  "
-                           ESC_BOLD "F5 "           ESC_NORMAL "Refresh"        "  "
-                           ESC_BOLD "F6 "           ESC_NORMAL "Clr Logs"       "  "
-                           ESC_BOLD "F9/F10 "      ESC_NORMAL "Change Page"    "  "
+                           ESC_BOLD "F4 "       ESC_NORMAL "Mouse On/Off"   "  "
+                           ESC_BOLD "F5 "       ESC_NORMAL "Refresh"        "  "
+                           ESC_BOLD "F6 "       ESC_NORMAL "Clr Logs"       "  "
+                           ESC_BOLD "F9/F10 "   ESC_NORMAL "Change Page"    "  "
                            "\u2581" "\u2582" "\u2583" "\u2584" "\u2585" "\u2586" "\u2587" "\u2588" "\U0001F569"
                            ,
                 fgColor : twins::ColorFG::White,
@@ -634,8 +675,79 @@ static constexpr twins::Widget wndMain =
     }}
 };
 
+
+
+static constexpr twins::Widget wndYesNo =
+{
+    type    : twins::Widget::Window,
+    id      : IDYN_WND,
+    coord   : { },
+    size    : { 34, 10 },
+    { window : {
+        title       : {},
+        fgColor     : twins::ColorFG::Blue,
+        bgColor     : twins::ColorBG::White,
+        isPopup     : true,
+        getState    : getWndYesNoState,
+    }},
+    link    : { (const twins::Widget[])
+    {
+        {
+            type    : twins::Widget::Label,
+            id      : IDYN_LBL_MSG,
+            coord   : { 2, 2 },
+            size    : { 30, 4 },
+            { label : {
+                text    : {},
+                fgColor : {},
+                bgColor : {},
+            }}
+        },
+        {
+            type    : twins::Widget::Button,
+            id      : IDYN_BTN_YES,
+            coord   : { 5, 7 },
+            size    : {},
+            { button : {
+                text    : "YES",
+                fgColor : twins::ColorFG::ButtonGreen,
+                bgColor : twins::ColorBG::ButtonGreen,
+                style   : twins::ButtonStyle::Solid
+            }}
+        },
+        {
+            type    : twins::Widget::Button,
+            id      : IDYN_BTN_NO,
+            coord   : { 13, 7 },
+            size    : {},
+            { button : {
+                text    : "NO",
+                fgColor : twins::ColorFG::ButtonRed,
+                bgColor : twins::ColorBG::ButtonRed,
+                style   : twins::ButtonStyle::Solid
+            }}
+        },
+        {
+            type    : twins::Widget::Button,
+            id      : IDYN_BTN_CANCEL,
+            coord   : { 20, 7 },
+            size    : {},
+            { button : {
+                text    : "CANCEL",
+                fgColor : twins::ColorFG::White,
+                bgColor : twins::ColorBG::BlackIntense,
+                style   : twins::ButtonStyle::Solid
+            }}
+        },
+        { /* NUL */ }
+    }}
+};
+
 // -----------------------------------------------------------------------------
 
-constexpr auto wndMainArray = twins::transforWindowDefinition<&wndMain>();
-const twins::Widget * pWndMainArray = wndMainArray.begin();
+constexpr auto wndMainWidgets = twins::transforWindowDefinition<&wndMain>();
+const twins::Widget * pWndMainWidgets = wndMainWidgets.begin();
 const uint16_t wndMainNumPages = twins::getPagesCount(&wndMain);
+
+constexpr auto wndYesNoWidgets = twins::transforWindowDefinition<&wndYesNo>();
+const twins::Widget * pWndYesNoWidgets = wndYesNoWidgets.begin();

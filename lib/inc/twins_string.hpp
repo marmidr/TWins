@@ -19,8 +19,7 @@ namespace twins
 class String
 {
 public:
-    // avoid memory allocation in constructor
-    String(const char*) = delete;
+    String(const char*s);
     String() = default;
     String(String &&other);
     ~String();

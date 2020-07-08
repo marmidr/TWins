@@ -188,6 +188,14 @@ public:
         return nullptr;
     }
 
+    /** @brief Get last element */
+    T * back()
+    {
+        if (mSize)
+            return &mpItems[mSize - 1];
+        return nullptr;
+    }
+
     /** @brief Simply returns iternal poinder do array of T */
     T * data() { return mpItems; }
     const T * data() const { return mpItems; }
