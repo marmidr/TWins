@@ -373,15 +373,21 @@ static constexpr WID WIDGET_ID_ALL = -1;
 /** @brief Object remembers terminal font colors and attribute,
  *         to restore them on destruction
  */
-struct FontMemento
+struct FontMementoManual
 {
-    FontMemento();
-    ~FontMemento();
+    void store();
+    void restore();
 
-private:
+protected:
     uint8_t szFg;
     uint8_t szBg;
     uint8_t szAttr;
+};
+
+struct FontMemento : FontMementoManual
+{
+    FontMemento()  { store(); }
+    ~FontMemento() { restore(); }
 };
 
 /** @brief */
@@ -401,6 +407,10 @@ void init(IPal *pal);
 
 /** @brief used by TWINS_LOG() */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
+/** @brief */
+void logRawBegin(const char *prologue = "", bool timeStamp = false);
+void logRawWrite(const char *msg);
+void logRawEnd(const char *epilogue = "");
 
 /**
  * @brief Delay for given number if milliseconds
