@@ -405,6 +405,12 @@ enum class MouseMode : uint8_t
  */
 void init(IPal *pal);
 
+/**
+ * @brief Control TWins mutex implemented in IPal
+ */
+bool lock(bool wait = true);
+void unlock(void);
+
 /** @brief used by TWINS_LOG() */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
 /** @brief */

@@ -58,6 +58,19 @@ void init(IPal *pal)
     pPAL = pal;
 }
 
+bool lock(bool wait)
+{
+    if (pPAL)
+        return pPAL->lock(wait);
+    return true;
+}
+
+void unlock(void)
+{
+    if (pPAL)
+        pPAL->unlock();
+}
+
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
 {
     // display only file name, trim the path
@@ -112,10 +125,10 @@ void logRawBegin(const char *prologue, bool timeStamp)
 {
     logRawFontMemento.store();
     cursorSavePos();
-    pushClBg(ColorBG::Default);
-    pushClFg(ColorFG::White);
     moveTo(1, pPAL->getLogsRow());
     insertLines(1);
+    pushClBg(ColorBG::Default);
+    pushClFg(ColorFG::White);
 
     if (timeStamp)
     {
