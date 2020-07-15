@@ -14,6 +14,8 @@ add_executable(${TARGETNAME}
     src/test_stack.cpp
     src/test_vector.cpp
     src/test_map.cpp
+    src/test_twins.cpp
+    src/test_input_posix.cpp
 )
 
 target_compile_options(${TARGETNAME} PRIVATE
@@ -37,6 +39,7 @@ target_include_directories(${TARGETNAME}
 set(GCOVR_EXCLUDES
     -e ".*/googletest/.*"
     -e ".*/test_.*cpp"
+    -e ".*/twins_window_state.hpp"
 )
 
 add_custom_target(twins_cov_only
@@ -47,7 +50,7 @@ add_custom_target(twins_cov_only
 )
 
 add_custom_target(twins_cov_clean
-    COMMAND find . -name *.gcda -delete
+    COMMAND find ${CMAKE_BINARY_DIR} -name *.gcda -delete
 )
 
 # ---

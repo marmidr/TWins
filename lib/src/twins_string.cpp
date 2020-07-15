@@ -106,12 +106,12 @@ void String::appendVFmt(const char *fmt, va_list ap)
                 break;
             }
 
-            // too small buffer
+            // printf("too small buffer\n");
             reserve(mCapacity + n + 10);
         }
         else
         {
-            // error
+            // printf("err\n");
             break;
         }
 

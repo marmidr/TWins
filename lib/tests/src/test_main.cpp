@@ -26,7 +26,24 @@ ColorBG intensifyClTheme(ColorBG cl) { return cl; }
 // -----------------------------------------------------------------------------
 
 // must be global due to static twins objects destroyed after main() quit
-twins::DefaultPAL twins_pal;
+struct TestPAL : twins::DefaultPAL
+{
+    void flushBuff() override
+    {
+        // do not write anything to terminal
+        if (lineBuff.size())
+        {
+            if (lineBuff.size() > lineBuffMaxSize)
+                lineBuffMaxSize = lineBuff.size();
+
+            lineBuff.clear();
+        }
+    }
+};
+
+TestPAL test_pal;
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char **argv)
 {
@@ -36,7 +53,7 @@ int main(int argc, char **argv)
     argc = vargs.size();
 
     testing::InitGoogleTest(&argc, vargs.data());
-    twins::init(&twins_pal);
+    twins::init(&test_pal);
 
     return RUN_ALL_TESTS();
 }

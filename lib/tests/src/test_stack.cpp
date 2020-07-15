@@ -60,3 +60,15 @@ TEST(STACK, push_pop_string)
     EXPECT_EQ(2, stck.size());
     EXPECT_TRUE(s.empty());
 }
+
+TEST(STACK, destroy_string)
+{
+    twins::Stack<std::string> stck;
+    // test for proper content destruction to catch memory leak
+    std::string s;
+    s.resize(100);
+    stck.push(s);
+    stck.push(s);
+
+    stck.clear(true);
+}

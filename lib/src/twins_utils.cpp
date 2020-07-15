@@ -234,7 +234,7 @@ bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &curs
         if (n > clampMax) n = clampMax;
 
         str.clear();
-        str.appendFmt("%ld", n);
+        str.appendFmt("%lld", n);
         cursorPos = str.size();
         return true;
     }
