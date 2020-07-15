@@ -18,6 +18,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <functional>
+#include <mutex>
 
 // -----------------------------------------------------------------------------
 
@@ -522,6 +523,25 @@ struct DemoPAL : twins::DefaultPAL
     {
         return pWndMainWidgets[0].coord.row + pWndMainWidgets[0].size.height + 1;
     }
+
+    bool lock(bool wait) override
+    {
+        if (wait)
+        {
+            mtx.lock();
+            return true;
+        }
+
+        return mtx.try_lock();
+    }
+
+    void unlock() override
+    {
+        mtx.unlock();
+    }
+
+private:
+    std::recursive_mutex mtx;
 };
 
 static DemoPAL demo_pal;
@@ -554,6 +574,8 @@ int main()
 
         if (rbKeybInput.size())
         {
+            twins::Locker lck;
+
             // display input buffer
             {
                 char seq[10];

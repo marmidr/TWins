@@ -73,6 +73,8 @@ void unlock(void)
 
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
 {
+    twins::Locker lck;
+
     // display only file name, trim the path
     if (const char *delim = strrchr(file, '/'))
         file = delim + 1;

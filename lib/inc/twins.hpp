@@ -407,6 +407,7 @@ void init(IPal *pal);
 
 /**
  * @brief Control TWins mutex implemented in IPal
+ *        Call unlock() only if lock() returned true
  */
 bool lock(bool wait = true);
 void unlock(void);
@@ -547,6 +548,28 @@ bool processKey(const Widget *pWindow, const KeyCode &kc);
  *        when to change page
  */
 void mainPgControlChangePage(const Widget *pWindowWidgets, bool next);
+
+// -----------------------------------------------------------------------------
+
+/** @brief RAII style locker */
+struct Locker
+{
+    Locker()
+    {
+        m_isLocked = twins::lock();
+    }
+
+    ~Locker()
+    {
+        if (m_isLocked)
+            twins::unlock();
+    }
+
+    bool isLocked() const { return m_isLocked; }
+
+private:
+    bool m_isLocked;
+};
 
 // -----------------------------------------------------------------------------
 
