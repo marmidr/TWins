@@ -12,19 +12,6 @@
 
 // -----------------------------------------------------------------------------
 
-class WindowState : public twins::IWindowState
-{
-public:
-    twins::WID& getFocusedID() { return wgtId; };
-
-protected:
-    twins::WID wgtId = {};
-};
-
-static WindowState windowState;
-
-// -----------------------------------------------------------------------------
-
 // static const char *getLineBuff()
 // {
 //     if (auto *pal = dynamic_cast<twins::DefaultPAL*>(twins::pPAL))
@@ -37,7 +24,23 @@ static WindowState windowState;
 
 // -----------------------------------------------------------------------------
 
-TEST(TWINS, encodeCl)
+class TWINS : public testing::Test
+{
+protected:
+    void SetUp() override
+    {
+
+    }
+
+    void TearDown() override
+    {
+        twins::flushBuffer();
+    }
+};
+
+// -----------------------------------------------------------------------------
+
+TEST_F(TWINS, encodeCl)
 {
     {
         const char *cl = twins::encodeCl(twins::ColorFG::White);
@@ -56,7 +59,7 @@ TEST(TWINS, encodeCl)
     }
 }
 
-TEST(TWINS, intensifyCl)
+TEST_F(TWINS, intensifyCl)
 {
     {
         auto cl = twins::intensifyCl(twins::ColorFG::White);
@@ -83,7 +86,7 @@ TEST(TWINS, intensifyCl)
     }
 }
 
-TEST(TWINS, log)
+TEST_F(TWINS, log)
 {
     twins::Locker lck;
     EXPECT_TRUE(lck.isLocked());
@@ -101,11 +104,9 @@ TEST(TWINS, log)
 
     // restore
     twins::pPAL = pal_bkp;
-
-    twins::flushBuffer();
 }
 
-TEST(TWINS, attr)
+TEST_F(TWINS, attr)
 {
     twins::pushAttr(twins::FontAttrib::None);
     twins::pushAttr(twins::FontAttrib::Bold);
@@ -122,20 +123,16 @@ TEST(TWINS, attr)
     twins::resetAttr();
     twins::resetClFg();
     twins::resetClBg();
-
-    twins::flushBuffer();
 }
 
-TEST(TWINS, logRaw)
+TEST_F(TWINS, logRaw)
 {
     twins::logRawBegin("START", true);
     twins::logRawWrite("raw string");
     twins::logRawEnd("END");
-
-    twins::flushBuffer();
 }
 
-TEST(TWINS, sleep)
+TEST_F(TWINS, sleep)
 {
     twins::sleepMs(10);
 }
