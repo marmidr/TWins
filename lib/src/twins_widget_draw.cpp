@@ -172,7 +172,7 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     g.str.append(frame[1], size.width - 2);
 #endif
     g.str.append(frame[2]);
-    writeStr(g.str.cstr());
+    writeStrLen(g.str.cstr(), g.str.size());
     moveBy(-size.width, 1);
     flushBuffer();
 
@@ -203,7 +203,7 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
 
     for (int r = coord.row + 1; r < coord.row + size.height - 1; r++)
     {
-        writeStr(g.str.cstr());
+        writeStrLen(g.str.cstr(), g.str.size());
         moveBy(-(size.width + shadow), 1);
         flushBuffer();
     }
@@ -224,7 +224,7 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
         g.str << ESC_FG_BLACK;
         g.str << "█";
     }
-    writeStr(g.str.cstr());
+    writeStrLen(g.str.cstr(), g.str.size());
     flushBuffer();
 
     if (shadow)
@@ -239,7 +239,7 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     #else
         g.str.append("█", size.width);
     #endif
-        writeStr(g.str.cstr());
+        writeStrLen(g.str.cstr(), g.str.size());
         writeStr(encodeCl(clFg));
         flushBuffer();
     }
@@ -370,7 +370,7 @@ static void drawLabel(const Widget *pWgt)
         }
 
         s_line.setLength(pWgt->size.width, true, true);
-        writeStr(s_line.cstr());
+        writeStrLen(s_line.cstr(), s_line.size());
         flushBuffer();
         moveBy(-pWgt->size.width, 1);
     }
@@ -432,7 +432,7 @@ static void drawEdit(const Widget *pWgt)
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
     pushClFg(getWidgetFgColor(pWgt));
-    writeStr(g.str.cstr());
+    writeStrLen(g.str.cstr(), g.str.size());
     popClFg();
     popClBg();
 }
@@ -451,7 +451,7 @@ static void drawLed(const Widget *pWgt)
     moveTo(g.parentCoord.col + pWgt->coord.col, g.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
     pushClFg(getWidgetFgColor(pWgt));
-    writeStr(g.str.cstr());
+    writeStrLen(g.str.cstr(), g.str.size());
     popClFg();
     popClBg();
 }
@@ -507,7 +507,7 @@ static void drawButton(const Widget *pWgt)
         if (focused) pushAttr(FontAttrib::Bold);
         if (pressed) pushAttr(FontAttrib::Inverse);
         pushClFg(clfg);
-        writeStr(g.str.cstr());
+        writeStrLen(g.str.cstr(), g.str.size());
     }
     else
     {
@@ -521,7 +521,7 @@ static void drawButton(const Widget *pWgt)
             if (pressed) pushAttr(FontAttrib::Inverse);
             pushClBg(getWidgetBgColor(pWgt));
             pushClFg(clfg);
-            writeStr(g.str.cstr());
+            writeStrLen(g.str.cstr(), g.str.size());
         }
 
         auto shadow_len = 2 + String::u8len(pWgt->button.text, nullptr, true);
@@ -571,7 +571,7 @@ static void drawPageControl(const Widget *pWgt)
     g.str.setLength(pWgt->pagectrl.tabWidth);
     moveTo(my_coord.col, my_coord.row);
     pushAttr(FontAttrib::Inverse);
-    writeStr(g.str.cstr());
+    writeStrLen(g.str.cstr(), g.str.size());
     popAttr();
 
     // draw tabs and pages
@@ -601,7 +601,7 @@ static void drawPageControl(const Widget *pWgt)
 
         pushClFg(clfg);
         if (i == pg_idx) pushAttr(FontAttrib::Inverse);
-        writeStr(g.str.cstr());
+        writeStrLen(g.str.cstr(), g.str.size());
         if (i == pg_idx) popAttr();
         popClFg();
 
@@ -649,7 +649,7 @@ static void drawProgressBar(const Widget *pWgt)
     g.str.append(style_data[style][1], pWgt->size.width - fill);
 
     pushClFg(getWidgetFgColor(pWgt));
-    writeStr(g.str.cstr());
+    writeStrLen(g.str.cstr(), g.str.size());
     popClFg();
 
     // ████░░░░░░░░░░░
@@ -705,7 +705,7 @@ static void drawListBox(const Widget *pWgt)
         }
 
         if (focused && is_sel_item) pushAttr(FontAttrib::Inverse);
-        writeStr(g.str.cstr());
+        writeStrLen(g.str.cstr(), g.str.size());
         if (focused && is_sel_item) popAttr();
     }
 }

@@ -308,6 +308,8 @@ TEST_F(WIDGETDRW, drawWidget)
     // draw all
     auto t = twins::pPAL->getTimeStamp();
     twins::drawWidget(pWndTestWidgets);
+    twins::writeChar('\n', 3);
+
     t = twins::pPAL->getTimeDiff(t);
     twins::log(__FILE__, __FUNCTION__, __LINE__, "Drawn in %u ms", t);
 }
