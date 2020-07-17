@@ -133,7 +133,7 @@ private:
 // -----------------------------------------------------------------------------
 
 /** @brief Default twins::Edit key handler for NumEdit */
-bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos, int64_t clampMin = LONG_MIN, int64_t clampMax = LONG_MAX);
+bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos, int64_t limitMin = LONG_MIN, int64_t limitMax = LONG_MAX, bool wrap = false);
 
 // -----------------------------------------------------------------------------
 

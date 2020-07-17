@@ -299,3 +299,59 @@ TEST(UTILS, numEdit)
     EXPECT_TRUE(succ);
     EXPECT_STREQ("0", str.cstr());
 }
+
+TEST(UTILS, numEditLimited)
+{
+    twins::KeyCode kc = { m_spec : true };
+    twins::String str;
+    int16_t cursorPos = 0;
+    bool succ;
+
+
+    // up, no wrap
+    kc.key = twins::Key::Up;
+
+    {
+        str = "0";
+
+        succ = twins::util::numEditInputEvt(kc, str, cursorPos, -1, 1, false);
+        EXPECT_TRUE(succ);
+        EXPECT_STREQ("1", str.cstr());
+
+        succ = twins::util::numEditInputEvt(kc, str, cursorPos, -1, 1, false);
+        EXPECT_TRUE(succ);
+        EXPECT_STREQ("1", str.cstr());
+    }
+
+    // up, wrap
+    {
+        str = "1";
+
+        succ = twins::util::numEditInputEvt(kc, str, cursorPos, -1, 1, true);
+        EXPECT_TRUE(succ);
+        EXPECT_STREQ("-1", str.cstr());
+    }
+
+    // down, no wrap
+    kc.key = twins::Key::Down;
+
+    {
+        str = "0";
+
+        succ = twins::util::numEditInputEvt(kc, str, cursorPos, -1, 1, false);
+        EXPECT_TRUE(succ);
+        EXPECT_STREQ("-1", str.cstr());
+
+        succ = twins::util::numEditInputEvt(kc, str, cursorPos, -1, 1, false);
+        EXPECT_TRUE(succ);
+        EXPECT_STREQ("-1", str.cstr());
+    }
+
+    // down, wrap
+    {
+        str = "-1";
+        succ = twins::util::numEditInputEvt(kc, str, cursorPos, -1, 1, true);
+        EXPECT_TRUE(succ);
+        EXPECT_STREQ("1", str.cstr());
+    }
+}

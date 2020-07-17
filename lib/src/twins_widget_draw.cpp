@@ -739,14 +739,15 @@ static void drawTextBox(const Widget *pWgt)
     if (!p_lines)
         return;
 
-    assert(g.textboxTopLine >= 0);
-    assert(g.textboxTopLine <= (int)p_lines->size());
-
     if (changed)
-        g.textboxTopLine = 0;
+    {
+        if (g.textboxTopLine > (int)p_lines->size())
+            g.textboxTopLine = p_lines->size() - lines_visible;
+        if (g.textboxTopLine < 0)
+            g.textboxTopLine = 0;
+    }
 
-    // if (g.textboxTopLine >= p_lines->size())
-    //     g.textboxTopLine = p_lines->size();
+    assert(g.textboxTopLine >= 0);
 
     drawListScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), 1},
         lines_visible, p_lines->size() - lines_visible, g.textboxTopLine);
@@ -767,7 +768,7 @@ static void drawTextBox(const Widget *pWgt)
             sr.data = esc + 1;
         }
     }
-    writeStr(g.str.cstr());
+    writeStrLen(g.str.cstr(), g.str.size());
 
     // draw lines
     for (int i = 0; i < lines_visible; i++)
@@ -780,7 +781,7 @@ static void drawTextBox(const Widget *pWgt)
         g.str.appendLen(sr.data, sr.size);
         g.str.setLength(pWgt->size.width - 2, true, true);
         moveTo(my_coord.col + 1, my_coord.row + i + 1);
-        writeStr(g.str.cstr());
+        writeStrLen(g.str.cstr(), g.str.size());
     }
 
     flushBuffer();
