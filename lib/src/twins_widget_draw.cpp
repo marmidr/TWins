@@ -386,7 +386,7 @@ static void drawEdit(const Widget *pWgt)
     int16_t display_pos = 0;
     const int16_t max_w = pWgt->size.width-3;
 
-    if (g.editState.pWgt)
+    if (pWgt == g.editState.pWgt)
     {
         // in edit mode; similar calculation in setCursorAt()
         g.str = g.editState.str;
