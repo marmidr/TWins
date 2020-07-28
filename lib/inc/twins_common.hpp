@@ -97,6 +97,8 @@ struct IPal
     virtual uint16_t getLogsRow() = 0;
     virtual uint32_t getTimeStamp() = 0;
     virtual uint32_t getTimeDiff(uint32_t timestamp) = 0;
+    virtual bool lock(bool wait = true) { return true; }
+    virtual void unlock() {}
 };
 
 

@@ -198,7 +198,7 @@ Vector<StringRange> splitLines(const char *str)
 
 // -----------------------------------------------------------------------------
 
-bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos, int64_t clampMin, int64_t clampMax)
+bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos, int64_t limitMin, int64_t limitMax, bool wrap)
 {
     if (kc.mod_all == 0)
     {
@@ -230,11 +230,11 @@ bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &curs
         int delta = kc.m_ctrl && kc.m_shift ? 100 : (kc.m_ctrl ? 10 : 1);
         if (kc.key == twins::Key::Down) delta *= -1;
         n += delta;
-        if (n < clampMin) n = clampMin;
-        if (n > clampMax) n = clampMax;
+        if (n < limitMin) n = wrap ? limitMax : limitMin;
+        if (n > limitMax) n = wrap ? limitMin : limitMax;
 
         str.clear();
-        str.appendFmt("%ld", n);
+        str.appendFmt("%lld", n);
         cursorPos = str.size();
         return true;
     }

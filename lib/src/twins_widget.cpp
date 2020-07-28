@@ -564,10 +564,15 @@ static void pgControlChangePage(const Widget *pWgt, bool next)
 
 static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
 {
-    if (g.pWndState->onEditInputEvt(pWgt, kc, g.editState.str, g.editState.cursorPos))
+    if (pWgt == g.editState.pWgt)
     {
-        g.pWndState->invalidate(pWgt->id);
-        return true;
+        // if in edit state, allow user to handle key
+        if (g.pWndState->onEditInputEvt(pWgt, kc, g.editState.str, g.editState.cursorPos))
+        {
+            g.pWndState->invalidate(pWgt->id);
+            return true;
+        }
+        // user let us continue checking the key
     }
 
     bool key_handled = false;

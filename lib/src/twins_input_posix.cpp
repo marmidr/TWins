@@ -60,7 +60,7 @@ static void checkErrNo(int line)
     //  https://stackoverflow.com/questions/3596781/how-to-detect-if-the-current-process-is-being-run-by-gdb
     if (errno)
     {
-        printf("Line:%u ", line);
+        printf("%s:%u ", __FILE__, line);
         perror(strerror(errno));
         exit(EXIT_FAILURE);
     }
@@ -73,35 +73,49 @@ void inputPosixInit(uint16_t timeoutMs)
     termKeyTimeoutMs = timeoutMs;
     errno = 0;
     ttyFileNo = open("/dev/tty", O_RDONLY | O_NONBLOCK);
-    checkErrNo(__LINE__);
 
-    // get terminal configuration
-    tcgetattr(ttyFileNo, &termIOs);
-    checkErrNo(__LINE__);
-    termEOFcode = termIOs.c_cc[VEOF];
+    if (errno == 0)
+    {
+        // get terminal configuration
+        tcgetattr(ttyFileNo, &termIOs);
+        checkErrNo(__LINE__);
+        termEOFcode = termIOs.c_cc[VEOF];
 
-    // disable canonical mode and echo
-    termIOs.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(ttyFileNo, TCSAFLUSH, &termIOs);
-    checkErrNo(__LINE__);
+        // disable canonical mode and echo
+        termIOs.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(ttyFileNo, TCSAFLUSH, &termIOs);
+        checkErrNo(__LINE__);
+    }
+    else
+    {
+        printf("%s:%u ", __FILE__, __LINE__);
+        perror(strerror(errno));
+    }
 }
 
 void inputPosixFree()
 {
-    // restore terminal configuration
-    termIOs.c_lflag |= (ICANON | ECHO);
-    tcsetattr(ttyFileNo, TCSAFLUSH, &termIOs);
-    checkErrNo(__LINE__);
-    close(ttyFileNo);
+    if (ttyFileNo != -1)
+    {
+        // restore terminal configuration
+        termIOs.c_lflag |= (ICANON | ECHO);
+        tcsetattr(ttyFileNo, TCSAFLUSH, &termIOs);
+        checkErrNo(__LINE__);
+        close(ttyFileNo);
+    }
 }
 
 const char* inputPosixRead(bool &quitRequested)
 {
     termBuff[0] = '\0';
-    waitForKey();
 
-    if (termBuff[1] == '\0' && termBuff[0] == termEOFcode)
-        quitRequested = true;
+    if (ttyFileNo != -1)
+    {
+        waitForKey();
+
+        if (termBuff[1] == '\0' && termBuff[0] == termEOFcode)
+            quitRequested = true;
+    }
 
     return termBuff;
 }

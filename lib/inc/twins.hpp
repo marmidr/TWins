@@ -173,53 +173,8 @@ enum class ButtonStyle : uint8_t
  */
 using WID = int16_t;
 
-/** @brief Forward declaration */
-struct Widget;
-
-template <class T>
-class Vector;
-
-
-/** @brief Window state and event handler */
-class IWindowState
-{
-public:
-    virtual ~IWindowState() = default;
-    // events
-    virtual void onButtonDown(const twins::Widget* pWgt) {}
-    virtual void onButtonUp(const twins::Widget* pWgt) {}
-    virtual void onEditChange(const twins::Widget* pWgt, twins::String &&str) {}
-    virtual bool onEditInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos) { return false; }
-    virtual void onCheckboxToggle(const twins::Widget* pWgt) {}
-    virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
-    virtual void onListBoxSelect(const twins::Widget* pWgt, int16_t selIdx) {}
-    virtual void onListBoxChange(const twins::Widget* pWgt, int16_t newIdx) {}
-    virtual void onRadioSelect(const twins::Widget* pWgt) {}
-    virtual void onCustomWidgetDraw(const twins::Widget* pWgt) {}
-    virtual bool onCustomWidgetInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) { return false; }
-    virtual bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) { return false; }
-    // common state queries
-    virtual bool isEnabled(const twins::Widget*) { return true; }
-    virtual bool isFocused(const twins::Widget*) { return false; }
-    virtual bool isVisible(const twins::Widget*) { return true; }
-    virtual WID& getFocusedID() = 0;
-    // widget-specific queries
-    virtual void getWindowCoord(const twins::Widget*, twins::Coord &coord) {}
-    virtual void getWindowTitle(const twins::Widget*, twins::String &title) {}
-    virtual bool getCheckboxChecked(const twins::Widget*) { return false; }
-    virtual void getLabelText(const twins::Widget*, twins::String &out) {}
-    virtual void getEditText(const twins::Widget*, twins::String &out) {}
-    virtual bool getLedLit(const twins::Widget*) { return false; }
-    virtual void getLedText(const twins::Widget*, twins::String &out) {}
-    virtual void getProgressBarState(const twins::Widget*, int &pos, int &max) {}
-    virtual int  getPageCtrlPageIndex(const twins::Widget*) { return 0; }
-    virtual void getListBoxState(const twins::Widget*, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount) {}
-    virtual void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) {}
-    virtual int  getRadioIndex(const twins::Widget*) { return -1; }
-    virtual void getTextBoxLines(const twins::Widget*, const twins::Vector<twins::StringRange> **ppLines, bool &changed) {}
-    // requests
-    virtual void invalidate(twins::WID id, bool instantly = false) {}
-};
+// moved to external file so it will not be taken into coverage
+#include "twins_window_state.hpp"
 
 /**
  * @brief Widget structure as union of members for different types;
@@ -373,15 +328,21 @@ static constexpr WID WIDGET_ID_ALL = -1;
 /** @brief Object remembers terminal font colors and attribute,
  *         to restore them on destruction
  */
-struct FontMemento
+struct FontMementoManual
 {
-    FontMemento();
-    ~FontMemento();
+    void store();
+    void restore();
 
-private:
+protected:
     uint8_t szFg;
     uint8_t szBg;
     uint8_t szAttr;
+};
+
+struct FontMemento : FontMementoManual
+{
+    FontMemento()  { store(); }
+    ~FontMemento() { restore(); }
 };
 
 /** @brief */
@@ -399,8 +360,19 @@ enum class MouseMode : uint8_t
  */
 void init(IPal *pal);
 
+/**
+ * @brief Control TWins mutex implemented in IPal
+ *        Call unlock() only if lock() returned true
+ */
+bool lock(bool wait = true);
+void unlock(void);
+
 /** @brief used by TWINS_LOG() */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
+/** @brief */
+void logRawBegin(const char *prologue = "", bool timeStamp = false);
+void logRawWrite(const char *msg);
+void logRawEnd(const char *epilogue = "");
 
 /**
  * @brief Delay for given number if milliseconds
@@ -531,6 +503,28 @@ bool processKey(const Widget *pWindow, const KeyCode &kc);
  *        when to change page
  */
 void mainPgControlChangePage(const Widget *pWindowWidgets, bool next);
+
+// -----------------------------------------------------------------------------
+
+/** @brief RAII style locker */
+struct Locker
+{
+    Locker()
+    {
+        m_isLocked = twins::lock();
+    }
+
+    ~Locker()
+    {
+        if (m_isLocked)
+            twins::unlock();
+    }
+
+    bool isLocked() const { return m_isLocked; }
+
+private:
+    bool m_isLocked;
+};
 
 // -----------------------------------------------------------------------------
 

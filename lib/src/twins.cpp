@@ -28,10 +28,13 @@ static Stack<ColorFG> stackClFg;
 static Stack<ColorBG> stackClBg;
 static Stack<FontAttrib> stackAttr;
 
+/** @brief */
+static FontMementoManual logRawFontMemento;
+
 // -----------------------------------------------------------------------------
 
 /** */
-FontMemento::FontMemento()
+void FontMementoManual::store()
 {
     szFg = stackClFg.size();
     szBg = stackClBg.size();
@@ -41,7 +44,7 @@ FontMemento::FontMemento()
     // stackClBg.push(currentClBg);
 }
 
-FontMemento::~FontMemento()
+void FontMementoManual::restore()
 {
     popClFg(stackClFg.size() - szFg);
     popClBg(stackClBg.size() - szBg);
@@ -55,13 +58,32 @@ void init(IPal *pal)
     pPAL = pal;
 }
 
+bool lock(bool wait)
+{
+    if (pPAL)
+        return pPAL->lock(wait);
+    return true;
+}
+
+void unlock(void)
+{
+    if (pPAL)
+        pPAL->unlock();
+}
+
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
 {
+    twins::Locker lck;
+
+    // display only file name, trim the path
+    if (const char *delim = strrchr(file, '/'))
+        file = delim + 1;
+
     if (!pPAL)
     {
         if (fmt)
         {
-            printf("%s:%u: " ESC_BOLD, file, line);
+            printf(ESC_COLORS_DEFAULT "%s:%u: " ESC_BOLD, file, line);
             va_list ap;
             va_start(ap, fmt);
             vprintf(fmt, ap);
@@ -74,17 +96,12 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
 
     FontMemento _m;
     cursorSavePos();
-
     pushClBg(ColorBG::Default);
     pushClFg(ColorFG::White);
 
     uint16_t row = pPAL->getLogsRow();
     moveTo(1, row);
     insertLines(1);
-
-    // display only file name, trim the path
-    if (const char *delim = strrchr(file, '/'))
-        file = delim + 1;
 
     time_t t = time(NULL);
     struct tm *p_stm = localtime(&t);
@@ -103,6 +120,39 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
     }
 
     cursorRestorePos();
+    flushBuffer();
+}
+
+void logRawBegin(const char *prologue, bool timeStamp)
+{
+    logRawFontMemento.store();
+    cursorSavePos();
+    moveTo(1, pPAL->getLogsRow());
+    insertLines(1);
+    pushClBg(ColorBG::Default);
+    pushClFg(ColorFG::White);
+
+    if (timeStamp)
+    {
+        time_t t = time(NULL);
+        struct tm *p_stm = localtime(&t);
+        writeStrFmt("[%2d:%02d:%02d] ",
+            p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec);
+    }
+
+    writeStr(prologue);
+}
+
+void logRawWrite(const char *msg)
+{
+    writeStr(msg);
+}
+
+void logRawEnd(const char *epilogue)
+{
+    writeStr(epilogue);
+    cursorRestorePos();
+    logRawFontMemento.restore();
     flushBuffer();
 }
 
