@@ -791,6 +791,9 @@ static void drawTextBox(const Widget *pWgt)
 
 static void drawWidgetInternal(const Widget *pWgt)
 {
+    if (!g.pWndState->isVisible(pWgt))
+        return;
+
     bool en = g.pWndState->isEnabled(pWgt);
     if (!en) pushAttr(FontAttrib::Faint);
 
@@ -837,8 +840,7 @@ void drawWidget(const Widget *pWindowWidgets, WID widgetId)
 
     if (widgetId == WIDGET_ID_ALL)
     {
-        if (g.pWndState->isVisible(pWindowWidgets))
-            drawWidgetInternal(pWindowWidgets);
+        drawWidgetInternal(pWindowWidgets);
     }
     else
     {

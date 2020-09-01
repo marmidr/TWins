@@ -140,6 +140,7 @@ void logRawBegin(const char *prologue, bool timeStamp)
             p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec);
     }
 
+    pushClFg(ColorFG::WhiteIntense);
     writeStr(prologue);
 }
 
