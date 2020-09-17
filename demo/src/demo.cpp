@@ -315,7 +315,7 @@ public:
     {
         itemIdx = wgtProp[pWgt->id].cbbx.itemIdx;
         selIdx = wgtProp[pWgt->id].cbbx.selIdx;
-        itemsCount = 5;
+        itemsCount = 8;
         dropDown = wgtProp[pWgt->id].cbbx.dropDown;
     }
 

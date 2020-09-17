@@ -573,8 +573,8 @@ static constexpr twins::Widget page6Childs[] =
         coord   : { 10, 2 },
         size    : { 20, 1 },
         { combobox : {
-            fgColor     : twins::ColorFG::Cyan,
-            bgColor     : twins::ColorBG::Black,
+            fgColor     : twins::ColorFG::Blue,
+            bgColor     : twins::ColorBG::White,
             dropDownSize: 4
         }},
     },
