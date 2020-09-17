@@ -28,6 +28,9 @@ public:
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
     virtual void onListBoxSelect(const twins::Widget* pWgt, int16_t selIdx) {}
     virtual void onListBoxChange(const twins::Widget* pWgt, int16_t newIdx) {}
+    virtual void onComboBoxSelect(const twins::Widget* pWgt, int16_t selIdx) {}
+    virtual void onComboBoxChange(const twins::Widget* pWgt, int16_t newIdx) {}
+    virtual void onComboBoxDrop(const twins::Widget* pWgt, bool dropState) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
     virtual void onCustomWidgetDraw(const twins::Widget* pWgt) {}
     virtual bool onCustomWidgetInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) { return false; }
@@ -49,6 +52,8 @@ public:
     virtual int  getPageCtrlPageIndex(const twins::Widget*) { return 0; }
     virtual void getListBoxState(const twins::Widget*, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount) {}
     virtual void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) {}
+    virtual void getComboBoxState(const twins::Widget*, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount, bool &dropDown) {}
+    virtual void getComboBoxItem(const twins::Widget*, int itemIdx, twins::String &out) {}
     virtual int  getRadioIndex(const twins::Widget*) { return -1; }
     virtual void getTextBoxLines(const twins::Widget*, const twins::Vector<twins::StringRange> **ppLines, bool &changed) {}
     // requests

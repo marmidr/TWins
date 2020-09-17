@@ -565,6 +565,45 @@ static constexpr twins::Widget page5Childs[] =
     { /* NUL */ }
 };
 
+static constexpr twins::Widget page6Childs[] =
+{
+    {
+        type    : twins::Widget::ComboBox,
+        id      : ID_CBX_OPTIONS,
+        coord   : { 10, 2 },
+        size    : { 20, 1 },
+        { combobox : {
+            fgColor     : twins::ColorFG::Cyan,
+            bgColor     : twins::ColorBG::Black,
+            dropDownSize: 4
+        }},
+    },
+    {
+        type    : twins::Widget::Panel,
+        id      : ID_PNL_UNDEROPTIONS,
+        coord   : { 5, 4 },
+        size    : { 30, 7 },
+        { panel : {
+            title       : {},
+            fgColor     : twins::ColorFG::White,
+            bgColor     : {},
+        }},
+    },
+    {
+        type    : twins::Widget::Button,
+        id      : ID_BTN_NEXTTOOPTIONS,
+        coord   : { 35, 2 },
+        size    : {},
+        { button : {
+            text    : "No Options",
+            fgColor : twins::ColorFG::ButtonGreen,
+            bgColor : twins::ColorBG::ButtonGreen,
+            style   : twins::ButtonStyle::Simple
+        }}
+    },
+    { /* NUL */ }
+};
+
 static constexpr twins::Widget wndMain =
 {
     // NOTE: all members must be initialized, in order they are declared,
@@ -650,6 +689,17 @@ static constexpr twins::Widget wndMain =
                         fgColor     : twins::ColorFG::White,
                     }},
                     link    : { page5Childs }
+                },
+                {
+                    type    : twins::Widget::Page,
+                    id      : ID_PAGE_6,
+                    coord   : {},
+                    size    : {},
+                    { page : {
+                        title       : "Combo Box",
+                        fgColor     : twins::ColorFG::White,
+                    }},
+                    link    : { page6Childs }
                 },
                 { /* NUL */ }
             }}

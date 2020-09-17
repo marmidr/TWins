@@ -60,6 +60,10 @@ enum WndMainIDs
             ID_PAGE_5,
                 ID_TBX_LOREMIPSUM,
                 ID_TBX_1LINE,
+            ID_PAGE_6,
+                ID_CBX_OPTIONS,
+                ID_PNL_UNDEROPTIONS,
+                ID_BTN_NEXTTOOPTIONS,
         ID_LABEL_FTR,
 };
 

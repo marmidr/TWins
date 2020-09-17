@@ -85,6 +85,9 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
         if (pWgt->listbox.bgColor != ColorBG::Inherit)
             return pWgt->listbox.bgColor;
         break;
+    case Widget::ComboBox:
+        if (pWgt->combobox.bgColor != ColorBG::Inherit)
+            return pWgt->combobox.bgColor;
     default:
         break;
     }
@@ -137,6 +140,10 @@ static ColorFG getWidgetFgColor(const Widget *pWgt)
     case Widget::ListBox:
         if (pWgt->listbox.fgColor != ColorFG::Inherit)
             return pWgt->listbox.fgColor;
+        break;
+    case Widget::ComboBox:
+        if (pWgt->combobox.fgColor != ColorFG::Inherit)
+            return pWgt->combobox.fgColor;
         break;
     default:
         break;
@@ -710,9 +717,33 @@ static void drawListBox(const Widget *pWgt)
     }
 }
 
-static void drawDropDownList(const Widget *pWgt)
+static void drawComboBox(const Widget *pWgt)
 {
-    // TODO:
+    FontMemento _m;
+    const auto my_coord = g.parentCoord + pWgt->coord;
+    const bool focused = g.pWndState->isFocused(pWgt);
+
+    int16_t item_idx = 0; int16_t sel_idx = 0; int16_t items_count; bool drop_down = false;
+    g.pWndState->getComboBoxState(pWgt, item_idx, sel_idx, items_count, drop_down);
+
+    {
+        g.str.clear();
+        g.pWndState->getComboBoxItem(pWgt, item_idx, g.str);
+        g.str.setLength(pWgt->size.width - 4, true, true);
+        g.str << " [▼]";
+
+        moveTo(my_coord.col, my_coord.row);
+        pushClFg(getWidgetFgColor(pWgt));
+        pushClBg(getWidgetBgColor(pWgt));
+        if (focused && !drop_down) pushAttr(FontAttrib::Inverse);
+        writeStrLen(g.str.cstr(), g.str.size());
+        if (focused && !drop_down) popAttr();
+    }
+
+    if (drop_down)
+    {
+        // TODO:
+    }
 }
 
 static void drawCustomWgt(const Widget *pWgt)
@@ -811,7 +842,7 @@ static void drawWidgetInternal(const Widget *pWgt)
     case Widget::Page:          drawPage(pWgt); break;
     case Widget::ProgressBar:   drawProgressBar(pWgt); break;
     case Widget::ListBox:       drawListBox(pWgt); break;;
-    case Widget::DropDownList:  drawDropDownList(pWgt); break;
+    case Widget::ComboBox:      drawComboBox(pWgt); break;
     case Widget::CustomWgt:     drawCustomWgt(pWgt); break;
     case Widget::TextBox:       drawTextBox(pWgt); break;
     default:                    break;

@@ -128,7 +128,7 @@ const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
             break;
         case Widget::ListBox:
             break;
-        case Widget::DropDownList:
+        case Widget::ComboBox:
             break;
         default:
             stop_searching = false;
@@ -208,7 +208,7 @@ void setCursorAt(const Widget *pWgt)
         coord.row += frame_size + row;
         break;
     }
-    case Widget::DropDownList:
+    case Widget::ComboBox:
         break;
     case Widget::TextBox:
         break;
@@ -301,7 +301,7 @@ static bool isFocusable(const Widget *pWgt)
     case Widget::Button:
     //case Widget::PageCtrl:
     case Widget::ListBox:
-    case Widget::DropDownList:
+    case Widget::ComboBox:
     case Widget::TextBox:
         return g.pWndState->isEnabled(pWgt);
     default:
@@ -807,9 +807,48 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
     return false;
 }
 
-static bool processKey_DropDownList(const Widget *pWgt, const KeyCode &kc)
+static bool processKey_ComboBox(const Widget *pWgt, const KeyCode &kc)
 {
-    return false;
+    int16_t item_idx = 0; int16_t sel_idx = 0; int16_t items_count; bool drop_down = false;
+    g.pWndState->getComboBoxState(pWgt, item_idx, sel_idx, items_count, drop_down);
+
+    if (kc.utf8[0] == ' ')
+    {
+        drop_down = !drop_down;
+        g.pWndState->onComboBoxDrop(pWgt, drop_down);
+    }
+    else if (kc.key == Key::Esc)
+    {
+        g.pWndState->onComboBoxDrop(pWgt, false);
+    }
+    else if (drop_down)
+    {
+        if (kc.key == Key::Up)
+        {
+            if (--sel_idx < 0) sel_idx = items_count-1;
+            g.pWndState->onComboBoxSelect(pWgt, sel_idx);
+        }
+        else if (kc.key == Key::Down)
+        {
+            if (++sel_idx >= items_count) sel_idx = 0;
+            g.pWndState->onComboBoxSelect(pWgt, sel_idx);
+        }
+        else if (kc.key == Key::Enter)
+        {
+            g.pWndState->onComboBoxChange(pWgt, sel_idx);
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    g.pWndState->invalidate(pWgt->id);
+    return true;
 }
 
 static bool processKey_TextBox(const Widget *pWgt, const KeyCode &kc)
@@ -889,8 +928,8 @@ static bool processKey(const KeyCode &kc)
     case Widget::ListBox:
         key_handled = processKey_ListBox(p_wgt, kc);
         break;
-    case Widget::DropDownList:
-        key_handled = processKey_DropDownList(p_wgt, kc);
+    case Widget::ComboBox:
+        key_handled = processKey_ComboBox(p_wgt, kc);
         break;
     case Widget::TextBox:
         key_handled = processKey_TextBox(p_wgt, kc);
@@ -1027,11 +1066,22 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
     }
 }
 
-static void processMouse_DropDownList(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+static void processMouse_ComboBox(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
+
+        if (kc.mouse.col - wgtRect.coord.col == wgtRect.size.width - 2)
+        {
+            // drop down arrow clicked
+            int16_t _; bool drop_down = false;
+            g.pWndState->getComboBoxState(pWgt, _, _, _, drop_down);
+
+            drop_down = !drop_down;
+            g.pWndState->onComboBoxDrop(pWgt, drop_down);
+            g.pWndState->invalidate(pWgt->id);
+        }
     }
 }
 
@@ -1128,8 +1178,8 @@ static bool processMouse(const KeyCode &kc)
     case Widget::ListBox:
         processMouse_ListBox(p_wgt, rct, kc);
         break;
-    case Widget::DropDownList:
-        processMouse_DropDownList(p_wgt, rct, kc);
+    case Widget::ComboBox:
+        processMouse_ComboBox(p_wgt, rct, kc);
         break;
     case Widget::CustomWgt:
         processMouse_CustomWgt(p_wgt, rct, kc);
@@ -1172,7 +1222,7 @@ const char * toString(Widget::Type type)
     CASE_WGT_STR(Page)
     CASE_WGT_STR(ProgressBar)
     CASE_WGT_STR(ListBox)
-    CASE_WGT_STR(DropDownList)
+    CASE_WGT_STR(ComboBox)
     CASE_WGT_STR(CustomWgt)
     CASE_WGT_STR(TextBox)
     default: return "?";
