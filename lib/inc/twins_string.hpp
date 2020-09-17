@@ -25,24 +25,24 @@ public:
     ~String();
 
     /** @brief Append \p repeat of given string \p s */
-    void append(const char *s, int16_t repeat = 1);
+    String& append(const char *s, int16_t repeat = 1);
     /** @brief Append new string \p s, size of \p sLen bytes */
-    void appendLen(const char *s, int16_t sLen);
+    String& appendLen(const char *s, int16_t sLen);
     /** @brief Append \p repeat of given characters \p c */
-    void append(char c, int16_t repeat = 1);
+    String& append(char c, int16_t repeat = 1);
     /** @brief Append formatted string */
-    void appendFmt(const char *fmt, ...);
+    String& appendFmt(const char *fmt, ...);
     void appendVFmt(const char *fmt, va_list ap);
     /** @brief Trim string that is too long to fit; optionally append ellipsis ... at the \p trimPos */
-    void trim(int16_t trimPos, bool addEllipsis = false, bool ignoreESC = false);
+    String& trim(int16_t trimPos, bool addEllipsis = false, bool ignoreESC = false);
     /** @brief Erase \p len characters from string at \p pos */
-    void erase(int16_t pos, int16_t len = 1);
+    String& erase(int16_t pos, int16_t len = 1);
     /** @brief Insert string \p s at \p pos */
-    void insert(int16_t pos, const char *s);
+    String& insert(int16_t pos, const char *s);
     /** @brief If shorter than len - add spaces; if longer - calls trim */
     void setLength(int16_t len, bool addEllipsis = false, bool ignoreESC = false);
     /** @brief Set size to zero; release buffer memory only if capacity >= \p threshordToFree */
-    void clear(uint16_t threshordToFree = 500);
+    String& clear(uint16_t threshordToFree = 500);
     /** @brief Return string size, in bytes */
     unsigned size() const { return mSize; }
     /** @brief Return string length, in characters, assuming UTF-8 encoding */
