@@ -777,10 +777,12 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
     {
         int16_t idx = 0, selidx = 0, cnt = 0;
         g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
-
-        if (selidx >= 0 && selidx != idx)
-            g.pWndState->onListBoxChange(pWgt, selidx);
-        g.pWndState->invalidate(pWgt->id);
+        if (cnt > 0)
+        {
+            if (selidx >= 0 && selidx != idx)
+                g.pWndState->onListBoxChange(pWgt, selidx);
+            g.pWndState->invalidate(pWgt->id);
+        }
         return true;
     }
     case Key::Up:
@@ -803,16 +805,20 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
     {
         int16_t idx = 0, selidx = 0, cnt = 0;
         g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
-        selidx += delta;
 
-        if (selidx < 0)
-            selidx = cnt - 1;
+        if (cnt > 0)
+        {
+            selidx += delta;
 
-        if (selidx >= cnt)
-            selidx = 0;
+            if (selidx < 0)
+                selidx = cnt - 1;
 
-        g.pWndState->onListBoxSelect(pWgt, selidx);
-        g.pWndState->invalidate(pWgt->id);
+            if (selidx >= cnt)
+                selidx = 0;
+
+            g.pWndState->onListBoxSelect(pWgt, selidx);
+            g.pWndState->invalidate(pWgt->id);
+        }
         return true;
     }
 
@@ -821,15 +827,18 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
 
 static bool processKey_ComboBox(const Widget *pWgt, const KeyCode &kc)
 {
-    int16_t item_idx = 0; int16_t sel_idx = 0; int16_t items_count; bool drop_down = false;
-    g.pWndState->getComboBoxState(pWgt, item_idx, sel_idx, items_count, drop_down);
+    int16_t idx = 0, selidx = 0, cnt = 0; bool drop_down = false;
+    g.pWndState->getComboBoxState(pWgt, idx, selidx, cnt, drop_down);
 
     if (kc.utf8[0] == ' ')
     {
-        drop_down = !drop_down;
-        g.pWndState->onComboBoxDrop(pWgt, drop_down);
-        if (!drop_down)
-            comboBoxHideList(pWgt);
+        if (cnt)
+        {
+            drop_down = !drop_down;
+            g.pWndState->onComboBoxDrop(pWgt, drop_down);
+            if (!drop_down)
+                comboBoxHideList(pWgt);
+        }
     }
     else if (kc.key == Key::Esc)
     {
@@ -840,18 +849,30 @@ static bool processKey_ComboBox(const Widget *pWgt, const KeyCode &kc)
     {
         if (kc.key == Key::Up)
         {
-            if (--sel_idx < 0) sel_idx = items_count-1;
-            g.pWndState->onComboBoxSelect(pWgt, sel_idx);
+            if (--selidx < 0) selidx = cnt-1;
+            g.pWndState->onComboBoxSelect(pWgt, selidx);
         }
         else if (kc.key == Key::Down)
         {
-            if (++sel_idx >= items_count) sel_idx = 0;
-            g.pWndState->onComboBoxSelect(pWgt, sel_idx);
+            if (++selidx >= cnt) selidx = 0;
+            g.pWndState->onComboBoxSelect(pWgt, selidx);
+        }
+        else if (kc.key == Key::PgUp && kc.mod_all == KEY_MOD_SPECIAL)
+        {
+            selidx -= pWgt->combobox.dropDownSize;
+            if (selidx < 0) selidx = cnt-1;
+            g.pWndState->onComboBoxSelect(pWgt, selidx);
+        }
+        else if (kc.key == Key::PgDown && kc.mod_all == KEY_MOD_SPECIAL)
+        {
+            selidx += pWgt->combobox.dropDownSize;
+            if (selidx >= cnt) selidx = 0;
+            g.pWndState->onComboBoxSelect(pWgt, selidx);
         }
         else if (kc.key == Key::Enter)
         {
             g.pWndState->onComboBoxDrop(pWgt, false);
-            g.pWndState->onComboBoxChange(pWgt, sel_idx);
+            g.pWndState->onComboBoxChange(pWgt, selidx);
             comboBoxHideList(pWgt);
         }
         else
@@ -1036,13 +1057,17 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
 
     if (kc.mouse.btn == MouseBtn::ButtonLeft || kc.mouse.btn == MouseBtn::ButtonMid)
     {
+        changeFocusTo(pWgt->id);
+
         int16_t idx = 0, selidx = 0, cnt = 0;
         g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
+
+        if (cnt <= 0)
+            return;
 
         int page = selidx / items_visible;
         unsigned new_selidx = page * items_visible;
         new_selidx += (int)kc.mouse.row - wgtRect.coord.row - 1;
-        changeFocusTo(pWgt->id);
 
         if (kc.mouse.btn == MouseBtn::ButtonLeft)
         {
@@ -1065,8 +1090,14 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
     {
+        changeFocusTo(pWgt->id);
+
         int16_t idx = 0, selidx = 0, cnt = 0;
         g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
+
+        if (cnt <= 0)
+            return;
+
         int delta = kc.mouse.btn == MouseBtn::WheelUp ? -1 : 1;
         if (kc.m_ctrl) delta *= items_visible;
         selidx += delta;
@@ -1077,7 +1108,6 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
         if (selidx >= cnt)
             selidx = 0;
 
-        changeFocusTo(pWgt->id);
         g.pWndState->onListBoxSelect(pWgt, selidx);
         g.pWndState->invalidate(pWgt->id);
     }
@@ -1093,8 +1123,11 @@ static void processMouse_ComboBox(const Widget *pWgt, const Rect &wgtRect, const
         if (col >= wgtRect.size.width - 3 && col <= wgtRect.size.width - 1)
         {
             // drop down arrow clicked
-            int16_t _; bool drop_down = false;
-            g.pWndState->getComboBoxState(pWgt, _, _, _, drop_down);
+            int16_t _; int16_t cnt = 0; bool drop_down = false;
+            g.pWndState->getComboBoxState(pWgt, _, _, cnt, drop_down);
+
+            if (cnt <= 0)
+                return;
 
             drop_down = !drop_down;
             g.pWndState->onComboBoxDrop(pWgt, drop_down);
@@ -1107,8 +1140,14 @@ static void processMouse_ComboBox(const Widget *pWgt, const Rect &wgtRect, const
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
     {
+        changeFocusTo(pWgt->id);
+
         int16_t idx = 0, selidx = 0, cnt = 0; bool drop_down = false;
         g.pWndState->getComboBoxState(pWgt, idx, selidx, cnt, drop_down);
+
+        if (cnt <= 0)
+            return;
+
         int delta = kc.mouse.btn == MouseBtn::WheelUp ? -1 : 1;
         if (kc.m_ctrl) delta *= pWgt->combobox.dropDownSize;
         selidx += delta;
@@ -1119,14 +1158,19 @@ static void processMouse_ComboBox(const Widget *pWgt, const Rect &wgtRect, const
         if (selidx >= cnt)
             selidx = 0;
 
-        changeFocusTo(pWgt->id);
         g.pWndState->onComboBoxSelect(pWgt, selidx);
         g.pWndState->invalidate(pWgt->id);
     }
     else if (kc.mouse.btn == MouseBtn::ButtonMid)
     {
+        changeFocusTo(pWgt->id);
+
         int16_t _, selidx = 0; bool drop_down = false;
         g.pWndState->getComboBoxState(pWgt, _, selidx, _, drop_down);
+
+        if (!drop_down)
+            return;
+
         g.pWndState->onComboBoxDrop(pWgt, false);
         g.pWndState->onComboBoxChange(pWgt, selidx);
         comboBoxHideList(pWgt);
@@ -1149,7 +1193,7 @@ static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const 
         g.pWndState->getTextBoxLines(pWgt, &p_lines, changed);
         if (changed) g.textboxTopLine = 0;
 
-        if (p_lines)
+        if (p_lines && p_lines->size())
         {
             int delta = kc.mouse.btn == MouseBtn::WheelUp ? -1 : 1;
             const uint16_t lines_visible = pWgt->size.height - 2;
