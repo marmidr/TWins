@@ -135,6 +135,24 @@ public:
         }
     }
 
+    void onComboBoxSelect(const twins::Widget* pWgt, int16_t selIdx) override
+    {
+        wgtProp[pWgt->id].cbbx.selIdx = selIdx;
+        TWINS_LOG("COMBOBOX_SELECT(%u)", selIdx);
+    }
+
+    void onComboBoxChange(const twins::Widget* pWgt, int16_t newIdx) override
+    {
+        wgtProp[pWgt->id].cbbx.itemIdx = newIdx;
+        TWINS_LOG("COMBOBOX_CHANGE(%u)", newIdx);
+    }
+
+    void onComboBoxDrop(const twins::Widget* pWgt, bool dropState) override
+    {
+        wgtProp[pWgt->id].cbbx.dropDown = dropState;
+        TWINS_LOG("COMBOBOX_DROP(%u)", dropState);
+    }
+
     void onRadioSelect(const twins::Widget* pWgt) override
     {
         TWINS_LOG("RADIO_SELECT(%d)", pWgt->radio.radioId);
@@ -196,6 +214,7 @@ public:
         if (pWgt->id == ID_PAGE_3) return pgcPage == 2;
         if (pWgt->id == ID_PAGE_4) return pgcPage == 3;
         if (pWgt->id == ID_PAGE_5) return pgcPage == 4;
+        if (pWgt->id == ID_PAGE_6) return pgcPage == 5;
 
         return true;
     }
@@ -292,6 +311,19 @@ public:
             out.appendFmt(ESC_FG_BLACK "Item" ESC_FG_BLUE " %03d", itemIdx);
     }
 
+    void getComboBoxState(const twins::Widget* pWgt, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount, bool &dropDown) override
+    {
+        itemIdx = wgtProp[pWgt->id].cbbx.itemIdx;
+        selIdx = wgtProp[pWgt->id].cbbx.selIdx;
+        itemsCount = 8;
+        dropDown = wgtProp[pWgt->id].cbbx.dropDown;
+    }
+
+    void getComboBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
+    {
+        out.appendFmt("Option %03d", itemIdx);
+    }
+
     int getRadioIndex(const twins::Widget* pWgt) override
     {
         return radioId;
@@ -365,6 +397,13 @@ private:
             int16_t itemIdx;
             int16_t selIdx;
         } lbx;
+
+        struct
+        {
+            int16_t itemIdx;
+            int16_t selIdx;
+            bool    dropDown;
+        } cbbx;
     };
 
     int  pgbarPos = 0;

@@ -37,11 +37,10 @@ String::~String()
         pPAL->memFree(mpBuff);
 }
 
-void String::append(const char *s, int16_t repeat)
+String& String::append(const char *s, int16_t repeat)
 {
-    if (repeat <= 0) return;
-    if (!s) return;
-    if (sourceIsOurs(s)) return;
+    if (repeat <= 0 || !s || sourceIsOurs(s))
+        return *this;
 
     int s_len = strlen(s);
     reserve(mSize + repeat * s_len);
@@ -50,39 +49,42 @@ void String::append(const char *s, int16_t repeat)
     while (repeat--)
         p = strcat(p, s);
     mpBuff[mSize] = '\0';
+    return *this;
 }
 
-void String::appendLen(const char *s, int16_t sLen)
+String& String::appendLen(const char *s, int16_t sLen)
 {
-    if (sLen <= 0) return;
-    if (!s) return;
-    if (sourceIsOurs(s)) return;
+    if (sLen <= 0 || !s || sourceIsOurs(s))
+        return *this;
 
     reserve(mSize + sLen);
     strncat(mpBuff + mSize, s, sLen);
     mSize += sLen;
     mpBuff[mSize] = '\0';
+    return *this;
 }
 
-void String::append(char c, int16_t repeat)
+String& String::append(char c, int16_t repeat)
 {
-    if (repeat <= 0) return;
+    if (repeat <= 0) return *this;
     reserve(mSize + repeat);
     char *p = mpBuff + mSize;
     mSize += repeat;
     while (repeat--)
         *p++ = c;
     mpBuff[mSize] = '\0';
+    return *this;
 }
 
-void String::appendFmt(const char *fmt, ...)
+String& String::appendFmt(const char *fmt, ...)
 {
-    if (!fmt) return;
+    if (!fmt) return *this;
 
     va_list ap;
     va_start(ap, fmt);
     appendVFmt(fmt, ap);
     va_end(ap);
+    return *this;
 }
 
 void String::appendVFmt(const char *fmt, va_list ap)
@@ -118,10 +120,10 @@ void String::appendVFmt(const char *fmt, va_list ap)
     } while (retry--);
 }
 
-void String::trim(int16_t trimPos, bool addEllipsis, bool ignoreESC)
+String& String::trim(int16_t trimPos, bool addEllipsis, bool ignoreESC)
 {
     if (trimPos < 0 || trimPos >= mSize)
-        return;
+        return *this;
     if (addEllipsis && trimPos > 0)
         trimPos--;
 
@@ -141,21 +143,22 @@ void String::trim(int16_t trimPos, bool addEllipsis, bool ignoreESC)
         }
     }
 
-    if (p >= mpBuff + mSize) return;
+    if (p >= mpBuff + mSize) return *this;
     mSize = p - mpBuff;
     char last = mpBuff[mSize];
 
-    if (addEllipsis && last == ' ') mSize++;
+    if (addEllipsis && last == ' ') 
+        mSize++;
     mpBuff[mSize] = '\0';
-    if (addEllipsis && last != ' ') append("…");
+    if (addEllipsis && last != ' ') 
+        append("…");
+    return *this;
 }
 
-void String::erase(int16_t pos, int16_t len)
+String& String::erase(int16_t pos, int16_t len)
 {
-    if (pos < 0 || pos >= mSize)
-        return;
-    if (len <= 0)
-        return;
+    if (pos < 0 || pos >= mSize || len <= 0)
+        return *this;
 
     char *p = mpBuff;
 
@@ -166,7 +169,8 @@ void String::erase(int16_t pos, int16_t len)
         p += seqLen;
     }
 
-    if (p >= mpBuff + mSize) return;
+    if (p >= mpBuff + mSize) 
+        return *this;
 
     char *erase_at = p;
     unsigned bytes_to_erase = 0;
@@ -184,21 +188,18 @@ void String::erase(int16_t pos, int16_t len)
     memmove(erase_at, erase_at + bytes_to_erase, mSize - (erase_at - mpBuff));
     mSize -= bytes_to_erase;
     mpBuff[mSize] = '\0';
+    return *this;
 }
 
-void String::insert(int16_t pos, const char *s)
+String& String::insert(int16_t pos, const char *s)
 {
-    if (pos < 0)
-        return;
-    if (!s || !*s)
-        return;
-    if (sourceIsOurs(s))
-        return;
+    if (pos < 0 || (!s || !*s) || sourceIsOurs(s))
+        return *this;
 
     if ((unsigned)pos >= u8len())
     {
         append(s);
-        return;
+        return *this;
     }
 
     char *p = mpBuff;
@@ -210,7 +211,8 @@ void String::insert(int16_t pos, const char *s)
         p += seqLen;
     }
 
-    if (p >= mpBuff + mSize) return;
+    if (p >= mpBuff + mSize) 
+        return *this;
 
     char *insert_at = p;
     unsigned bytes_to_insert = strlen(s);
@@ -220,6 +222,7 @@ void String::insert(int16_t pos, const char *s)
     memmove(insert_at, s, bytes_to_insert);
     mSize += bytes_to_insert;
     mpBuff[mSize] = '\0';
+    return *this;
 }
 
 void String::setLength(int16_t len, bool addEllipsis, bool ignoreESC)
@@ -235,7 +238,7 @@ void String::setLength(int16_t len, bool addEllipsis, bool ignoreESC)
         trim(len, addEllipsis, ignoreESC);
 }
 
-void String::clear(uint16_t threshordToFree)
+String& String::clear(uint16_t threshordToFree)
 {
     if (mCapacity >= threshordToFree)
         free();
@@ -243,6 +246,8 @@ void String::clear(uint16_t threshordToFree)
     mSize = 0;
     if (mpBuff)
         *mpBuff = '\0';
+        
+    return *this;
 }
 
 String& String::operator=(const char *s)

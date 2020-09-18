@@ -197,7 +197,7 @@ struct Widget
         Page,
         ProgressBar,
         ListBox,
-        DropDownList,
+        ComboBox,
         CustomWgt,
         TextBox,
     };
@@ -296,7 +296,10 @@ struct Widget
 
         struct
         {
-        } dropdownlist;
+            ColorFG     fgColor;
+            ColorBG     bgColor;
+            uint8_t     dropDownSize;
+        } combobox;
 
         struct
         {

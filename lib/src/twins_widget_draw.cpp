@@ -8,6 +8,7 @@
 #include "twins_utils.hpp"
 
 #include <assert.h>
+#include <functional>
 
 // -----------------------------------------------------------------------------
 
@@ -85,6 +86,9 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
         if (pWgt->listbox.bgColor != ColorBG::Inherit)
             return pWgt->listbox.bgColor;
         break;
+    case Widget::ComboBox:
+        if (pWgt->combobox.bgColor != ColorBG::Inherit)
+            return pWgt->combobox.bgColor;
     default:
         break;
     }
@@ -137,6 +141,10 @@ static ColorFG getWidgetFgColor(const Widget *pWgt)
     case Widget::ListBox:
         if (pWgt->listbox.fgColor != ColorFG::Inherit)
             return pWgt->listbox.fgColor;
+        break;
+    case Widget::ComboBox:
+        if (pWgt->combobox.fgColor != ColorFG::Inherit)
+            return pWgt->combobox.fgColor;
         break;
     default:
         break;
@@ -658,6 +666,56 @@ static void drawProgressBar(const Widget *pWgt)
     //  ▁▂▃▄▅▆▇█ - for vertical ▂▄▆█
 }
 
+struct ListDrawParams
+{
+    Coord coord;
+    int16_t item_idx;
+    int16_t sel_idx;
+    int16_t items_cnt;
+    uint16_t items_visible;
+    uint16_t top_item;
+    bool focused;
+    uint8_t wgt_width;
+    uint8_t frame_size;
+    std::function<void(int16_t idx, String &out)> getItem;
+};
+
+static void drawList(ListDrawParams &p)
+{
+    if (p.items_cnt > p.items_visible)
+    {
+        drawListScrollBarV(p.coord + Size{uint8_t(p.wgt_width-1), p.frame_size},
+            p.items_visible, p.items_cnt-1, p.sel_idx);
+    }
+
+    flushBuffer();
+
+    for (int i = 0; i < p.items_visible; i++)
+    {
+        bool is_current_item = p.top_item + i == p.item_idx;
+        bool is_sel_item = p.top_item + i == p.sel_idx;
+        moveTo(p.coord.col + p.frame_size, p.coord.row + i + p.frame_size);
+
+        g.str.clear();
+
+        if (p.top_item + i < p.items_cnt)
+        {
+            g.str.append(is_current_item ? "►" : " ");
+            p.getItem(p.top_item + i, g.str);
+            g.str.setLength(p.wgt_width - 1 - p.frame_size, true, true);
+        }
+        else
+        {
+            // empty string - to erase old content
+            g.str.setLength(p.wgt_width - (p.frame_size * 2));
+        }
+
+        if (p.focused && is_sel_item) pushAttr(FontAttrib::Inverse);
+        writeStrLen(g.str.cstr(), g.str.size());
+        if (p.focused && is_sel_item) popAttr();
+    }
+};
+
 static void drawListBox(const Widget *pWgt)
 {
     FontMemento _m;
@@ -669,50 +727,59 @@ static void drawListBox(const Widget *pWgt)
     if (pWgt->size.height < 3)
         return;
 
-    int16_t idx = 0, selidx = 0, cnt = 0;
-    const uint8_t frame_size = !pWgt->listbox.noFrame;
-    g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
-
-    const uint16_t items_visible = pWgt->size.height - (frame_size * 2);
-    const uint16_t top_item = (selidx / items_visible) * items_visible;
-    const bool focused = g.pWndState->isFocused(pWgt);
-
-    if (cnt > items_visible)
-    {
-        drawListScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), frame_size},
-            items_visible, cnt-1, selidx);
-    }
-    flushBuffer();
-
-    for (int i = 0; i < items_visible; i++)
-    {
-        bool is_current_item = top_item + i == idx;
-        bool is_sel_item = top_item + i == selidx;
-        moveTo(my_coord.col + frame_size, my_coord.row + i + frame_size);
-
-        g.str.clear();
-
-        if (top_item + i < cnt)
-        {
-            g.str.append(is_current_item ? "►" : " ");
-            g.pWndState->getListBoxItem(pWgt, top_item + i, g.str);
-            g.str.setLength(pWgt->size.width - 1 - frame_size, true, true);
-        }
-        else
-        {
-            // empty string - to erase old content
-            g.str.setLength(pWgt->size.width - (frame_size * 2));
-        }
-
-        if (focused && is_sel_item) pushAttr(FontAttrib::Inverse);
-        writeStrLen(g.str.cstr(), g.str.size());
-        if (focused && is_sel_item) popAttr();
-    }
+    ListDrawParams dlp = {};
+    dlp.coord = my_coord;
+    g.pWndState->getListBoxState(pWgt, dlp.item_idx, dlp.sel_idx, dlp.items_cnt);
+    dlp.frame_size = !pWgt->listbox.noFrame;
+    dlp.items_visible = pWgt->size.height - (dlp.frame_size * 2);
+    dlp.top_item = (dlp.sel_idx / dlp.items_visible) * dlp.items_visible;
+    dlp.focused = g.pWndState->isFocused(pWgt);
+    dlp.wgt_width = pWgt->size.width;
+    dlp.getItem = [pWgt](int16_t idx, String &out) { g.pWndState->getListBoxItem(pWgt, idx, out); };
+    drawList(dlp);
 }
 
-static void drawDropDownList(const Widget *pWgt)
+static void drawComboBox(const Widget *pWgt)
 {
-    // TODO:
+    FontMemento _m;
+    const auto my_coord = g.parentCoord + pWgt->coord;
+    const bool focused = g.pWndState->isFocused(pWgt);
+
+    int16_t item_idx = 0; int16_t sel_idx = 0; int16_t items_count; bool drop_down = false;
+    g.pWndState->getComboBoxState(pWgt, item_idx, sel_idx, items_count, drop_down);
+
+    {
+        g.str.clear();
+        g.pWndState->getComboBoxItem(pWgt, item_idx, g.str);
+        g.str.setLength(pWgt->size.width - 4, true, true);
+        g.str << " [▼]";
+
+        moveTo(my_coord.col, my_coord.row);
+        pushClFg(getWidgetFgColor(pWgt));
+        pushClBg(getWidgetBgColor(pWgt));
+        if (focused && !drop_down) pushAttr(FontAttrib::Inverse);
+        if (drop_down) pushAttr(FontAttrib::Underline);
+        writeStrLen(g.str.cstr(), g.str.size());
+        if (focused && !drop_down) popAttr();
+        if (drop_down) popAttr();
+    }
+
+    if (drop_down)
+    {
+        ListDrawParams dlp = {};
+        dlp.coord.col = my_coord.col;
+        dlp.coord.row = my_coord.row+1;
+        dlp.item_idx = item_idx;
+        dlp.sel_idx = sel_idx;
+        dlp.items_cnt = items_count;
+        dlp.frame_size = 0;
+        dlp.items_visible = pWgt->combobox.dropDownSize;
+        dlp.top_item = (dlp.sel_idx / dlp.items_visible) * dlp.items_visible;
+        dlp.focused = focused;
+        dlp.wgt_width = pWgt->size.width;
+        dlp.getItem = [pWgt](int16_t idx, String &out) { g.pWndState->getComboBoxItem(pWgt, idx, out); };
+        drawList(dlp);
+    }
 }
 
 static void drawCustomWgt(const Widget *pWgt)
@@ -791,6 +858,9 @@ static void drawTextBox(const Widget *pWgt)
 
 static void drawWidgetInternal(const Widget *pWgt)
 {
+    if (!g.pWndState->isVisible(pWgt))
+        return;
+
     bool en = g.pWndState->isEnabled(pWgt);
     if (!en) pushAttr(FontAttrib::Faint);
 
@@ -808,7 +878,7 @@ static void drawWidgetInternal(const Widget *pWgt)
     case Widget::Page:          drawPage(pWgt); break;
     case Widget::ProgressBar:   drawProgressBar(pWgt); break;
     case Widget::ListBox:       drawListBox(pWgt); break;;
-    case Widget::DropDownList:  drawDropDownList(pWgt); break;
+    case Widget::ComboBox:      drawComboBox(pWgt); break;
     case Widget::CustomWgt:     drawCustomWgt(pWgt); break;
     case Widget::TextBox:       drawTextBox(pWgt); break;
     default:                    break;
@@ -837,8 +907,7 @@ void drawWidget(const Widget *pWindowWidgets, WID widgetId)
 
     if (widgetId == WIDGET_ID_ALL)
     {
-        if (g.pWndState->isVisible(pWindowWidgets))
-            drawWidgetInternal(pWindowWidgets);
+        drawWidgetInternal(pWindowWidgets);
     }
     else
     {

@@ -48,12 +48,12 @@ Implementation is based on examples:
     - [x] radio button
     - [x] page control
     - [x] progress bar
-    - [x] list
-    - [ ] dropdown list
+    - [x] list box
+    - [x] combo box
+    - [x] scrollable text box
     - [x] custom widget base
     - [ ] scrollbar
     - [ ] horizontal page control
-    - [x] scrollable text box
     - [x] popup windows
 - navigation
     - [x] widgets navigation by Tab/Esc key
