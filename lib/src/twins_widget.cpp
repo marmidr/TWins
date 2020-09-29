@@ -402,7 +402,9 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
             p_wgt++;
 
         // expect that childs have focusedID
-        assert(p_wgt < p_childs + child_cnt);
+        //assert(p_wgt < p_childs + child_cnt); // occures rarely
+        TWINS_LOG("-W- focused ID=%d not found on parent ID=%d", focusedID, pParent->id);
+        return nullptr;
     }
 
 

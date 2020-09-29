@@ -1,5 +1,5 @@
 /******************************************************************************
- * @brief   TWins - utility code
+ * @brief   TWins - stack of windows
  * @author  Mariusz Midor
  *          https://bitbucket.org/mmidor/twins
  *****************************************************************************/
