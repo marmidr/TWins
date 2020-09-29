@@ -666,7 +666,7 @@ static void drawProgressBar(const Widget *pWgt)
     //  ▁▂▃▄▅▆▇█ - for vertical ▂▄▆█
 }
 
-struct ListDrawParams
+struct DrawListParams
 {
     Coord coord;
     int16_t item_idx;
@@ -680,7 +680,7 @@ struct ListDrawParams
     std::function<void(int16_t idx, String &out)> getItem;
 };
 
-static void drawList(ListDrawParams &p)
+static void drawList(DrawListParams &p)
 {
     if (p.items_cnt > p.items_visible)
     {
@@ -700,14 +700,14 @@ static void drawList(ListDrawParams &p)
 
         if (p.top_item + i < p.items_cnt)
         {
-            g.str.append(is_current_item ? "►" : " ");
             p.getItem(p.top_item + i, g.str);
+            g.str.insert(0, is_current_item ? "►" : " ");
             g.str.setLength(p.wgt_width - 1 - p.frame_size, true, true);
         }
         else
         {
             // empty string - to erase old content
-            g.str.setLength(p.wgt_width - (p.frame_size * 2));
+            g.str.setLength(p.wgt_width - 1 - p.frame_size);
         }
 
         if (p.focused && is_sel_item) pushAttr(FontAttrib::Inverse);
@@ -727,7 +727,7 @@ static void drawListBox(const Widget *pWgt)
     if (pWgt->size.height < 3)
         return;
 
-    ListDrawParams dlp = {};
+    DrawListParams dlp = {};
     dlp.coord = my_coord;
     g.pWndState->getListBoxState(pWgt, dlp.item_idx, dlp.sel_idx, dlp.items_cnt);
     dlp.frame_size = !pWgt->listbox.noFrame;
@@ -751,6 +751,7 @@ static void drawComboBox(const Widget *pWgt)
     {
         g.str.clear();
         g.pWndState->getComboBoxItem(pWgt, item_idx, g.str);
+        // g.str.insert(0, "|");
         g.str.setLength(pWgt->size.width - 4, true, true);
         g.str << " [▼]";
 
@@ -766,7 +767,7 @@ static void drawComboBox(const Widget *pWgt)
 
     if (drop_down)
     {
-        ListDrawParams dlp = {};
+        DrawListParams dlp = {};
         dlp.coord.col = my_coord.col;
         dlp.coord.row = my_coord.row+1;
         dlp.item_idx = item_idx;

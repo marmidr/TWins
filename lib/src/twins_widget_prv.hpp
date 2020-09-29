@@ -44,6 +44,7 @@ struct Glob
     IWindowState *pWndState = {};   //
     const Widget *pFocusedWgt = {}; //
     const Widget *pMouseDownWgt = {}; //
+    const Widget *pDropDownCombo = {};
     EditState editState;            // state of Edit being modified
     int textboxTopLine = {};        // focused TextBox first line displayed out of provided
 };

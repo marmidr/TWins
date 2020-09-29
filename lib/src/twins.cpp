@@ -110,6 +110,7 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
         func, file, line);
 
     pushClFg(ColorFG::WhiteIntense);
+    // pushClFg(ColorFG::YellowIntense);
 
     if (fmt)
     {

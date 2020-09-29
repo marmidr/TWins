@@ -150,6 +150,9 @@ public:
     void onComboBoxDrop(const twins::Widget* pWgt, bool dropState) override
     {
         wgtProp[pWgt->id].cbbx.dropDown = dropState;
+        if (dropState)
+            wgtProp[pWgt->id].cbbx.selIdx = wgtProp[pWgt->id].cbbx.itemIdx;
+
         TWINS_LOG("COMBOBOX_DROP(%u)", dropState);
     }
 
@@ -315,7 +318,7 @@ public:
     {
         itemIdx = wgtProp[pWgt->id].cbbx.itemIdx;
         selIdx = wgtProp[pWgt->id].cbbx.selIdx;
-        itemsCount = 8;
+        itemsCount = 6;
         dropDown = wgtProp[pWgt->id].cbbx.dropDown;
     }
 
