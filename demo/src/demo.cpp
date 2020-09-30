@@ -22,9 +22,45 @@
 
 // -----------------------------------------------------------------------------
 
+struct DemoPAL : twins::DefaultPAL
+{
+    DemoPAL() { }
+
+    ~DemoPAL()
+    {
+        printf(ESC_BOLD "lineBuffMaxSize: %u\n" ESC_NORMAL, lineBuffMaxSize);
+    }
+
+    uint16_t getLogsRow() override
+    {
+        return pWndMainWidgets[0].coord.row + pWndMainWidgets[0].size.height + 1;
+    }
+
+    bool lock(bool wait) override
+    {
+        if (wait)
+        {
+            mtx.lock();
+            return true;
+        }
+
+        return mtx.try_lock();
+    }
+
+    void unlock() override
+    {
+        mtx.unlock();
+    }
+
+private:
+    std::recursive_mutex mtx;
+};
+
+static DemoPAL demoPAL;
+static twins::WndStack wndStack; // must be after PAL
+
 void showPopup(twins::String title, twins::String message, std::function<void()> onYes, std::function<void()> onNo);
 
-static twins::WndStack wndStack;
 
 
 // state of Main window
@@ -552,42 +588,6 @@ void showPopup(twins::String title, twins::String message, std::function<void()>
 
 twins::RingBuff<char> rbKeybInput;
 
-struct DemoPAL : twins::DefaultPAL
-{
-    DemoPAL() { }
-
-    ~DemoPAL()
-    {
-        printf(ESC_BOLD "lineBuffMaxSize: %u\n" ESC_NORMAL, lineBuffMaxSize);
-    }
-
-    uint16_t getLogsRow() override
-    {
-        return pWndMainWidgets[0].coord.row + pWndMainWidgets[0].size.height + 1;
-    }
-
-    bool lock(bool wait) override
-    {
-        if (wait)
-        {
-            mtx.lock();
-            return true;
-        }
-
-        return mtx.try_lock();
-    }
-
-    void unlock() override
-    {
-        mtx.unlock();
-    }
-
-private:
-    std::recursive_mutex mtx;
-};
-
-static DemoPAL demo_pal;
-
 // -----------------------------------------------------------------------------
 
 #include "twins_input_posix.hpp"
@@ -597,7 +597,7 @@ int main()
     // printf("Win1 controls: %u" "\n", wndMain.window.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
 
-    twins::init(&demo_pal);
+    twins::init(&demoPAL);
     twins::screenClrAll();
     wndStack.pushWnd(pWndMainWidgets);
 
@@ -667,7 +667,7 @@ int main()
             else if (kc.m_spec && kc.key == twins::Key::F6)
             {
                 twins::cursorSavePos();
-                twins::moveTo(0, demo_pal.getLogsRow());
+                twins::moveTo(0, demoPAL.getLogsRow());
                 twins::screenClrBelow();
                 twins::cursorRestorePos();
             }
@@ -711,13 +711,13 @@ int main()
         twins::flushBuffer();
     }
 
-    twins::moveTo(0, demo_pal.getLogsRow());
+    twins::moveTo(0, demoPAL.getLogsRow());
     twins::screenClrBelow();
     twins::mouseMode(twins::MouseMode::Off);
     twins::flushBuffer();
     twins::inputPosixFree();
 
     printf(ESC_BOLD "Memory stats: max chunks: %d, max allocated: %d B\n" ESC_NORMAL,
-        demo_pal.stats.memChunksMax, demo_pal.stats.memAllocatedMax
+        demoPAL.stats.memChunksMax, demoPAL.stats.memAllocatedMax
     );
 }

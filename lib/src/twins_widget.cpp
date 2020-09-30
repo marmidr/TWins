@@ -1069,7 +1069,7 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
 
     if (kc.mouse.btn == MouseBtn::ButtonLeft || kc.mouse.btn == MouseBtn::ButtonMid)
     {
-        changeFocusTo(pWgt->id);
+        bool focus_changed = changeFocusTo(pWgt->id);
 
         int16_t idx = 0, selidx = 0, cnt = 0;
         g.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
@@ -1083,7 +1083,7 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
 
         if (kc.mouse.btn == MouseBtn::ButtonLeft)
         {
-            if (new_selidx < (unsigned)cnt && (signed)new_selidx != selidx)
+            if (new_selidx < (unsigned)cnt && (((signed)new_selidx != selidx) || focus_changed))
             {
                 selidx = new_selidx;
                 g.pWndState->onListBoxSelect(pWgt, selidx);
@@ -1094,6 +1094,7 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
             if (new_selidx < (unsigned)cnt && new_selidx != (unsigned)idx)
             {
                 selidx = new_selidx;
+                g.pWndState->onListBoxSelect(pWgt, selidx);
                 g.pWndState->onListBoxChange(pWgt, selidx);
             }
         }
