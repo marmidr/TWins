@@ -328,6 +328,46 @@ struct Widget
 static constexpr WID WIDGET_ID_NONE = 0;    // convenient; default value points to nothing
 static constexpr WID WIDGET_ID_ALL = -1;
 
+/**
+ * @brief Union of trivial-type widget properties;
+ *      to be used like this:
+ * @code.cpp
+ *      twins::Map<twins::WID, twins::WidgetProp> wgtProp;
+ * @endcode
+ */
+struct WidgetProp
+{
+    // apply to every widget
+    bool enabled;
+
+    //
+    union
+    {
+        struct
+        {
+            bool checked;
+        } chbx;
+
+        struct
+        {
+            bool lit;
+        } led;
+
+        struct
+        {
+            int16_t itemIdx;
+            int16_t selIdx;
+        } lbx;
+
+        struct
+        {
+            int16_t itemIdx;
+            int16_t selIdx;
+            bool    dropDown;
+        } cbbx;
+    };
+};
+
 /** @brief Object remembers terminal font colors and attribute,
  *         to restore them on destruction
  */
@@ -366,6 +406,7 @@ void init(IPal *pal);
 /**
  * @brief Control TWins mutex implemented in IPal
  *        Call unlock() only if lock() returned true
+ * @note use twins::Locker instead of calling these functions directly
  */
 bool lock(bool wait = true);
 void unlock(void);
@@ -512,9 +553,9 @@ void mainPgControlChangePage(const Widget *pWindowWidgets, bool next);
 /** @brief RAII style locker */
 struct Locker
 {
-    Locker()
+    Locker(bool wait = true)
     {
-        m_isLocked = twins::lock();
+        m_isLocked = twins::lock(wait);
     }
 
     ~Locker()

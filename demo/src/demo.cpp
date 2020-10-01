@@ -230,8 +230,8 @@ public:
         if (pWgt->id == ID_PANEL_VERSIONS)
         {
             auto &prp = wgtProp[pWgt->id];
-            prp.pnl.enabled = !prp.pnl.enabled;
-            return prp.pnl.enabled;
+            prp.enabled = !prp.enabled;
+            return prp.enabled;
         }
 
         if (pWgt->id == ID_CHBX_C)
@@ -414,44 +414,13 @@ public:
     twins::Vector<twins::WID> invalidatedWgts;
 
 private:
-    union WgtProp
-    {
-        struct
-        {
-            bool checked;
-        } chbx;
-
-        struct
-        {
-            bool lit;
-        } led;
-
-        struct
-        {
-            bool enabled;
-        } pnl;
-
-        struct
-        {
-            int16_t itemIdx;
-            int16_t selIdx;
-        } lbx;
-
-        struct
-        {
-            int16_t itemIdx;
-            int16_t selIdx;
-            bool    dropDown;
-        } cbbx;
-    };
-
     int  pgbarPos = 0;
     int  pgcPage = 0;
     int  radioId = 0;
     int16_t listBoxItemsCount = 20;
     twins::String edt1Text;
     twins::String edt2Text;
-    twins::Map<twins::WID, WgtProp> wgtProp;
+    twins::Map<twins::WID, twins::WidgetProp> wgtProp;
     twins::util::WrappedString txtBox1Text;
     twins::util::WrappedString txtBox2Text;
 
