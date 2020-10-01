@@ -69,14 +69,15 @@ enum WndMainIDs
 
 
 // popup window IDs
-enum WndYesNoIDs
+enum WndPopupIDs
 {
-    IDYN_INVALID,
-    IDYN_WND,
-        IDYN_LBL_MSG,
-        IDYN_BTN_YES,
-        IDYN_BTN_NO,
-        IDYN_BTN_CANCEL
+    IDPP_INVALID,
+    IDPP_WND,
+        IDPP_LBL_MSG,
+        IDPP_BTN_YES,
+        IDPP_BTN_NO,
+        IDPP_BTN_CANCEL,
+        IDPP_BTN_OK,
 };
 
 // -----------------------------------------------------------------------------
@@ -85,5 +86,5 @@ extern twins::IWindowState * getWndMainState();
 extern const twins::Widget * pWndMainWidgets;
 extern const uint16_t wndMainNumPages;
 
-extern twins::IWindowState * getWndYesNoState();
-extern const twins::Widget * pWndYesNoWidgets;
+extern twins::IWindowState * getWndPopupState();
+extern const twins::Widget * pWndPopupWidgets;

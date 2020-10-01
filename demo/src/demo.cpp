@@ -59,8 +59,7 @@ private:
 static DemoPAL demoPAL;
 static twins::WndStack wndStack; // must be after PAL
 
-void showPopup(twins::String title, twins::String message, std::function<void()> onYes, std::function<void()> onNo);
-
+void showPopup(twins::String title, twins::String message, std::function<void(twins::WID btnID)> onButton, const char *buttons = "");
 
 
 // state of Main window
@@ -114,8 +113,8 @@ public:
             showPopup("Lorem Titlum",
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
                 "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-                [] { TWINS_LOG(ESC_BG_DarkGreen "Choice: YES" ESC_BG_DEFAULT); },
-                [] { TWINS_LOG(ESC_BG_Firebrick "Choice: NO" ESC_BG_DEFAULT); }
+                [](twins::WID btnID) { TWINS_LOG(ESC_BG_DarkGreen "Choice: %d" ESC_BG_DEFAULT, btnID); },
+                "ync"
             );
         }
     }
@@ -430,12 +429,12 @@ private:
 };
 
 // state of Popup window
-class WndYesNoState : public twins::IWindowState
+class WndPopupState : public twins::IWindowState
 {
 public:
     void init()
     {
-        focusedId = IDYN_WND;
+        focusedId = IDPP_WND;
         initialized = true;
     }
 
@@ -443,11 +442,8 @@ public:
 
     void onButtonUp(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == IDYN_BTN_YES && onYES)
-            onYES();
-
-        if (pWgt->id == IDYN_BTN_NO && onNO)
-            onNO();
+        if (onButton)
+            onButton(pWgt->id);
 
         wndStack.popWnd();
     }
@@ -490,15 +486,21 @@ public:
 
     bool isVisible(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == IDYN_WND)
-            return wndStack.window() == pWgt;
-
+        switch (pWgt->id)
+        {
+        case IDPP_WND:          return wndStack.window() == pWgt;
+        case IDPP_BTN_YES:      return strstr(buttons.cstr(), "y") != nullptr;
+        case IDPP_BTN_NO:       return strstr(buttons.cstr(), "n") != nullptr;
+        case IDPP_BTN_CANCEL:   return strstr(buttons.cstr(), "c") != nullptr;
+        case IDPP_BTN_OK:       return strstr(buttons.cstr(), "o") != nullptr;
+        default:                return true;
+        }
         return true;
     }
 
     void getLabelText(const twins::Widget* pWgt, twins::String &out) override
     {
-        if (pWgt->id == IDYN_LBL_MSG)
+        if (pWgt->id == IDPP_LBL_MSG)
         {
             out = twins::util::wordWrap(wndMessage.cstr(), pWgt->size.width);
         }
@@ -509,16 +511,16 @@ public:
     void invalidate(twins::WID id, bool /* instantly */) override
     {
         // state or focus changed - widget must be repainted
-        twins::drawWidget(pWndYesNoWidgets, id);
+        twins::drawWidget(pWndPopupWidgets, id);
         twins::flushBuffer();
     }
 
 public:
     bool initialized = false;
-    std::function<void()> onYES;
-    std::function<void()> onNO;
+    std::function<void(twins::WID id)> onButton;
     twins::String wndTitle;
     twins::String wndMessage;
+    twins::String buttons;
 
 private:
     twins::WID focusedId;
@@ -527,7 +529,7 @@ private:
 // -----------------------------------------------------------------------------
 
 static WndMainState wndMainState;
-static WndYesNoState wndYesNoState;
+static WndPopupState wndPopupState;
 
 twins::IWindowState * getWndMainState()
 {
@@ -536,21 +538,21 @@ twins::IWindowState * getWndMainState()
     return &wndMainState;
 }
 
-twins::IWindowState * getWndYesNoState()
+twins::IWindowState * getWndPopupState()
 {
-    if (!wndYesNoState.initialized)
-        wndYesNoState.init();
-    return &wndYesNoState;
+    if (!wndPopupState.initialized)
+        wndPopupState.init();
+    return &wndPopupState;
 }
 
-void showPopup(twins::String title, twins::String message, std::function<void()> onYes, std::function<void()> onNo)
+void showPopup(twins::String title, twins::String message, std::function<void(twins::WID btnID)> onButton, const char *buttons)
 {
-    wndYesNoState.wndTitle = std::move(title);
-    wndYesNoState.wndMessage = std::move(message);
-    wndYesNoState.onYES = onYes;
-    wndYesNoState.onNO = onNo;
+    wndPopupState.wndTitle = std::move(title);
+    wndPopupState.wndMessage = std::move(message);
+    wndPopupState.onButton = onButton;
+    wndPopupState.buttons = buttons;
 
-    wndStack.pushWnd(pWndYesNoWidgets);
+    wndStack.pushWnd(pWndPopupWidgets);
 }
 
 // -----------------------------------------------------------------------------
