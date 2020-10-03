@@ -171,7 +171,7 @@ enum class ButtonStyle : uint8_t
 /**
  * @brief Unique Widget-ID
  */
-using WID = int16_t;
+using WID = uint16_t;
 
 // moved to external file so it will not be taken into coverage
 #include "twins_window_state.hpp"
@@ -317,10 +317,10 @@ struct Widget
         {
             /** in constexpr the pointer cannot be calculated, thus,
               * we use flat Widgets array index instead */
-            uint8_t ownIdx;     /// set in compile-time
-            uint8_t parentIdx;  /// set in compile-time
-            uint8_t childsIdx;  /// set in compile-time
-            uint8_t childsCnt;  /// set in compile-time
+            uint16_t ownIdx;     /// set in compile-time
+            uint16_t parentIdx;  /// set in compile-time
+            uint16_t childsIdx;  /// set in compile-time
+            uint8_t  childsCnt;  /// set in compile-time
         };
     } link;
 };
@@ -382,13 +382,14 @@ protected:
     uint8_t szAttr;
 };
 
+/** @brief Helper for automatic restoring terminal font attributes */
 struct FontMemento : FontMementoManual
 {
     FontMemento()  { store(); }
     ~FontMemento() { restore(); }
 };
 
-/** @brief */
+/** @brief Mouse reporting modes */
 enum class MouseMode : uint8_t
 {
     Off,
