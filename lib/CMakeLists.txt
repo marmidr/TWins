@@ -6,8 +6,6 @@
 
 option(TWINS_USE_FASTFILL "Use ANSI repeat code for faster line fill" ON)
 option(TWINS_PAL_FULLIMPL "Disable in case of incompatible platform" ON)
-set(TWINS_THEME_PATH "" CACHE STRING "Full path to theme.hpp")
-
 
 set(TARGETNAME twins)
 
@@ -41,11 +39,10 @@ else()
     target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PAL_FULLIMPL=0)
 endif()
 
-if (TWINS_THEME_PATH STREQUAL "")
-else()
-    set(TWINS_THEME_PATH ${PROJECT_SOURCE_DIR}/${TWINS_THEME_PATH})
-    message(STATUS "TWins theme location: ${TWINS_THEME_PATH}")
-    target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_THEME="${TWINS_THEME_PATH}")
+if (NOT ${TWINS_THEME_DIR} STREQUAL "")
+    target_include_directories(${TARGETNAME} PUBLIC ${TWINS_THEME_DIR})
+    target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_THEMES=1)
+    message(STATUS "TWins themes enabled")
 endif()
 
 if (${TWINS_BUILD_UT})

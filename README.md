@@ -79,7 +79,7 @@ Tests are enabled by default, Demo has to be enabled in commandline or in `ccmak
 
 ```bash
 mkdir build && cd build
-cmake -DTWINS_BUILD_DEMO=ON -DTWINS_THEME_PATH="demo/inc/demo_theme.hpp" ..
+cmake -DTWINS_BUILD_DEMO=ON -DTWINS_THEME_DIR="../demo/inc/" ..
 make -j
 ctest -V
 ```

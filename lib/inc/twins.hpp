@@ -20,9 +20,8 @@
 # define __TWINS_LINK_SECRET    void*_
 #endif
 
-#ifdef TWINS_THEME
-// TWINS_THEME is path to header file provided by CMake
-# include TWINS_THEME
+#ifdef TWINS_THEMES
+# include "twins_theme.hpp"
 #else
 # define TWINS_THEME_FG
 # define TWINS_THEME_BG
@@ -104,7 +103,7 @@ enum class ColorBG : uint8_t
 /** @brief Convert color identifier to ASCII ESC code */
 const char* encodeCl(ColorFG cl);
 const char* encodeCl(ColorBG cl);
-#ifdef TWINS_THEME
+#ifdef TWINS_THEMES
 // implemented in user code:
 const char* encodeClTheme(ColorFG cl);
 const char* encodeClTheme(ColorBG cl);
@@ -113,7 +112,7 @@ const char* encodeClTheme(ColorBG cl);
 /** @brief Color intensification */
 ColorFG intensifyCl(ColorFG cl);
 ColorBG intensifyCl(ColorBG cl);
-#ifdef TWINS_THEME
+#ifdef TWINS_THEMES
 // implemented in user code:
 ColorFG intensifyClTheme(ColorFG cl);
 ColorBG intensifyClTheme(ColorBG cl);

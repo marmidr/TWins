@@ -62,7 +62,7 @@ const char* encodeCl(ColorFG cl)
     if ((int)cl < arrSize(mapClFg))
         return mapClFg[(int)cl];
 
-    #ifdef TWINS_THEME
+    #ifdef TWINS_THEMES
     if (INRANGE(cl, ColorFG::ThemeBegin, ColorFG::ThemeEnd))
         return encodeClTheme(cl);
     #endif
@@ -75,7 +75,7 @@ const char* encodeCl(ColorBG cl)
     if ((int)cl < arrSize(mapClBg))
         return mapClBg[(int)cl];
 
-    #ifdef TWINS_THEME
+    #ifdef TWINS_THEMES
     if (INRANGE(cl, ColorBG::ThemeBegin, ColorBG::ThemeEnd))
         return encodeClTheme(cl);
     #endif
@@ -92,7 +92,7 @@ ColorFG intensifyCl(ColorFG cl)
     if (cl == ColorFG::Default) // may not be correct
         return ColorFG::WhiteIntense;
 
-    #ifdef TWINS_THEME
+    #ifdef TWINS_THEMES
     if (INRANGE(cl, ColorFG::ThemeBegin, ColorFG::ThemeEnd))
         return intensifyClTheme(cl);
     #endif
@@ -109,7 +109,7 @@ ColorBG intensifyCl(ColorBG cl)
     if (cl == ColorBG::Default) // may not be correct
         return ColorBG::BlackIntense;
 
-    #ifdef TWINS_THEME
+    #ifdef TWINS_THEMES
     if (INRANGE(cl, ColorBG::ThemeBegin, ColorBG::ThemeEnd))
         return intensifyClTheme(cl);
     #endif
