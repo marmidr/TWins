@@ -34,6 +34,13 @@ const char * const frame_single[] =
     "└", "─", "┘",
 };
 
+const char * const frame_listbox[] =
+{
+    "┌", "─", "┐",
+    "│", " ", "▒",
+    "└", "─", "┘",
+};
+
 const char * const frame_pgcontrol[] =
 {
     "├", "─", "┐",
@@ -163,6 +170,7 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     case FrameStyle::Single:    frame = frame_single; break;
     case FrameStyle::Double:    frame = frame_double; break;
     case FrameStyle::PgControl: frame = frame_pgcontrol; break;
+    case FrameStyle::ListBox:   frame = frame_listbox; break;
     default: break;
     }
 
@@ -722,7 +730,7 @@ static void drawListBox(const Widget *pWgt)
     const auto my_coord = g.parentCoord + pWgt->coord;
     drawArea(my_coord, pWgt->size,
         pWgt->listbox.bgColor, pWgt->listbox.fgColor,
-        pWgt->listbox.noFrame ? FrameStyle::None : FrameStyle::Single, false);
+        pWgt->listbox.noFrame ? FrameStyle::None : FrameStyle::ListBox, false);
 
     if (pWgt->size.height < 3)
         return;
@@ -795,7 +803,7 @@ static void drawTextBox(const Widget *pWgt)
 
     drawArea(my_coord, pWgt->size,
         pWgt->textbox.bgColor, pWgt->textbox.fgColor,
-        FrameStyle::Single);
+        FrameStyle::ListBox);
 
     if (pWgt->size.height < 3)
         return;

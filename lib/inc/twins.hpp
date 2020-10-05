@@ -147,6 +147,7 @@ enum class FrameStyle : uint8_t
     Single,
     Double,
     PgControl,
+    ListBox
 };
 
 /**
