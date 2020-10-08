@@ -405,6 +405,11 @@ enum class MouseMode : uint8_t
 void init(IPal *pal);
 
 /**
+ * @brief Unregister pPal
+ */
+void deinit(void);
+
+/**
  * @brief Control TWins mutex implemented in IPal
  *        Call unlock() only if lock() returned true
  * @note use twins::Locker instead of calling these functions directly

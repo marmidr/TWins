@@ -4,15 +4,16 @@
  *          https://bitbucket.org/mmidor/twins
  *****************************************************************************/
 
-#include "demo_wnd.hpp"
-
 #include "twins.hpp"
 #include "twins_ringbuffer.hpp"
-#include "twins_pal_defimpl.hpp"
 #include "twins_vector.hpp"
 #include "twins_map.hpp"
 #include "twins_utils.hpp"
-#include "twins_wndstack.hpp"
+#include "twins_input_posix.hpp"
+#include "twins_pal_defimpl.hpp"
+#include "twins_ui_mngr.hpp"
+
+#include "demo_wnd.hpp"
 
 #include <stdio.h>
 #include <string.h>
@@ -24,8 +25,6 @@
 
 struct DemoPAL : twins::DefaultPAL
 {
-    DemoPAL() { }
-
     ~DemoPAL()
     {
         printf(ESC_BOLD "lineBuffMaxSize: %u\n" ESC_NORMAL, lineBuffMaxSize);
@@ -33,41 +32,62 @@ struct DemoPAL : twins::DefaultPAL
 
     uint16_t getLogsRow() override
     {
-        return pWndMainWidgets[0].coord.row + pWndMainWidgets[0].size.height + 1;
+        const auto *p_wnd = twins::uim().mainWnd();
+        return p_wnd->coord.row + p_wnd->size.height + 1;
     }
 
     bool lock(bool wait) override
     {
         if (wait)
         {
-            mtx.lock();
+            mMtx.lock();
             return true;
         }
 
-        return mtx.try_lock();
+        return mMtx.try_lock();
     }
 
     void unlock() override
     {
-        mtx.unlock();
+        mMtx.unlock();
     }
 
 private:
-    std::recursive_mutex mtx;
+    std::recursive_mutex mMtx;
 };
 
-static DemoPAL demoPAL;
-static twins::WndStack wndStack; // must be after PAL
+class DemoUIMngr : public twins::UIMngrBase
+{
+public:
+    DemoUIMngr() { }
+    ~DemoUIMngr() { twins::deinit(); }
+    twins::IPal& pal() override { return mPal; }
+    twins::WndManager& wMngr() override { return mWndMngr; }
+    const twins::Widget* mainWnd() override { return pWndMainWidgets; }
+
+private:
+    DemoPAL mPal; // must be first due to construction-destruction order
+    twins::WndManager mWndMngr;
+};
+
+namespace twins
+{
+DemoUIMngr uiMngr;
+UIMngrBase& uim() { return uiMngr; }
+}
+
 
 void showPopup(twins::String title, twins::String message, std::function<void(twins::WID btnID)> onButton, const char *buttons = "");
 
+// -----------------------------------------------------------------------------
 
 // state of Main window
 class WndMainState : public twins::IWindowState
 {
 public:
-    void init()
+    void init(const twins::Widget *pWindowWgts) override
     {
+        pWgts = pWindowWgts;
         focusedId.resize(wndMainNumPages);
 
         for (auto &wid : focusedId)
@@ -85,7 +105,6 @@ public:
         txtBox2Text = "Lorem ipsum ▄";
         edt1Text = "00 11 22 33 44 55 66 77 88 99 aa bb cc dd";
         edt2Text = "73+37=100";
-        initialized = true;
     }
 
     ~WndMainState()
@@ -93,6 +112,8 @@ public:
         printf("WgtProperty map Distribution=%u%% Buckets:%u Nodes:%u\n",
             wgtProp.distribution(), wgtProp.bucketsCount(), wgtProp.size());
     }
+
+    const twins::Widget *getWidgets() const override { return pWgts; }
 
     // --- events ---
 
@@ -246,7 +267,7 @@ public:
 
     bool isVisible(const twins::Widget* pWgt) override
     {
-        //if (pWgt->id == ID_WND)    return currWnd.window() == pWgt; // always visible
+        //if (pWgt->id == ID_WND)    return bb.wndMngr().topWnd() == pWgt; // always visible
         if (pWgt->id == ID_PAGE_1) return pgcPage == 0;
         if (pWgt->id == ID_PAGE_2) return pgcPage == 1;
         if (pWgt->id == ID_PAGE_3) return pgcPage == 2;
@@ -396,7 +417,7 @@ public:
         // state or focus changed - widget must be repainted
         if (instantly)
         {
-            twins::drawWidget(pWndMainWidgets, id);
+            twins::drawWidget(getWidgets(), id);
             twins::flushBuffer();
         }
         else
@@ -409,10 +430,10 @@ public:
 public:
     twins::String lblKeycodeSeq;
     twins::String lblKeyName;
-    bool initialized = false;
     twins::Vector<twins::WID> invalidatedWgts;
 
 private:
+    const twins::Widget *pWgts = nullptr;
     int  pgbarPos = 0;
     int  pgcPage = 0;
     int  radioId = 0;
@@ -432,11 +453,13 @@ private:
 class WndPopupState : public twins::IWindowState
 {
 public:
-    void init()
+    void init(const twins::Widget *pWindowWgts) override
     {
+        pWgts = pWindowWgts;
         focusedId = IDPP_WND;
-        initialized = true;
     }
+
+    const twins::Widget *getWidgets() const override { return pWgts; }
 
     // --- events ---
 
@@ -445,14 +468,14 @@ public:
         if (onButton)
             onButton(pWgt->id);
 
-        wndStack.popWnd();
+        twins::uim().wMngr().popWnd();
     }
 
     bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         if (kc.key == twins::Key::Esc)
         {
-            wndStack.popWnd();
+            twins::uim().wMngr().popWnd();
             return true;
         }
         return false;
@@ -462,11 +485,12 @@ public:
 
     void getWindowCoord(const twins::Widget* pWgt, twins::Coord &coord) override
     {
+        const auto *p_wnd = twins::uim().mainWnd();
         // calc location on the main window center
-        coord.col = (pWndMainWidgets[0].size.width - pWgt->size.width) / 2;
-        coord.col += pWndMainWidgets[0].coord.col;
-        coord.row = (pWndMainWidgets[0].size.height - pWgt->size.height) / 2;
-        coord.row += pWndMainWidgets[0].coord.row;
+        coord.col = (p_wnd->size.width - pWgt->size.width) / 2;
+        coord.col += p_wnd->coord.col;
+        coord.row = (p_wnd->size.height - pWgt->size.height) / 2;
+        coord.row += p_wnd->coord.row;
     }
 
     void getWindowTitle(const twins::Widget* pWgt, twins::String &title) override
@@ -488,7 +512,7 @@ public:
     {
         switch (pWgt->id)
         {
-        case IDPP_WND:          return wndStack.window() == pWgt;
+        case IDPP_WND:          return twins::uim().wMngr().topWndWidgets() == pWgt;
         case IDPP_BTN_YES:      return strstr(buttons.cstr(), "y") != nullptr;
         case IDPP_BTN_NO:       return strstr(buttons.cstr(), "n") != nullptr;
         case IDPP_BTN_CANCEL:   return strstr(buttons.cstr(), "c") != nullptr;
@@ -510,13 +534,15 @@ public:
 
     void invalidate(twins::WID id, bool /* instantly */) override
     {
+        if (id == twins::WIDGET_ID_NONE)
+            return;
+
         // state or focus changed - widget must be repainted
-        twins::drawWidget(pWndPopupWidgets, id);
+        twins::drawWidget(getWidgets(), id);
         twins::flushBuffer();
     }
 
 public:
-    bool initialized = false;
     std::function<void(twins::WID id)> onButton;
     twins::String wndTitle;
     twins::String wndMessage;
@@ -524,63 +550,63 @@ public:
 
 private:
     twins::WID focusedId;
+    const twins::Widget *pWgts = nullptr;
 };
 
 // -----------------------------------------------------------------------------
 
-static WndMainState wndMainState;
-static WndPopupState wndPopupState;
+static WndMainState wndMain;
+static WndPopupState wndPopup;
 
-twins::IWindowState * getWndMainState()
+twins::IWindowState * getWndMain()
 {
-    if (!wndMainState.initialized)
-        wndMainState.init();
-    return &wndMainState;
+    // the only place where pWndMainWidgets is used
+    if (!wndMain.getWidgets())
+        wndMain.init(pWndMainWidgets);
+    return &wndMain;
 }
 
-twins::IWindowState * getWndPopupState()
+twins::IWindowState * getWndPopup()
 {
-    if (!wndPopupState.initialized)
-        wndPopupState.init();
-    return &wndPopupState;
+    // the only place where pWndPopupWidgets is used
+    if (!wndPopup.getWidgets())
+        wndPopup.init(pWndPopupWidgets);
+    return &wndPopup;
 }
+
+// -----------------------------------------------------------------------------
 
 void showPopup(twins::String title, twins::String message, std::function<void(twins::WID btnID)> onButton, const char *buttons)
 {
-    wndPopupState.wndTitle = std::move(title);
-    wndPopupState.wndMessage = std::move(message);
-    wndPopupState.onButton = onButton;
-    wndPopupState.buttons = buttons;
+    wndPopup.wndTitle = std::move(title);
+    wndPopup.wndMessage = std::move(message);
+    wndPopup.onButton = onButton;
+    wndPopup.buttons = buttons;
 
-    wndStack.pushWnd(pWndPopupWidgets);
+    twins::uim().wMngr().pushWnd(getWndPopup());
 }
 
 // -----------------------------------------------------------------------------
 
-twins::RingBuff<char> rbKeybInput;
-
-// -----------------------------------------------------------------------------
-
-#include "twins_input_posix.hpp"
-
 int main()
 {
-    // printf("Win1 controls: %u" "\n", wndMain.window.childCount);
+    // printf("Win1 controls: %u" "\n", wndMain.topWnd.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
+    twins::RingBuff<char> rbKeybInput;
 
-    twins::init(&demoPAL);
+    rbKeybInput.init(20);
+    twins::init(&twins::uim().pal());
     twins::screenClrAll();
-    wndStack.pushWnd(pWndMainWidgets);
-
+    twins::uim().wMngr().pushWnd(getWndMain());
     twins::inputPosixInit(100);
     twins::mouseMode(twins::MouseMode::M2);
-    rbKeybInput.init(20);
     twins::flushBuffer();
+
+    // assert(!"just-a-test");
 
     for (;;)
     {
         bool quit_req = false;
-        twins::KeyCode kc = {};
         const char *posix_inp = twins::inputPosixRead(quit_req);
         if (quit_req) break;
         rbKeybInput.write(posix_inp);
@@ -588,19 +614,20 @@ int main()
         if (rbKeybInput.size())
         {
             twins::Locker lck;
+            twins::KeyCode kc = {};
 
             // display input buffer
             {
                 char seq[10];
                 rbKeybInput.copy(seq, sizeof(seq)-1);
                 seq[sizeof(seq)-1] = '\0';
-                wndMainState.lblKeycodeSeq = seq;
+                wndMain.lblKeycodeSeq = seq;
             }
 
             twins::decodeInputSeq(rbKeybInput, kc);
             // pass key to top-window
-            bool key_handled = twins::processKey(wndStack.window(), kc);
-            wndMainState.lblKeyName = kc.name;
+            bool key_handled = twins::processKey(twins::uim().wMngr().topWnd()->getWidgets(), kc);
+            wndMain.lblKeyName = kc.name;
 
             // display decoded key
             if (kc.key == twins::Key::MouseEvent)
@@ -633,36 +660,36 @@ int main()
                 twins::flushBuffer();
 
                 // draw windows from bottom to top
-                wndStack.redraw();
+                twins::uim().wMngr().redraw();
             }
             else if (kc.m_spec && kc.key == twins::Key::F6)
             {
                 twins::cursorSavePos();
-                twins::moveTo(0, demoPAL.getLogsRow());
+                twins::moveTo(0, twins::uim().pal().getLogsRow());
                 twins::screenClrBelow();
                 twins::cursorRestorePos();
             }
             else if (kc.m_spec && kc.m_ctrl && (kc.key == twins::Key::PgUp || kc.key == twins::Key::PgDown))
             {
-                if (wndStack.window() == pWndMainWidgets)
-                    twins::mainPgControlChangePage(pWndMainWidgets, kc.key == twins::Key::PgDown);
+                if (twins::uim().wMngr().topWnd() == &wndMain)
+                    twins::mainPgControlChangePage(wndMain.getWidgets(), kc.key == twins::Key::PgDown);
             }
             else if (kc.m_spec && (kc.key == twins::Key::F9 || kc.key == twins::Key::F10))
             {
-                if (wndStack.window() == pWndMainWidgets)
-                    twins::mainPgControlChangePage(pWndMainWidgets, kc.key == twins::Key::F10);
+                if (twins::uim().wMngr().topWnd() == &wndMain)
+                    twins::mainPgControlChangePage(wndMain.getWidgets(), kc.key == twins::Key::F10);
             }
 
 
-            if (wndStack.window() == pWndMainWidgets)
+            if (twins::uim().wMngr().topWnd() == &wndMain)
             {
                 // keyboard code
                 twins::cursorSavePos();
-                twins::drawWidgets(pWndMainWidgets, {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+                twins::drawWidgets(wndMain.getWidgets(), {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
 
                 if (kc.mod_all != KEY_MOD_SPECIAL)
                 {
-                    twins::drawWidgets(pWndMainWidgets,
+                    twins::drawWidgets(wndMain.getWidgets(),
                     {
                         ID_LED_LOCK, ID_LED_BATTERY, ID_LED_PUMP,
                         ID_PRGBAR_1, ID_PRGBAR_2, ID_PRGBAR_3,
@@ -672,23 +699,24 @@ int main()
                 twins::cursorRestorePos();
             }
 
-            if (wndStack.window() == pWndMainWidgets)
+            if (twins::uim().wMngr().topWnd() == &wndMain)
             {
-                twins::drawWidgets(pWndMainWidgets, wndMainState.invalidatedWgts.data(), wndMainState.invalidatedWgts.size());
-                wndMainState.invalidatedWgts.clear();
+                twins::drawWidgets(wndMain.getWidgets(), wndMain.invalidatedWgts.data(), wndMain.invalidatedWgts.size());
+                wndMain.invalidatedWgts.clear();
             }
         }
 
         twins::flushBuffer();
     }
 
-    twins::moveTo(0, demoPAL.getLogsRow());
+    twins::moveTo(0, twins::uim().pal().getLogsRow());
     twins::screenClrBelow();
     twins::mouseMode(twins::MouseMode::Off);
     twins::flushBuffer();
     twins::inputPosixFree();
 
     printf(ESC_BOLD "Memory stats: max chunks: %d, max allocated: %d B\n" ESC_NORMAL,
-        demoPAL.stats.memChunksMax, demoPAL.stats.memAllocatedMax
+        ((DemoPAL&)twins::uim().pal()).stats.memChunksMax,
+        ((DemoPAL&)twins::uim().pal()).stats.memAllocatedMax
     );
 }

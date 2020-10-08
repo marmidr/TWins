@@ -82,9 +82,9 @@ enum WndPopupIDs
 
 // -----------------------------------------------------------------------------
 
-extern twins::IWindowState * getWndMainState();
+extern twins::IWindowState * getWndMain();
 extern const twins::Widget * pWndMainWidgets;
 extern const uint16_t wndMainNumPages;
 
-extern twins::IWindowState * getWndPopupState();
+extern twins::IWindowState * getWndPopup();
 extern const twins::Widget * pWndPopupWidgets;

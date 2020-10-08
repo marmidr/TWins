@@ -621,7 +621,7 @@ static constexpr twins::Widget wndMain =
         fgColor     : twins::ColorFG::Window,
         bgColor     : twins::ColorBG::Window,
         isPopup     : {},
-        getState    : getWndMainState,
+        getState    : getWndMain,
     }},
     link    : { (const twins::Widget[])
     {
@@ -738,7 +738,7 @@ static constexpr twins::Widget wndPopup =
         fgColor     : twins::ColorFG::Blue,
         bgColor     : twins::ColorBG::White,
         isPopup     : true,
-        getState    : getWndPopupState,
+        getState    : getWndPopup,
     }},
     link    : { (const twins::Widget[])
     {

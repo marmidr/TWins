@@ -6,6 +6,8 @@
 
 #pragma once
 
+/// @note Do not include this file directly!
+
 // -----------------------------------------------------------------------------
 
 /** @brief Forward declaration */
@@ -19,6 +21,8 @@ class IWindowState
 {
 public:
     virtual ~IWindowState() = default;
+    virtual void init(const twins::Widget *pWindowWgts) {}
+    virtual const twins::Widget *getWidgets() const { return {}; }
     // events
     virtual void onButtonDown(const twins::Widget* pWgt) {}
     virtual void onButtonUp(const twins::Widget* pWgt) {}

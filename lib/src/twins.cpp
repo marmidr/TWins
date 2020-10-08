@@ -58,6 +58,17 @@ void init(IPal *pal)
     pPAL = pal;
 }
 
+void deinit()
+{
+    pPAL = nullptr;
+}
+
+IPal& pal()
+{
+    assert(pPAL);
+    return *pPAL;
+}
+
 bool lock(bool wait)
 {
     if (pPAL)

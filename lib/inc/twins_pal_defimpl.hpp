@@ -162,7 +162,6 @@ struct DefaultPAL : twins::IPal
     }
 
 public:
-
     String lineBuff;
     uint32_t lineBuffMaxSize = 0;
 
