@@ -28,6 +28,10 @@ public:
         out = "Label 1" "\n" "..but Line 2";
     }
 
+    void onTextBoxScroll(const twins::Widget* pWgt, int16_t topLine) override
+    {
+    }
+
     void getListBoxState(const twins::Widget*, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount) override
     {
         itemIdx = 1;
@@ -40,13 +44,15 @@ public:
         out.appendFmt("item: %d", itemIdx);
     }
 
-    void getTextBoxLines(const twins::Widget*, const twins::Vector<twins::StringRange> **ppLines, bool &changed) override
+    void getTextBoxState(const twins::Widget*, const twins::Vector<twins::StringRange> **ppLines, int16_t &topLine) override
     {
         wrapString = "Lorem ipsum \e[1m dolor \e[0m sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
                     "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
 
         wrapString.config(15);
         *ppLines = &wrapString.getLines();
+        // force scanning of invisible lines:
+        topLine = 2;
     }
 
 protected:
@@ -296,8 +302,6 @@ protected:
 
 TEST_F(WIDGETDRW, drawWidget)
 {
-    // force scanning of invisible lines
-    twins::g_wds.textboxTopLine = 2;
     twins::drawWidget(pWndTestWidgets, ID_TEXTBOX);
 
     // draw pressed button

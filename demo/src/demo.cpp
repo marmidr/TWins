@@ -226,6 +226,11 @@ public:
             radioId = pWgt->radio.radioId;
     }
 
+    void onTextBoxScroll(const twins::Widget* pWgt, int16_t topLine) override
+    {
+        wgtProp[pWgt->id].txtbx.topLine = topLine;
+    }
+
     void onCustomWidgetDraw(const twins::Widget* pWgt) override
     {
         auto coord = twins::getScreenCoord(pWgt);
@@ -395,19 +400,29 @@ public:
         return radioId;
     }
 
-    void getTextBoxLines(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, bool &changed) override
+    void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, int16_t &topLine) override
     {
         if (pWgt->id == ID_TBX_LOREMIPSUM)
         {
-            changed = txtBox1Text.isDirty();
-            txtBox1Text.config(pWgt->size.width-2, " \n");
-            *ppLines = &txtBox1Text.getLines();
+            if (txtBox1Text.isDirty()) wgtProp[pWgt->id].txtbx.topLine = 0;
+            topLine = wgtProp[pWgt->id].txtbx.topLine;
+
+            if (ppLines)
+            {
+                txtBox1Text.config(pWgt->size.width-2, " \n");
+                *ppLines = &txtBox1Text.getLines();
+            }
         }
         else
         {
-            changed = txtBox2Text.isDirty();
-            txtBox2Text.config(pWgt->size.width-2, " \n");
-            *ppLines = &txtBox2Text.getLines();
+            if (txtBox2Text.isDirty()) wgtProp[pWgt->id].txtbx.topLine = 0;
+            topLine = wgtProp[pWgt->id].txtbx.topLine;
+
+            if (ppLines)
+            {
+                txtBox2Text.config(pWgt->size.width-2, " \n");
+                *ppLines = &txtBox2Text.getLines();
+            }
         }
     }
 

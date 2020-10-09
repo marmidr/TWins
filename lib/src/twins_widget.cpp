@@ -511,15 +511,11 @@ static bool changeFocusTo(WID newID)
                     g_wds.pWndState->onListBoxSelect(wss.pWidget, selidx);
                 }
             }
-
-            if (wss.pWidget->type == Widget::TextBox)
-            {
-                g_wds.textboxTopLine = 0;
-            }
         }
 
         if (isFocusable(prev_id))
             g_wds.pWndState->invalidate(prev_id);
+
         if (isFocusable(newID))
             g_wds.pWndState->invalidate(newID);
 
@@ -939,20 +935,21 @@ static bool processKey_TextBox(const Widget *pWgt, const KeyCode &kc)
     if (delta != 0)
     {
         const twins::Vector<twins::StringRange> *p_lines = nullptr;
-        bool changed = false;
-        g_wds.pWndState->getTextBoxLines(pWgt, &p_lines, changed);
-        if (changed) g_wds.textboxTopLine = 0;
+        int16_t top_line = 0;
+
+        g_wds.pWndState->getTextBoxState(pWgt, &p_lines, top_line);
 
         if (p_lines)
         {
-            g_wds.textboxTopLine += delta;
+            top_line += delta;
 
-            if (g_wds.textboxTopLine > (int)p_lines->size() - lines_visible)
-                g_wds.textboxTopLine = p_lines->size() - lines_visible;
+            if (top_line > (int)p_lines->size() - lines_visible)
+                top_line = p_lines->size() - lines_visible;
 
-            if (g_wds.textboxTopLine < 0)
-                g_wds.textboxTopLine = 0;
+            if (top_line < 0)
+                top_line = 0;
 
+            g_wds.pWndState->onTextBoxScroll(pWgt, top_line);
             g_wds.pWndState->invalidate(pWgt->id);
         }
         return true;
@@ -1231,9 +1228,9 @@ static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const 
     if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
     {
         const twins::Vector<twins::StringRange> *p_lines = nullptr;
-        bool changed = false;
-        g_wds.pWndState->getTextBoxLines(pWgt, &p_lines, changed);
-        if (changed) g_wds.textboxTopLine = 0;
+        int16_t top_line = 0;
+
+        g_wds.pWndState->getTextBoxState(pWgt, &p_lines, top_line);
 
         if (p_lines && p_lines->size())
         {
@@ -1241,15 +1238,16 @@ static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const 
             const uint16_t lines_visible = pWgt->size.height - 2;
             if (kc.m_ctrl) delta *= lines_visible;
 
-            g_wds.textboxTopLine += delta;
+            top_line += delta;
 
-            if (g_wds.textboxTopLine > (int)p_lines->size() - lines_visible)
-                g_wds.textboxTopLine = p_lines->size() - lines_visible;
+            if (top_line > (int)p_lines->size() - lines_visible)
+                top_line = p_lines->size() - lines_visible;
 
-            if (g_wds.textboxTopLine < 0)
-                g_wds.textboxTopLine = 0;
+            if (top_line < 0)
+                top_line = 0;
 
             changeFocusTo(pWgt->id);
+            g_wds.pWndState->onTextBoxScroll(pWgt, top_line);
             g_wds.pWndState->invalidate(pWgt->id);
         }
     }

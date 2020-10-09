@@ -8,7 +8,6 @@
 #pragma once
 
 // field set in user Widget definition;
-// because it is first field in the union, it's name may be ommited
 #define __TWINS_LINK_SECRET     const Widget *pChilds
 
 #include "twins.hpp"
@@ -46,6 +45,7 @@ constexpr int getPagesCount(const twins::Widget *pWgt)
 
 /**
  * @brief Recurrent widget transformation function
+ *        Widgets that belongs to the same parent are put together, next to each other, to ease TAB navigation.
  * @par arr Destination array of widgets
  * @par pWgt Pointer to Window - the root widget
  */

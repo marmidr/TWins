@@ -36,6 +36,7 @@ public:
     virtual void onComboBoxChange(const twins::Widget* pWgt, int16_t newIdx) {}
     virtual void onComboBoxDrop(const twins::Widget* pWgt, bool dropState) {}
     virtual void onRadioSelect(const twins::Widget* pWgt) {}
+    virtual void onTextBoxScroll(const twins::Widget* pWgt, int16_t topLine) {}
     virtual void onCustomWidgetDraw(const twins::Widget* pWgt) {}
     virtual bool onCustomWidgetInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) { return false; }
     virtual bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) { return false; }
@@ -59,7 +60,7 @@ public:
     virtual void getComboBoxState(const twins::Widget* pWgt, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount, bool &dropDown) {}
     virtual void getComboBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) {}
     virtual int  getRadioIndex(const twins::Widget* pWgt) { return -1; }
-    virtual void getTextBoxLines(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, bool &changed) {}
+    virtual void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, int16_t &topLine) {}
     // requests
     virtual void invalidate(twins::WID id, bool instantly = false) {}
 };
