@@ -38,7 +38,7 @@ public:
     /** @brief Erase \p len characters from string at \p pos */
     String& erase(int16_t pos, int16_t len = 1);
     /** @brief Insert string \p s at \p pos */
-    String& insert(int16_t pos, const char *s);
+    String& insert(int16_t pos, const char *s, int16_t repeat = 1);
     /** @brief If shorter than len - add spaces; if longer - calls trim */
     void setLength(int16_t len, bool addEllipsis = false, bool ignoreESC = false);
     /** @brief Set size to zero; release buffer memory only if capacity >= \p threshordToFree */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * @brief   TWins - common definitions
+ * @brief   TWins - ring buffer for eg. byte stream
  * @author  Mariusz Midor
  *          https://bitbucket.org/mmidor/twins
  *****************************************************************************/

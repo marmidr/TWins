@@ -10,60 +10,10 @@
 #include "twins_transform_window.hpp"
 #include "twins.hpp"
 #include "twins_utils.hpp"
+#include "twins_window_mngr.hpp"
 #include "../../lib/src/twins_widget_prv.hpp"
 
 // -----------------------------------------------------------------------------
-
-class WindowTestState : public twins::IWindowState
-{
-public:
-    WindowTestState()
-    {
-    }
-
-    twins::WID& getFocusedID() { return wgtId; };
-
-    void getLabelText(const twins::Widget*, twins::String &out) override
-    {
-        out = "Label 1" "\n" "..but Line 2";
-    }
-
-    void onTextBoxScroll(const twins::Widget* pWgt, int16_t topLine) override
-    {
-    }
-
-    void getListBoxState(const twins::Widget*, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount) override
-    {
-        itemIdx = 1;
-        selIdx = 0;
-        itemsCount = 3;
-    }
-
-    void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
-    {
-        out.appendFmt("item: %d", itemIdx);
-    }
-
-    void getTextBoxState(const twins::Widget*, const twins::Vector<twins::StringRange> **ppLines, int16_t &topLine) override
-    {
-        wrapString = "Lorem ipsum \e[1m dolor \e[0m sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
-                    "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
-
-        wrapString.config(15);
-        *ppLines = &wrapString.getLines();
-        // force scanning of invisible lines:
-        topLine = 2;
-    }
-
-protected:
-    twins::WID wgtId = {};
-    twins::util::WrappedString wrapString;
-};
-
-
-static WindowTestState wndTestState;
-static twins::IWindowState * getWndTestState() { return &wndTestState; }
-
 
 enum WndTestIDs
 {
@@ -84,10 +34,83 @@ enum WndTestIDs
         ID_PROGRESS,
         ID_LISTBOX,
         ID_TEXTBOX,
+        ID_TEXTBOX_EMPTY,
+        ID_COMBOBOX,
+};
+
+class WindowTestState : public twins::IWindowState
+{
+public:
+    void init(const twins::Widget *pWindowWgts) override
+    {
+        mpWgts = pWindowWgts;
+    }
+
+    const twins::Widget *getWidgets() const override { return mpWgts; }
+
+    twins::WID& getFocusedID() { return wgtId; };
+
+    void getLabelText(const twins::Widget*, twins::String &out) override
+    {
+        out = "Label 1" "\n" "..but Line 2";
+    }
+
+    void getListBoxState(const twins::Widget*, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount) override
+    {
+        itemIdx = 1;
+        selIdx = 0;
+        itemsCount = 3;
+    }
+
+    void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
+    {
+        out.appendFmt("item: %d", itemIdx);
+    }
+
+    void getComboBoxState(const twins::Widget* pWgt, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount, bool &dropDown) override
+    {
+        itemIdx = 1;
+        selIdx = 0;
+        itemsCount = 8;
+        dropDown = true;
+    }
+
+    void getComboBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) override
+    {
+        out.appendFmt("item: %d", itemIdx);
+    }
+
+    void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, int16_t &topLine) override
+    {
+        if (pWgt->id == ID_TEXTBOX_EMPTY)
+        {
+            wrapString.updateLines();
+            *ppLines = &wrapString.getLines();
+            topLine = 5;
+            return;
+        }
+
+        wrapString = "Lorem ipsum \e[1m dolor \e[0m sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+                    "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+
+        wrapString.config(15);
+        *ppLines = &wrapString.getLines();
+        // force scanning of invisible lines:
+        topLine = 2;
+    }
+
+protected:
+    const twins::Widget *mpWgts = nullptr;
+    twins::WID wgtId = {};
+    twins::util::WrappedString wrapString;
 };
 
 
-static constexpr twins::Widget wndTest =
+static WindowTestState wndTest;
+twins::IWindowState * getWndTest();
+
+
+static constexpr twins::Widget wndTestDef =
 {
     type    : twins::Widget::Window,
     id      : ID_WND,
@@ -98,7 +121,7 @@ static constexpr twins::Widget wndTest =
         fgColor     : {},
         bgColor     : {},
         isPopup     : true, // draw shadow
-        getState    : getWndTestState,
+        getState    : getWndTest,
     }},
     link    : { (const twins::Widget[])
     {
@@ -276,12 +299,39 @@ static constexpr twins::Widget wndTest =
                 bgColor : {},
             }}
         },
+        {
+            type    : twins::Widget::TextBox,
+            id      : ID_TEXTBOX_EMPTY,
+            coord   : { 80, 20 },
+            size    : { 10, 10 },
+            { textbox : {
+                fgColor : {},
+                bgColor : {},
+            }}
+        },
+        {
+            type    : twins::Widget::ComboBox,
+            id      : ID_COMBOBOX,
+            coord   : { 10, 10 },
+            size    : { 10, 1 },
+            { combobox : {
+                fgColor : {},
+                bgColor : {},
+                dropDownSize : 5
+            }}
+        },
         { /* NUL */ }
     }}
 };
 
-constexpr auto wndTestWidgets = twins::transforWindowDefinition<&wndTest>();
+constexpr auto wndTestWidgets = twins::transforWindowDefinition<&wndTestDef>();
 const twins::Widget * pWndTestWidgets = wndTestWidgets.begin();
+
+twins::IWindowState * getWndTest()
+{
+    wndTest.init(pWndTestWidgets);
+    return &wndTest;
+}
 
 // -----------------------------------------------------------------------------
 
@@ -322,4 +372,18 @@ TEST_F(WIDGETDRW, drawWidgets)
 {
     twins::WID wids[] = { ID_CHECK, ID_PANEL };
     twins::drawWidgets(pWndTestWidgets, wids);
+}
+
+TEST_F(WIDGETDRW, wndManager)
+{
+    twins::WndManager wmngr;
+
+    EXPECT_EQ(0, wmngr.size());
+    EXPECT_EQ(nullptr, wmngr.topWndWidgets());
+    wmngr.pushWnd(getWndTest());
+    wmngr.redraw();
+    EXPECT_EQ(1, wmngr.size());
+    EXPECT_EQ(getWndTest(), wmngr.topWnd());
+    wmngr.popWnd();
+    EXPECT_EQ(0, wmngr.size());
 }

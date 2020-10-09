@@ -191,14 +191,14 @@ String& String::erase(int16_t pos, int16_t len)
     return *this;
 }
 
-String& String::insert(int16_t pos, const char *s)
+String& String::insert(int16_t pos, const char *s, int16_t repeat)
 {
-    if (pos < 0 || (!s || !*s) || sourceIsOurs(s))
+    if (pos < 0 || (!s || !*s) || repeat < 1 || sourceIsOurs(s))
         return *this;
 
     if ((unsigned)pos >= u8len())
     {
-        append(s);
+        append(s, repeat);
         return *this;
     }
 
@@ -215,11 +215,16 @@ String& String::insert(int16_t pos, const char *s)
         return *this;
 
     char *insert_at = p;
-    unsigned bytes_to_insert = strlen(s);
+    unsigned src_len = strlen(s);
+    unsigned bytes_to_insert = src_len * repeat;
 
     reserve(mSize + bytes_to_insert);
     memmove(insert_at + bytes_to_insert, insert_at, mSize - (insert_at - mpBuff));
-    memmove(insert_at, s, bytes_to_insert);
+    while (repeat--)
+    {
+        memmove(insert_at, s, src_len);
+        insert_at += src_len;
+    }
     mSize += bytes_to_insert;
     mpBuff[mSize] = '\0';
     return *this;

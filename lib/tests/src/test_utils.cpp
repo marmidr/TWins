@@ -111,6 +111,11 @@ TEST(UTILS, wordWrap)
     }
 
     {
+        auto s = twins::util::wordWrap("a", 10, "");
+        EXPECT_EQ(0, s.size());
+    }
+
+    {
         auto s = twins::util::wordWrap("ab cdę fghi z", 3, " ", ".");
         EXPECT_STREQ("ab .cdę .fg….z", s.cstr());
     }
@@ -192,6 +197,24 @@ TEST(UTILS, WrappedString_empty)
     twins::util::WrappedString ws;
     EXPECT_FALSE(ws.isDirty());
     EXPECT_EQ(0, ws.getLines().size());
+}
+
+TEST(UTILS, centerText)
+{
+    {
+        auto s = twins::util::centerText("aBc", 4);
+        EXPECT_STREQ("aBc", s.cstr());
+    }
+
+    {
+        auto s = twins::util::centerText("aBc", 6);
+        EXPECT_STREQ(" aBc", s.cstr());
+    }
+
+    {
+        auto s = twins::util::centerText("aBc", 10);
+        EXPECT_STREQ("   aBc", s.cstr());
+    }
 }
 
 TEST(UTILS, WrappedString_getlines)

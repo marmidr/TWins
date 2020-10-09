@@ -21,8 +21,8 @@ class IWindowState
 {
 public:
     virtual ~IWindowState() = default;
-    virtual void init(const twins::Widget *pWindowWgts) {}
-    virtual const twins::Widget *getWidgets() const { return {}; }
+    virtual void init(const twins::Widget *pWindowWgts) = 0;
+    virtual const twins::Widget *getWidgets() const = 0;
     // events
     virtual void onButtonDown(const twins::Widget* pWgt) {}
     virtual void onButtonUp(const twins::Widget* pWgt) {}

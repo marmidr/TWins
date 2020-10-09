@@ -16,8 +16,8 @@
 #include "demo_wnd.hpp"
 
 #include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+// #include <string.h>
+// #include <unistd.h>
 #include <functional>
 #include <mutex>
 
@@ -94,14 +94,14 @@ class WndMainState : public twins::IWindowState
 public:
     void init(const twins::Widget *pWindowWgts) override
     {
-        pWgts = pWindowWgts;
-        focusedId.resize(wndMainNumPages);
+        mpWgts = pWindowWgts;
+        mFocusedId.resize(wndMainNumPages);
 
-        for (auto &wid : focusedId)
+        for (auto &wid : mFocusedId)
             // wid = twins::WIDGET_ID_NONE;
             wid = ID_WND;
 
-        txtBox1Text = ESC_BOLD
+        mTxtBox1Text = ESC_BOLD
                     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam arcu magna, placerat sit amet libero at, aliquam fermentum augue.\n"
                     ESC_NORMAL
                     ESC_FG_Gold
@@ -109,18 +109,18 @@ public:
                     "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.\n"
                     ESC_FG_GreenYellow
                     "Interdum et malesuada fames ac ante ipsum primis in faucibus. Aenean malesuada lacus leo, a eleifend lorem suscipit sed.\n" "▄";
-        txtBox2Text = "Lorem ipsum ▄";
-        edt1Text = "00 11 22 33 44 55 66 77 88 99 aa bb cc dd";
-        edt2Text = "73+37=100";
+        mTxtBox2Text = "Lorem ipsum ▄";
+        mEdt1Text = "00 11 22 33 44 55 66 77 88 99 aa bb cc dd";
+        mEdt2Text = "73+37=100";
     }
 
     ~WndMainState()
     {
         printf("~WndMainState()  WgtProperty map Distribution=%u%% Buckets:%u Nodes:%u\n",
-            wgtProp.distribution(), wgtProp.bucketsCount(), wgtProp.size());
+            mWgtProp.distribution(), mWgtProp.bucketsCount(), mWgtProp.size());
     }
 
-    const twins::Widget *getWidgets() const override { return pWgts; }
+    const twins::Widget *getWidgets() const override { return mpWgts; }
 
     // --- events ---
 
@@ -151,8 +151,8 @@ public:
     {
         switch (pWgt->id)
         {
-        case ID_EDT_1: edt1Text = std::move(str); break;
-        case ID_EDT_2: edt2Text = std::move(str); break;
+        case ID_EDT_1: mEdt1Text = std::move(str); break;
+        case ID_EDT_2: mEdt2Text = std::move(str); break;
         default: break;
         }
         TWINS_LOG("value:%s", str.cstr());
@@ -175,17 +175,17 @@ public:
         default: TWINS_LOG("CHBX"); break;
         }
 
-        wgtProp[pWgt->id].chbx.checked = !wgtProp[pWgt->id].chbx.checked;
+        mWgtProp[pWgt->id].chbx.checked = !mWgtProp[pWgt->id].chbx.checked;
     }
 
     void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) override
     {
-        if (pWgt->id == ID_PGCONTROL) pgcPage = newPageIdx;
+        if (pWgt->id == ID_PGCONTROL) mPgcPage = newPageIdx;
     }
 
     void onListBoxSelect(const twins::Widget* pWgt, int16_t selIdx) override
     {
-        wgtProp[pWgt->id].lbx.selIdx = selIdx;
+        mWgtProp[pWgt->id].lbx.selIdx = selIdx;
         TWINS_LOG("LISTBOX_SELECT(%u)", selIdx);
     }
 
@@ -193,28 +193,28 @@ public:
     {
         if (pWgt->id == ID_LISTBOX)
         {
-            wgtProp[pWgt->id].lbx.itemIdx = newIdx;
+            mWgtProp[pWgt->id].lbx.itemIdx = newIdx;
             TWINS_LOG("LISTBOX_CHANGE(%u)", newIdx);
         }
     }
 
     void onComboBoxSelect(const twins::Widget* pWgt, int16_t selIdx) override
     {
-        wgtProp[pWgt->id].cbbx.selIdx = selIdx;
+        mWgtProp[pWgt->id].cbbx.selIdx = selIdx;
         TWINS_LOG("COMBOBOX_SELECT(%u)", selIdx);
     }
 
     void onComboBoxChange(const twins::Widget* pWgt, int16_t newIdx) override
     {
-        wgtProp[pWgt->id].cbbx.itemIdx = newIdx;
+        mWgtProp[pWgt->id].cbbx.itemIdx = newIdx;
         TWINS_LOG("COMBOBOX_CHANGE(%u)", newIdx);
     }
 
     void onComboBoxDrop(const twins::Widget* pWgt, bool dropState) override
     {
-        wgtProp[pWgt->id].cbbx.dropDown = dropState;
+        mWgtProp[pWgt->id].cbbx.dropDown = dropState;
         if (dropState)
-            wgtProp[pWgt->id].cbbx.selIdx = wgtProp[pWgt->id].cbbx.itemIdx;
+            mWgtProp[pWgt->id].cbbx.selIdx = mWgtProp[pWgt->id].cbbx.itemIdx;
 
         TWINS_LOG("COMBOBOX_DROP(%u)", dropState);
     }
@@ -223,12 +223,12 @@ public:
     {
         TWINS_LOG("RADIO_SELECT(%d)", pWgt->radio.radioId);
         if (pWgt->radio.groupId == 1)
-            radioId = pWgt->radio.radioId;
+            mRadioId = pWgt->radio.radioId;
     }
 
     void onTextBoxScroll(const twins::Widget* pWgt, int16_t topLine) override
     {
-        wgtProp[pWgt->id].txtbx.topLine = topLine;
+        mWgtProp[pWgt->id].txtbx.topLine = topLine;
     }
 
     void onCustomWidgetDraw(const twins::Widget* pWgt) override
@@ -261,7 +261,7 @@ public:
     {
         if (pWgt->id == ID_PANEL_VERSIONS)
         {
-            auto &prp = wgtProp[pWgt->id];
+            auto &prp = mWgtProp[pWgt->id];
             prp.enabled = !prp.enabled;
             return prp.enabled;
         }
@@ -274,30 +274,30 @@ public:
 
     bool isFocused(const twins::Widget* pWgt) override
     {
-        return pWgt->id == focusedId[pgcPage];
+        return pWgt->id == mFocusedId[mPgcPage];
     }
 
     bool isVisible(const twins::Widget* pWgt) override
     {
         //if (pWgt->id == ID_WND)    return bb.wndMngr().topWnd() == pWgt; // always visible
-        if (pWgt->id == ID_PAGE_1) return pgcPage == 0;
-        if (pWgt->id == ID_PAGE_2) return pgcPage == 1;
-        if (pWgt->id == ID_PAGE_3) return pgcPage == 2;
-        if (pWgt->id == ID_PAGE_4) return pgcPage == 3;
-        if (pWgt->id == ID_PAGE_5) return pgcPage == 4;
-        if (pWgt->id == ID_PAGE_6) return pgcPage == 5;
+        if (pWgt->id == ID_PAGE_1) return mPgcPage == 0;
+        if (pWgt->id == ID_PAGE_2) return mPgcPage == 1;
+        if (pWgt->id == ID_PAGE_3) return mPgcPage == 2;
+        if (pWgt->id == ID_PAGE_4) return mPgcPage == 3;
+        if (pWgt->id == ID_PAGE_5) return mPgcPage == 4;
+        if (pWgt->id == ID_PAGE_6) return mPgcPage == 5;
 
         return true;
     }
 
     twins::WID& getFocusedID() override
     {
-        return focusedId[pgcPage];
+        return mFocusedId[mPgcPage];
     }
 
     bool getCheckboxChecked(const twins::Widget* pWgt) override
     {
-        return wgtProp[pWgt->id].chbx.checked;
+        return mWgtProp[pWgt->id].chbx.checked;
     }
 
     void getLabelText(const twins::Widget* pWgt, twins::String &out) override
@@ -342,36 +342,36 @@ public:
     {
         switch (pWgt->id)
         {
-        case ID_EDT_1: out = edt1Text; break;
-        case ID_EDT_2: out = edt2Text; break;
+        case ID_EDT_1: out = mEdt1Text; break;
+        case ID_EDT_2: out = mEdt2Text; break;
         default: break;
         }
     }
 
     bool getLedLit(const twins::Widget* pWgt) override
     {
-        auto &prp = wgtProp[pWgt->id];
+        auto &prp = mWgtProp[pWgt->id];
         prp.led.lit = !prp.led.lit;
         return prp.led.lit;
     }
 
     void getProgressBarState(const twins::Widget*, int &pos, int &max) override
     {
-        pos = pgbarPos++;
+        pos = mPgbarPos++;
         max = 20;
-        if (pgbarPos > max) pgbarPos = 0;
+        if (mPgbarPos > max) mPgbarPos = 0;
     }
 
     int getPageCtrlPageIndex(const twins::Widget* pWgt) override
     {
-        return pgcPage;
+        return mPgcPage;
     }
 
     void getListBoxState(const twins::Widget* pWgt, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount) override
     {
-        itemIdx = wgtProp[pWgt->id].lbx.itemIdx;
-        selIdx = wgtProp[pWgt->id].lbx.selIdx;
-        itemsCount = listBoxItemsCount;
+        itemIdx = mWgtProp[pWgt->id].lbx.itemIdx;
+        selIdx = mWgtProp[pWgt->id].lbx.selIdx;
+        itemsCount = mListBoxItemsCount;
     }
 
     void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
@@ -384,10 +384,10 @@ public:
 
     void getComboBoxState(const twins::Widget* pWgt, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount, bool &dropDown) override
     {
-        itemIdx = wgtProp[pWgt->id].cbbx.itemIdx;
-        selIdx = wgtProp[pWgt->id].cbbx.selIdx;
+        itemIdx = mWgtProp[pWgt->id].cbbx.itemIdx;
+        selIdx = mWgtProp[pWgt->id].cbbx.selIdx;
         itemsCount = 6;
-        dropDown = wgtProp[pWgt->id].cbbx.dropDown;
+        dropDown = mWgtProp[pWgt->id].cbbx.dropDown;
     }
 
     void getComboBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
@@ -397,31 +397,31 @@ public:
 
     int getRadioIndex(const twins::Widget* pWgt) override
     {
-        return radioId;
+        return mRadioId;
     }
 
     void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, int16_t &topLine) override
     {
         if (pWgt->id == ID_TBX_LOREMIPSUM)
         {
-            if (txtBox1Text.isDirty()) wgtProp[pWgt->id].txtbx.topLine = 0;
-            topLine = wgtProp[pWgt->id].txtbx.topLine;
+            if (mTxtBox1Text.isDirty()) mWgtProp[pWgt->id].txtbx.topLine = 0;
+            topLine = mWgtProp[pWgt->id].txtbx.topLine;
 
             if (ppLines)
             {
-                txtBox1Text.config(pWgt->size.width-2, " \n");
-                *ppLines = &txtBox1Text.getLines();
+                mTxtBox1Text.config(pWgt->size.width-2, " \n");
+                *ppLines = &mTxtBox1Text.getLines();
             }
         }
         else
         {
-            if (txtBox2Text.isDirty()) wgtProp[pWgt->id].txtbx.topLine = 0;
-            topLine = wgtProp[pWgt->id].txtbx.topLine;
+            if (mTxtBox2Text.isDirty()) mWgtProp[pWgt->id].txtbx.topLine = 0;
+            topLine = mWgtProp[pWgt->id].txtbx.topLine;
 
             if (ppLines)
             {
-                txtBox2Text.config(pWgt->size.width-2, " \n");
-                *ppLines = &txtBox2Text.getLines();
+                mTxtBox2Text.config(pWgt->size.width-2, " \n");
+                *ppLines = &mTxtBox2Text.getLines();
             }
         }
     }
@@ -455,20 +455,20 @@ public:
     twins::Vector<twins::WID> invalidatedWgts;
 
 private:
-    const twins::Widget *pWgts = nullptr;
-    int  pgbarPos = 0;
-    int  pgcPage = 0;
-    int  radioId = 0;
-    int16_t listBoxItemsCount = 20;
-    twins::String edt1Text;
-    twins::String edt2Text;
-    twins::Map<twins::WID, twins::WidgetProp> wgtProp;
-    twins::util::WrappedString txtBox1Text;
-    twins::util::WrappedString txtBox2Text;
+    const twins::Widget *mpWgts = nullptr;
+    int16_t mPgbarPos = 0;
+    int16_t mPgcPage = 0;
+    int16_t mRadioId = 0;
+    int16_t mListBoxItemsCount = 20;
+    twins::String mEdt1Text;
+    twins::String mEdt2Text;
+    twins::Map<twins::WID, twins::WidgetProp> mWgtProp;
+    twins::util::WrappedString mTxtBox1Text;
+    twins::util::WrappedString mTxtBox2Text;
 
     // focused WID separate for each page
     using wids_t = twins::Vector<twins::WID>;
-    wids_t focusedId;
+    wids_t mFocusedId;
 };
 
 // state of Popup window
@@ -477,13 +477,13 @@ class WndPopupState : public twins::IWindowState
 public:
     void init(const twins::Widget *pWindowWgts) override
     {
-        pWgts = pWindowWgts;
-        focusedId = IDPP_WND;
+        mpWgts = pWindowWgts;
+        mFocusedId = IDPP_WND;
     }
 
     ~WndPopupState() { printf("~WndPopupState()\n"); }
 
-    const twins::Widget *getWidgets() const override { return pWgts; }
+    const twins::Widget *getWidgets() const override { return mpWgts; }
 
     // --- events ---
 
@@ -524,12 +524,12 @@ public:
 
     twins::WID& getFocusedID() override
     {
-        return focusedId;
+        return mFocusedId;
     }
 
     bool isFocused(const twins::Widget* pWgt) override
     {
-        return pWgt->id == focusedId;
+        return pWgt->id == mFocusedId;
     }
 
     bool isVisible(const twins::Widget* pWgt) override
@@ -573,8 +573,8 @@ public:
     twins::String buttons;
 
 private:
-    twins::WID focusedId;
-    const twins::Widget *pWgts = nullptr;
+    twins::WID mFocusedId;
+    const twins::Widget *mpWgts = nullptr;
 };
 
 // -----------------------------------------------------------------------------
@@ -635,7 +635,7 @@ int main()
         if (quit_req) break;
         rbKeybInput.write(posix_inp);
 
-        if (rbKeybInput.size())
+        if (rbKeybInput.size() && twins::uim().wMngr().size())
         {
             twins::Locker lck;
             twins::KeyCode kc = {};

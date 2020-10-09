@@ -196,6 +196,17 @@ Vector<StringRange> splitLines(const char *str)
     return out;
 }
 
+twins::String centerText(twins::String str, uint16_t rowLength)
+{
+    twins::String out(std::move(str));
+    auto txt_len = out.u8len(true);
+
+    if (rowLength - txt_len > 1)
+        out.insert(0, " ", (rowLength - txt_len)/2);
+
+    return out;
+}
+
 // -----------------------------------------------------------------------------
 
 bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos, int64_t limitMin, int64_t limitMax, bool wrap)

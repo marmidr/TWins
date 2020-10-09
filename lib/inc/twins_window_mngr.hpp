@@ -18,7 +18,7 @@ namespace twins
 class WndManager
 {
 public:
-    ~WndManager() { printf("~WndManager()\n"); }
+    ~WndManager() { /* printf("~WndManager()\n");*/ }
 
     /** @brief show \p pWindow on top */
     void pushWnd(twins::IWindowState *pWindow);

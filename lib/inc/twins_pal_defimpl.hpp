@@ -162,9 +162,10 @@ struct DefaultPAL : twins::IPal
     }
 
 protected:
+    // called before PAL is unregistered
     void deinit()
     {
-        lineBuff.clear(0); // before PAL is unregistered
+        lineBuff.clear(0);
     }
 
 public:
