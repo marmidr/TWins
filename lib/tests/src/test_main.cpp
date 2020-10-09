@@ -28,6 +28,17 @@ ColorBG intensifyClTheme(ColorBG cl) { return cl; }
 // must be global due to static twins objects destroyed after main() quit
 struct TestPAL : twins::DefaultPAL
 {
+    TestPAL()
+    {
+        twins::init(this);
+    }
+
+    ~TestPAL()
+    {
+        deinit();
+        twins::deinit();
+    }
+
     void flushBuff() override
     {
         // do not write anything to terminal
@@ -53,7 +64,6 @@ int main(int argc, char **argv)
     argc = vargs.size();
 
     testing::InitGoogleTest(&argc, vargs.data());
-    twins::init(&test_pal);
 
     return RUN_ALL_TESTS();
 }

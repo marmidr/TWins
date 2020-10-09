@@ -20,9 +20,8 @@
 # define __TWINS_LINK_SECRET    void*_
 #endif
 
-#ifdef TWINS_THEME
-// TWINS_THEME is path to header file provided by CMake
-# include TWINS_THEME
+#ifdef TWINS_THEMES
+# include "twins_theme.hpp"
 #else
 # define TWINS_THEME_FG
 # define TWINS_THEME_BG
@@ -104,7 +103,7 @@ enum class ColorBG : uint8_t
 /** @brief Convert color identifier to ASCII ESC code */
 const char* encodeCl(ColorFG cl);
 const char* encodeCl(ColorBG cl);
-#ifdef TWINS_THEME
+#ifdef TWINS_THEMES
 // implemented in user code:
 const char* encodeClTheme(ColorFG cl);
 const char* encodeClTheme(ColorBG cl);
@@ -113,7 +112,7 @@ const char* encodeClTheme(ColorBG cl);
 /** @brief Color intensification */
 ColorFG intensifyCl(ColorFG cl);
 ColorBG intensifyCl(ColorBG cl);
-#ifdef TWINS_THEME
+#ifdef TWINS_THEMES
 // implemented in user code:
 ColorFG intensifyClTheme(ColorFG cl);
 ColorBG intensifyClTheme(ColorBG cl);
@@ -147,6 +146,7 @@ enum class FrameStyle : uint8_t
     Single,
     Double,
     PgControl,
+    ListBox
 };
 
 /**
@@ -171,7 +171,7 @@ enum class ButtonStyle : uint8_t
 /**
  * @brief Unique Widget-ID
  */
-using WID = int16_t;
+using WID = uint16_t;
 
 // moved to external file so it will not be taken into coverage
 #include "twins_window_state.hpp"
@@ -317,16 +317,63 @@ struct Widget
         {
             /** in constexpr the pointer cannot be calculated, thus,
               * we use flat Widgets array index instead */
-            uint8_t ownIdx;     /// set in compile-time
-            uint8_t parentIdx;  /// set in compile-time
-            uint8_t childsIdx;  /// set in compile-time
-            uint8_t childsCnt;  /// set in compile-time
+            uint16_t ownIdx;     /// set in compile-time
+            uint16_t parentIdx;  /// set in compile-time
+            uint16_t childsIdx;  /// set in compile-time
+            uint8_t  childsCnt;  /// set in compile-time
         };
     } link;
 };
 
 static constexpr WID WIDGET_ID_NONE = 0;    // convenient; default value points to nothing
 static constexpr WID WIDGET_ID_ALL = -1;
+
+/**
+ * @brief Union of trivial-type widget properties;
+ *      to be used like this:
+ * @code.cpp
+ *      twins::Map<twins::WID, twins::WidgetProp> wgtProp;
+ * @endcode
+ */
+struct WidgetProp
+{
+    // applies to every widget
+    bool enabled;
+
+    //
+    union
+    {
+        struct
+        {
+            bool checked;
+        } chbx;
+
+        struct
+        {
+            const char *txt;
+            bool lit;
+        } led;
+
+        struct
+        {
+            int16_t itemIdx;
+            int16_t selIdx;
+        } lbx;
+
+        struct
+        {
+            int16_t itemIdx;
+            int16_t selIdx;
+            bool    dropDown;
+        } cbbx;
+
+        struct
+        {
+            int16_t pos;
+            int16_t max;
+        } pgbar;
+    };
+};
 
 /** @brief Object remembers terminal font colors and attribute,
  *         to restore them on destruction
@@ -342,13 +389,14 @@ protected:
     uint8_t szAttr;
 };
 
+/** @brief Helper for automatic restoring terminal font attributes */
 struct FontMemento : FontMementoManual
 {
     FontMemento()  { store(); }
     ~FontMemento() { restore(); }
 };
 
-/** @brief */
+/** @brief Mouse reporting modes */
 enum class MouseMode : uint8_t
 {
     Off,
@@ -359,20 +407,27 @@ enum class MouseMode : uint8_t
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Initialize TWins
+ * @brief Initialize TWins internal structures
  */
 void init(IPal *pal);
 
 /**
+ * @brief Release TWins internal structures
+ */
+void deinit(void);
+
+/**
  * @brief Control TWins mutex implemented in IPal
  *        Call unlock() only if lock() returned true
+ * @note use twins::Locker instead of calling these functions directly
  */
 bool lock(bool wait = true);
 void unlock(void);
 
 /** @brief used by TWINS_LOG() */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
-/** @brief */
+
+/** @brief Logs with more control */
 void logRawBegin(const char *prologue = "", bool timeStamp = false);
 void logRawWrite(const char *msg);
 void logRawEnd(const char *epilogue = "");
@@ -512,9 +567,9 @@ void mainPgControlChangePage(const Widget *pWindowWidgets, bool next);
 /** @brief RAII style locker */
 struct Locker
 {
-    Locker()
+    Locker(bool wait = true)
     {
-        m_isLocked = twins::lock();
+        m_isLocked = twins::lock(wait);
     }
 
     ~Locker()

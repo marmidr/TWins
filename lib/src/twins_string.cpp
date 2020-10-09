@@ -147,10 +147,10 @@ String& String::trim(int16_t trimPos, bool addEllipsis, bool ignoreESC)
     mSize = p - mpBuff;
     char last = mpBuff[mSize];
 
-    if (addEllipsis && last == ' ') 
+    if (addEllipsis && last == ' ')
         mSize++;
     mpBuff[mSize] = '\0';
-    if (addEllipsis && last != ' ') 
+    if (addEllipsis && last != ' ')
         append("…");
     return *this;
 }
@@ -169,7 +169,7 @@ String& String::erase(int16_t pos, int16_t len)
         p += seqLen;
     }
 
-    if (p >= mpBuff + mSize) 
+    if (p >= mpBuff + mSize)
         return *this;
 
     char *erase_at = p;
@@ -211,7 +211,7 @@ String& String::insert(int16_t pos, const char *s)
         p += seqLen;
     }
 
-    if (p >= mpBuff + mSize) 
+    if (p >= mpBuff + mSize)
         return *this;
 
     char *insert_at = p;
@@ -241,12 +241,12 @@ void String::setLength(int16_t len, bool addEllipsis, bool ignoreESC)
 String& String::clear(uint16_t threshordToFree)
 {
     if (mCapacity >= threshordToFree)
-        free();
+        freeBuff();
 
     mSize = 0;
     if (mpBuff)
         *mpBuff = '\0';
-        
+
     return *this;
 }
 
@@ -319,7 +319,7 @@ void String::reserve(uint16_t newCapacity)
     }
 }
 
-void String::free()
+void String::freeBuff()
 {
     if (mpBuff) pPAL->memFree(mpBuff);
     mpBuff = nullptr;

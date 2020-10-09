@@ -621,7 +621,7 @@ static constexpr twins::Widget wndMain =
         fgColor     : twins::ColorFG::Window,
         bgColor     : twins::ColorBG::Window,
         isPopup     : {},
-        getState    : getWndMainState,
+        getState    : getWndMain,
     }},
     link    : { (const twins::Widget[])
     {
@@ -727,10 +727,10 @@ static constexpr twins::Widget wndMain =
 
 
 
-static constexpr twins::Widget wndYesNo =
+static constexpr twins::Widget wndPopup =
 {
     type    : twins::Widget::Window,
-    id      : IDYN_WND,
+    id      : IDPP_WND,
     coord   : { },
     size    : { 34, 10 },
     { window : {
@@ -738,13 +738,13 @@ static constexpr twins::Widget wndYesNo =
         fgColor     : twins::ColorFG::Blue,
         bgColor     : twins::ColorBG::White,
         isPopup     : true,
-        getState    : getWndYesNoState,
+        getState    : getWndPopup,
     }},
     link    : { (const twins::Widget[])
     {
         {
             type    : twins::Widget::Label,
-            id      : IDYN_LBL_MSG,
+            id      : IDPP_LBL_MSG,
             coord   : { 2, 2 },
             size    : { 30, 4 },
             { label : {
@@ -755,7 +755,7 @@ static constexpr twins::Widget wndYesNo =
         },
         {
             type    : twins::Widget::Button,
-            id      : IDYN_BTN_YES,
+            id      : IDPP_BTN_YES,
             coord   : { 5, 7 },
             size    : {},
             { button : {
@@ -767,7 +767,7 @@ static constexpr twins::Widget wndYesNo =
         },
         {
             type    : twins::Widget::Button,
-            id      : IDYN_BTN_NO,
+            id      : IDPP_BTN_NO,
             coord   : { 13, 7 },
             size    : {},
             { button : {
@@ -779,13 +779,25 @@ static constexpr twins::Widget wndYesNo =
         },
         {
             type    : twins::Widget::Button,
-            id      : IDYN_BTN_CANCEL,
+            id      : IDPP_BTN_CANCEL,
             coord   : { 20, 7 },
             size    : {},
             { button : {
                 text    : "CANCEL",
                 fgColor : twins::ColorFG::White,
                 bgColor : twins::ColorBG::BlackIntense,
+                style   : twins::ButtonStyle::Solid
+            }}
+        },
+        {
+            type    : twins::Widget::Button,
+            id      : IDPP_BTN_OK,
+            coord   : { 13, 7 },
+            size    : {},
+            { button : {
+                text    : "OK",
+                fgColor : twins::ColorFG::ButtonGreen,
+                bgColor : twins::ColorBG::ButtonGreen,
                 style   : twins::ButtonStyle::Solid
             }}
         },
@@ -799,5 +811,5 @@ constexpr auto wndMainWidgets = twins::transforWindowDefinition<&wndMain>();
 const twins::Widget * pWndMainWidgets = wndMainWidgets.begin();
 const uint16_t wndMainNumPages = twins::getPagesCount(&wndMain);
 
-constexpr auto wndYesNoWidgets = twins::transforWindowDefinition<&wndYesNo>();
-const twins::Widget * pWndYesNoWidgets = wndYesNoWidgets.begin();
+constexpr auto wndPopupWidgets = twins::transforWindowDefinition<&wndPopup>();
+const twins::Widget * pWndPopupWidgets = wndPopupWidgets.begin();

@@ -28,28 +28,6 @@ struct Rect
     }
 };
 
-struct EditState
-{
-    const Widget *pWgt = nullptr;
-    int16_t cursorPos = 0;
-    String  str;
-};
-
-/** Global state object */
-struct Glob
-{
-    Coord   parentCoord;            // current widget's parent left-top position
-    String  str;                    // common string buff for widget drawers
-    const Widget *pWndWidgets = {}; // array of Window widgets
-    IWindowState *pWndState = {};   //
-    const Widget *pFocusedWgt = {}; //
-    const Widget *pMouseDownWgt = {}; //
-    EditState editState;            // state of Edit being modified
-    int textboxTopLine = {};        // focused TextBox first line displayed out of provided
-};
-
-extern Glob g;
-
 struct WidgetSearchStruct
 {
     WID   searchedID = {};      // given
@@ -57,6 +35,29 @@ struct WidgetSearchStruct
     bool  isVisible = true;     // expected
     const Widget *pWidget = {}; // expected
 };
+
+struct EditState
+{
+    const Widget *pWgt = nullptr;
+    int16_t cursorPos = 0;
+    String  str;
+};
+
+/** Widget drawing state object */
+struct WgtDrawState
+{
+    Coord   parentCoord;            // current widget's parent left-top position
+    String  str;                    // common string buff for widget drawers
+    const Widget *pWndWidgets = {}; // array of Window widgets
+    IWindowState *pWndState = {};   //
+    const Widget *pFocusedWgt = {}; //
+    const Widget *pMouseDownWgt = {}; //
+    const Widget *pDropDownCombo = {};
+    EditState editState;            // state of Edit being modified
+    int textboxTopLine = {};        // focused TextBox first line displayed out of provided
+};
+
+extern WgtDrawState& g_wds;
 
 // -----------------------------------------------------------------------------
 

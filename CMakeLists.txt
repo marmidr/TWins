@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.10)
 # https://stackoverflow.com/questions/42716466/how-can-i-tell-within-a-cmakelists-txt-whether-its-used-with-add-subdirectory
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     # message("I am top-level project.")
-    project(TWins C CXX)
+    project(TWins LANGUAGES CXX)
 
     # https://stackoverflow.com/questions/6594796/how-do-i-make-cmake-output-into-a-bin-dir
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -61,6 +61,11 @@ if (${TWINS_BUILD_UT})
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 endif()
 
+
+if (${TWINS_BUILD_DEMO})
+    # set path to directory where is the theme file.
+    set(TWINS_THEME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/demo/inc CACHE STRING "")
+endif()
 
 # add library code
 add_subdirectory(lib)

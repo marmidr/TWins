@@ -8,7 +8,7 @@
 #pragma once
 
 // field set in user Widget definition;
-// because it's first field in union, it's name may be ommited
+// because it is first field in the union, it's name may be ommited
 #define __TWINS_LINK_SECRET     const Widget *pChilds
 
 #include "twins.hpp"
@@ -79,10 +79,10 @@ constexpr int transformWidgetTreeToArray(twins::Array<twins::Widget, N> &arr, co
     return freeSlotIdx;
 }
 
-template<const twins::Widget *pWINDOW, unsigned N = getWgtsCount(pWINDOW) + 1>
+template<const twins::Widget *pWINDOW, int N = getWgtsCount(pWINDOW) + 1>
 constexpr twins::Array<twins::Widget, N> transforWindowDefinition()
 {
-    static_assert(N < 255, "Limit of widgets per window reached");
+    static_assert(N < 65000, "Limit of widgets per window reached");
     twins::Array<twins::Widget, N> arr;
 
     transformWidgetTreeToArray<N>(arr, pWINDOW, 0, 1);

@@ -297,13 +297,13 @@ protected:
 TEST_F(WIDGETDRW, drawWidget)
 {
     // force scanning of invisible lines
-    twins::g.textboxTopLine = 2;
+    twins::g_wds.textboxTopLine = 2;
     twins::drawWidget(pWndTestWidgets, ID_TEXTBOX);
 
     // draw pressed button
-    twins::g.pMouseDownWgt = twins::getWidget(pWndTestWidgets, ID_BTN1);
+    twins::g_wds.pMouseDownWgt = twins::getWidget(pWndTestWidgets, ID_BTN1);
     twins::drawWidget(pWndTestWidgets, ID_BTN1);
-    twins::g.pMouseDownWgt = {};
+    twins::g_wds.pMouseDownWgt = {};
 
     // draw all
     auto t = twins::pPAL->getTimeStamp();

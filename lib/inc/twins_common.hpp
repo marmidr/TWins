@@ -68,7 +68,6 @@ struct Range
 
 using StringRange = twins::Range<const char>;
 
-
 /**
  * @brief Platform Abstraction Layer for easy porting
  */

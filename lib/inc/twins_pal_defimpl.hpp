@@ -161,8 +161,13 @@ struct DefaultPAL : twins::IPal
         return now - timestamp;
     }
 
-public:
+protected:
+    void deinit()
+    {
+        lineBuff.clear(0); // before PAL is unregistered
+    }
 
+public:
     String lineBuff;
     uint32_t lineBuffMaxSize = 0;
 
