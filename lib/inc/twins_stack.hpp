@@ -25,7 +25,8 @@ public:
     ~Stack()
     {
         destroyContent();
-        pPAL->memFree(mpItems);
+        if (mpItems)
+            pPAL->memFree(mpItems);
     }
 
     /** @brief Push new item onto the stack by copy or move */

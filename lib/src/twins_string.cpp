@@ -241,7 +241,7 @@ void String::setLength(int16_t len, bool addEllipsis, bool ignoreESC)
 String& String::clear(uint16_t threshordToFree)
 {
     if (mCapacity >= threshordToFree)
-        free();
+        freeBuff();
 
     mSize = 0;
     if (mpBuff)
@@ -319,7 +319,7 @@ void String::reserve(uint16_t newCapacity)
     }
 }
 
-void String::free()
+void String::freeBuff()
 {
     if (mpBuff) pPAL->memFree(mpBuff);
     mpBuff = nullptr;

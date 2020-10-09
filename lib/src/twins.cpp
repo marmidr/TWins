@@ -19,26 +19,35 @@ namespace twins
 /** @brief Pointer to PAL used internally by TWins */
 IPal *pPAL;
 
-/** @brief Current font colors and attributes */
-static ColorFG currentClFg = ColorFG::Default;
-static ColorBG currentClBg = ColorBG::Default;
+/** Local state */
+struct TwinsState
+{
+    /** @brief Current font colors and attributes */
+    ColorFG currentClFg = ColorFG::Default;
+    ColorBG currentClBg = ColorBG::Default;
+    int8_t  attrFaint = 0;
 
-/** @brief Font colors and attribute stacks */
-static Stack<ColorFG> stackClFg;
-static Stack<ColorBG> stackClBg;
-static Stack<FontAttrib> stackAttr;
+    /** @brief Font colors and attribute stacks */
+    Stack<ColorFG> stackClFg;
+    Stack<ColorBG> stackClBg;
+    Stack<FontAttrib> stackAttr;
 
-/** @brief */
-static FontMementoManual logRawFontMemento;
+    /** logRaw() state */
+    FontMementoManual logRawFontMemento;
+};
+
+// trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
+static char ts_buff[sizeof(TwinsState)] alignas(TwinsState);
+TwinsState& g_ts = (TwinsState&)ts_buff;
 
 // -----------------------------------------------------------------------------
 
 /** */
 void FontMementoManual::store()
 {
-    szFg = stackClFg.size();
-    szBg = stackClBg.size();
-    szAttr = stackAttr.size();
+    szFg = g_ts.stackClFg.size();
+    szBg = g_ts.stackClBg.size();
+    szAttr = g_ts.stackAttr.size();
 
     // stackClFg.push(currentClFg);
     // stackClBg.push(currentClBg);
@@ -46,24 +55,33 @@ void FontMementoManual::store()
 
 void FontMementoManual::restore()
 {
-    popClFg(stackClFg.size() - szFg);
-    popClBg(stackClBg.size() - szBg);
-    popAttr(stackAttr.size() - szAttr);
+    popClFg(g_ts.stackClFg.size() - szFg);
+    popClBg(g_ts.stackClBg.size() - szBg);
+    popAttr(g_ts.stackAttr.size() - szAttr);
 }
 
 // -----------------------------------------------------------------------------
 
+extern void widgetInit();
+extern void widgetDeInit();
+
 void init(IPal *pal)
 {
+    if (!pal) return;
+
     pPAL = pal;
+    new (&g_ts) TwinsState{};
+    widgetInit();
 }
 
-void deinit()
+void deinit(void)
 {
+    g_ts.~TwinsState();
+    widgetDeInit();
     pPAL = nullptr;
 }
 
-IPal& pal()
+IPal& pal(void)
 {
     assert(pPAL);
     return *pPAL;
@@ -108,7 +126,8 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
     FontMemento _m;
     cursorSavePos();
     pushClBg(ColorBG::Default);
-    pushClFg(ColorFG::White);
+    // pushClFg(ColorFG::White);
+    writeStr(ESC_FG_COLOR(245));
 
     uint16_t row = pPAL->getLogsRow();
     moveTo(1, row);
@@ -116,12 +135,15 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
 
     time_t t = time(NULL);
     struct tm *p_stm = localtime(&t);
-    writeStrFmt("[%2d:%02d:%02d] %s() %s:%u: ",
+    // writeStrFmt("[%2d:%02d:%02d] %s() %s:%u: ",
+    //     p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec,
+    //     func, file, line);
+    writeStrFmt("[%2d:%02d:%02d] %s:%u: ",
         p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec,
-        func, file, line);
+        file, line);
 
-    pushClFg(ColorFG::WhiteIntense);
-    // pushClFg(ColorFG::YellowIntense);
+    // pushClFg(ColorFG::WhiteIntense);
+    writeStr(ESC_FG_COLOR(253));
 
     if (fmt)
     {
@@ -137,12 +159,13 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
 
 void logRawBegin(const char *prologue, bool timeStamp)
 {
-    logRawFontMemento.store();
+    g_ts.logRawFontMemento.store();
     cursorSavePos();
     moveTo(1, pPAL->getLogsRow());
     insertLines(1);
     pushClBg(ColorBG::Default);
-    pushClFg(ColorFG::White);
+    // pushClFg(ColorFG::White);
+    writeStr(ESC_FG_COLOR(245));
 
     if (timeStamp)
     {
@@ -152,7 +175,8 @@ void logRawBegin(const char *prologue, bool timeStamp)
             p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec);
     }
 
-    pushClFg(ColorFG::WhiteIntense);
+    // pushClFg(ColorFG::WhiteIntense);
+    writeStr(ESC_FG_COLOR(253));
     writeStr(prologue);
 }
 
@@ -165,7 +189,7 @@ void logRawEnd(const char *epilogue)
 {
     writeStr(epilogue);
     cursorRestorePos();
-    logRawFontMemento.restore();
+    g_ts.logRawFontMemento.restore();
     flushBuffer();
 }
 
@@ -259,22 +283,22 @@ void mouseMode(MouseMode mode)
 
 void pushClFg(ColorFG cl)
 {
-    stackClFg.push(currentClFg);
-    currentClFg = cl;
-    writeStr(encodeCl(currentClFg));
+    g_ts.stackClFg.push(g_ts.currentClFg);
+    g_ts.currentClFg = cl;
+    writeStr(encodeCl(g_ts.currentClFg));
 }
 
 void popClFg(int n)
 {
-    while (stackClFg.size() && n-- > 0)
-        currentClFg = *stackClFg.pop();
+    while (g_ts.stackClFg.size() && n-- > 0)
+        g_ts.currentClFg = *g_ts.stackClFg.pop();
 
-    writeStr(encodeCl(currentClFg));
+    writeStr(encodeCl(g_ts.currentClFg));
 }
 
 void resetClFg()
 {
-    stackClFg.clear();
+    g_ts.stackClFg.clear();
     writeStr(ESC_FG_DEFAULT);
 }
 
@@ -282,37 +306,35 @@ void resetClFg()
 
 void pushClBg(ColorBG cl)
 {
-    stackClBg.push(currentClBg);
-    currentClBg = cl;
-    writeStr(encodeCl(currentClBg));
+    g_ts.stackClBg.push(g_ts.currentClBg);
+    g_ts.currentClBg = cl;
+    writeStr(encodeCl(g_ts.currentClBg));
 }
 
 void popClBg(int n)
 {
-    while (stackClBg.size() && n-- > 0)
-        currentClBg = *stackClBg.pop();
+    while (g_ts.stackClBg.size() && n-- > 0)
+        g_ts.currentClBg = *g_ts.stackClBg.pop();
 
-    writeStr(encodeCl(currentClBg));
+    writeStr(encodeCl(g_ts.currentClBg));
 }
 
 void resetClBg()
 {
-    stackClBg.clear();
+    g_ts.stackClBg.clear();
     writeStr(ESC_BG_DEFAULT);
 }
 
 // -----------------------------------------------------------------------------
 
-static int8_t attrFaint = 0;
-
 void pushAttr(FontAttrib attr)
 {
-    stackAttr.push(attr);
+    g_ts.stackAttr.push(attr);
 
     switch (attr)
     {
-    case FontAttrib::Bold:          if (!attrFaint) writeStr(ESC_BOLD); break;
-    case FontAttrib::Faint:         attrFaint++;    writeStr(ESC_FAINT); break;
+    case FontAttrib::Bold:          if (!g_ts.attrFaint) writeStr(ESC_BOLD); break;
+    case FontAttrib::Faint:         g_ts.attrFaint++;    writeStr(ESC_FAINT); break;
     case FontAttrib::Italics:       writeStr(ESC_ITALICS_ON); break;
     case FontAttrib::Underline:     writeStr(ESC_UNDERLINE_ON); break;
     case FontAttrib::Blink:         writeStr(ESC_BLINK); break;
@@ -325,14 +347,14 @@ void pushAttr(FontAttrib attr)
 
 void popAttr(int n)
 {
-    while (stackAttr.size() && n-- > 0)
+    while (g_ts.stackAttr.size() && n-- > 0)
     {
-        auto *pAttr = stackAttr.pop();
+        auto *pAttr = g_ts.stackAttr.pop();
 
         switch (*pAttr)
         {
-        case FontAttrib::Bold:          if (!attrFaint)   writeStr(ESC_NORMAL); break;
-        case FontAttrib::Faint:         if (!--attrFaint) writeStr(ESC_NORMAL); break;
+        case FontAttrib::Bold:          if (!g_ts.attrFaint)   writeStr(ESC_NORMAL); break;
+        case FontAttrib::Faint:         if (!--g_ts.attrFaint) writeStr(ESC_NORMAL); break;
         case FontAttrib::Italics:       writeStr(ESC_ITALICS_OFF); break;
         case FontAttrib::Underline:     writeStr(ESC_UNDERLINE_OFF); break;
         case FontAttrib::Blink:         writeStr(ESC_BLINK_OFF); break;
@@ -346,8 +368,8 @@ void popAttr(int n)
 
 void resetAttr()
 {
-    attrFaint = 0;
-    stackAttr.clear();
+    g_ts.attrFaint = 0;
+    g_ts.stackAttr.clear();
     writeStr(ESC_ATTRIBUTES_DEFAULT);
 }
 

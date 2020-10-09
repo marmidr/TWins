@@ -25,9 +25,16 @@
 
 struct DemoPAL : twins::DefaultPAL
 {
+    DemoPAL()
+    {
+        twins::init(this);
+    }
+
     ~DemoPAL()
     {
-        printf(ESC_BOLD "lineBuffMaxSize: %u\n" ESC_NORMAL, lineBuffMaxSize);
+        printf("~DemoPAL() lineBuffMaxSize: %u\n", lineBuffMaxSize);
+        deinit();
+        twins::deinit();
     }
 
     uint16_t getLogsRow() override
@@ -60,7 +67,7 @@ class DemoUIMngr : public twins::UIMngrBase
 {
 public:
     DemoUIMngr() { }
-    ~DemoUIMngr() { twins::deinit(); }
+    ~DemoUIMngr() { printf("~DemoUIMngr()\n"); }
     twins::IPal& pal() override { return mPal; }
     twins::WndManager& wMngr() override { return mWndMngr; }
     const twins::Widget* mainWnd() override { return pWndMainWidgets; }
@@ -109,7 +116,7 @@ public:
 
     ~WndMainState()
     {
-        printf("WgtProperty map Distribution=%u%% Buckets:%u Nodes:%u\n",
+        printf("~WndMainState()  WgtProperty map Distribution=%u%% Buckets:%u Nodes:%u\n",
             wgtProp.distribution(), wgtProp.bucketsCount(), wgtProp.size());
     }
 
@@ -459,6 +466,8 @@ public:
         focusedId = IDPP_WND;
     }
 
+    ~WndPopupState() { printf("~WndPopupState()\n"); }
+
     const twins::Widget *getWidgets() const override { return pWgts; }
 
     // --- events ---
@@ -592,15 +601,15 @@ int main()
 {
     // printf("Win1 controls: %u" "\n", wndMain.topWnd.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
-    twins::RingBuff<char> rbKeybInput;
-
-    rbKeybInput.init(20);
-    twins::init(&twins::uim().pal());
     twins::screenClrAll();
     twins::uim().wMngr().pushWnd(getWndMain());
     twins::inputPosixInit(100);
     twins::mouseMode(twins::MouseMode::M2);
     twins::flushBuffer();
+
+    // after twins::init():
+    twins::RingBuff<char> rbKeybInput;
+    rbKeybInput.init(20);
 
     // assert(!"just-a-test");
 

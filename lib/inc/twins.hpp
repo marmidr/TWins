@@ -337,7 +337,7 @@ static constexpr WID WIDGET_ID_ALL = -1;
  */
 struct WidgetProp
 {
-    // apply to every widget
+    // applies to every widget
     bool enabled;
 
     //
@@ -350,6 +350,7 @@ struct WidgetProp
 
         struct
         {
+            const char *txt;
             bool lit;
         } led;
 
@@ -365,6 +366,12 @@ struct WidgetProp
             int16_t selIdx;
             bool    dropDown;
         } cbbx;
+
+        struct
+        {
+            int16_t pos;
+            int16_t max;
+        } pgbar;
     };
 };
 
@@ -400,12 +407,12 @@ enum class MouseMode : uint8_t
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Initialize TWins
+ * @brief Initialize TWins internal structures
  */
 void init(IPal *pal);
 
 /**
- * @brief Unregister pPal
+ * @brief Release TWins internal structures
  */
 void deinit(void);
 
@@ -419,7 +426,8 @@ void unlock(void);
 
 /** @brief used by TWINS_LOG() */
 void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
-/** @brief */
+
+/** @brief Logs with more control */
 void logRawBegin(const char *prologue = "", bool timeStamp = false);
 void logRawWrite(const char *msg);
 void logRawEnd(const char *epilogue = "");

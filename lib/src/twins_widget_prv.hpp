@@ -28,6 +28,14 @@ struct Rect
     }
 };
 
+struct WidgetSearchStruct
+{
+    WID   searchedID = {};      // given
+    Coord parentCoord = {};     // expected
+    bool  isVisible = true;     // expected
+    const Widget *pWidget = {}; // expected
+};
+
 struct EditState
 {
     const Widget *pWgt = nullptr;
@@ -35,8 +43,8 @@ struct EditState
     String  str;
 };
 
-/** Global state object */
-struct Glob
+/** Widget drawing state object */
+struct WgtDrawState
 {
     Coord   parentCoord;            // current widget's parent left-top position
     String  str;                    // common string buff for widget drawers
@@ -49,15 +57,7 @@ struct Glob
     int textboxTopLine = {};        // focused TextBox first line displayed out of provided
 };
 
-extern Glob g;
-
-struct WidgetSearchStruct
-{
-    WID   searchedID = {};      // given
-    Coord parentCoord = {};     // expected
-    bool  isVisible = true;     // expected
-    const Widget *pWidget = {}; // expected
-};
+extern WgtDrawState& g_wds;
 
 // -----------------------------------------------------------------------------
 

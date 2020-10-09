@@ -68,7 +68,7 @@ public:
     static const char* u8skipIgnoreEsc(const char *str, unsigned toSkip);
 
 private:
-    void free();
+    void freeBuff();
     bool sourceIsOurs(const char *s) const { return (s >= mpBuff) && (s < mpBuff + mCapacity); }
 
 private:

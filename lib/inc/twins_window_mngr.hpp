@@ -18,6 +18,8 @@ namespace twins
 class WndManager
 {
 public:
+    ~WndManager() { printf("~WndManager()\n"); }
+
     /** @brief show \p pWindow on top */
     void pushWnd(twins::IWindowState *pWindow);
 
@@ -39,7 +41,7 @@ public:
     }
 
     /** @brief number of windows on stack */
-    unsigned count() const { return mWindows.size(); }
+    unsigned size() const { return mWindows.size(); }
 
     /** @brief redraw windows from bottom to top */
     void redraw();
