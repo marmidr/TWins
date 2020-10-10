@@ -11,13 +11,11 @@
 #include "twins_utils.hpp"
 #include "twins_input_posix.hpp"
 #include "twins_pal_defimpl.hpp"
-#include "twins_ui_mngr.hpp"
+#include "twins_gui.hpp"
 
 #include "demo_wnd.hpp"
 
 #include <stdio.h>
-// #include <string.h>
-// #include <unistd.h>
 #include <functional>
 #include <mutex>
 
@@ -39,7 +37,7 @@ struct DemoPAL : twins::DefaultPAL
 
     uint16_t getLogsRow() override
     {
-        const auto *p_wnd = twins::uim().mainWnd();
+        const auto *p_wnd = twins::gui::pMainWindowWgts;
         return p_wnd->coord.row + p_wnd->size.height + 1;
     }
 
@@ -63,24 +61,19 @@ private:
     std::recursive_mutex mMtx;
 };
 
-class DemoUIMngr : public twins::UIMngrBase
-{
-public:
-    DemoUIMngr() { }
-    ~DemoUIMngr() { printf("~DemoUIMngr()\n"); }
-    twins::IPal& pal() override { return mPal; }
-    twins::WndManager& wMngr() override { return mWndMngr; }
-    const twins::Widget* mainWnd() override { return pWndMainWidgets; }
 
-private:
-    DemoPAL mPal; // must be first due to construction-destruction order
-    twins::WndManager mWndMngr;
-};
-
+// local definition of twins::gui namespace for Demo needs
 namespace twins
 {
-DemoUIMngr uiMngr;
-UIMngrBase& uim() { return uiMngr; }
+namespace gui
+{
+DemoPAL demoPAL; // must be first due to construction-destruction order
+twins::WndManager wndMngr;
+
+twins::IPal& pal = demoPAL;
+twins::WndManager& wMngr = wndMngr;
+const twins::Widget* pMainWindowWgts = pWndMainWidgets;
+}
 }
 
 
@@ -492,14 +485,14 @@ public:
         if (onButton)
             onButton(pWgt->id);
 
-        twins::uim().wMngr().popWnd();
+        twins::gui::wMngr.popWnd();
     }
 
     bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         if (kc.key == twins::Key::Esc)
         {
-            twins::uim().wMngr().popWnd();
+            twins::gui::wMngr.popWnd();
             return true;
         }
         return false;
@@ -509,7 +502,7 @@ public:
 
     void getWindowCoord(const twins::Widget* pWgt, twins::Coord &coord) override
     {
-        const auto *p_wnd = twins::uim().mainWnd();
+        const auto *p_wnd = twins::gui::pMainWindowWgts;
         // calc location on the main window center
         coord.col = (p_wnd->size.width - pWgt->size.width) / 2;
         coord.col += p_wnd->coord.col;
@@ -536,7 +529,7 @@ public:
     {
         switch (pWgt->id)
         {
-        case IDPP_WND:          return twins::uim().wMngr().topWndWidgets() == pWgt;
+        case IDPP_WND:          return twins::gui::wMngr.topWndWidgets() == pWgt;
         case IDPP_BTN_YES:      return strstr(buttons.cstr(), "y") != nullptr;
         case IDPP_BTN_NO:       return strstr(buttons.cstr(), "n") != nullptr;
         case IDPP_BTN_CANCEL:   return strstr(buttons.cstr(), "c") != nullptr;
@@ -607,7 +600,7 @@ void showPopup(twins::String title, twins::String message, std::function<void(tw
     wndPopup.onButton = onButton;
     wndPopup.buttons = buttons;
 
-    twins::uim().wMngr().pushWnd(getWndPopup());
+    twins::gui::wMngr.pushWnd(getWndPopup());
 }
 
 // -----------------------------------------------------------------------------
@@ -617,7 +610,7 @@ int main()
     // printf("Win1 controls: %u" "\n", wndMain.topWnd.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
     twins::screenClrAll();
-    twins::uim().wMngr().pushWnd(getWndMain());
+    twins::gui::wMngr.pushWnd(getWndMain());
     twins::inputPosixInit(100);
     twins::mouseMode(twins::MouseMode::M2);
     twins::flushBuffer();
@@ -635,7 +628,7 @@ int main()
         if (quit_req) break;
         rbKeybInput.write(posix_inp);
 
-        if (rbKeybInput.size() && twins::uim().wMngr().size())
+        if (rbKeybInput.size() && twins::gui::wMngr.size())
         {
             twins::Locker lck;
             twins::KeyCode kc = {};
@@ -650,7 +643,7 @@ int main()
 
             twins::decodeInputSeq(rbKeybInput, kc);
             // pass key to top-window
-            bool key_handled = twins::processKey(twins::uim().wMngr().topWnd()->getWidgets(), kc);
+            bool key_handled = twins::processKey(twins::gui::wMngr.topWnd()->getWidgets(), kc);
             wndMain.lblKeyName = kc.name;
 
             // display decoded key
@@ -684,28 +677,28 @@ int main()
                 twins::flushBuffer();
 
                 // draw windows from bottom to top
-                twins::uim().wMngr().redraw();
+                twins::gui::wMngr.redraw();
             }
             else if (kc.m_spec && kc.key == twins::Key::F6)
             {
                 twins::cursorSavePos();
-                twins::moveTo(0, twins::uim().pal().getLogsRow());
+                twins::moveTo(0, twins::gui::pal.getLogsRow());
                 twins::screenClrBelow();
                 twins::cursorRestorePos();
             }
             else if (kc.m_spec && kc.m_ctrl && (kc.key == twins::Key::PgUp || kc.key == twins::Key::PgDown))
             {
-                if (twins::uim().wMngr().topWnd() == &wndMain)
+                if (twins::gui::wMngr.topWnd() == &wndMain)
                     twins::mainPgControlChangePage(wndMain.getWidgets(), kc.key == twins::Key::PgDown);
             }
             else if (kc.m_spec && (kc.key == twins::Key::F9 || kc.key == twins::Key::F10))
             {
-                if (twins::uim().wMngr().topWnd() == &wndMain)
+                if (twins::gui::wMngr.topWnd() == &wndMain)
                     twins::mainPgControlChangePage(wndMain.getWidgets(), kc.key == twins::Key::F10);
             }
 
 
-            if (twins::uim().wMngr().topWnd() == &wndMain)
+            if (twins::gui::wMngr.topWnd() == &wndMain)
             {
                 // keyboard code
                 twins::cursorSavePos();
@@ -723,7 +716,7 @@ int main()
                 twins::cursorRestorePos();
             }
 
-            if (twins::uim().wMngr().topWnd() == &wndMain)
+            if (twins::gui::wMngr.topWnd() == &wndMain)
             {
                 twins::drawWidgets(wndMain.getWidgets(), wndMain.invalidatedWgts.data(), wndMain.invalidatedWgts.size());
                 wndMain.invalidatedWgts.clear();
@@ -733,14 +726,14 @@ int main()
         twins::flushBuffer();
     }
 
-    twins::moveTo(0, twins::uim().pal().getLogsRow());
+    twins::moveTo(0, twins::gui::pal.getLogsRow());
     twins::screenClrBelow();
     twins::mouseMode(twins::MouseMode::Off);
     twins::flushBuffer();
     twins::inputPosixFree();
 
     printf(ESC_BOLD "Memory stats: max chunks: %d, max allocated: %d B\n" ESC_NORMAL,
-        ((DemoPAL&)twins::uim().pal()).stats.memChunksMax,
-        ((DemoPAL&)twins::uim().pal()).stats.memAllocatedMax
+        ((DemoPAL&)twins::gui::pal).stats.memChunksMax,
+        ((DemoPAL&)twins::gui::pal).stats.memAllocatedMax
     );
 }
