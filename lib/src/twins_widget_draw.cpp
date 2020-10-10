@@ -651,7 +651,7 @@ static void drawProgressBar(const Widget *pWgt)
         {"■", "□"}
     };
 
-    int pos = 0, max = 1;
+    int32_t pos = 0, max = 1;
     auto style = (short)pWgt->progressbar.style;
     g_wds.pWndState->getProgressBarState(pWgt, pos, max);
 
@@ -759,7 +759,7 @@ static void drawComboBox(const Widget *pWgt)
     {
         g_wds.str.clear();
         g_wds.pWndState->getComboBoxItem(pWgt, item_idx, g_wds.str);
-        // g_ds.str.insert(0, "|");
+        g_wds.str.insert(0, " ");
         g_wds.str.setLength(pWgt->size.width - 4, true, true);
         g_wds.str << " [▼]";
 
@@ -915,6 +915,7 @@ void drawWidget(const Widget *pWindowWidgets, WID widgetId)
     g_wds.pWndWidgets = pWindowWidgets;
     g_wds.pWndState = pWindowWidgets->window.getState();
     assert(g_wds.pWndState);
+    g_wds.pFocusedWgt = getWidgetByWID(g_wds.pWndState->getFocusedID());
     cursorHide();
     flushBuffer();
 
@@ -943,6 +944,7 @@ void drawWidget(const Widget *pWindowWidgets, WID widgetId)
     resetClFg();
     setCursorAt(g_wds.pFocusedWgt);
     cursorShow();
+    flushBuffer();
 }
 
 void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t count)
@@ -953,6 +955,7 @@ void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t c
     g_wds.pWndWidgets = pWindowWidgets;
     g_wds.pWndState = pWindowWidgets->window.getState();
     assert(g_wds.pWndState);
+    g_wds.pFocusedWgt = getWidgetByWID(g_wds.pWndState->getFocusedID());
     cursorHide();
     flushBuffer();
 
@@ -976,6 +979,7 @@ void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t c
     resetClFg();
     setCursorAt(g_wds.pFocusedWgt);
     cursorShow();
+    flushBuffer();
 }
 
 // -----------------------------------------------------------------------------

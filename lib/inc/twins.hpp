@@ -337,10 +337,6 @@ static constexpr WID WIDGET_ID_ALL = -1;
  */
 struct WidgetProp
 {
-    // applies to every widget
-    bool enabled;
-
-    //
     union
     {
         struct
@@ -369,8 +365,8 @@ struct WidgetProp
 
         struct
         {
-            int16_t pos;
-            int16_t max;
+            int32_t pos;
+            int32_t max;
         } pgbar;
 
         struct
@@ -378,6 +374,9 @@ struct WidgetProp
             int16_t topLine;
         } txtbx;
     };
+
+    // applies to every widget
+    bool enabled;
 };
 
 /** @brief Object remembers terminal font colors and attribute,

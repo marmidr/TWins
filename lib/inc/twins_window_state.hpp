@@ -53,7 +53,7 @@ public:
     virtual void getEditText(const twins::Widget* pWgt, twins::String &out) {}
     virtual bool getLedLit(const twins::Widget* pWgt) { return false; }
     virtual void getLedText(const twins::Widget* pWgt, twins::String &out) {}
-    virtual void getProgressBarState(const twins::Widget* pWgt, int &pos, int &max) {}
+    virtual void getProgressBarState(const twins::Widget* pWgt, int32_t &pos, int32_t &max) {}
     virtual int  getPageCtrlPageIndex(const twins::Widget* pWgt) { return 0; }
     virtual void getListBoxState(const twins::Widget* pWgt, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount) {}
     virtual void getListBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) {}

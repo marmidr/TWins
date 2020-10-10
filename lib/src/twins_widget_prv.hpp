@@ -37,7 +37,7 @@ struct WidgetSearchStruct
 };
 
 /** Widget drawing state object */
-struct WgtDrawState
+struct WidgetState
 {
     Coord   parentCoord;                // current widget's parent left-top position
     String  str;                        // common string buff for widget drawers
@@ -54,18 +54,18 @@ struct WgtDrawState
     } editState;
 };
 
-extern WgtDrawState& g_wds;
+extern WidgetState& g_wds;
 
 // -----------------------------------------------------------------------------
 
 // require g_wds.pWindowWidgets set
-bool getWidgetWSS(WidgetSearchStruct &wss);
 const Widget* getWidgetByWID(const WID widgetId);
 const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect);
-void setCursorAt(const Widget *pWgt);
-
 // does not require g_wds.pWindowWidgets
 const Widget* getParent(const Widget *pWgt);
+
+bool getWidgetWSS(WidgetSearchStruct &wss);
+void setCursorAt(const Widget *pWgt);
 
 // -----------------------------------------------------------------------------
 

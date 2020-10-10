@@ -187,6 +187,7 @@ public:
         if (pWgt->id == ID_LISTBOX)
         {
             mWgtProp[pWgt->id].lbx.itemIdx = newIdx;
+            mWgtProp[pWgt->id].lbx.selIdx = newIdx;
             TWINS_LOG("LISTBOX_CHANGE(%u)", newIdx);
         }
     }
@@ -348,7 +349,7 @@ public:
         return prp.led.lit;
     }
 
-    void getProgressBarState(const twins::Widget*, int &pos, int &max) override
+    void getProgressBarState(const twins::Widget*, int32_t &pos, int32_t &max) override
     {
         pos = mPgbarPos++;
         max = 20;

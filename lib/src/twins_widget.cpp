@@ -19,8 +19,8 @@ namespace twins
 {
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
-static char wds_buff[sizeof(WgtDrawState)] alignas(WgtDrawState);
-WgtDrawState& g_wds = (WgtDrawState&)wds_buff;
+static char wds_buff[sizeof(WidgetState)] alignas(WidgetState);
+WidgetState& g_wds = (WidgetState&)wds_buff;
 
 // forward decl
 static bool isPointWithin(uint8_t col, uint8_t row, const Rect& e);
@@ -33,12 +33,12 @@ static bool isVisible(const Widget *pWgt);
 
 void widgetInit()
 {
-    new (&g_wds) WgtDrawState{};
+    new (&g_wds) WidgetState{};
 }
 
 void widgetDeInit()
 {
-    g_wds.~WgtDrawState();
+    g_wds.~WidgetState();
 }
 
 bool getWidgetWSS(WidgetSearchStruct &wss)
@@ -398,7 +398,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
         p_wgt = forward ? &p_childs[0] : &p_childs[child_cnt-1];
         focusedID = p_wgt->id;
 
-        if (isFocusable(p_wgt))
+        if (isFocusable(p_wgt) && isVisible(p_wgt))
             return p_wgt;
 
         if (isParent(p_wgt))
@@ -441,7 +441,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
             else                  p_wgt = p_childs + child_cnt - 1;
         }
 
-        if (isFocusable(p_wgt))
+        if (isFocusable(p_wgt) && isVisible(p_wgt))
             return p_wgt;
 
         if (isParent(p_wgt))
@@ -1442,12 +1442,21 @@ const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId)
     assert(pWindowWidgets);
     assert(pWindowWidgets->type == Widget::Window);
 
-    const Widget *p_arr_bkp = g_wds.pWndWidgets;
+    const Widget *p_wgts_bkp = g_wds.pWndWidgets;
     g_wds.pWndWidgets = pWindowWidgets;
     const auto *p_wgt = getWidgetByWID(widgetId);
-    g_wds.pWndWidgets = p_arr_bkp;
+    g_wds.pWndWidgets = p_wgts_bkp;
     return p_wgt;
 }
+
+//void setCursorAt(const Widget *pWindowWidgets, WID widgetId)
+//{
+//    assert(pWindowWidgets);
+//    assert(pWindowWidgets->type == Widget::Window);
+//
+//    const auto *p_wgt = getWidget(pWindowWidgets, widgetId);
+//    setCursorAt(p_wgt);
+//}
 
 bool processKey(const Widget *pWindowWidgets, const KeyCode &kc)
 {

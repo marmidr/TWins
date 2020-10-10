@@ -17,7 +17,6 @@ void WndManager::pushWnd(twins::IWindowState *pWindow)
 {
     mWindows.append(pWindow);
     twins::drawWidget(pWindow->getWidgets());
-    twins::flushBuffer();
 }
 
 void WndManager::popWnd()
