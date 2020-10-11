@@ -27,7 +27,7 @@ void WndManager::popWnd()
 
         if (mWindows.size())
         {
-            redraw();
+            redrawAll();
         }
         else
         {
@@ -37,7 +37,7 @@ void WndManager::popWnd()
     }
 }
 
-void WndManager::redraw()
+void WndManager::redrawAll()
 {
     for (auto p_wnd : mWindows)
     {

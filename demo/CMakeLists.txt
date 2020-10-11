@@ -5,6 +5,7 @@
 ################################################################################
 
 set(TARGETNAME TWinsDemo)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 add_executable(${TARGETNAME}
     src/demo.cpp

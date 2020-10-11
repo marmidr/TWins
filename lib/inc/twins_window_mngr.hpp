@@ -44,7 +44,7 @@ public:
     unsigned size() const { return mWindows.size(); }
 
     /** @brief redraw windows from bottom to top */
-    void redraw();
+    void redrawAll();
 
     /** all windows iterator */
     const auto begin() { return mWindows.begin(); }

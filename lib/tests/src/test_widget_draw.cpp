@@ -381,7 +381,7 @@ TEST_F(WIDGETDRW, wndManager)
     EXPECT_EQ(0, wmngr.size());
     EXPECT_EQ(nullptr, wmngr.topWndWidgets());
     wmngr.pushWnd(getWndTest());
-    wmngr.redraw();
+    wmngr.redrawAll();
     EXPECT_EQ(1, wmngr.size());
     EXPECT_EQ(getWndTest(), wmngr.topWnd());
     wmngr.popWnd();

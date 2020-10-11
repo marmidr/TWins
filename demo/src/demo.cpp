@@ -678,7 +678,7 @@ int main()
                 twins::flushBuffer();
 
                 // draw windows from bottom to top
-                twins::gui::wMngr.redraw();
+                twins::gui::wMngr.redrawAll();
             }
             else if (kc.m_spec && kc.key == twins::Key::F6)
             {

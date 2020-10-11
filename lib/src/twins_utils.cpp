@@ -118,7 +118,7 @@ String wordWrap(const char *str, uint16_t maxLineLen, const char *delim, const c
 
     for (auto &w : words)
     {
-        // w is a ESC sequence
+        // w is an ESC sequence
         if (*w.data == '\e')
         {
             // append entire sequence and treat it as zero-length
