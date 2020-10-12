@@ -651,7 +651,7 @@ static void drawProgressBar(const Widget *pWgt)
         {"■", "□"}
     };
 
-    int pos = 0, max = 1;
+    int32_t pos = 0, max = 1;
     auto style = (short)pWgt->progressbar.style;
     g_wds.pWndState->getProgressBarState(pWgt, pos, max);
 
@@ -759,7 +759,7 @@ static void drawComboBox(const Widget *pWgt)
     {
         g_wds.str.clear();
         g_wds.pWndState->getComboBoxItem(pWgt, item_idx, g_wds.str);
-        // g_ds.str.insert(0, "|");
+        g_wds.str.insert(0, " ");
         g_wds.str.setLength(pWgt->size.width - 4, true, true);
         g_wds.str << " [▼]";
 
@@ -810,29 +810,33 @@ static void drawTextBox(const Widget *pWgt)
 
     const uint8_t lines_visible = pWgt->size.height - 2;
     const twins::Vector<twins::StringRange> *p_lines = nullptr;
-    bool changed = false;
-    g_wds.pWndState->getTextBoxLines(pWgt, &p_lines, changed);
-    if (!p_lines)
+    int16_t top_line = 0;
+
+    g_wds.pWndState->getTextBoxState(pWgt, &p_lines, top_line);
+
+    if (!p_lines || !p_lines->size())
         return;
 
-    if (changed)
+    if (top_line > (int)p_lines->size())
     {
-        if (g_wds.textboxTopLine > (int)p_lines->size())
-            g_wds.textboxTopLine = p_lines->size() - lines_visible;
-        if (g_wds.textboxTopLine < 0)
-            g_wds.textboxTopLine = 0;
+        top_line = p_lines->size() - lines_visible;
+        g_wds.pWndState->onTextBoxScroll(pWgt, top_line);
     }
 
-    assert(g_wds.textboxTopLine >= 0);
+    if (top_line < 0)
+    {
+        g_wds.pWndState->onTextBoxScroll(pWgt, top_line);
+        top_line = 0;
+    }
 
     drawListScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), 1},
-        lines_visible, p_lines->size() - lines_visible, g_wds.textboxTopLine);
+        lines_visible, p_lines->size() - lines_visible, top_line);
 
     flushBuffer();
 
     // scan invisible lines for ESC sequences: colors, font attributes
     g_wds.str.clear();
-    for (int i = 0; i < g_wds.textboxTopLine; i++)
+    for (int i = 0; i < top_line; i++)
     {
         auto sr = (*p_lines)[i];
         while (const char *esc = twins::util::strnchr(sr.data, sr.size, '\e'))
@@ -849,10 +853,10 @@ static void drawTextBox(const Widget *pWgt)
     // draw lines
     for (int i = 0; i < lines_visible; i++)
     {
-        if (g_wds.textboxTopLine + i >= (int)p_lines->size())
+        if (top_line + i >= (int)p_lines->size())
             break;
 
-        const auto &sr = (*p_lines)[g_wds.textboxTopLine + i];
+        const auto &sr = (*p_lines)[top_line + i];
         g_wds.str.clear();
         g_wds.str.appendLen(sr.data, sr.size);
         g_wds.str.setLength(pWgt->size.width - 2, true, true);
@@ -911,6 +915,7 @@ void drawWidget(const Widget *pWindowWidgets, WID widgetId)
     g_wds.pWndWidgets = pWindowWidgets;
     g_wds.pWndState = pWindowWidgets->window.getState();
     assert(g_wds.pWndState);
+    g_wds.pFocusedWgt = getWidgetByWID(g_wds.pWndState->getFocusedID());
     cursorHide();
     flushBuffer();
 
@@ -939,6 +944,7 @@ void drawWidget(const Widget *pWindowWidgets, WID widgetId)
     resetClFg();
     setCursorAt(g_wds.pFocusedWgt);
     cursorShow();
+    flushBuffer();
 }
 
 void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t count)
@@ -949,6 +955,7 @@ void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t c
     g_wds.pWndWidgets = pWindowWidgets;
     g_wds.pWndState = pWindowWidgets->window.getState();
     assert(g_wds.pWndState);
+    g_wds.pFocusedWgt = getWidgetByWID(g_wds.pWndState->getFocusedID());
     cursorHide();
     flushBuffer();
 
@@ -972,6 +979,7 @@ void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t c
     resetClFg();
     setCursorAt(g_wds.pFocusedWgt);
     cursorShow();
+    flushBuffer();
 }
 
 // -----------------------------------------------------------------------------

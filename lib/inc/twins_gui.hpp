@@ -1,5 +1,5 @@
 /******************************************************************************
- * @brief   TWins - user interface manager
+ * @brief   TWins - user interface
  * @author  Mariusz Midor
  *          https://bitbucket.org/mmidor/twins
  *****************************************************************************/
@@ -14,21 +14,15 @@
 namespace twins
 {
 
-/** @brief User Iterface Manager
- *         Attempt to organize dependency hell.
- */
-class UIMngrBase
+namespace gui
 {
-public:
-    /** @brief safe, guaranted method to get the PAL */
-    virtual twins::IPal& pal() = 0;
-    /** @brief return window manager */
-    virtual twins::WndManager& wMngr() = 0;
-    /** @brief bottom-most window */
-    virtual const twins::Widget* mainWnd() = 0;
+/** @brief reference to actual PAL */
+extern twins::IPal& pal;
+/** @brief window manager */
+extern twins::WndManager& wMngr;
+/** @brief bottom-most window widgets */
+extern const twins::Widget* pMainWindowWgts;
 };
-
-UIMngrBase& uim();
 
 // -----------------------------------------------------------------------------
 

@@ -337,10 +337,6 @@ static constexpr WID WIDGET_ID_ALL = -1;
  */
 struct WidgetProp
 {
-    // applies to every widget
-    bool enabled;
-
-    //
     union
     {
         struct
@@ -369,10 +365,18 @@ struct WidgetProp
 
         struct
         {
-            int16_t pos;
-            int16_t max;
+            int32_t pos;
+            int32_t max;
         } pgbar;
+
+        struct
+        {
+            int16_t topLine;
+        } txtbx;
     };
+
+    // applies to every widget
+    bool enabled;
 };
 
 /** @brief Object remembers terminal font colors and attribute,
@@ -569,19 +573,19 @@ struct Locker
 {
     Locker(bool wait = true)
     {
-        m_isLocked = twins::lock(wait);
+        mIsLocked = twins::lock(wait);
     }
 
     ~Locker()
     {
-        if (m_isLocked)
+        if (mIsLocked)
             twins::unlock();
     }
 
-    bool isLocked() const { return m_isLocked; }
+    bool isLocked() const { return mIsLocked; }
 
 private:
-    bool m_isLocked;
+    bool mIsLocked;
 };
 
 // -----------------------------------------------------------------------------

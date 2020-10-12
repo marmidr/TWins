@@ -36,39 +36,36 @@ struct WidgetSearchStruct
     const Widget *pWidget = {}; // expected
 };
 
-struct EditState
-{
-    const Widget *pWgt = nullptr;
-    int16_t cursorPos = 0;
-    String  str;
-};
-
 /** Widget drawing state object */
-struct WgtDrawState
+struct WidgetState
 {
-    Coord   parentCoord;            // current widget's parent left-top position
-    String  str;                    // common string buff for widget drawers
-    const Widget *pWndWidgets = {}; // array of Window widgets
-    IWindowState *pWndState = {};   //
-    const Widget *pFocusedWgt = {}; //
-    const Widget *pMouseDownWgt = {}; //
+    Coord   parentCoord;                // current widget's parent left-top position
+    String  str;                        // common string buff for widget drawers
+    const Widget *pWndWidgets = {};     // array of Window widgets
+    IWindowState *pWndState = {};       //
+    const Widget *pFocusedWgt = {};     //
+    const Widget *pMouseDownWgt = {};   //
     const Widget *pDropDownCombo = {};
-    EditState editState;            // state of Edit being modified
-    int textboxTopLine = {};        // focused TextBox first line displayed out of provided
+    struct                              // state of Edit being modified
+    {
+        const Widget *pWgt = nullptr;
+        int16_t cursorPos = 0;
+        String  str;
+    } editState;
 };
 
-extern WgtDrawState& g_wds;
+extern WidgetState& g_wds;
 
 // -----------------------------------------------------------------------------
 
-// require g.pWindowWidgets set
-bool getWidgetWSS(WidgetSearchStruct &wss);
+// require g_wds.pWindowWidgets set
 const Widget* getWidgetByWID(const WID widgetId);
 const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect);
-void setCursorAt(const Widget *pWgt);
-
-// does not require g.pWindowWidgets
+// does not require g_wds.pWindowWidgets
 const Widget* getParent(const Widget *pWgt);
+
+bool getWidgetWSS(WidgetSearchStruct &wss);
+void setCursorAt(const Widget *pWgt);
 
 // -----------------------------------------------------------------------------
 

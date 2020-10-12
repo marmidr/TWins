@@ -34,7 +34,7 @@ twins::Vector<twins::StringRange> splitWords(const char *str, const char *delim 
  *  @param maxLineLen max number of printable characters that fits into line of text
  *  @param delim set of characters where word wrap can occur
  *  @param separator sequence to insert to break too long line
-*/
+ */
 twins::String wordWrap(const char *str, uint16_t maxLineLen, const char *delim = " \t\n", const char *separator = "\n");
 
 /** @brief Split lines using newline character
@@ -42,6 +42,11 @@ twins::String wordWrap(const char *str, uint16_t maxLineLen, const char *delim =
  *  @return vector of pointers to the beginning of text lines
  */
 twins::Vector<twins::StringRange> splitLines(const char *str);
+
+/** @brief Prepend single line \p str with spaces to make it centered on \p rowLength area.
+ *         ESC sequences are ignored
+ */
+twins::String centerText(twins::String str, uint16_t rowLength);
 
 // -----------------------------------------------------------------------------
 
@@ -53,10 +58,10 @@ struct WrappedString
     /** @brief */
     void config(uint16_t maxWidth = 250, const char* delim = " \t\n", const char* sep = "\n")
     {
-        m_maxWidth = maxWidth;
-        if (delim) m_delim = delim;
-        if (sep) m_sep = sep;
-        m_dirty = true;
+        mMaxWidth = maxWidth;
+        if (delim) mpDelim = delim;
+        if (sep) mpSep = sep;
+        mDirty = true;
     }
 
     /** @brief */
@@ -64,43 +69,43 @@ struct WrappedString
     {
         if (newContent)
         {
-            m_sourceStr.clear();
-            m_sourceStr.append(newContent);
+            mSourceStr.clear();
+            mSourceStr.append(newContent);
         }
-        m_wrappedStr = wordWrap(m_sourceStr.cstr(), m_maxWidth, m_delim, m_sep);
-        m_lines = splitLines(m_wrappedStr.cstr());
-        m_dirty = false;
+        mWrappedStr = wordWrap(mSourceStr.cstr(), mMaxWidth, mpDelim, mpSep);
+        mLines = splitLines(mWrappedStr.cstr());
+        mDirty = false;
     }
 
     /** @brief */
     const Vector<StringRange>& getLines()
     {
-        if (m_dirty)
+        if (mDirty)
             updateLines();
-        return m_lines;
+        return mLines;
     }
 
     /** @brief */
     String& getSourceStr()
     {
-        return m_sourceStr;
+        return mSourceStr;
     }
 
     /** @brief */
     const String& getWrappedStr() const
     {
-        return m_wrappedStr;
+        return mWrappedStr;
     }
 
     /** @brief */
-    bool isDirty() const { return m_dirty; }
+    bool isDirty() const { return mDirty; }
 
     /** @brief */
     WrappedString& operator =(const char *str)
     {
-        m_lines.clear();
-        m_sourceStr = str;
-        m_dirty = true;
+        mLines.clear();
+        mSourceStr = str;
+        mDirty = true;
         return *this;
     }
 
@@ -114,20 +119,20 @@ struct WrappedString
     /** @brief */
     WrappedString& operator =(String &&other)
     {
-        m_lines.clear();
-        m_sourceStr = std::move(other);
-        m_dirty = true;
+        mLines.clear();
+        mSourceStr = std::move(other);
+        mDirty = true;
         return *this;
     }
 
 private:
-    bool        m_dirty = false;
-    uint16_t    m_maxWidth = 250;
-    const char* m_delim = " \t\n";
-    const char* m_sep = "\n";
-    String      m_sourceStr;
-    String      m_wrappedStr;
-    Vector<StringRange> m_lines;
+    bool        mDirty = false;
+    uint16_t    mMaxWidth = 250;
+    const char* mpDelim = " \t\n";
+    const char* mpSep = "\n";
+    String      mSourceStr;
+    String      mWrappedStr;
+    Vector<StringRange> mLines;
 };
 
 // -----------------------------------------------------------------------------

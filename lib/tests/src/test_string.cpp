@@ -225,6 +225,13 @@ TEST_F(STRING_Test, set_len)
 {
     {
         twins::String s;
+        s = "X";
+        s.setLength(-1);
+        EXPECT_STREQ("X", s.cstr());
+    }
+
+    {
+        twins::String s;
         s = "1.";
         s.setLength(10);
         EXPECT_STREQ("1.        ", s.cstr());
@@ -361,6 +368,18 @@ TEST_F(STRING_Test, insert)
 
         s.insert(0, "••");
         EXPECT_STREQ("••", s.cstr());
+    }
+
+    {
+        twins::String s("123");
+
+        s.insert(1, "•", 0);
+        EXPECT_STREQ("123", s.cstr());
+
+        s.insert(0, "•", 3);
+        EXPECT_STREQ("•••123", s.cstr());
+        s.insert(3, "ABC", 2);
+        EXPECT_STREQ("•••ABCABC123", s.cstr());
     }
 }
 

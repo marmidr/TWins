@@ -8,7 +8,6 @@
 #pragma once
 
 // field set in user Widget definition;
-// because it is first field in the union, it's name may be ommited
 #define __TWINS_LINK_SECRET     const Widget *pChilds
 
 #include "twins.hpp"
@@ -18,12 +17,36 @@
 namespace twins
 {
 
+// ad-hoc solution for constexpr assert() resulting compilation error if ill-configured widget is found;
+// assert and printf are non-constexpr, so...
+// error: array subscript value ‘-49’ is outside the bounds of array type ‘const char [5]’ --> problem with widget ID=49
+constexpr char cexpr_assert(const twins::Widget *pWgt, bool cond)
+{
+    return cond ? '1' : "ID"[-pWgt->id];
+}
+
+constexpr void checkWidgetParams(const twins::Widget *pWgt) noexcept
+{
+    if (pWgt->type == Widget::ComboBox)
+    {
+        cexpr_assert(pWgt, pWgt->size.height == 1);
+        cexpr_assert(pWgt, pWgt->combobox.dropDownSize > 0);
+    }
+
+    if (pWgt->type == Widget::ProgressBar)
+        cexpr_assert(pWgt, pWgt->size.height == 1);
+
+    if (pWgt->type == Widget::Label)
+        cexpr_assert(pWgt, pWgt->size.width >= 1 && pWgt->size.height >= 1);
+}
+
 /**
  * @brief Count all widgets in pointed window (or any other type of widget)
  */
 constexpr int getWgtsCount(const twins::Widget *pWgt)
 {
     int n = 1;
+    checkWidgetParams(pWgt);
 
     for (const auto *ch = pWgt->link.pChilds; ch && ch->id != twins::WIDGET_ID_NONE; ch++)
         n += getWgtsCount(ch);
@@ -46,6 +69,7 @@ constexpr int getPagesCount(const twins::Widget *pWgt)
 
 /**
  * @brief Recurrent widget transformation function
+ *        Widgets that belongs to the same parent are put together, next to each other, to ease TAB navigation.
  * @par arr Destination array of widgets
  * @par pWgt Pointer to Window - the root widget
  */

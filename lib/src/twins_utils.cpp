@@ -118,7 +118,7 @@ String wordWrap(const char *str, uint16_t maxLineLen, const char *delim, const c
 
     for (auto &w : words)
     {
-        // w is a ESC sequence
+        // w is an ESC sequence
         if (*w.data == '\e')
         {
             // append entire sequence and treat it as zero-length
@@ -192,6 +192,17 @@ Vector<StringRange> splitLines(const char *str)
 
     if (*str)
         out.append(StringRange{str, (unsigned)strlen(str)});
+
+    return out;
+}
+
+twins::String centerText(twins::String str, uint16_t rowLength)
+{
+    twins::String out(std::move(str));
+    auto txt_len = out.u8len(true);
+
+    if (rowLength - txt_len > 1)
+        out.insert(0, " ", (rowLength - txt_len)/2);
 
     return out;
 }

@@ -19,8 +19,8 @@ namespace twins
 {
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
-static char wds_buff[sizeof(WgtDrawState)] alignas(WgtDrawState);
-WgtDrawState& g_wds = (WgtDrawState&)wds_buff;
+static char wds_buff[sizeof(WidgetState)] alignas(WidgetState);
+WidgetState& g_wds = (WidgetState&)wds_buff;
 
 // forward decl
 static bool isPointWithin(uint8_t col, uint8_t row, const Rect& e);
@@ -33,12 +33,12 @@ static bool isVisible(const Widget *pWgt);
 
 void widgetInit()
 {
-    new (&g_wds) WgtDrawState{};
+    new (&g_wds) WidgetState{};
 }
 
 void widgetDeInit()
 {
-    g_wds.~WgtDrawState();
+    g_wds.~WidgetState();
 }
 
 bool getWidgetWSS(WidgetSearchStruct &wss)
@@ -398,7 +398,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
         p_wgt = forward ? &p_childs[0] : &p_childs[child_cnt-1];
         focusedID = p_wgt->id;
 
-        if (isFocusable(p_wgt))
+        if (isFocusable(p_wgt) && isVisible(p_wgt))
             return p_wgt;
 
         if (isParent(p_wgt))
@@ -441,7 +441,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
             else                  p_wgt = p_childs + child_cnt - 1;
         }
 
-        if (isFocusable(p_wgt))
+        if (isFocusable(p_wgt) && isVisible(p_wgt))
             return p_wgt;
 
         if (isParent(p_wgt))
@@ -511,15 +511,11 @@ static bool changeFocusTo(WID newID)
                     g_wds.pWndState->onListBoxSelect(wss.pWidget, selidx);
                 }
             }
-
-            if (wss.pWidget->type == Widget::TextBox)
-            {
-                g_wds.textboxTopLine = 0;
-            }
         }
 
         if (isFocusable(prev_id))
             g_wds.pWndState->invalidate(prev_id);
+
         if (isFocusable(newID))
             g_wds.pWndState->invalidate(newID);
 
@@ -939,20 +935,21 @@ static bool processKey_TextBox(const Widget *pWgt, const KeyCode &kc)
     if (delta != 0)
     {
         const twins::Vector<twins::StringRange> *p_lines = nullptr;
-        bool changed = false;
-        g_wds.pWndState->getTextBoxLines(pWgt, &p_lines, changed);
-        if (changed) g_wds.textboxTopLine = 0;
+        int16_t top_line = 0;
+
+        g_wds.pWndState->getTextBoxState(pWgt, &p_lines, top_line);
 
         if (p_lines)
         {
-            g_wds.textboxTopLine += delta;
+            top_line += delta;
 
-            if (g_wds.textboxTopLine > (int)p_lines->size() - lines_visible)
-                g_wds.textboxTopLine = p_lines->size() - lines_visible;
+            if (top_line > (int)p_lines->size() - lines_visible)
+                top_line = p_lines->size() - lines_visible;
 
-            if (g_wds.textboxTopLine < 0)
-                g_wds.textboxTopLine = 0;
+            if (top_line < 0)
+                top_line = 0;
 
+            g_wds.pWndState->onTextBoxScroll(pWgt, top_line);
             g_wds.pWndState->invalidate(pWgt->id);
         }
         return true;
@@ -1231,9 +1228,9 @@ static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const 
     if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
     {
         const twins::Vector<twins::StringRange> *p_lines = nullptr;
-        bool changed = false;
-        g_wds.pWndState->getTextBoxLines(pWgt, &p_lines, changed);
-        if (changed) g_wds.textboxTopLine = 0;
+        int16_t top_line = 0;
+
+        g_wds.pWndState->getTextBoxState(pWgt, &p_lines, top_line);
 
         if (p_lines && p_lines->size())
         {
@@ -1241,15 +1238,16 @@ static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const 
             const uint16_t lines_visible = pWgt->size.height - 2;
             if (kc.m_ctrl) delta *= lines_visible;
 
-            g_wds.textboxTopLine += delta;
+            top_line += delta;
 
-            if (g_wds.textboxTopLine > (int)p_lines->size() - lines_visible)
-                g_wds.textboxTopLine = p_lines->size() - lines_visible;
+            if (top_line > (int)p_lines->size() - lines_visible)
+                top_line = p_lines->size() - lines_visible;
 
-            if (g_wds.textboxTopLine < 0)
-                g_wds.textboxTopLine = 0;
+            if (top_line < 0)
+                top_line = 0;
 
             changeFocusTo(pWgt->id);
+            g_wds.pWndState->onTextBoxScroll(pWgt, top_line);
             g_wds.pWndState->invalidate(pWgt->id);
         }
     }
@@ -1444,12 +1442,21 @@ const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId)
     assert(pWindowWidgets);
     assert(pWindowWidgets->type == Widget::Window);
 
-    const Widget *p_arr_bkp = g_wds.pWndWidgets;
+    const Widget *p_wgts_bkp = g_wds.pWndWidgets;
     g_wds.pWndWidgets = pWindowWidgets;
     const auto *p_wgt = getWidgetByWID(widgetId);
-    g_wds.pWndWidgets = p_arr_bkp;
+    g_wds.pWndWidgets = p_wgts_bkp;
     return p_wgt;
 }
+
+//void setCursorAt(const Widget *pWindowWidgets, WID widgetId)
+//{
+//    assert(pWindowWidgets);
+//    assert(pWindowWidgets->type == Widget::Window);
+//
+//    const auto *p_wgt = getWidget(pWindowWidgets, widgetId);
+//    setCursorAt(p_wgt);
+//}
 
 bool processKey(const Widget *pWindowWidgets, const KeyCode &kc)
 {
