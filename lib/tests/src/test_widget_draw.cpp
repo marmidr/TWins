@@ -355,9 +355,9 @@ TEST_F(WIDGETDRW, drawWidget)
     twins::drawWidget(pWndTestWidgets, ID_TEXTBOX);
 
     // draw pressed button
-    twins::g_wds.pMouseDownWgt = twins::getWidget(pWndTestWidgets, ID_BTN1);
+    twins::g_ws.pMouseDownWgt = twins::getWidget(pWndTestWidgets, ID_BTN1);
     twins::drawWidget(pWndTestWidgets, ID_BTN1);
-    twins::g_wds.pMouseDownWgt = {};
+    twins::g_ws.pMouseDownWgt = {};
 
     // draw all
     auto t = twins::pPAL->getTimeStamp();

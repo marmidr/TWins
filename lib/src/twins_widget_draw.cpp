@@ -100,7 +100,7 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
         break;
     }
 
-    return getWidgetBgColor(g_wds.pWndWidgets + pWgt->link.parentIdx);
+    return getWidgetBgColor(g_ws.pWndWidgets + pWgt->link.parentIdx);
 }
 
 static ColorFG getWidgetFgColor(const Widget *pWgt)
@@ -157,7 +157,7 @@ static ColorFG getWidgetFgColor(const Widget *pWgt)
         break;
     }
 
-    return getWidgetFgColor(g_wds.pWndWidgets + pWgt->link.parentIdx);
+    return getWidgetFgColor(g_ws.pWndWidgets + pWgt->link.parentIdx);
 }
 
 static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG clFg, const FrameStyle style, bool filled = true, bool shadow = false)
@@ -179,83 +179,83 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     if (clFg != ColorFG::Inherit) pushClFg(clFg);
 
     // top line
-    g_wds.str.clear();
-    g_wds.str.append(frame[0]);
+    g_ws.str.clear();
+    g_ws.str.append(frame[0]);
 #if TWINS_FAST_FILL
-    g_wds.str.append(frame[1]);
-    g_wds.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
+    g_ws.str.append(frame[1]);
+    g_ws.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
 #else
-    g_ds.str.append(frame[1], size.width - 2);
+    g_ws.str.append(frame[1], size.width - 2);
 #endif
-    g_wds.str.append(frame[2]);
-    writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+    g_ws.str.append(frame[2]);
+    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     moveBy(-size.width, 1);
     flushBuffer();
 
     // lines in the middle
-    g_wds.str.clear();
-    g_wds.str.append(frame[3]);
+    g_ws.str.clear();
+    g_ws.str.append(frame[3]);
     if (filled)
     {
     #if TWINS_FAST_FILL
-        g_wds.str.append(frame[4]);
-        g_wds.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
+        g_ws.str.append(frame[4]);
+        g_ws.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
     #else
-        g_ds.str.append(frame[4], size.width - 2);
+        g_ws.str.append(frame[4], size.width - 2);
     #endif
     }
     else
     {
-        g_wds.str.appendFmt(ESC_CURSOR_FORWARD_FMT, size.width - 2);
+        g_ws.str.appendFmt(ESC_CURSOR_FORWARD_FMT, size.width - 2);
     }
-    g_wds.str.append(frame[5]);
+    g_ws.str.append(frame[5]);
     if (shadow)
     {
         // trailing shadow
-        g_wds.str << ESC_FG_BLACK;
-        g_wds.str << "█";
-        g_wds.str << encodeCl(clFg);
+        g_ws.str << ESC_FG_BLACK;
+        g_ws.str << "█";
+        g_ws.str << encodeCl(clFg);
     }
 
     for (int r = coord.row + 1; r < coord.row + size.height - 1; r++)
     {
-        writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
         moveBy(-(size.width + shadow), 1);
         flushBuffer();
     }
 
     // bottom line
-    g_wds.str.clear();
-    g_wds.str.append(frame[6]);
+    g_ws.str.clear();
+    g_ws.str.append(frame[6]);
 #if TWINS_FAST_FILL
-    g_wds.str.append(frame[7]);
-    g_wds.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
+    g_ws.str.append(frame[7]);
+    g_ws.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
 #else
-    g_ds.str.append(frame[7], size.width - 2);
+    g_ws.str.append(frame[7], size.width - 2);
 #endif
-    g_wds.str.append(frame[8]);
+    g_ws.str.append(frame[8]);
     if (shadow)
     {
         // trailing shadow
-        g_wds.str << ESC_FG_BLACK;
-        g_wds.str << "█";
+        g_ws.str << ESC_FG_BLACK;
+        g_ws.str << "█";
     }
-    writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     flushBuffer();
 
     if (shadow)
     {
         moveBy(-size.width, 1);
-        g_wds.str.clear();
+        g_ws.str.clear();
         // trailing shadow
-        // g_ds.str = ESC_FG_BLACK;
+        // g_ws.str = ESC_FG_BLACK;
     #if TWINS_FAST_FILL
-        g_wds.str.append("█");
-        g_wds.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 1);
+        g_ws.str.append("█");
+        g_ws.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 1);
     #else
-        g_ds.str.append("█", size.width);
+        g_ws.str.append("█", size.width);
     #endif
-        writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
         writeStr(encodeCl(clFg));
         flushBuffer();
     }
@@ -284,8 +284,8 @@ static void drawListScrollBarV(const Coord coord, int height, int max, int pos)
 static void drawWindow(const Widget *pWgt)
 {
     Coord wnd_coord = pWgt->coord;
-    g_wds.parentCoord = {0, 0};
-    g_wds.pWndState->getWindowCoord(pWgt, wnd_coord);
+    g_ws.parentCoord = {0, 0};
+    g_ws.pWndState->getWindowCoord(pWgt, wnd_coord);
 
     drawArea(wnd_coord, pWgt->size,
         pWgt->window.bgColor, pWgt->window.fgColor, FrameStyle::Double, true, pWgt->window.isPopup);
@@ -295,7 +295,7 @@ static void drawWindow(const Widget *pWgt)
     if (pWgt->window.title)
         wnd_title << pWgt->window.title;
     else
-        g_wds.pWndState->getWindowTitle(pWgt, wnd_title);
+        g_ws.pWndState->getWindowTitle(pWgt, wnd_title);
 
     if (wnd_title.size())
     {
@@ -307,10 +307,10 @@ static void drawWindow(const Widget *pWgt)
     }
 
     flushBuffer();
-    g_wds.parentCoord = wnd_coord;
+    g_ws.parentCoord = wnd_coord;
 
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
-        drawWidgetInternal(&g_wds.pWndWidgets[i]);
+        drawWidgetInternal(&g_ws.pWndWidgets[i]);
 
     // reset colors set by frame drawer
     popClBg();
@@ -321,7 +321,7 @@ static void drawWindow(const Widget *pWgt)
 static void drawPanel(const Widget *pWgt)
 {
     FontMemento _m;
-    const auto my_coord = g_wds.parentCoord + pWgt->coord;
+    const auto my_coord = g_ws.parentCoord + pWgt->coord;
 
     drawArea(my_coord, pWgt->size,
         pWgt->panel.bgColor, pWgt->panel.fgColor,
@@ -339,33 +339,33 @@ static void drawPanel(const Widget *pWgt)
     }
 
     flushBuffer();
-    auto coord_bkp = g_wds.parentCoord;
-    g_wds.parentCoord = my_coord;
+    auto coord_bkp = g_ws.parentCoord;
+    g_ws.parentCoord = my_coord;
 
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
-        drawWidgetInternal(&g_wds.pWndWidgets[i]);
+        drawWidgetInternal(&g_ws.pWndWidgets[i]);
 
-    g_wds.parentCoord = coord_bkp;
+    g_ws.parentCoord = coord_bkp;
 }
 
 static void drawLabel(const Widget *pWgt)
 {
-    g_wds.str.clear();
+    g_ws.str.clear();
 
     // label text
     if (pWgt->label.text)
-        g_wds.str = pWgt->label.text;
+        g_ws.str = pWgt->label.text;
     else
-        g_wds.pWndState->getLabelText(pWgt, g_wds.str);
+        g_ws.pWndState->getLabelText(pWgt, g_ws.str);
 
     // setup colors
     pushClFg(getWidgetFgColor(pWgt));
     pushClBg(getWidgetBgColor(pWgt));
 
     // print all lines
-    const char *p_line = g_wds.str.cstr();
+    const char *p_line = g_ws.str.cstr();
     String s_line;
-    moveTo(g_wds.parentCoord.col + pWgt->coord.col, g_wds.parentCoord.row + pWgt->coord.row);
+    moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
 
     for (int line = 0; line < pWgt->size.height; line++)
     {
@@ -398,15 +398,15 @@ static void drawLabel(const Widget *pWgt)
 
 static void drawEdit(const Widget *pWgt)
 {
-    g_wds.str.clear();
+    g_ws.str.clear();
     int16_t display_pos = 0;
     const int16_t max_w = pWgt->size.width-3;
 
-    if (pWgt == g_wds.editState.pWgt)
+    if (pWgt == g_ws.editState.pWgt)
     {
         // in edit mode; similar calculation in setCursorAt()
-        g_wds.str = g_wds.editState.str;
-        auto cursor_pos = g_wds.editState.cursorPos;
+        g_ws.str = g_ws.editState.str;
+        auto cursor_pos = g_ws.editState.cursorPos;
         auto delta = (max_w/2);
 
         while (cursor_pos >= max_w-1)
@@ -417,69 +417,69 @@ static void drawEdit(const Widget *pWgt)
     }
     else
     {
-        g_wds.pWndState->getEditText(pWgt, g_wds.str);
+        g_ws.pWndState->getEditText(pWgt, g_ws.str);
     }
 
-    const int txt_len = g_wds.str.u8len();
+    const int txt_len = g_ws.str.u8len();
 
     if (display_pos > 0)
     {
-        auto *str_beg = String::u8skipIgnoreEsc(g_wds.str.cstr(), display_pos + 1);
+        auto *str_beg = String::u8skipIgnoreEsc(g_ws.str.cstr(), display_pos + 1);
         String s("◁");
         s << str_beg;
-        g_wds.str = std::move(s);
+        g_ws.str = std::move(s);
     }
 
     if (display_pos + max_w <= txt_len)
     {
-        g_wds.str.setLength(pWgt->size.width-3-1);
-        g_wds.str.append("▷");
+        g_ws.str.setLength(pWgt->size.width-3-1);
+        g_ws.str.append("▷");
     }
     else
     {
-        g_wds.str.setLength(pWgt->size.width-3);
+        g_ws.str.setLength(pWgt->size.width-3);
     }
-    g_wds.str.append("[^]");
+    g_ws.str.append("[^]");
 
-    bool focused = g_wds.pWndState->isFocused(pWgt);
+    bool focused = g_ws.pWndState->isFocused(pWgt);
     auto clbg = getWidgetBgColor(pWgt);
     intensifyClIf(focused, clbg);
 
-    moveTo(g_wds.parentCoord.col + pWgt->coord.col, g_wds.parentCoord.row + pWgt->coord.row);
+    moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
     pushClFg(getWidgetFgColor(pWgt));
-    writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     popClFg();
     popClBg();
 }
 
 static void drawLed(const Widget *pWgt)
 {
-    auto clbg = g_wds.pWndState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
-    g_wds.str.clear();
+    auto clbg = g_ws.pWndState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
+    g_ws.str.clear();
 
     if (pWgt->led.text)
-        g_wds.str = pWgt->led.text;
+        g_ws.str = pWgt->led.text;
     else
-        g_wds.pWndState->getLedText(pWgt, g_wds.str);
+        g_ws.pWndState->getLedText(pWgt, g_ws.str);
 
     // led text
-    moveTo(g_wds.parentCoord.col + pWgt->coord.col, g_wds.parentCoord.row + pWgt->coord.row);
+    moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
     pushClFg(getWidgetFgColor(pWgt));
-    writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     popClFg();
     popClBg();
 }
 
 static void drawCheckbox(const Widget *pWgt)
 {
-    const char *s_chk_state = g_wds.pWndState->getCheckboxChecked(pWgt) ? "[■] " : "[ ] ";
-    bool focused = g_wds.pWndState->isFocused(pWgt);
+    const char *s_chk_state = g_ws.pWndState->getCheckboxChecked(pWgt) ? "[■] " : "[ ] ";
+    bool focused = g_ws.pWndState->isFocused(pWgt);
     auto clfg = getWidgetFgColor(pWgt);
     intensifyClIf(focused, clfg);
 
-    moveTo(g_wds.parentCoord.col + pWgt->coord.col, g_wds.parentCoord.row + pWgt->coord.row);
+    moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Bold);
     pushClFg(clfg);
     writeStr(s_chk_state);
@@ -490,12 +490,12 @@ static void drawCheckbox(const Widget *pWgt)
 
 static void drawRadio(const Widget *pWgt)
 {
-    const char *s_radio_state = pWgt->radio.radioId == g_wds.pWndState->getRadioIndex(pWgt) ? "(●) " : "( ) ";
-    bool focused = g_wds.pWndState->isFocused(pWgt);
+    const char *s_radio_state = pWgt->radio.radioId == g_ws.pWndState->getRadioIndex(pWgt) ? "(●) " : "( ) ";
+    bool focused = g_ws.pWndState->isFocused(pWgt);
     auto clfg = getWidgetFgColor(pWgt);
     intensifyClIf(focused, clfg);
 
-    moveTo(g_wds.parentCoord.col + pWgt->coord.col, g_wds.parentCoord.row + pWgt->coord.row);
+    moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Bold);
     pushClFg(clfg);
     writeStr(s_radio_state);
@@ -506,38 +506,38 @@ static void drawRadio(const Widget *pWgt)
 
 static void drawButton(const Widget *pWgt)
 {
-    const bool focused = g_wds.pWndState->isFocused(pWgt);
-    const bool pressed = pWgt == g_wds.pMouseDownWgt;
+    const bool focused = g_ws.pWndState->isFocused(pWgt);
+    const bool pressed = pWgt == g_ws.pMouseDownWgt;
     auto clfg = getWidgetFgColor(pWgt);
     intensifyClIf(focused, clfg);
 
     if (pWgt->button.style == ButtonStyle::Simple)
     {
         FontMemento _m;
-        g_wds.str.clear();
-        g_wds.str.append(focused ? "[<" : "[ ");
-        g_wds.str.append(pWgt->button.text);
-        g_wds.str.append(focused ? ">]" : " ]");
+        g_ws.str.clear();
+        g_ws.str.append(focused ? "[<" : "[ ");
+        g_ws.str.append(pWgt->button.text);
+        g_ws.str.append(focused ? ">]" : " ]");
 
-        moveTo(g_wds.parentCoord.col + pWgt->coord.col, g_wds.parentCoord.row + pWgt->coord.row);
+        moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
         if (focused) pushAttr(FontAttrib::Bold);
         if (pressed) pushAttr(FontAttrib::Inverse);
         pushClFg(clfg);
-        writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     }
     else
     {
         {
             FontMemento _m;
-            g_wds.str.clear();
-            g_wds.str << " " << pWgt->button.text << " ";
+            g_ws.str.clear();
+            g_ws.str << " " << pWgt->button.text << " ";
 
-            moveTo(g_wds.parentCoord.col + pWgt->coord.col, g_wds.parentCoord.row + pWgt->coord.row);
+            moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
             if (focused) pushAttr(FontAttrib::Bold);
             if (pressed) pushAttr(FontAttrib::Inverse);
             pushClBg(getWidgetBgColor(pWgt));
             pushClFg(clfg);
-            writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+            writeStrLen(g_ws.str.cstr(), g_ws.str.size());
         }
 
         auto shadow_len = 2 + String::u8len(pWgt->button.text, nullptr, true);
@@ -548,7 +548,7 @@ static void drawButton(const Widget *pWgt)
             pushClBg(getWidgetBgColor(getParent(pWgt)));
             writeStr(" ");
             // erase shadow below
-            moveTo(g_wds.parentCoord.col + pWgt->coord.col + 1, g_wds.parentCoord.row + pWgt->coord.row + 1);
+            moveTo(g_ws.parentCoord.col + pWgt->coord.col + 1, g_ws.parentCoord.row + pWgt->coord.row + 1);
             writeStr(" ", shadow_len);
             popClBg();
         }
@@ -560,7 +560,7 @@ static void drawButton(const Widget *pWgt)
             writeStr("▄");
 
             // shadow below
-            moveTo(g_wds.parentCoord.col + pWgt->coord.col + 1, g_wds.parentCoord.row + pWgt->coord.row + 1);
+            moveTo(g_ws.parentCoord.col + pWgt->coord.col + 1, g_ws.parentCoord.row + pWgt->coord.row + 1);
             writeStr("▀", shadow_len);
             popClFg();
             popClBg();
@@ -570,7 +570,7 @@ static void drawButton(const Widget *pWgt)
 
 static void drawPageControl(const Widget *pWgt)
 {
-    const auto my_coord = g_wds.parentCoord + pWgt->coord;
+    const auto my_coord = g_ws.parentCoord + pWgt->coord;
 
     pushClBg(getWidgetBgColor(pWgt));
     pushClFg(getWidgetFgColor(pWgt));
@@ -578,22 +578,22 @@ static void drawPageControl(const Widget *pWgt)
         ColorBG::Inherit, ColorFG::Inherit, FrameStyle::PgControl);
     flushBuffer();
 
-    auto coord_bkp = g_wds.parentCoord;
-    g_wds.parentCoord = my_coord;
+    auto coord_bkp = g_ws.parentCoord;
+    g_ws.parentCoord = my_coord;
     // tabs title
-    g_wds.str.clear();
-    g_wds.str.append(' ', (pWgt->pagectrl.tabWidth-8) / 2);
-    g_wds.str.append("≡ MENU ≡");
-    g_wds.str.setLength(pWgt->pagectrl.tabWidth);
+    g_ws.str.clear();
+    g_ws.str.append(' ', (pWgt->pagectrl.tabWidth-8) / 2);
+    g_ws.str.append("≡ MENU ≡");
+    g_ws.str.setLength(pWgt->pagectrl.tabWidth);
     moveTo(my_coord.col, my_coord.row);
     pushAttr(FontAttrib::Inverse);
-    writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     popAttr();
 
     // draw tabs and pages
-    const int pg_idx = g_wds.pWndState->getPageCtrlPageIndex(pWgt);
-    // const bool focused = g_ds.pWndState->isFocused(pWgt);
-    moveTo(g_wds.parentCoord.col + pWgt->coord.col, g_wds.parentCoord.row + pWgt->coord.row);
+    const int pg_idx = g_ws.pWndState->getPageCtrlPageIndex(pWgt);
+    // const bool focused = g_ws.pWndState->isFocused(pWgt);
+    moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
     flushBuffer();
 
     for (int i = 0; i < pWgt->link.childsCnt; i++)
@@ -601,12 +601,12 @@ static void drawPageControl(const Widget *pWgt)
         if (i == pWgt->size.height-1)
             break;
 
-        const auto *p_page = &g_wds.pWndWidgets[pWgt->link.childsIdx + i];
+        const auto *p_page = &g_ws.pWndWidgets[pWgt->link.childsIdx + i];
 
         // draw page title
-        g_wds.str.clear();
-        g_wds.str.appendFmt("%s%s", i == pg_idx ? "►" : " ", p_page->page.title);
-        g_wds.str.setLength(pWgt->pagectrl.tabWidth, true, true);
+        g_ws.str.clear();
+        g_ws.str.appendFmt("%s%s", i == pg_idx ? "►" : " ", p_page->page.title);
+        g_ws.str.setLength(pWgt->pagectrl.tabWidth, true, true);
 
         moveTo(my_coord.col, my_coord.row + i + 1);
 
@@ -617,29 +617,29 @@ static void drawPageControl(const Widget *pWgt)
 
         pushClFg(clfg);
         if (i == pg_idx) pushAttr(FontAttrib::Inverse);
-        writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
         if (i == pg_idx) popAttr();
         popClFg();
 
-        if (g_wds.pWndState->isVisible(p_page))
+        if (g_ws.pWndState->isVisible(p_page))
         {
             flushBuffer();
-            g_wds.parentCoord.col += pWgt->pagectrl.tabWidth;
+            g_ws.parentCoord.col += pWgt->pagectrl.tabWidth;
             drawWidgetInternal(p_page);
-            g_wds.parentCoord.col -= pWgt->pagectrl.tabWidth;
+            g_ws.parentCoord.col -= pWgt->pagectrl.tabWidth;
         }
     }
 
     popClBg();
     popClFg();
-    g_wds.parentCoord = coord_bkp;
+    g_ws.parentCoord = coord_bkp;
 }
 
 static void drawPage(const Widget *pWgt)
 {
     // draw childrens
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
-        drawWidgetInternal(&g_wds.pWndWidgets[i]);
+        drawWidgetInternal(&g_ws.pWndWidgets[i]);
 }
 
 static void drawProgressBar(const Widget *pWgt)
@@ -653,19 +653,19 @@ static void drawProgressBar(const Widget *pWgt)
 
     int32_t pos = 0, max = 1;
     auto style = (short)pWgt->progressbar.style;
-    g_wds.pWndState->getProgressBarState(pWgt, pos, max);
+    g_ws.pWndState->getProgressBarState(pWgt, pos, max);
 
     if (max <= 0) max = 1;
     if (pos > max) pos = max;
 
-    moveTo(g_wds.parentCoord.col + pWgt->coord.col, g_wds.parentCoord.row + pWgt->coord.row);
-    g_wds.str.clear();
+    moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
+    g_ws.str.clear();
     int fill = pos * pWgt->size.width / max;
-    g_wds.str.append(style_data[style][0], fill);
-    g_wds.str.append(style_data[style][1], pWgt->size.width - fill);
+    g_ws.str.append(style_data[style][0], fill);
+    g_ws.str.append(style_data[style][1], pWgt->size.width - fill);
 
     pushClFg(getWidgetFgColor(pWgt));
-    writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     popClFg();
 
     // ████░░░░░░░░░░░
@@ -704,22 +704,22 @@ static void drawList(DrawListParams &p)
         bool is_sel_item = p.top_item + i == p.sel_idx;
         moveTo(p.coord.col + p.frame_size, p.coord.row + i + p.frame_size);
 
-        g_wds.str.clear();
+        g_ws.str.clear();
 
         if (p.top_item + i < p.items_cnt)
         {
-            p.getItem(p.top_item + i, g_wds.str);
-            g_wds.str.insert(0, is_current_item ? "►" : " ");
-            g_wds.str.setLength(p.wgt_width - 1 - p.frame_size, true, true);
+            p.getItem(p.top_item + i, g_ws.str);
+            g_ws.str.insert(0, is_current_item ? "►" : " ");
+            g_ws.str.setLength(p.wgt_width - 1 - p.frame_size, true, true);
         }
         else
         {
             // empty string - to erase old content
-            g_wds.str.setLength(p.wgt_width - 1 - p.frame_size);
+            g_ws.str.setLength(p.wgt_width - 1 - p.frame_size);
         }
 
         if (p.focused && is_sel_item) pushAttr(FontAttrib::Inverse);
-        writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
         if (p.focused && is_sel_item) popAttr();
     }
 };
@@ -727,7 +727,7 @@ static void drawList(DrawListParams &p)
 static void drawListBox(const Widget *pWgt)
 {
     FontMemento _m;
-    const auto my_coord = g_wds.parentCoord + pWgt->coord;
+    const auto my_coord = g_ws.parentCoord + pWgt->coord;
     drawArea(my_coord, pWgt->size,
         pWgt->listbox.bgColor, pWgt->listbox.fgColor,
         pWgt->listbox.noFrame ? FrameStyle::None : FrameStyle::ListBox, false);
@@ -737,38 +737,38 @@ static void drawListBox(const Widget *pWgt)
 
     DrawListParams dlp = {};
     dlp.coord = my_coord;
-    g_wds.pWndState->getListBoxState(pWgt, dlp.item_idx, dlp.sel_idx, dlp.items_cnt);
+    g_ws.pWndState->getListBoxState(pWgt, dlp.item_idx, dlp.sel_idx, dlp.items_cnt);
     dlp.frame_size = !pWgt->listbox.noFrame;
     dlp.items_visible = pWgt->size.height - (dlp.frame_size * 2);
     dlp.top_item = (dlp.sel_idx / dlp.items_visible) * dlp.items_visible;
-    dlp.focused = g_wds.pWndState->isFocused(pWgt);
+    dlp.focused = g_ws.pWndState->isFocused(pWgt);
     dlp.wgt_width = pWgt->size.width;
-    dlp.getItem = [pWgt](int16_t idx, String &out) { g_wds.pWndState->getListBoxItem(pWgt, idx, out); };
+    dlp.getItem = [pWgt](int16_t idx, String &out) { g_ws.pWndState->getListBoxItem(pWgt, idx, out); };
     drawList(dlp);
 }
 
 static void drawComboBox(const Widget *pWgt)
 {
     FontMemento _m;
-    const auto my_coord = g_wds.parentCoord + pWgt->coord;
-    const bool focused = g_wds.pWndState->isFocused(pWgt);
+    const auto my_coord = g_ws.parentCoord + pWgt->coord;
+    const bool focused = g_ws.pWndState->isFocused(pWgt);
 
     int16_t item_idx = 0; int16_t sel_idx = 0; int16_t items_count; bool drop_down = false;
-    g_wds.pWndState->getComboBoxState(pWgt, item_idx, sel_idx, items_count, drop_down);
+    g_ws.pWndState->getComboBoxState(pWgt, item_idx, sel_idx, items_count, drop_down);
 
     {
-        g_wds.str.clear();
-        g_wds.pWndState->getComboBoxItem(pWgt, item_idx, g_wds.str);
-        g_wds.str.insert(0, " ");
-        g_wds.str.setLength(pWgt->size.width - 4, true, true);
-        g_wds.str << " [▼]";
+        g_ws.str.clear();
+        g_ws.pWndState->getComboBoxItem(pWgt, item_idx, g_ws.str);
+        g_ws.str.insert(0, " ");
+        g_ws.str.setLength(pWgt->size.width - 4, true, true);
+        g_ws.str << " [▼]";
 
         moveTo(my_coord.col, my_coord.row);
         pushClFg(getWidgetFgColor(pWgt));
         pushClBg(getWidgetBgColor(pWgt));
         if (focused && !drop_down) pushAttr(FontAttrib::Inverse);
         if (drop_down) pushAttr(FontAttrib::Underline);
-        writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
         if (focused && !drop_down) popAttr();
         if (drop_down) popAttr();
     }
@@ -786,20 +786,20 @@ static void drawComboBox(const Widget *pWgt)
         dlp.top_item = (dlp.sel_idx / dlp.items_visible) * dlp.items_visible;
         dlp.focused = focused;
         dlp.wgt_width = pWgt->size.width;
-        dlp.getItem = [pWgt](int16_t idx, String &out) { g_wds.pWndState->getComboBoxItem(pWgt, idx, out); };
+        dlp.getItem = [pWgt](int16_t idx, String &out) { g_ws.pWndState->getComboBoxItem(pWgt, idx, out); };
         drawList(dlp);
     }
 }
 
 static void drawCustomWgt(const Widget *pWgt)
 {
-    g_wds.pWndState->onCustomWidgetDraw(pWgt);
+    g_ws.pWndState->onCustomWidgetDraw(pWgt);
 }
 
 static void drawTextBox(const Widget *pWgt)
 {
     FontMemento _m;
-    const auto my_coord = g_wds.parentCoord + pWgt->coord;
+    const auto my_coord = g_ws.parentCoord + pWgt->coord;
 
     drawArea(my_coord, pWgt->size,
         pWgt->textbox.bgColor, pWgt->textbox.fgColor,
@@ -812,7 +812,7 @@ static void drawTextBox(const Widget *pWgt)
     const twins::Vector<twins::StringRange> *p_lines = nullptr;
     int16_t top_line = 0;
 
-    g_wds.pWndState->getTextBoxState(pWgt, &p_lines, top_line);
+    g_ws.pWndState->getTextBoxState(pWgt, &p_lines, top_line);
 
     if (!p_lines || !p_lines->size())
         return;
@@ -820,12 +820,12 @@ static void drawTextBox(const Widget *pWgt)
     if (top_line > (int)p_lines->size())
     {
         top_line = p_lines->size() - lines_visible;
-        g_wds.pWndState->onTextBoxScroll(pWgt, top_line);
+        g_ws.pWndState->onTextBoxScroll(pWgt, top_line);
     }
 
     if (top_line < 0)
     {
-        g_wds.pWndState->onTextBoxScroll(pWgt, top_line);
+        g_ws.pWndState->onTextBoxScroll(pWgt, top_line);
         top_line = 0;
     }
 
@@ -835,20 +835,20 @@ static void drawTextBox(const Widget *pWgt)
     flushBuffer();
 
     // scan invisible lines for ESC sequences: colors, font attributes
-    g_wds.str.clear();
+    g_ws.str.clear();
     for (int i = 0; i < top_line; i++)
     {
         auto sr = (*p_lines)[i];
         while (const char *esc = twins::util::strnchr(sr.data, sr.size, '\e'))
         {
             auto esclen = String::escLen(esc, sr.data + sr.size);
-            g_wds.str.appendLen(esc, esclen);
+            g_ws.str.appendLen(esc, esclen);
 
             sr.size -= esc - sr.data + 1;
             sr.data = esc + 1;
         }
     }
-    writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
 
     // draw lines
     for (int i = 0; i < lines_visible; i++)
@@ -857,11 +857,11 @@ static void drawTextBox(const Widget *pWgt)
             break;
 
         const auto &sr = (*p_lines)[top_line + i];
-        g_wds.str.clear();
-        g_wds.str.appendLen(sr.data, sr.size);
-        g_wds.str.setLength(pWgt->size.width - 2, true, true);
+        g_ws.str.clear();
+        g_ws.str.appendLen(sr.data, sr.size);
+        g_ws.str.setLength(pWgt->size.width - 2, true, true);
         moveTo(my_coord.col + 1, my_coord.row + i + 1);
-        writeStrLen(g_wds.str.cstr(), g_wds.str.size());
+        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     }
 
     flushBuffer();
@@ -871,10 +871,10 @@ static void drawTextBox(const Widget *pWgt)
 
 static void drawWidgetInternal(const Widget *pWgt)
 {
-    if (!g_wds.pWndState->isVisible(pWgt))
+    if (!g_ws.pWndState->isVisible(pWgt))
         return;
 
-    bool en = g_wds.pWndState->isEnabled(pWgt);
+    bool en = g_ws.pWndState->isEnabled(pWgt);
     if (!en) pushAttr(FontAttrib::Faint);
 
     switch (pWgt->type)
@@ -909,13 +909,13 @@ static void drawWidgetInternal(const Widget *pWgt)
 
 void drawWidget(const Widget *pWindowWidgets, WID widgetId)
 {
-    // bool glob_clear = !(g_ds.pWndArray || g_ds.pWndState);
+    // bool glob_clear = !(g_ws.pWndArray || g_ws.pWndState);
     assert(pWindowWidgets);
     assert(pWindowWidgets->type == Widget::Window);
-    g_wds.pWndWidgets = pWindowWidgets;
-    g_wds.pWndState = pWindowWidgets->window.getState();
-    assert(g_wds.pWndState);
-    g_wds.pFocusedWgt = getWidgetByWID(g_wds.pWndState->getFocusedID());
+    g_ws.pWndWidgets = pWindowWidgets;
+    g_ws.pWndState = pWindowWidgets->window.getState();
+    assert(g_ws.pWndState);
+    g_ws.pFocusedWgt = getWidgetByWID(g_ws.pWndState->getFocusedID());
     cursorHide();
     flushBuffer();
 
@@ -930,7 +930,7 @@ void drawWidget(const Widget *pWindowWidgets, WID widgetId)
         // search window for widget by it's Id
         if (getWidgetWSS(wss) && wss.isVisible)
         {
-            g_wds.parentCoord = wss.parentCoord;
+            g_ws.parentCoord = wss.parentCoord;
             // set parent's background color
             pushClBg(getWidgetBgColor(wss.pWidget));
             drawWidgetInternal(wss.pWidget);
@@ -938,24 +938,24 @@ void drawWidget(const Widget *pWindowWidgets, WID widgetId)
         }
     }
 
-    // if (glob_clear) g_ds.pWndArray = nullptr, g_ds.pWndState = nullptr;
+    // if (glob_clear) g_ws.pWndArray = nullptr, g_ws.pWndState = nullptr;
     resetAttr();
     resetClBg();
     resetClFg();
-    setCursorAt(g_wds.pFocusedWgt);
+    setCursorAt(g_ws.pFocusedWgt);
     cursorShow();
     flushBuffer();
 }
 
 void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t count)
 {
-    // bool glob_clear = !(g_ds.pWndArray || g_ds.pWndState);
+    // bool glob_clear = !(g_ws.pWndArray || g_ws.pWndState);
     assert(pWindowWidgets);
     assert(pWindowWidgets->type == Widget::Window);
-    g_wds.pWndWidgets = pWindowWidgets;
-    g_wds.pWndState = pWindowWidgets->window.getState();
-    assert(g_wds.pWndState);
-    g_wds.pFocusedWgt = getWidgetByWID(g_wds.pWndState->getFocusedID());
+    g_ws.pWndWidgets = pWindowWidgets;
+    g_ws.pWndState = pWindowWidgets->window.getState();
+    assert(g_ws.pWndState);
+    g_ws.pFocusedWgt = getWidgetByWID(g_ws.pWndState->getFocusedID());
     cursorHide();
     flushBuffer();
 
@@ -965,7 +965,7 @@ void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t c
 
         if (getWidgetWSS(wss) && wss.isVisible)
         {
-            g_wds.parentCoord = wss.parentCoord;
+            g_ws.parentCoord = wss.parentCoord;
             // set parent's background color
             pushClBg(getWidgetBgColor(wss.pWidget));
             drawWidgetInternal(wss.pWidget);
@@ -973,11 +973,11 @@ void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t c
         }
     }
 
-    // if (glob_clear) g_ds.pWndArray = nullptr, g_ds.pWndState = nullptr;
+    // if (glob_clear) g_ws.pWndArray = nullptr, g_ws.pWndState = nullptr;
     resetAttr();
     resetClBg();
     resetClFg();
-    setCursorAt(g_wds.pFocusedWgt);
+    setCursorAt(g_ws.pFocusedWgt);
     cursorShow();
     flushBuffer();
 }
