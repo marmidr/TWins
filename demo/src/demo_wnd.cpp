@@ -559,7 +559,7 @@ static constexpr twins::Widget page5Childs[] =
         size    : { 12, 10 },
         { textbox : {
             fgColor : twins::ColorFG::White,
-            bgColor : {},
+            bgColor : twins::ColorBG::Blue,
         }},
     },
     { /* NUL */ }

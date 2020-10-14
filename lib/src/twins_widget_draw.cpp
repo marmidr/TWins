@@ -509,6 +509,7 @@ static void drawButton(const Widget *pWgt)
     const bool focused = g_ws.pWndState->isFocused(pWgt);
     const bool pressed = pWgt == g_ws.pMouseDownWgt;
     auto clfg = getWidgetFgColor(pWgt);
+    auto clbg = getWidgetBgColor(pWgt);
     intensifyClIf(focused, clfg);
 
     if (pWgt->button.style == ButtonStyle::Simple)
@@ -523,6 +524,7 @@ static void drawButton(const Widget *pWgt)
         if (focused) pushAttr(FontAttrib::Bold);
         if (pressed) pushAttr(FontAttrib::Inverse);
         pushClFg(clfg);
+        pushClBg(clbg);
         writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     }
     else
@@ -535,7 +537,7 @@ static void drawButton(const Widget *pWgt)
             moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
             if (focused) pushAttr(FontAttrib::Bold);
             if (pressed) pushAttr(FontAttrib::Inverse);
-            pushClBg(getWidgetBgColor(pWgt));
+            pushClBg(clbg);
             pushClFg(clfg);
             writeStrLen(g_ws.str.cstr(), g_ws.str.size());
         }
@@ -719,8 +721,10 @@ static void drawList(DrawListParams &p)
         }
 
         if (p.focused && is_sel_item) pushAttr(FontAttrib::Inverse);
+        if (is_current_item) pushAttr(FontAttrib::Underline);
         writeStrLen(g_ws.str.cstr(), g_ws.str.size());
         if (p.focused && is_sel_item) popAttr();
+        if (is_current_item) popAttr();
     }
 };
 
@@ -853,12 +857,12 @@ static void drawTextBox(const Widget *pWgt)
     // draw lines
     for (int i = 0; i < lines_visible; i++)
     {
-        if (top_line + i >= (int)p_lines->size())
-            break;
-
-        const auto &sr = (*p_lines)[top_line + i];
         g_ws.str.clear();
-        g_ws.str.appendLen(sr.data, sr.size);
+        if (top_line + i < (int)p_lines->size())
+        {
+            const auto &sr = (*p_lines)[top_line + i];
+            g_ws.str.appendLen(sr.data, sr.size);
+        }
         g_ws.str.setLength(pWgt->size.width - 2, true, true);
         moveTo(my_coord.col + 1, my_coord.row + i + 1);
         writeStrLen(g_ws.str.cstr(), g_ws.str.size());
