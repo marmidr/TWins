@@ -249,9 +249,9 @@ struct Widget
         struct
         {
             const char *text;
-            uint16_t    radioId;
-            uint8_t     groupId;
             ColorFG     fgColor;
+            uint8_t     groupId;
+            uint16_t    radioId;
         } radio;
 
         struct

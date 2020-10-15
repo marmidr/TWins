@@ -509,7 +509,7 @@ static void drawButton(const Widget *pWgt)
     const bool focused = g_ws.pWndState->isFocused(pWgt);
     const bool pressed = pWgt == g_ws.pMouseDownWgt;
     auto clfg = getWidgetFgColor(pWgt);
-    auto clbg = getWidgetBgColor(pWgt);
+
     intensifyClIf(focused, clfg);
 
     if (pWgt->button.style == ButtonStyle::Simple)
@@ -523,8 +523,9 @@ static void drawButton(const Widget *pWgt)
         moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
         if (focused) pushAttr(FontAttrib::Bold);
         if (pressed) pushAttr(FontAttrib::Inverse);
-        pushClFg(clfg);
+        auto clbg = pressed ? getWidgetBgColor(pWgt) : getWidgetBgColor(getParent(pWgt));
         pushClBg(clbg);
+        pushClFg(clfg);
         writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     }
     else
@@ -534,6 +535,7 @@ static void drawButton(const Widget *pWgt)
             g_ws.str.clear();
             g_ws.str << " " << pWgt->button.text << " ";
 
+            auto clbg = getWidgetBgColor(pWgt);
             moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
             if (focused) pushAttr(FontAttrib::Bold);
             if (pressed) pushAttr(FontAttrib::Inverse);
@@ -702,7 +704,7 @@ static void drawList(DrawListParams &p)
 
     for (int i = 0; i < p.items_visible; i++)
     {
-        bool is_current_item = p.top_item + i == p.item_idx;
+        bool is_current_item = p.items_cnt ? (p.top_item + i == p.item_idx) : false;
         bool is_sel_item = p.top_item + i == p.sel_idx;
         moveTo(p.coord.col + p.frame_size, p.coord.row + i + p.frame_size);
 
@@ -723,8 +725,8 @@ static void drawList(DrawListParams &p)
         if (p.focused && is_sel_item) pushAttr(FontAttrib::Inverse);
         if (is_current_item) pushAttr(FontAttrib::Underline);
         writeStrLen(g_ws.str.cstr(), g_ws.str.size());
-        if (p.focused && is_sel_item) popAttr();
         if (is_current_item) popAttr();
+        if (p.focused && is_sel_item) popAttr();
     }
 };
 
@@ -772,8 +774,9 @@ static void drawComboBox(const Widget *pWgt)
         pushClBg(getWidgetBgColor(pWgt));
         if (focused && !drop_down) pushAttr(FontAttrib::Inverse);
         if (drop_down) pushAttr(FontAttrib::Underline);
+        if (focused) pushAttr(FontAttrib::Bold);
         writeStrLen(g_ws.str.cstr(), g_ws.str.size());
-        if (focused && !drop_down) popAttr();
+        if (focused) popAttr();
         if (drop_down) popAttr();
     }
 

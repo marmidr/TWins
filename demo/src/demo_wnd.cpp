@@ -344,9 +344,9 @@ static constexpr twins::Widget page2Childs[] =
         size    : {},
         { radio : {
             text    : "YES",
-            radioId : 0,
+            fgColor : twins::ColorFG::Radio,
             groupId : 1,
-            fgColor : twins::ColorFG::Radio
+            radioId : 0,
         }}
     },
     {
@@ -356,9 +356,9 @@ static constexpr twins::Widget page2Childs[] =
         size    : {},
         { radio : {
             text    : "NO",
-            radioId : 1,
+            fgColor : twins::ColorFG::Yellow,
             groupId : 1,
-            fgColor : twins::ColorFG::Yellow
+            radioId : 1,
         }}
     },
     {
@@ -368,8 +368,9 @@ static constexpr twins::Widget page2Childs[] =
         size    : {},
         { radio : {
             text    : "Don't know",
+            fgColor : {},
+            groupId : 1,
             radioId : 2,
-            groupId : 1
         }}
     },
     { /* NUL */ }
@@ -579,25 +580,34 @@ static constexpr twins::Widget page6Childs[] =
         }},
     },
     {
-        type    : twins::Widget::Panel,
-        id      : ID_PNL_UNDEROPTIONS,
+        type    : twins::Widget::ListBox,
+        id      : ID_LBX_UNDEROPTIONS,
         coord   : { 5, 4 },
         size    : { 30, 7 },
-        { panel : {
-            title       : {},
-            fgColor     : twins::ColorFG::White,
-            bgColor     : {},
+        { listbox : {
         }},
     },
     {
         type    : twins::Widget::Button,
-        id      : ID_BTN_NEXTTOOPTIONS,
-        coord   : { 35, 2 },
+        id      : ID_BTN_SAYYES,
+        coord   : { 38, 2 },
         size    : {},
         { button : {
-            text    : "No Options",
-            fgColor : twins::ColorFG::ButtonGreen,
+            text    : "Say YES",
+            fgColor : twins::ColorFG::White,
             bgColor : twins::ColorBG::ButtonGreen,
+            style   : twins::ButtonStyle::Simple
+        }}
+    },
+    {
+        type    : twins::Widget::Button,
+        id      : ID_BTN_SAYNO,
+        coord   : { 38, 4 },
+        size    : {},
+        { button : {
+            text    : "Say NO",
+            fgColor : twins::ColorFG::White,
+            bgColor : twins::ColorBG::ButtonRed,
             style   : twins::ButtonStyle::Simple
         }}
     },

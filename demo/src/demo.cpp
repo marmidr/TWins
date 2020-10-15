@@ -11,7 +11,7 @@
 #include "twins_utils.hpp"
 #include "twins_input_posix.hpp"
 #include "twins_pal_defimpl.hpp"
-#include "twins_gui.hpp"
+#include "twins_glob.hpp"
 
 #include "demo_wnd.hpp"
 
@@ -37,7 +37,7 @@ struct DemoPAL : twins::DefaultPAL
 
     uint16_t getLogsRow() override
     {
-        const auto *p_wnd = twins::gui::pMainWindowWgts;
+        const auto *p_wnd = twins::glob::pMainWindowWgts;
         return p_wnd->coord.row + p_wnd->size.height + 1;
     }
 
@@ -62,10 +62,10 @@ private:
 };
 
 
-// local definition of twins::gui namespace for Demo needs
+// local definition of twins::glob namespace for Demo needs
 namespace twins
 {
-namespace gui
+namespace glob
 {
 DemoPAL demoPAL; // must be first due to construction-destruction order
 twins::WndManager wndMngr;
@@ -296,8 +296,6 @@ public:
 
     void getLabelText(const twins::Widget* pWgt, twins::String &out) override
     {
-        out.clear();
-
         if (pWgt->id == ID_LABEL_KEYSEQ)
         {
             out.appendFmt("SEQ[%zu]:", lblKeycodeSeq.size());
@@ -363,17 +361,23 @@ public:
 
     void getListBoxState(const twins::Widget* pWgt, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount) override
     {
-        itemIdx = mWgtProp[pWgt->id].lbx.itemIdx;
-        selIdx = mWgtProp[pWgt->id].lbx.selIdx;
-        itemsCount = mListBoxItemsCount;
+        if (pWgt->id == ID_LISTBOX)
+        {
+            itemIdx = mWgtProp[pWgt->id].lbx.itemIdx;
+            selIdx = mWgtProp[pWgt->id].lbx.selIdx;
+            itemsCount = mListBoxItemsCount;
+        }
     }
 
-    void getListBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
+    void getListBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) override
     {
-        if (itemIdx == 3)
-            out.appendFmt(ESC_BOLD "Item" ESC_NORMAL " 0034567890123456789*");
-        else
-            out.appendFmt(ESC_FG_BLACK "Item" ESC_FG_BLUE " %03d", itemIdx);
+        if (pWgt->id == ID_LISTBOX)
+        {
+            if (itemIdx == 3)
+                out.appendFmt(ESC_BOLD "Item" ESC_NORMAL " 0034567890123456789*");
+            else
+                out.appendFmt(ESC_FG_BLACK "Item" ESC_FG_BLUE " %03d", itemIdx);
+        }
     }
 
     void getComboBoxState(const twins::Widget* pWgt, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount, bool &dropDown) override
@@ -486,14 +490,14 @@ public:
         if (onButton)
             onButton(pWgt->id);
 
-        twins::gui::wMngr.popWnd();
+        twins::glob::wMngr.popWnd();
     }
 
     bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         if (kc.key == twins::Key::Esc)
         {
-            twins::gui::wMngr.popWnd();
+            twins::glob::wMngr.popWnd();
             return true;
         }
         return false;
@@ -503,7 +507,7 @@ public:
 
     void getWindowCoord(const twins::Widget* pWgt, twins::Coord &coord) override
     {
-        const auto *p_wnd = twins::gui::pMainWindowWgts;
+        const auto *p_wnd = twins::glob::pMainWindowWgts;
         // calc location on the main window center
         coord.col = (p_wnd->size.width - pWgt->size.width) / 2;
         coord.col += p_wnd->coord.col;
@@ -530,7 +534,7 @@ public:
     {
         switch (pWgt->id)
         {
-        case IDPP_WND:          return twins::gui::wMngr.topWndWidgets() == pWgt;
+        case IDPP_WND:          return twins::glob::wMngr.topWndWidgets() == pWgt;
         case IDPP_BTN_YES:      return strstr(buttons.cstr(), "y") != nullptr;
         case IDPP_BTN_NO:       return strstr(buttons.cstr(), "n") != nullptr;
         case IDPP_BTN_CANCEL:   return strstr(buttons.cstr(), "c") != nullptr;
@@ -601,7 +605,7 @@ void showPopup(twins::String title, twins::String message, std::function<void(tw
     wndPopup.onButton = onButton;
     wndPopup.buttons = buttons;
 
-    twins::gui::wMngr.pushWnd(getWndPopup());
+    twins::glob::wMngr.pushWnd(getWndPopup());
 }
 
 // -----------------------------------------------------------------------------
@@ -611,7 +615,7 @@ int main()
     // printf("Win1 controls: %u" "\n", wndMain.topWnd.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
     twins::screenClrAll();
-    twins::gui::wMngr.pushWnd(getWndMain());
+    twins::glob::wMngr.pushWnd(getWndMain());
     twins::inputPosixInit(100);
     twins::mouseMode(twins::MouseMode::M2);
     twins::flushBuffer();
@@ -629,7 +633,7 @@ int main()
         if (quit_req) break;
         rbKeybInput.write(posix_inp);
 
-        if (rbKeybInput.size() && twins::gui::wMngr.size())
+        if (rbKeybInput.size() && twins::glob::wMngr.size())
         {
             twins::Locker lck;
             twins::KeyCode kc = {};
@@ -637,14 +641,14 @@ int main()
             // display input buffer
             {
                 char seq[10];
-                rbKeybInput.copy(seq, sizeof(seq)-1);
-                seq[sizeof(seq)-1] = '\0';
+                auto n = rbKeybInput.copy(seq, sizeof(seq)-1);
+                seq[n] = '\0';
                 wndMain.lblKeycodeSeq = seq;
             }
 
             twins::decodeInputSeq(rbKeybInput, kc);
             // pass key to top-window
-            bool key_handled = twins::processKey(twins::gui::wMngr.topWnd()->getWidgets(), kc);
+            bool key_handled = twins::processKey(twins::glob::wMngr.topWnd()->getWidgets(), kc);
             wndMain.lblKeyName = kc.name;
 
             // display decoded key
@@ -678,28 +682,28 @@ int main()
                 twins::flushBuffer();
 
                 // draw windows from bottom to top
-                twins::gui::wMngr.redrawAll();
+                twins::glob::wMngr.redrawAll();
             }
             else if (kc.m_spec && kc.key == twins::Key::F6)
             {
                 twins::cursorSavePos();
-                twins::moveTo(0, twins::gui::pal.getLogsRow());
+                twins::moveTo(0, twins::glob::pal.getLogsRow());
                 twins::screenClrBelow();
                 twins::cursorRestorePos();
             }
             else if (kc.m_spec && kc.m_ctrl && (kc.key == twins::Key::PgUp || kc.key == twins::Key::PgDown))
             {
-                if (twins::gui::wMngr.topWnd() == &wndMain)
+                if (twins::glob::wMngr.topWnd() == &wndMain)
                     twins::mainPgControlChangePage(wndMain.getWidgets(), kc.key == twins::Key::PgDown);
             }
             else if (kc.m_spec && (kc.key == twins::Key::F9 || kc.key == twins::Key::F10))
             {
-                if (twins::gui::wMngr.topWnd() == &wndMain)
+                if (twins::glob::wMngr.topWnd() == &wndMain)
                     twins::mainPgControlChangePage(wndMain.getWidgets(), kc.key == twins::Key::F10);
             }
 
 
-            if (twins::gui::wMngr.topWnd() == &wndMain)
+            if (twins::glob::wMngr.topWnd() == &wndMain)
             {
                 // keyboard code
                 twins::cursorSavePos();
@@ -717,7 +721,7 @@ int main()
                 twins::cursorRestorePos();
             }
 
-            if (twins::gui::wMngr.topWnd() == &wndMain)
+            if (twins::glob::wMngr.topWnd() == &wndMain)
             {
                 twins::drawWidgets(wndMain.getWidgets(), wndMain.invalidatedWgts.data(), wndMain.invalidatedWgts.size());
                 wndMain.invalidatedWgts.clear();
@@ -727,14 +731,14 @@ int main()
         twins::flushBuffer();
     }
 
-    twins::moveTo(0, twins::gui::pal.getLogsRow());
+    twins::moveTo(0, twins::glob::pal.getLogsRow());
     twins::screenClrBelow();
     twins::mouseMode(twins::MouseMode::Off);
     twins::flushBuffer();
     twins::inputPosixFree();
 
     printf(ESC_BOLD "Memory stats: max chunks: %d, max allocated: %d B\n" ESC_NORMAL,
-        ((DemoPAL&)twins::gui::pal).stats.memChunksMax,
-        ((DemoPAL&)twins::gui::pal).stats.memAllocatedMax
+        ((DemoPAL&)twins::glob::pal).stats.memChunksMax,
+        ((DemoPAL&)twins::glob::pal).stats.memAllocatedMax
     );
 }

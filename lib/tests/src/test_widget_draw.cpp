@@ -253,9 +253,9 @@ static constexpr twins::Widget wndTestDef =
             size    : { 10, 1 },
             { radio : {
                 text    : "Option 1",
-                radioId : 1,
-                groupId : 1,
                 fgColor : {},
+                groupId : 1,
+                radioId : 1,
             }}
         },
         {

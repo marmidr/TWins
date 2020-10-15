@@ -62,8 +62,9 @@ enum WndMainIDs
                 ID_TBX_1LINE,
             ID_PAGE_6,
                 ID_CBX_OPTIONS,
-                ID_PNL_UNDEROPTIONS,
-                ID_BTN_NEXTTOOPTIONS,
+                ID_LBX_UNDEROPTIONS,
+                ID_BTN_SAYYES,
+                ID_BTN_SAYNO,
         ID_LABEL_FTR,
 };
 
