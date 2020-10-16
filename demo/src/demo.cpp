@@ -138,6 +138,13 @@ public:
                 "ync"
             );
         }
+
+        if (pWgt->id == ID_BTN_SAYNO)
+        {
+            auto &prp = mWgtProp[ID_BTN_SAYYES];
+            prp.enabled = !prp.enabled;
+            invalidate(ID_BTN_SAYYES);
+        }
     }
 
     void onEditChange(const twins::Widget* pWgt, twins::String &&str) override
@@ -262,6 +269,9 @@ public:
 
         if (pWgt->id == ID_CHBX_C)
             return false;
+
+        if (pWgt->id == ID_BTN_SAYYES)
+            return mWgtProp[pWgt->id].enabled;
 
         return true;
     }
@@ -426,7 +436,7 @@ public:
 
     // --- requests ---
 
-    void invalidate(twins::WID id, bool instantly) override
+    void invalidate(twins::WID id, bool instantly = false) override
     {
         if (id == twins::WIDGET_ID_NONE)
         {
@@ -667,7 +677,6 @@ int main()
             }
 
 
-
             if (kc.m_spec && kc.key == twins::Key::F4)
             {
                 static bool mouse_on = true;
@@ -720,6 +729,7 @@ int main()
                 }
                 twins::cursorRestorePos();
             }
+
 
             if (twins::glob::wMngr.topWnd() == &wndMain)
             {

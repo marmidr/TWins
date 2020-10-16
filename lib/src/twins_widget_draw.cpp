@@ -558,16 +558,16 @@ static void drawButton(const Widget *pWgt)
         }
         else
         {
+            FontMemento _m;
+
             // trailing shadow
             pushClBg(getWidgetBgColor(getParent(pWgt)));
-            pushClFg(ColorFG::Black);
+            writeStr(ESC_FG_COLOR(233));
             writeStr("▄");
 
             // shadow below
             moveTo(g_ws.parentCoord.col + pWgt->coord.col + 1, g_ws.parentCoord.row + pWgt->coord.row + 1);
             writeStr("▀", shadow_len);
-            popClFg();
-            popClBg();
         }
     }
 }

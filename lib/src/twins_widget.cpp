@@ -1312,39 +1312,42 @@ static bool processMouse(const KeyCode &kc)
         }
     }
 
-    switch (p_wgt->type)
+    if (g_ws.pWndState->isEnabled(p_wgt))
     {
-    case Widget::Edit:
-        processMouse_Edit(p_wgt, rct, kc);
-        break;
-    case Widget::CheckBox:
-        processMouse_CheckBox(p_wgt, rct, kc);
-        break;
-    case Widget::Radio:
-        processMouse_Radio(p_wgt, rct, kc);
-        break;
-    case Widget::Button:
-        processMouse_Button(p_wgt, rct, kc);
-        break;
-    case Widget::PageCtrl:
-        processMouse_PageCtrl(p_wgt, rct, kc);
-        break;
-    case Widget::ListBox:
-        processMouse_ListBox(p_wgt, rct, kc);
-        break;
-    case Widget::ComboBox:
-        processMouse_ComboBox(p_wgt, rct, kc);
-        break;
-    case Widget::CustomWgt:
-        processMouse_CustomWgt(p_wgt, rct, kc);
-        break;
-    case Widget::TextBox:
-        processMouse_TextBox(p_wgt, rct, kc);
-        break;
-    default:
-        moveToHome();
-        g_ws.pMouseDownWgt = nullptr;
-        return false;
+        switch (p_wgt->type)
+        {
+        case Widget::Edit:
+            processMouse_Edit(p_wgt, rct, kc);
+            break;
+        case Widget::CheckBox:
+            processMouse_CheckBox(p_wgt, rct, kc);
+            break;
+        case Widget::Radio:
+            processMouse_Radio(p_wgt, rct, kc);
+            break;
+        case Widget::Button:
+            processMouse_Button(p_wgt, rct, kc);
+            break;
+        case Widget::PageCtrl:
+            processMouse_PageCtrl(p_wgt, rct, kc);
+            break;
+        case Widget::ListBox:
+            processMouse_ListBox(p_wgt, rct, kc);
+            break;
+        case Widget::ComboBox:
+            processMouse_ComboBox(p_wgt, rct, kc);
+            break;
+        case Widget::CustomWgt:
+            processMouse_CustomWgt(p_wgt, rct, kc);
+            break;
+        case Widget::TextBox:
+            processMouse_TextBox(p_wgt, rct, kc);
+            break;
+        default:
+            moveToHome();
+            g_ws.pMouseDownWgt = nullptr;
+            return false;
+        }
     }
 
     if (kc.mouse.btn == MouseBtn::ButtonReleased)
