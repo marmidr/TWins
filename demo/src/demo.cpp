@@ -327,7 +327,7 @@ public:
             out.appendFmt("KEY[%zu]:%s", lblKeyName.size(), lblKeyName.cstr());
         }
 
-        if (pWgt->id == ID_LBL_EMPTY_1)
+        if (pWgt->id == ID_LBL_WORDWRAP)
         {
             const char *s =
                 ESC_BOLD "Name:\n" ESC_NORMAL

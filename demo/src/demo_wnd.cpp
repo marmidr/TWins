@@ -502,13 +502,25 @@ static constexpr twins::Widget page4Childs[] =
         {
             {
                 type    : twins::Widget::Label,
-                id      : ID_LBL_EMPTY_1,
+                id      : ID_LBL_WORDWRAP,
                 coord   : { 2, 1 },
-                size    : { 16, 8 },
+                size    : { 16, 6 },
                 { label : {
                     text    : {},
                     fgColor : twins::ColorFG::White,
                     bgColor : twins::ColorBG::Blue
+                }}
+            },
+            {
+                type    : twins::Widget::Button,
+                id      : ID_BTN_NOACTION,
+                coord   : { 5, 8 },
+                size    : {},
+                { button : {
+                    text    : "...",
+                    fgColor : twins::ColorFG::White,
+                    bgColor : {},
+                    style   : twins::ButtonStyle::Simple
                 }}
             },
             { /* NUL */ }
