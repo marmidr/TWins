@@ -61,6 +61,9 @@ extern WidgetState& g_ws;
 // require g_ws.pWindowWidgets set
 const Widget* getWidgetByWID(const WID widgetId);
 const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect);
+bool isVisible(const Widget *pWgt);
+bool isEnabled(const Widget *pWgt);
+
 // does not require g_ws.pWindowWidgets
 const Widget* getParent(const Widget *pWgt);
 

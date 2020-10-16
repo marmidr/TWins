@@ -881,7 +881,7 @@ static void drawWidgetInternal(const Widget *pWgt)
     if (!g_ws.pWndState->isVisible(pWgt))
         return;
 
-    bool en = g_ws.pWndState->isEnabled(pWgt);
+    bool en = isEnabled(pWgt);
     if (!en) pushAttr(FontAttrib::Faint);
 
     switch (pWgt->type)

@@ -25,7 +25,6 @@ WidgetState& g_ws = (WidgetState&)wds_buff;
 // forward decl
 static bool isPointWithin(uint8_t col, uint8_t row, const Rect& e);
 static bool isRectWithin(const Rect& i, const Rect& e);
-static bool isVisible(const Widget *pWgt);
 
 // -----------------------------------------------------------------------------
 // ---- TWINS INTERNAL FUNCTIONS -----------------------------------------------
@@ -231,6 +230,44 @@ void setCursorAt(const Widget *pWgt)
     moveTo(coord.col, coord.row);
 }
 
+bool isVisible(const Widget *pWgt)
+{
+    bool vis = g_ws.pWndState->isVisible(pWgt);
+    int parent_idx = pWgt->link.parentIdx;
+
+    for (; vis;)
+    {
+        const auto *p_parent = g_ws.pWndWidgets + parent_idx;
+        vis &= g_ws.pWndState->isVisible(p_parent);
+
+        if (parent_idx == 0)
+            break;
+
+        parent_idx = p_parent->link.parentIdx;
+    }
+
+    return vis;
+}
+
+bool isEnabled(const Widget *pWgt)
+{
+    bool en = g_ws.pWndState->isEnabled(pWgt);
+    int parent_idx = pWgt->link.parentIdx;
+
+    for (; en;)
+    {
+        const auto *p_parent = g_ws.pWndWidgets + parent_idx;
+        en &= g_ws.pWndState->isEnabled(p_parent);
+
+        if (parent_idx == 0)
+            break;
+
+        parent_idx = p_parent->link.parentIdx;
+    }
+
+    return en;
+}
+
 // -----------------------------------------------------------------------------
 // ---- TWINS PRIVATE FUNCTIONS ------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -262,25 +299,6 @@ static void invalidateRadioGroup(const Widget *pRadio)
         if (p_wgt->type == Widget::Type::Radio && p_wgt->radio.groupId == group_id)
             g_ws.pWndState->invalidate(p_wgt->id);
     }
-}
-
-static bool isVisible(const Widget *pWgt)
-{
-    bool vis = g_ws.pWndState->isVisible(pWgt);
-    int parent_idx = pWgt->link.parentIdx;
-
-    for (; vis;)
-    {
-        const auto *p_parent = g_ws.pWndWidgets + parent_idx;
-        vis &= g_ws.pWndState->isVisible(p_parent);
-
-        if (parent_idx == 0)
-            break;
-
-        parent_idx = p_parent->link.parentIdx;
-    }
-
-    return vis;
 }
 
 static bool isParent(const Widget *pWgt)
@@ -315,7 +333,7 @@ static bool isFocusable(const Widget *pWgt)
     case Widget::ListBox:
     case Widget::ComboBox:
     case Widget::TextBox:
-        return g_ws.pWndState->isEnabled(pWgt);
+        return isEnabled(pWgt);
     default:
         return false;
     }
@@ -1323,7 +1341,7 @@ static bool processMouse(const KeyCode &kc)
         }
     }
 
-    if (g_ws.pWndState->isEnabled(p_wgt))
+    if (isEnabled(p_wgt))
     {
         switch (p_wgt->type)
         {
@@ -1463,15 +1481,6 @@ const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId)
     return p_wgt;
 }
 
-//void setCursorAt(const Widget *pWindowWidgets, WID widgetId)
-//{
-//    assert(pWindowWidgets);
-//    assert(pWindowWidgets->type == Widget::Window);
-//
-//    const auto *p_wgt = getWidget(pWindowWidgets, widgetId);
-//    setCursorAt(p_wgt);
-//}
-
 bool processKey(const Widget *pWindowWidgets, const KeyCode &kc)
 {
     assert(pWindowWidgets);
@@ -1541,6 +1550,30 @@ void mainPgControlChangePage(const Widget *pWindowWidgets, bool next)
         pgControlChangePage(p_wgt, next);
 
     g_ws.pWndWidgets = nullptr; g_ws.pWndState = nullptr;
+}
+
+bool isWidgetVisible(const Widget *pWindowWidgets, const Widget *pWgt)
+{
+    assert(pWindowWidgets);
+    g_ws.pWndWidgets = pWindowWidgets;
+    g_ws.pWndState = pWindowWidgets->window.getState();
+    assert(g_ws.pWndState);
+
+    bool vis = isVisible(pWgt);
+    g_ws.pWndWidgets = nullptr; g_ws.pWndState = nullptr;
+    return vis;
+}
+
+bool isWidgetEnabled(const Widget *pWindowWidgets, const Widget *pWgt)
+{
+    assert(pWindowWidgets);
+    g_ws.pWndWidgets = pWindowWidgets;
+    g_ws.pWndState = pWindowWidgets->window.getState();
+    assert(g_ws.pWndState);
+
+    bool en = isEnabled(pWgt);
+    g_ws.pWndWidgets = nullptr; g_ws.pWndState = nullptr;
+    return en;
 }
 
 // -----------------------------------------------------------------------------

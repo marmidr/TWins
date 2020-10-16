@@ -566,6 +566,16 @@ bool processKey(const Widget *pWindow, const KeyCode &kc);
  */
 void mainPgControlChangePage(const Widget *pWindowWidgets, bool next);
 
+/**
+ * @brief Check if widget is visible, checking all its parents
+ */
+bool isWidgetVisible(const Widget *pWindowWidgets, const Widget *pWgt);
+
+/**
+ * @brief Check if widget is enabled, checking all its parents
+ */
+bool isWidgetEnabled(const Widget *pWindowWidgets, const Widget *pWgt);
+
 // -----------------------------------------------------------------------------
 
 /** @brief RAII style locker */
