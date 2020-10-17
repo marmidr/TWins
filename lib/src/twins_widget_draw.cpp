@@ -358,6 +358,8 @@ static void drawLabel(const Widget *pWgt)
     else
         g_ws.pWndState->getLabelText(pWgt, g_ws.str);
 
+    FontMemento _m;
+
     // setup colors
     pushClFg(getWidgetFgColor(pWgt));
     pushClBg(getWidgetBgColor(pWgt));
@@ -390,10 +392,6 @@ static void drawLabel(const Widget *pWgt)
         flushBuffer();
         moveBy(-pWgt->size.width, 1);
     }
-
-    // restore colors
-    popClFg();
-    popClBg();
 }
 
 static void drawEdit(const Widget *pWgt)
@@ -445,12 +443,11 @@ static void drawEdit(const Widget *pWgt)
     auto clbg = getWidgetBgColor(pWgt);
     intensifyClIf(focused, clbg);
 
+    FontMemento _m;
     moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
     pushClFg(getWidgetFgColor(pWgt));
     writeStrLen(g_ws.str.cstr(), g_ws.str.size());
-    popClFg();
-    popClBg();
 }
 
 static void drawLed(const Widget *pWgt)
@@ -464,12 +461,11 @@ static void drawLed(const Widget *pWgt)
         g_ws.pWndState->getLedText(pWgt, g_ws.str);
 
     // led text
+    FontMemento _m;
     moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
     pushClFg(getWidgetFgColor(pWgt));
     writeStrLen(g_ws.str.cstr(), g_ws.str.size());
-    popClFg();
-    popClBg();
 }
 
 static void drawCheckbox(const Widget *pWgt)
@@ -479,13 +475,12 @@ static void drawCheckbox(const Widget *pWgt)
     auto clfg = getWidgetFgColor(pWgt);
     intensifyClIf(focused, clfg);
 
+    FontMemento _m;
     moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Bold);
     pushClFg(clfg);
     writeStr(s_chk_state);
     writeStr(pWgt->checkbox.text);
-    popClFg();
-    if (focused) popAttr();
 }
 
 static void drawRadio(const Widget *pWgt)
@@ -495,13 +490,12 @@ static void drawRadio(const Widget *pWgt)
     auto clfg = getWidgetFgColor(pWgt);
     intensifyClIf(focused, clfg);
 
+    FontMemento _m;
     moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Bold);
     pushClFg(clfg);
     writeStr(s_radio_state);
     writeStr(pWgt->radio.text);
-    popClFg();
-    if (focused) popAttr();
 }
 
 static void drawButton(const Widget *pWgt)

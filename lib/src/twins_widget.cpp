@@ -1169,6 +1169,7 @@ static void processMouse_ComboBox(const Widget *pWgt, const Rect &wgtRect, const
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
+
         auto col = kc.mouse.col - wgtRect.coord.col;
         auto row = kc.mouse.row - wgtRect.coord.row - 1;
 
@@ -1232,7 +1233,9 @@ static void processMouse_ComboBox(const Widget *pWgt, const Rect &wgtRect, const
     }
     else if (kc.mouse.btn == MouseBtn::ButtonMid)
     {
-        changeFocusTo(pWgt->id);
+        twins::KeyCode key_left = kc;
+        key_left.mouse.btn = MouseBtn::ButtonLeft;
+        processMouse_ComboBox(pWgt, wgtRect, key_left);
 
         int16_t _, selidx = 0; bool drop_down = false;
         g_ws.pWndState->getComboBoxState(pWgt, _, selidx, _, drop_down);
