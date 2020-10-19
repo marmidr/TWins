@@ -368,8 +368,10 @@ static void drawLabel(const Widget *pWgt)
     const char *p_line = g_ws.str.cstr();
     String s_line;
     moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
+    const uint8_t max_lines = pWgt->size.height ? pWgt->size.height : 50;
+    const uint8_t line_width = pWgt->size.width;
 
-    for (int line = 0; line < pWgt->size.height; line++)
+    for (uint16_t line = 0; line < max_lines; line++)
     {
         s_line.clear();
         const char *p_eol = strchr(p_line, '\n');
@@ -387,10 +389,14 @@ static void drawLabel(const Widget *pWgt)
             p_line = " ";
         }
 
-        s_line.setLength(pWgt->size.width, true, true);
+        if (line_width)
+            s_line.setLength(line_width, true, true);
+
         writeStrLen(s_line.cstr(), s_line.size());
+        moveBy(-s_line.u8len(true), 1);
         flushBuffer();
-        moveBy(-pWgt->size.width, 1);
+
+        if (!p_eol) break;
     }
 }
 

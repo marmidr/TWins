@@ -146,7 +146,7 @@ static constexpr twins::Widget page1Childs[] =
                 type    : twins::Widget::Label,
                 id      : ID_LABEL_FW_VERSION,
                 coord   : { 2, 1 },
-                size    : { 12, 1 },
+                size    : {}, //{ 12, 1 },
                 { label : {
                     text    : "FwVer: 1.1",
                     fgColor : twins::ColorFG::YellowIntense,
@@ -730,7 +730,7 @@ static constexpr twins::Widget wndMain =
             type    : twins::Widget::Label,
             id      : ID_LABEL_FTR,
             coord   : { 1, 13 },
-            size    : { 78, 1 },
+            size    : {}, //{ 78, 1 },
             { label : {
                 text    :  " "
                            ESC_BOLD "F4 "       ESC_NORMAL "Mouse On/Off"   "  "
