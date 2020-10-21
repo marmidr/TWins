@@ -1579,6 +1579,16 @@ bool isWidgetEnabled(const Widget *pWindowWidgets, const Widget *pWgt)
     return en;
 }
 
+void resetInternalState()
+{
+    g_ws.pWndWidgets = nullptr;
+    g_ws.pWndState = nullptr;
+    g_ws.pFocusedWgt = nullptr;
+    g_ws.pMouseDownWgt = nullptr;
+    g_ws.pDropDownCombo = nullptr;
+    g_ws.editState.pWgt = nullptr;
+}
+
 // -----------------------------------------------------------------------------
 
 }

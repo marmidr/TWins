@@ -303,6 +303,10 @@ struct Widget
 
         struct
         {
+        } customwgt;
+
+        struct
+        {
             ColorFG     fgColor;
             ColorBG     bgColor;
         } textbox;
@@ -575,6 +579,11 @@ bool isWidgetVisible(const Widget *pWindowWidgets, const Widget *pWgt);
  * @brief Check if widget is enabled, checking all its parents
  */
 bool isWidgetEnabled(const Widget *pWindowWidgets, const Widget *pWgt);
+
+/**
+ * @brief Reset internal state after top window was changed
+ */
+void resetInternalState(void);
 
 // -----------------------------------------------------------------------------
 

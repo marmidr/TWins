@@ -615,6 +615,7 @@ void showPopup(twins::String title, twins::String message, std::function<void(tw
     wndPopup.onButton = onButton;
     wndPopup.buttons = buttons;
 
+    twins::resetInternalState();
     twins::glob::wMngr.pushWnd(getWndPopup());
 }
 
