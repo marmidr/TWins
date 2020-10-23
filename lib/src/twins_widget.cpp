@@ -785,13 +785,17 @@ static bool processKey_Button(const Widget *pWgt, const KeyCode &kc)
 {
     if (kc.key == Key::Enter)
     {
+        // pointer may change between onButtonUp and onButtonClick, so remember it
+        auto *p_wstate = g_ws.pWndState;
+
         g_ws.pMouseDownWgt = pWgt;
-        g_ws.pWndState->onButtonDown(pWgt, kc);
-        g_ws.pWndState->invalidate(pWgt->id, true);
+        p_wstate->onButtonDown(pWgt, kc);
+        p_wstate->invalidate(pWgt->id, true);
         sleepMs(50);
         g_ws.pMouseDownWgt = nullptr;
-        g_ws.pWndState->onButtonUp(pWgt, kc);
-        g_ws.pWndState->invalidate(pWgt->id);
+        p_wstate->onButtonUp(pWgt, kc);
+        p_wstate->onButtonClick(pWgt, kc);
+        p_wstate->invalidate(pWgt->id);
         return true;
     }
 
@@ -1063,22 +1067,35 @@ static void processMouse_Radio(const Widget *pWgt, const Rect &wgtRect, const Ke
 
 static void processMouse_Button(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
+    // pointer may change between onButtonUp and onButtonClick, so remember it
+    auto *p_wstate = g_ws.pWndState;
+
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
-        g_ws.pWndState->onButtonDown(pWgt, kc);
-        g_ws.pWndState->invalidate(pWgt->id);
+        p_wstate->onButtonDown(pWgt, kc);
+        p_wstate->invalidate(pWgt->id);
     }
     else if (kc.mouse.btn == MouseBtn::ButtonReleased && g_ws.pMouseDownWgt == pWgt)
     {
-        g_ws.pWndState->onButtonUp(pWgt, kc);
+        p_wstate->onButtonUp(pWgt, kc);
+        p_wstate->onButtonClick(pWgt, g_ws.mouseDownKeyCode);
         g_ws.pMouseDownWgt = nullptr;
-        g_ws.pWndState->invalidate(pWgt->id);
+        p_wstate->invalidate(pWgt->id);
     }
     else
     {
         g_ws.pMouseDownWgt = nullptr;
     }
+}
+
+static void processMouse_Button_Release(const Widget *pWgt, const KeyCode &kc)
+{
+    auto *p_wstate = g_ws.pWndState;
+
+    p_wstate->onButtonUp(pWgt, kc);
+    g_ws.pMouseDownWgt = nullptr;
+    p_wstate->invalidate(pWgt->id);
 }
 
 static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
@@ -1305,16 +1322,22 @@ static bool processMouse(const KeyCode &kc)
         // apply only for Button widget
         if (g_ws.pMouseDownWgt->type == Widget::Button)
         {
-            // mouse button released over another widget - generate event for previously clicked button
+            // mouse button released over another widget - generate Up event for previously clicked button
             if (kc.mouse.btn == MouseBtn::ButtonReleased && g_ws.pMouseDownWgt != p_wgt)
-                p_wgt = g_ws.pMouseDownWgt;
+            {
+                processMouse_Button_Release(g_ws.pMouseDownWgt, kc);
+                return true;
+            }
         }
     }
     else if (p_wgt)
     {
         // remember clicked widget
         if (kc.mouse.btn >= MouseBtn::ButtonLeft && kc.mouse.btn < MouseBtn::ButtonReleased)
+        {
             g_ws.pMouseDownWgt = p_wgt;
+            g_ws.mouseDownKeyCode = kc;
+        }
     }
 
     if (!p_wgt)

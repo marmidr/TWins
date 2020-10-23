@@ -46,6 +46,7 @@ struct WidgetState
     const Widget *pFocusedWgt = {};     //
     const Widget *pMouseDownWgt = {};   //
     const Widget *pDropDownCombo = {};
+    KeyCode       mouseDownKeyCode = {};
     struct                              // state of Edit being modified
     {
         const Widget *pWgt = nullptr;

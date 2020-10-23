@@ -119,31 +119,37 @@ public:
 
     void onButtonDown(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
-        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
-        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
-        if (pWgt->id == ID_BTN_POPUP)   TWINS_LOG("BTN_CANCEL");
+        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("▼ BTN_YES");
+        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("▼ BTN_NO");
+        if (pWgt->id == ID_BTN_POPUP)   TWINS_LOG("▼ BTN_POPUP");
     }
 
     void onButtonUp(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
-        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
-        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
-        if (pWgt->id == ID_BTN_POPUP)
-        {
-            TWINS_LOG("BTN_POPUP");
-            showPopup("Lorem Titlum",
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
-                "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-                [](twins::WID btnID) { TWINS_LOG(ESC_BG_DarkGreen "Choice: %d" ESC_BG_DEFAULT, btnID); },
-                "ync"
-            );
-        }
+        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("▲ BTN_YES");
+        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("▲ BTN_NO");
+        if (pWgt->id == ID_BTN_POPUP)   TWINS_LOG("▲ BTN_POPUP");
 
         if (pWgt->id == ID_BTN_SAYNO)
         {
             auto &prp = mWgtProp[ID_BTN_SAYYES];
             prp.enabled = !prp.enabled;
             invalidate(ID_BTN_SAYYES);
+        }
+    }
+
+    void onButtonClick(const twins::Widget* pWgt, const twins::KeyCode &kc) override
+    {
+        TWINS_LOG("BTN_CLICK");
+
+        if (pWgt->id == ID_BTN_POPUP)
+        {
+            showPopup("Lorem Titlum",
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+                "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+                [](twins::WID btnID) { TWINS_LOG(ESC_BG_DarkGreen "Choice: %d" ESC_BG_DEFAULT, btnID); },
+                "ync"
+            );
         }
     }
 
@@ -495,7 +501,7 @@ public:
 
     // --- events ---
 
-    void onButtonUp(const twins::Widget* pWgt, const twins::KeyCode &kc) override
+    void onButtonClick(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         if (onButton)
             onButton(pWgt->id);

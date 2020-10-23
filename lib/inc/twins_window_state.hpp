@@ -26,6 +26,7 @@ public:
     // events
     virtual void onButtonDown(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
     virtual void onButtonUp(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
+    virtual void onButtonClick(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
     virtual void onEditChange(const twins::Widget* pWgt, twins::String &&str) {}
     virtual bool onEditInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos) { return false; }
     virtual void onCheckboxToggle(const twins::Widget* pWgt) {}
