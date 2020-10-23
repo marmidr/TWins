@@ -945,6 +945,7 @@ void drawWidget(const Widget *pWindowWidgets, WID widgetId)
         }
     }
 
+    // this function is often called from invalidate() - do not reset internal pointers!
     // if (glob_clear) g_ws.pWndArray = nullptr, g_ws.pWndState = nullptr;
     resetAttr();
     resetClBg();

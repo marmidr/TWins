@@ -12,6 +12,7 @@
 #include "twins_input_posix.hpp"
 #include "twins_pal_defimpl.hpp"
 #include "twins_glob.hpp"
+#include "twins_window_state_base.hpp"
 
 #include "demo_wnd.hpp"
 
@@ -82,15 +83,15 @@ void showPopup(twins::String title, twins::String message, std::function<void(tw
 // -----------------------------------------------------------------------------
 
 // state of Main window
-class WndMainState : public twins::IWindowState
+class WndMainState : public twins::WindowStateBase
 {
 public:
     void init(const twins::Widget *pWindowWgts) override
     {
-        mpWgts = pWindowWgts;
-        mFocusedId.resize(wndMainNumPages);
+        WindowStateBase::init(pWindowWgts);
+        mFocusedIds.resize(wndMainNumPages);
 
-        for (auto &wid : mFocusedId)
+        for (auto &wid : mFocusedIds)
             // wid = twins::WIDGET_ID_NONE;
             wid = ID_WND;
 
@@ -112,8 +113,6 @@ public:
         printf("~WndMainState()  WgtProperty map Distribution=%u%% Buckets:%u Nodes:%u\n",
             mWgtProp.distribution(), mWgtProp.bucketsCount(), mWgtProp.size());
     }
-
-    const twins::Widget *getWidgets() const override { return mpWgts; }
 
     // --- events ---
 
@@ -284,7 +283,7 @@ public:
 
     bool isFocused(const twins::Widget* pWgt) override
     {
-        return pWgt->id == mFocusedId[mPgcPage];
+        return pWgt->id == mFocusedIds[mPgcPage];
     }
 
     bool isVisible(const twins::Widget* pWgt) override
@@ -302,7 +301,7 @@ public:
 
     twins::WID& getFocusedID() override
     {
-        return mFocusedId[mPgcPage];
+        return mFocusedIds[mPgcPage];
     }
 
     bool getCheckboxChecked(const twins::Widget* pWgt) override
@@ -453,8 +452,7 @@ public:
         // state or focus changed - widget must be repainted
         if (instantly)
         {
-            twins::drawWidget(getWidgets(), id);
-            twins::flushBuffer();
+            WindowStateBase::invalidate(id, instantly);
         }
         else
         {
@@ -469,7 +467,6 @@ public:
     twins::Vector<twins::WID> invalidatedWgts;
 
 private:
-    const twins::Widget *mpWgts = nullptr;
     int16_t mPgbarPos = 0;
     int16_t mPgcPage = 0;
     int16_t mRadioId = 0;
@@ -482,22 +479,14 @@ private:
 
     // focused WID separate for each page
     using wids_t = twins::Vector<twins::WID>;
-    wids_t mFocusedId;
+    wids_t mFocusedIds;
 };
 
 // state of Popup window
-class WndPopupState : public twins::IWindowState
+class WndPopupState : public twins::WindowStateBase
 {
 public:
-    void init(const twins::Widget *pWindowWgts) override
-    {
-        mpWgts = pWindowWgts;
-        mFocusedId = IDPP_WND;
-    }
-
     ~WndPopupState() { printf("~WndPopupState()\n"); }
-
-    const twins::Widget *getWidgets() const override { return mpWgts; }
 
     // --- events ---
 
@@ -536,11 +525,6 @@ public:
         title = wndTitle;
     }
 
-    twins::WID& getFocusedID() override
-    {
-        return mFocusedId;
-    }
-
     bool isFocused(const twins::Widget* pWgt) override
     {
         return pWgt->id == mFocusedId;
@@ -568,27 +552,11 @@ public:
         }
     }
 
-    // --- requests ---
-
-    void invalidate(twins::WID id, bool /* instantly */) override
-    {
-        if (id == twins::WIDGET_ID_NONE)
-            return;
-
-        // state or focus changed - widget must be repainted
-        twins::drawWidget(getWidgets(), id);
-        twins::flushBuffer();
-    }
-
 public:
     std::function<void(twins::WID id)> onButton;
     twins::String wndTitle;
     twins::String wndMessage;
     twins::String buttons;
-
-private:
-    twins::WID mFocusedId;
-    const twins::Widget *mpWgts = nullptr;
 };
 
 // -----------------------------------------------------------------------------
