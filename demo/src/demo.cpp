@@ -117,14 +117,14 @@ public:
 
     // --- events ---
 
-    void onButtonDown(const twins::Widget* pWgt) override
+    void onButtonDown(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
         if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
         if (pWgt->id == ID_BTN_POPUP)   TWINS_LOG("BTN_CANCEL");
     }
 
-    void onButtonUp(const twins::Widget* pWgt) override
+    void onButtonUp(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         if (pWgt->id == ID_BTN_YES)     TWINS_LOG("BTN_YES");
         if (pWgt->id == ID_BTN_NO)      TWINS_LOG("BTN_NO");
@@ -495,7 +495,7 @@ public:
 
     // --- events ---
 
-    void onButtonUp(const twins::Widget* pWgt) override
+    void onButtonUp(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         if (onButton)
             onButton(pWgt->id);

@@ -786,11 +786,11 @@ static bool processKey_Button(const Widget *pWgt, const KeyCode &kc)
     if (kc.key == Key::Enter)
     {
         g_ws.pMouseDownWgt = pWgt;
-        g_ws.pWndState->onButtonDown(pWgt);
+        g_ws.pWndState->onButtonDown(pWgt, kc);
         g_ws.pWndState->invalidate(pWgt->id, true);
         sleepMs(50);
         g_ws.pMouseDownWgt = nullptr;
-        g_ws.pWndState->onButtonUp(pWgt);
+        g_ws.pWndState->onButtonUp(pWgt, kc);
         g_ws.pWndState->invalidate(pWgt->id);
         return true;
     }
@@ -1066,12 +1066,12 @@ static void processMouse_Button(const Widget *pWgt, const Rect &wgtRect, const K
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
-        g_ws.pWndState->onButtonDown(pWgt);
+        g_ws.pWndState->onButtonDown(pWgt, kc);
         g_ws.pWndState->invalidate(pWgt->id);
     }
     else if (kc.mouse.btn == MouseBtn::ButtonReleased && g_ws.pMouseDownWgt == pWgt)
     {
-        g_ws.pWndState->onButtonUp(pWgt);
+        g_ws.pWndState->onButtonUp(pWgt, kc);
         g_ws.pMouseDownWgt = nullptr;
         g_ws.pWndState->invalidate(pWgt->id);
     }
