@@ -32,6 +32,11 @@ public:
         return mFocusedId;
     }
 
+    bool isFocused(const twins::Widget* pWgt) override
+    {
+        return pWgt->id == mFocusedId;
+    }
+
     void invalidate(twins::WID id, bool instantly) override
     {
         if (id == twins::WIDGET_ID_NONE)

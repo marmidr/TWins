@@ -396,7 +396,8 @@ static void drawLabel(const Widget *pWgt)
         moveBy(-s_line.u8len(true), 1);
         flushBuffer();
 
-        if (!p_eol) break;
+        if (!p_eol && !pWgt->size.height)
+            break;
     }
 }
 

@@ -549,11 +549,6 @@ public:
         title = wndTitle;
     }
 
-    bool isFocused(const twins::Widget* pWgt) override
-    {
-        return pWgt->id == mFocusedId;
-    }
-
     bool isVisible(const twins::Widget* pWgt) override
     {
         switch (pWgt->id)
@@ -613,7 +608,6 @@ void showPopup(twins::String title, twins::String message, std::function<void(tw
     wndPopup.onButton = onButton;
     wndPopup.buttons = buttons;
 
-    twins::resetInternalState();
     twins::glob::wMngr.pushWnd(getWndPopup());
 }
 
