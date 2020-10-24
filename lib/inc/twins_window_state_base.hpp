@@ -45,7 +45,7 @@ public:
         }
         else
         {
-            TWINS_LOG("-E- Window state not initialized");
+            TWINS_LOG_E("Window state not initialized");
         }
     }
 

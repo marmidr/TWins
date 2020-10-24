@@ -6,6 +6,7 @@
 
 option(TWINS_USE_FASTFILL "Use ANSI repeat code for faster line fill" ON)
 option(TWINS_PAL_FULLIMPL "Disable in case of incompatible platform" ON)
+option(TWINS_PRECISE_TIMESTAMP "Logs timestamp with fraction of seconds" ON)
 
 set(TARGETNAME twins)
 
@@ -38,6 +39,12 @@ if (${TWINS_PAL_FULLIMPL})
     target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PAL_FULLIMPL=1)
 else()
     target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PAL_FULLIMPL=0)
+endif()
+
+if (${TWINS_PRECISE_TIMESTAMP})
+    target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PRECISE_TIMESTAMP=1)
+else()
+    target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PRECISE_TIMESTAMP=0)
 endif()
 
 if (NOT ${TWINS_THEME_DIR} STREQUAL "")

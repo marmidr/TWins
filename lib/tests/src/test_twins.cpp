@@ -92,15 +92,15 @@ TEST_F(TWINS, log)
     EXPECT_TRUE(lck.isLocked());
 
     // PAL present
-    TWINS_LOG("123");
+    TWINS_LOG_I("123");
     twins::flushBuffer();
-    twins::log(__FILE__, __FUNCTION__, __LINE__, nullptr);
+    twins::log(__FILE__, __LINE__, nullptr, nullptr);
 
     // no PAL
     auto *pal_bkp = twins::pPAL;
     twins::pPAL = nullptr;
-    TWINS_LOG("123");
-    twins::log(__FILE__, __FUNCTION__, __LINE__, nullptr);
+    TWINS_LOG_W("123");
+    twins::log(__FILE__, __LINE__, nullptr, nullptr);
 
     // restore
     twins::pPAL = pal_bkp;

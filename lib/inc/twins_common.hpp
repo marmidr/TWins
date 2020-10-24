@@ -88,6 +88,7 @@ struct IPal
     virtual int writeStrLen(const char *s, uint16_t sLen) = 0;
     virtual int writeStrVFmt(const char *fmt, va_list ap) = 0;
     virtual void flushBuff() = 0;
+    virtual void setLogging(bool on) = 0;
     //
     virtual void *memAlloc(uint32_t sz) = 0;
     virtual void  memFree(void *ptr) = 0;

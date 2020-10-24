@@ -355,7 +355,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
 
     if (pParent == pFirstParent)
     {
-        // TWINS_LOG(ESC_BG_Red "full loop detected (pFirstParent id=%d)", pFirstParent?pFirstParent->id:-1);
+        // TWINS_LOG_E("full loop detected (pFirstParent id=%d)", pFirstParent?pFirstParent->id:-1);
         if (pBreak) *pBreak = true;
         return nullptr;
     }
@@ -394,7 +394,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
         break;
     }
     default:
-        TWINS_LOG("-E- not a parent widget");
+        TWINS_LOG_E("Not a parent type widget");
         return nullptr;
     }
 
@@ -440,7 +440,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
         //assert(p_wgt < p_childs + child_cnt); // occures rarely
         if (p_wgt >= p_childs + child_cnt)
         {
-            TWINS_LOG("-W- focused ID=%d not found on parent ID=%d", focusedID, pParent->id);
+            TWINS_LOG_W("Focused ID=%d not found on parent ID=%d", focusedID, pParent->id);
             return nullptr;
         }
     }

@@ -27,6 +27,7 @@ struct DemoPAL : twins::DefaultPAL
     DemoPAL()
     {
         twins::init(this);
+        mpLogFile = fopen("demo.log", "w");
     }
 
     ~DemoPAL()
@@ -34,6 +35,7 @@ struct DemoPAL : twins::DefaultPAL
         printf("~DemoPAL() lineBuffMaxSize: %u\n", lineBuffMaxSize);
         deinit();
         twins::deinit();
+        fclose(mpLogFile);
     }
 
     uint16_t getLogsRow() override
@@ -58,8 +60,30 @@ struct DemoPAL : twins::DefaultPAL
         mMtx.unlock();
     }
 
+    void flushBuff() override
+    {
+        twins::DefaultPAL::flushBuff();
+    }
+
+    void setLogging(bool on) override
+    {
+        if (on)
+        {
+            mLogStartPos = lineBuff.size();
+        }
+        else
+        {
+            unsigned log_end = lineBuff.size();
+            fwrite(lineBuff.cstr() + mLogStartPos, log_end - mLogStartPos, 1, mpLogFile);
+            fwrite("\n", 1, 1, mpLogFile);
+            fflush(mpLogFile);
+        }
+    }
+
 private:
     std::recursive_mutex mMtx;
+    unsigned mLogStartPos;
+    FILE *mpLogFile;
 };
 
 
@@ -119,14 +143,14 @@ public:
     void onButtonDown(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         if (pWgt->id == ID_BTN_YES)     TWINS_LOG("▼ BTN_YES");
-        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("▼ BTN_NO");
+        if (pWgt->id == ID_BTN_NO)      TWINS_LOG_W("▼ BTN_NO");
         if (pWgt->id == ID_BTN_POPUP)   TWINS_LOG("▼ BTN_POPUP");
     }
 
     void onButtonUp(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         if (pWgt->id == ID_BTN_YES)     TWINS_LOG("▲ BTN_YES");
-        if (pWgt->id == ID_BTN_NO)      TWINS_LOG("▲ BTN_NO");
+        if (pWgt->id == ID_BTN_NO)      TWINS_LOG_E("▲ BTN_NO");
         if (pWgt->id == ID_BTN_POPUP)   TWINS_LOG("▲ BTN_POPUP");
 
         if (pWgt->id == ID_BTN_SAYNO)

@@ -14,7 +14,10 @@
 
 // -----------------------------------------------------------------------------
 
-#define TWINS_LOG(...)          twins::log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
+#define TWINS_LOG(...)          TWINS_LOG_I(__VA_ARGS__) // deprecated
+#define TWINS_LOG_I(...)        twins::log(__FILE__, __LINE__,                  "-I- ", "" __VA_ARGS__)
+#define TWINS_LOG_W(...)        twins::log(__FILE__, __LINE__, ESC_FG_YELLOW    "-W- ", "" __VA_ARGS__)
+#define TWINS_LOG_E(...)        twins::log(__FILE__, __LINE__, ESC_FG_RED       "-E- ", "" __VA_ARGS__)
 
 #ifndef __TWINS_LINK_SECRET
 # define __TWINS_LINK_SECRET    void*_
@@ -433,7 +436,7 @@ bool lock(bool wait = true);
 void unlock(void);
 
 /** @brief used by TWINS_LOG() */
-void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
+void log(const char *file, unsigned line, const char *prefix, const char *fmt, ...);
 
 /** @brief Logs with more control */
 void logRawBegin(const char *prologue = "", bool timeStamp = false);
