@@ -253,9 +253,9 @@ static constexpr twins::Widget wndTestDef =
             size    : { 10, 1 },
             { radio : {
                 text    : "Option 1",
-                radioId : 1,
-                groupId : 1,
                 fgColor : {},
+                groupId : 1,
+                radioId : 1,
             }}
         },
         {
@@ -355,9 +355,9 @@ TEST_F(WIDGETDRW, drawWidget)
     twins::drawWidget(pWndTestWidgets, ID_TEXTBOX);
 
     // draw pressed button
-    twins::g_wds.pMouseDownWgt = twins::getWidget(pWndTestWidgets, ID_BTN1);
+    twins::g_ws.pMouseDownWgt = twins::getWidget(pWndTestWidgets, ID_BTN1);
     twins::drawWidget(pWndTestWidgets, ID_BTN1);
-    twins::g_wds.pMouseDownWgt = {};
+    twins::g_ws.pMouseDownWgt = {};
 
     // draw all
     auto t = twins::pPAL->getTimeStamp();
@@ -365,7 +365,7 @@ TEST_F(WIDGETDRW, drawWidget)
     twins::writeChar('\n', 3);
 
     t = twins::pPAL->getTimeDiff(t);
-    twins::log(__FILE__, __FUNCTION__, __LINE__, "Drawn in %u ms", t);
+    TWINS_LOG("Drawn in %u ms", t);
 }
 
 TEST_F(WIDGETDRW, drawWidgets)

@@ -16,6 +16,7 @@ namespace twins
 void WndManager::pushWnd(twins::IWindowState *pWindow)
 {
     mWindows.append(pWindow);
+    twins::resetInternalState();
     twins::drawWidget(pWindow->getWidgets());
 }
 

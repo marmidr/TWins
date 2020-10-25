@@ -9,9 +9,13 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <time.h>
+#include <sys/time.h>
 
 // -----------------------------------------------------------------------------
+
+#ifndef TWINS_PRECISE_TIMESTAMP
+ #define TWINS_PRECISE_TIMESTAMP    0
+#endif
 
 namespace twins
 {
@@ -100,7 +104,29 @@ void unlock(void)
         pPAL->unlock();
 }
 
-void log(const char *file, const char *func, unsigned line, const char *fmt, ...)
+static inline void setLogging(bool on)
+{
+    if (pPAL)
+        pPAL->setLogging(on);
+}
+
+static void logCurrentTime()
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    struct tm *p_stm = localtime(&tv.tv_sec);
+
+#if TWINS_PRECISE_TIMESTAMP
+    tv.tv_usec /= 1000;
+    writeStrFmt("[%2d:%02d:%02d.%03d]",
+        p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec, tv.tv_usec);
+#else
+    writeStrFmt("[%2d:%02d:%02d]",
+        p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec);
+#endif
+}
+
+void log(const char *file, unsigned line, const char *prefix, const char *fmt, ...)
 {
     twins::Locker lck;
 
@@ -126,23 +152,14 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
     FontMemento _m;
     cursorSavePos();
     pushClBg(ColorBG::Default);
-    // pushClFg(ColorFG::White);
-    writeStr(ESC_FG_COLOR(245));
-
-    uint16_t row = pPAL->getLogsRow();
-    moveTo(1, row);
+    moveTo(1, pPAL->getLogsRow());
     insertLines(1);
 
-    time_t t = time(NULL);
-    struct tm *p_stm = localtime(&t);
-    // writeStrFmt("[%2d:%02d:%02d] %s() %s:%u: ",
-    //     p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec,
-    //     func, file, line);
-    writeStrFmt("[%2d:%02d:%02d] %s:%u: ",
-        p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec,
-        file, line);
-
-    // pushClFg(ColorFG::WhiteIntense);
+    setLogging(true);
+    writeStr(ESC_FG_COLOR(245));
+    logCurrentTime();
+    writeStrFmt(" %s:%u: ", file, line);
+    if (prefix) writeStr(prefix);
     writeStr(ESC_FG_COLOR(253));
 
     if (fmt)
@@ -153,6 +170,7 @@ void log(const char *file, const char *func, unsigned line, const char *fmt, ...
         va_end(ap);
     }
 
+    setLogging(false);
     cursorRestorePos();
     flushBuffer();
 }
@@ -164,7 +182,8 @@ void logRawBegin(const char *prologue, bool timeStamp)
     moveTo(1, pPAL->getLogsRow());
     insertLines(1);
     pushClBg(ColorBG::Default);
-    // pushClFg(ColorFG::White);
+
+    setLogging(true);
     writeStr(ESC_FG_COLOR(245));
 
     if (timeStamp)
@@ -175,7 +194,6 @@ void logRawBegin(const char *prologue, bool timeStamp)
             p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec);
     }
 
-    // pushClFg(ColorFG::WhiteIntense);
     writeStr(ESC_FG_COLOR(253));
     writeStr(prologue);
 }
@@ -188,6 +206,8 @@ void logRawWrite(const char *msg)
 void logRawEnd(const char *epilogue)
 {
     writeStr(epilogue);
+    setLogging(false);
+
     cursorRestorePos();
     g_ts.logRawFontMemento.restore();
     flushBuffer();

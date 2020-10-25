@@ -1,5 +1,5 @@
 /******************************************************************************
- * @brief   TWins - user interface
+ * @brief   TWins - global namespace
  * @author  Mariusz Midor
  *          https://bitbucket.org/mmidor/twins
  *****************************************************************************/
@@ -14,7 +14,7 @@
 namespace twins
 {
 
-namespace gui
+namespace glob
 {
 /** @brief reference to actual PAL */
 extern twins::IPal& pal;

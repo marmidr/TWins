@@ -146,7 +146,7 @@ static constexpr twins::Widget page1Childs[] =
                 type    : twins::Widget::Label,
                 id      : ID_LABEL_FW_VERSION,
                 coord   : { 2, 1 },
-                size    : { 12, 1 },
+                size    : {}, //{ 12, 1 },
                 { label : {
                     text    : "FwVer: 1.1",
                     fgColor : twins::ColorFG::YellowIntense,
@@ -344,9 +344,9 @@ static constexpr twins::Widget page2Childs[] =
         size    : {},
         { radio : {
             text    : "YES",
-            radioId : 0,
+            fgColor : twins::ColorFG::Radio,
             groupId : 1,
-            fgColor : twins::ColorFG::Radio
+            radioId : 0,
         }}
     },
     {
@@ -356,9 +356,9 @@ static constexpr twins::Widget page2Childs[] =
         size    : {},
         { radio : {
             text    : "NO",
-            radioId : 1,
+            fgColor : twins::ColorFG::Yellow,
             groupId : 1,
-            fgColor : twins::ColorFG::Yellow
+            radioId : 1,
         }}
     },
     {
@@ -368,8 +368,9 @@ static constexpr twins::Widget page2Childs[] =
         size    : {},
         { radio : {
             text    : "Don't know",
+            fgColor : {},
+            groupId : 1,
             radioId : 2,
-            groupId : 1
         }}
     },
     { /* NUL */ }
@@ -501,13 +502,25 @@ static constexpr twins::Widget page4Childs[] =
         {
             {
                 type    : twins::Widget::Label,
-                id      : ID_LBL_EMPTY_1,
+                id      : ID_LBL_WORDWRAP,
                 coord   : { 2, 1 },
-                size    : { 16, 8 },
+                size    : { 16, 6 },
                 { label : {
                     text    : {},
                     fgColor : twins::ColorFG::White,
                     bgColor : twins::ColorBG::Blue
+                }}
+            },
+            {
+                type    : twins::Widget::Button,
+                id      : ID_BTN_NOACTION,
+                coord   : { 5, 8 },
+                size    : {},
+                { button : {
+                    text    : "...",
+                    fgColor : twins::ColorFG::White,
+                    bgColor : {},
+                    style   : twins::ButtonStyle::Simple
                 }}
             },
             { /* NUL */ }
@@ -559,7 +572,7 @@ static constexpr twins::Widget page5Childs[] =
         size    : { 12, 10 },
         { textbox : {
             fgColor : twins::ColorFG::White,
-            bgColor : {},
+            bgColor : twins::ColorBG::Blue,
         }},
     },
     { /* NUL */ }
@@ -579,25 +592,34 @@ static constexpr twins::Widget page6Childs[] =
         }},
     },
     {
-        type    : twins::Widget::Panel,
-        id      : ID_PNL_UNDEROPTIONS,
+        type    : twins::Widget::ListBox,
+        id      : ID_LBX_UNDEROPTIONS,
         coord   : { 5, 4 },
         size    : { 30, 7 },
-        { panel : {
-            title       : {},
-            fgColor     : twins::ColorFG::White,
-            bgColor     : {},
+        { listbox : {
         }},
     },
     {
         type    : twins::Widget::Button,
-        id      : ID_BTN_NEXTTOOPTIONS,
-        coord   : { 35, 2 },
+        id      : ID_BTN_SAYYES,
+        coord   : { 38, 2 },
         size    : {},
         { button : {
-            text    : "No Options",
-            fgColor : twins::ColorFG::ButtonGreen,
+            text    : "Say YES",
+            fgColor : twins::ColorFG::White,
             bgColor : twins::ColorBG::ButtonGreen,
+            style   : twins::ButtonStyle::Simple
+        }}
+    },
+    {
+        type    : twins::Widget::Button,
+        id      : ID_BTN_SAYNO,
+        coord   : { 38, 4 },
+        size    : {},
+        { button : {
+            text    : "Say NO",
+            fgColor : twins::ColorFG::White,
+            bgColor : twins::ColorBG::ButtonRed,
             style   : twins::ButtonStyle::Simple
         }}
     },
@@ -708,7 +730,7 @@ static constexpr twins::Widget wndMain =
             type    : twins::Widget::Label,
             id      : ID_LABEL_FTR,
             coord   : { 1, 13 },
-            size    : { 78, 1 },
+            size    : {}, //{ 78, 1 },
             { label : {
                 text    :  " "
                            ESC_BOLD "F4 "       ESC_NORMAL "Mouse On/Off"   "  "

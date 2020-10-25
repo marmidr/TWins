@@ -14,7 +14,10 @@
 
 // -----------------------------------------------------------------------------
 
-#define TWINS_LOG(...)          twins::log(__FILE__, __FUNCTION__, __LINE__, "" __VA_ARGS__)
+#define TWINS_LOG(...)          TWINS_LOG_I(__VA_ARGS__) // deprecated
+#define TWINS_LOG_I(...)        twins::log(__FILE__, __LINE__,                  "-I- ", "" __VA_ARGS__)
+#define TWINS_LOG_W(...)        twins::log(__FILE__, __LINE__, ESC_FG_YELLOW    "-W- ", "" __VA_ARGS__)
+#define TWINS_LOG_E(...)        twins::log(__FILE__, __LINE__, ESC_FG_RED       "-E- ", "" __VA_ARGS__)
 
 #ifndef __TWINS_LINK_SECRET
 # define __TWINS_LINK_SECRET    void*_
@@ -249,9 +252,9 @@ struct Widget
         struct
         {
             const char *text;
-            uint16_t    radioId;
-            uint8_t     groupId;
             ColorFG     fgColor;
+            uint8_t     groupId;
+            uint16_t    radioId;
         } radio;
 
         struct
@@ -300,6 +303,10 @@ struct Widget
             ColorBG     bgColor;
             uint8_t     dropDownSize;
         } combobox;
+
+        struct
+        {
+        } customwgt;
 
         struct
         {
@@ -429,7 +436,7 @@ bool lock(bool wait = true);
 void unlock(void);
 
 /** @brief used by TWINS_LOG() */
-void log(const char *file, const char *func, unsigned line, const char *fmt, ...);
+void log(const char *file, unsigned line, const char *prefix, const char *fmt, ...);
 
 /** @brief Logs with more control */
 void logRawBegin(const char *prologue = "", bool timeStamp = false);
@@ -565,6 +572,21 @@ bool processKey(const Widget *pWindow, const KeyCode &kc);
  *        when to change page
  */
 void mainPgControlChangePage(const Widget *pWindowWidgets, bool next);
+
+/**
+ * @brief Check if widget is visible, checking all its parents
+ */
+bool isWidgetVisible(const Widget *pWindowWidgets, const Widget *pWgt);
+
+/**
+ * @brief Check if widget is enabled, checking all its parents
+ */
+bool isWidgetEnabled(const Widget *pWindowWidgets, const Widget *pWgt);
+
+/**
+ * @brief Reset internal state after top window was changed
+ */
+void resetInternalState(void);
 
 // -----------------------------------------------------------------------------
 

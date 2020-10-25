@@ -20,12 +20,11 @@ namespace twins
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
 static char wds_buff[sizeof(WidgetState)] alignas(WidgetState);
-WidgetState& g_wds = (WidgetState&)wds_buff;
+WidgetState& g_ws = (WidgetState&)wds_buff;
 
 // forward decl
 static bool isPointWithin(uint8_t col, uint8_t row, const Rect& e);
 static bool isRectWithin(const Rect& i, const Rect& e);
-static bool isVisible(const Widget *pWgt);
 
 // -----------------------------------------------------------------------------
 // ---- TWINS INTERNAL FUNCTIONS -----------------------------------------------
@@ -33,12 +32,12 @@ static bool isVisible(const Widget *pWgt);
 
 void widgetInit()
 {
-    new (&g_wds) WidgetState{};
+    new (&g_ws) WidgetState{};
 }
 
 void widgetDeInit()
 {
-    g_wds.~WidgetState();
+    g_ws.~WidgetState();
 }
 
 bool getWidgetWSS(WidgetSearchStruct &wss)
@@ -46,7 +45,7 @@ bool getWidgetWSS(WidgetSearchStruct &wss)
     if (wss.searchedID == WIDGET_ID_NONE)
         return false;
 
-    const Widget *p_wgt = g_wds.pWndWidgets;
+    const Widget *p_wgt = g_ws.pWndWidgets;
 
     for (;; p_wgt++)
     {
@@ -59,19 +58,19 @@ bool getWidgetWSS(WidgetSearchStruct &wss)
     }
 
     wss.pWidget = p_wgt;
-    wss.isVisible = g_wds.pWndState->isVisible(p_wgt);
+    wss.isVisible = g_ws.pWndState->isVisible(p_wgt);
 
     // go up the widgets hierarchy
     int parent_idx = p_wgt->link.parentIdx;
 
     for (;;)
     {
-        const auto *p_parent = g_wds.pWndWidgets + parent_idx;
-        wss.isVisible &= g_wds.pWndState->isVisible(p_parent);
+        const auto *p_parent = g_ws.pWndWidgets + parent_idx;
+        wss.isVisible &= g_ws.pWndState->isVisible(p_parent);
 
         Coord coord = p_parent->coord;
         if (p_parent->type == Widget::Type::Window)
-            g_wds.pWndState->getWindowCoord(p_parent, coord);
+            g_ws.pWndState->getWindowCoord(p_parent, coord);
         wss.parentCoord += coord;
 
         if (p_parent->type == Widget::Type::PageCtrl)
@@ -88,9 +87,9 @@ bool getWidgetWSS(WidgetSearchStruct &wss)
 
 const Widget* getWidgetByWID(const WID widgetId)
 {
-    for (unsigned i = 0; g_wds.pWndWidgets[i].type != Widget::None; i++)
-        if (g_wds.pWndWidgets[i].id == widgetId)
-            return &g_wds.pWndWidgets[i];
+    for (unsigned i = 0; g_ws.pWndWidgets[i].type != Widget::None; i++)
+        if (g_ws.pWndWidgets[i].id == widgetId)
+            return &g_ws.pWndWidgets[i];
 
     return nullptr;
 }
@@ -110,11 +109,11 @@ const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
     Rect best_rect;
     best_rect.setMax();
 
-    for (unsigned i = 0; g_wds.pWndWidgets[i].type != Widget::None; i++)
+    for (unsigned i = 0; g_ws.pWndWidgets[i].type != Widget::None; i++)
     {
         bool stop_searching = true;
         Rect r;
-        const auto *p_wgt = g_wds.pWndWidgets + i;
+        const auto *p_wgt = g_ws.pWndWidgets + i;
         r.coord = getScreenCoord(p_wgt);
         r.size = p_wgt->size;
 
@@ -177,11 +176,11 @@ void setCursorAt(const Widget *pWgt)
     switch (pWgt->type)
     {
     case Widget::Edit:
-        if (g_wds.editState.pWgt == pWgt)
+        if (g_ws.editState.pWgt == pWgt)
         {
             const int16_t max_w = pWgt->size.width-3;
-            coord.col += g_wds.editState.cursorPos;
-            auto cursor_pos = g_wds.editState.cursorPos;
+            coord.col += g_ws.editState.cursorPos;
+            auto cursor_pos = g_ws.editState.cursorPos;
             auto delta = (max_w/2);
             while (cursor_pos >= max_w-1)
             {
@@ -205,13 +204,13 @@ void setCursorAt(const Widget *pWgt)
         break;
     case Widget::PageCtrl:
         coord.row += 1;
-        coord.row += g_wds.pWndState->getPageCtrlPageIndex(pWgt);
+        coord.row += g_ws.pWndState->getPageCtrlPageIndex(pWgt);
         break;
     case Widget::ListBox:
     {
         int16_t idx = 0, selidx = 0, cnt = 0;
         const uint8_t frame_size = !pWgt->listbox.noFrame;
-        g_wds.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
+        g_ws.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
 
         int page_size = pWgt->size.height - (frame_size * 2);
         int row = selidx % page_size;
@@ -229,6 +228,44 @@ void setCursorAt(const Widget *pWgt)
     }
 
     moveTo(coord.col, coord.row);
+}
+
+bool isVisible(const Widget *pWgt)
+{
+    bool vis = g_ws.pWndState->isVisible(pWgt);
+    int parent_idx = pWgt->link.parentIdx;
+
+    for (; vis;)
+    {
+        const auto *p_parent = g_ws.pWndWidgets + parent_idx;
+        vis &= g_ws.pWndState->isVisible(p_parent);
+
+        if (parent_idx == 0)
+            break;
+
+        parent_idx = p_parent->link.parentIdx;
+    }
+
+    return vis;
+}
+
+bool isEnabled(const Widget *pWgt)
+{
+    bool en = g_ws.pWndState->isEnabled(pWgt);
+    int parent_idx = pWgt->link.parentIdx;
+
+    for (; en;)
+    {
+        const auto *p_parent = g_ws.pWndWidgets + parent_idx;
+        en &= g_ws.pWndState->isEnabled(p_parent);
+
+        if (parent_idx == 0)
+            break;
+
+        parent_idx = p_parent->link.parentIdx;
+    }
+
+    return en;
 }
 
 // -----------------------------------------------------------------------------
@@ -253,34 +290,15 @@ static bool isRectWithin(const Rect& i, const Rect& e)
 
 static void invalidateRadioGroup(const Widget *pRadio)
 {
-    const Widget *p_parent = g_wds.pWndWidgets + pRadio->link.parentIdx;
+    const Widget *p_parent = g_ws.pWndWidgets + pRadio->link.parentIdx;
     const auto group_id = pRadio->radio.groupId;
 
     for (unsigned i = 0; i < p_parent->link.childsCnt; i++)
     {
-        const auto *p_wgt = g_wds.pWndWidgets + p_parent->link.childsIdx + i;
+        const auto *p_wgt = g_ws.pWndWidgets + p_parent->link.childsIdx + i;
         if (p_wgt->type == Widget::Type::Radio && p_wgt->radio.groupId == group_id)
-            g_wds.pWndState->invalidate(p_wgt->id);
+            g_ws.pWndState->invalidate(p_wgt->id);
     }
-}
-
-static bool isVisible(const Widget *pWgt)
-{
-    bool vis = g_wds.pWndState->isVisible(pWgt);
-    int parent_idx = pWgt->link.parentIdx;
-
-    for (; vis;)
-    {
-        const auto *p_parent = g_wds.pWndWidgets + parent_idx;
-        vis &= g_wds.pWndState->isVisible(p_parent);
-
-        if (parent_idx == 0)
-            break;
-
-        parent_idx = p_parent->link.parentIdx;
-    }
-
-    return vis;
 }
 
 static bool isParent(const Widget *pWgt)
@@ -315,7 +333,7 @@ static bool isFocusable(const Widget *pWgt)
     case Widget::ListBox:
     case Widget::ComboBox:
     case Widget::TextBox:
-        return g_wds.pWndState->isEnabled(pWgt);
+        return isEnabled(pWgt);
     default:
         return false;
     }
@@ -328,14 +346,17 @@ static bool isFocusable(const WID widgetId)
     return false;
 }
 
-static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool forward, const Widget *pFirstParent = nullptr)
+static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool forward, const Widget *pFirstParent = nullptr, bool *pBreak = nullptr)
 {
+    bool brk = false;
+
     if (!pParent)
         return nullptr;
 
     if (pParent == pFirstParent)
     {
-        // TWINS_LOG("full loop detected");
+        // TWINS_LOG_E("full loop detected (pFirstParent id=%d)", pFirstParent?pFirstParent->id:-1);
+        if (pBreak) *pBreak = true;
         return nullptr;
     }
 
@@ -352,18 +373,18 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
     case Widget::Panel:
     case Widget::Page:
     {
-        p_childs  = g_wds.pWndWidgets + pParent->link.childsIdx;
+        p_childs  = g_ws.pWndWidgets + pParent->link.childsIdx;
         child_cnt = pParent->link.childsCnt;
         break;
     }
     case Widget::PageCtrl:
     {
         // get selected page childrens
-        int idx = g_wds.pWndState->getPageCtrlPageIndex(pParent);
+        int idx = g_ws.pWndState->getPageCtrlPageIndex(pParent);
         if (idx >= 0 && idx < pParent->link.childsCnt)
         {
-            pParent   = g_wds.pWndWidgets + pParent->link.childsIdx + idx;
-            p_childs  = g_wds.pWndWidgets + pParent->link.childsIdx;
+            pParent   = g_ws.pWndWidgets + pParent->link.childsIdx + idx;
+            p_childs  = g_ws.pWndWidgets + pParent->link.childsIdx;
             child_cnt = pParent->link.childsCnt;
         }
         else
@@ -373,7 +394,7 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
         break;
     }
     default:
-        TWINS_LOG("-E- no-parent widget");
+        TWINS_LOG_E("Not a parent type widget");
         return nullptr;
     }
 
@@ -383,14 +404,14 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
     if (!pFirstParent && (pParent->type == Widget::Panel || pParent->type == Widget::Page))
     {
         // it must be Panel or Page because while traversing we never step below Page level
-        // TWINS_LOG("1st parent[id:%u, %s]", pParent->id, toString(pParent->type));
+        // TWINS_LOG("1st parent[%s id:%u]", toString(pParent->type), pParent->id);
         pFirstParent = pParent;
     }
 
     assert(p_childs);
     const Widget *p_wgt = nullptr;
 
-    // TWINS_LOG("pParent[id:%u, %s] cur= %d", pParent->id, toString(pParent->type), focusedID); twins::sleepMs(200);
+    // TWINS_LOG("pParent[%s id:%u] focusedId=%d", toString(pParent->type), pParent->id, focusedID); twins::sleepMs(200);
 
     if (focusedID == WIDGET_ID_NONE)
     {
@@ -402,8 +423,10 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
             return p_wgt;
 
         if (isParent(p_wgt))
-            if (const auto *p = getNextFocusable(p_wgt, WIDGET_ID_NONE, forward, pFirstParent))
+        {
+            if (const auto *p = getNextFocusable(p_wgt, WIDGET_ID_NONE, forward, pFirstParent, pBreak))
                 return p;
+        }
     }
     else
     {
@@ -417,13 +440,13 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
         //assert(p_wgt < p_childs + child_cnt); // occures rarely
         if (p_wgt >= p_childs + child_cnt)
         {
-            TWINS_LOG("-W- focused ID=%d not found on parent ID=%d", focusedID, pParent->id);
+            TWINS_LOG_W("Focused ID=%d not found on parent ID=%d", focusedID, pParent->id);
             return nullptr;
         }
     }
 
 
-    // TWINS_LOG("search in %s childs[%d]", toString(pParent->type), child_cnt);
+    // TWINS_LOG("search in [%s id:%d childs:%d]", toString(pParent->type), pParent->id, child_cnt);
     // iterate until focusable found or childs border reached
     assert(p_wgt);
 
@@ -445,8 +468,14 @@ static const Widget* getNextFocusable(const Widget *pParent, WID focusedID, bool
             return p_wgt;
 
         if (isParent(p_wgt))
-            if (const auto *p = getNextFocusable(p_wgt, WIDGET_ID_NONE, forward, pFirstParent))
+        {
+            if (!pBreak)
+                pBreak = &brk;
+            if (const auto *p = getNextFocusable(p_wgt, WIDGET_ID_NONE, forward, pFirstParent, pBreak))
                 return p;
+            if (*pBreak)
+                break;
+        }
     }
 
     return nullptr;
@@ -459,11 +488,11 @@ static WID getNextToFocus(const WID focusedID, bool forward)
     if (!getWidgetWSS(wss))
     {
         // here, find may fail only if invalid focusedID was given
-        wss.pWidget = g_wds.pWndWidgets;
+        wss.pWidget = g_ws.pWndWidgets;
     }
 
     // use the parent to get next widget
-    if (auto *p_next = getNextFocusable(g_wds.pWndWidgets + wss.pWidget->link.parentIdx, focusedID, forward))
+    if (auto *p_next = getNextFocusable(g_ws.pWndWidgets + wss.pWidget->link.parentIdx, focusedID, forward))
     {
         return p_next->id;
     }
@@ -474,23 +503,23 @@ static WID getNextToFocus(const WID focusedID, bool forward)
 static WID getParentToFocus(WID focusedID)
 {
     if (focusedID == WIDGET_ID_NONE)
-        return g_wds.pWndWidgets[0].id;
+        return g_ws.pWndWidgets[0].id;
 
     WidgetSearchStruct wss { searchedID : focusedID };
 
     if (getWidgetWSS(wss))
     {
-        const auto *p_wgt = &g_wds.pWndWidgets[wss.pWidget->link.parentIdx];
+        const auto *p_wgt = &g_ws.pWndWidgets[wss.pWidget->link.parentIdx];
         // g_ds.parentCoord -= wss.pWidget->coord;
         return p_wgt->id;
     }
 
-    return g_wds.pWndWidgets[0].id;
+    return g_ws.pWndWidgets[0].id;
 }
 
 static bool changeFocusTo(WID newID)
 {
-    auto &curr_id = g_wds.pWndState->getFocusedID();
+    auto &curr_id = g_ws.pWndState->getFocusedID();
     // TWINS_LOG("curr_id=%d, newID=%d", curr_id, newID);
 
     if (newID != curr_id)
@@ -504,23 +533,23 @@ static bool changeFocusTo(WID newID)
             if (wss.pWidget->type == Widget::ListBox)
             {
                 int16_t idx = 0, selidx = 0, cnt = 0;
-                g_wds.pWndState->getListBoxState(wss.pWidget, idx, selidx, cnt);
+                g_ws.pWndState->getListBoxState(wss.pWidget, idx, selidx, cnt);
 
                 if (idx < 0 && cnt > 0)
                 {
-                    g_wds.pWndState->onListBoxSelect(wss.pWidget, selidx);
+                    g_ws.pWndState->onListBoxSelect(wss.pWidget, selidx);
                 }
             }
         }
 
         if (isFocusable(prev_id))
-            g_wds.pWndState->invalidate(prev_id);
+            g_ws.pWndState->invalidate(prev_id);
 
         if (isFocusable(newID))
-            g_wds.pWndState->invalidate(newID);
+            g_ws.pWndState->invalidate(newID);
 
         setCursorAt(wss.pWidget);
-        g_wds.pFocusedWgt = wss.pWidget;
+        g_ws.pFocusedWgt = wss.pWidget;
         return true;
     }
 
@@ -529,12 +558,12 @@ static bool changeFocusTo(WID newID)
 
 static const Widget *findMainPgControl()
 {
-    assert(g_wds.pWndWidgets);
-    const auto *p_wnd = &g_wds.pWndWidgets[0];
+    assert(g_ws.pWndWidgets);
+    const auto *p_wnd = &g_ws.pWndWidgets[0];
 
     for (unsigned i = 0; i < p_wnd->link.childsCnt; i++)
     {
-        const auto *p_wgt = g_wds.pWndWidgets + p_wnd->link.childsIdx + i;
+        const auto *p_wgt = g_ws.pWndWidgets + p_wnd->link.childsIdx + i;
 
         if (p_wgt->type == Widget::PageCtrl)
             return p_wgt;
@@ -548,27 +577,27 @@ static void pgControlChangePage(const Widget *pWgt, bool next)
     assert(pWgt);
     assert(pWgt->type == Widget::PageCtrl);
 
-    int idx = g_wds.pWndState->getPageCtrlPageIndex(pWgt);
+    int idx = g_ws.pWndState->getPageCtrlPageIndex(pWgt);
     idx += next ? 1 : -1;
     if (idx < 0)                     idx = pWgt->link.childsCnt -1;
     if (idx >= pWgt->link.childsCnt) idx = 0;
 
     // changeFocusTo(pWgt->id); // DON'T or separate focus for each Tab will not work
-    g_wds.pWndState->onPageControlPageChange(pWgt, idx);
-    g_wds.pWndState->invalidate(pWgt->id);
+    g_ws.pWndState->onPageControlPageChange(pWgt, idx);
+    g_ws.pWndState->invalidate(pWgt->id);
 
     // cancel EDIT mode
-    g_wds.editState.pWgt = nullptr;
+    g_ws.editState.pWgt = nullptr;
 
-    if (const auto *p_wgt = getWidgetByWID(g_wds.pWndState->getFocusedID()))
+    if (const auto *p_wgt = getWidgetByWID(g_ws.pWndState->getFocusedID()))
     {
         //TWINS_LOG("focused id=%d (%s)", p_wgt->id, toString(p_wgt->type));
-        g_wds.pFocusedWgt = p_wgt;
+        g_ws.pFocusedWgt = p_wgt;
         setCursorAt(p_wgt);
     }
     else
     {
-        g_wds.pFocusedWgt = p_wgt;
+        g_ws.pFocusedWgt = p_wgt;
         moveToHome();
     }
 }
@@ -578,25 +607,25 @@ static void comboBoxHideList(const Widget *pWgt)
     assert(pWgt);
     assert(pWgt->type == Widget::ComboBox);
 
-    g_wds.pWndState->onComboBoxDrop(pWgt, false);
+    g_ws.pWndState->onComboBoxDrop(pWgt, false);
     // redraw parent to hide list
     const auto *p_parent = getParent(pWgt);
     if (p_parent->type == Widget::Page)
         p_parent = getParent(p_parent);
-    g_wds.pWndState->invalidate(p_parent->id);
-    g_wds.pDropDownCombo = nullptr;
+    g_ws.pWndState->invalidate(p_parent->id);
+    g_ws.pDropDownCombo = nullptr;
 }
 
 // -----------------------------------------------------------------------------
 
 static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
 {
-    if (pWgt == g_wds.editState.pWgt)
+    if (pWgt == g_ws.editState.pWgt)
     {
         // if in edit state, allow user to handle key
-        if (g_wds.pWndState->onEditInputEvt(pWgt, kc, g_wds.editState.str, g_wds.editState.cursorPos))
+        if (g_ws.pWndState->onEditInputEvt(pWgt, kc, g_ws.editState.str, g_ws.editState.cursorPos))
         {
-            g_wds.pWndState->invalidate(pWgt->id);
+            g_ws.pWndState->invalidate(pWgt->id);
             return true;
         }
         // user let us continue checking the key
@@ -604,9 +633,9 @@ static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
 
     bool key_handled = false;
 
-    if (g_wds.editState.pWgt)
+    if (g_ws.editState.pWgt)
     {
-        auto cursor_pos = g_wds.editState.cursorPos;
+        auto cursor_pos = g_ws.editState.cursorPos;
 
         if (kc.m_spec)
         {
@@ -614,22 +643,22 @@ static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
             {
             case Key::Esc:
                 // cancel editing
-                g_wds.editState.pWgt = nullptr;
-                g_wds.pWndState->invalidate(pWgt->id);
+                g_ws.editState.pWgt = nullptr;
+                g_ws.pWndState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
             case Key::Tab:
                 // real TAB may have different widths and require extra processing
-                g_wds.editState.str.insert(cursor_pos, "    ");
+                g_ws.editState.str.insert(cursor_pos, "    ");
                 cursor_pos += 4;
-                g_wds.pWndState->invalidate(pWgt->id);
+                g_ws.pWndState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
             case Key::Enter:
                 // finish editing
-                g_wds.pWndState->onEditChange(pWgt, std::move(g_wds.editState.str));
-                g_wds.editState.pWgt = nullptr;
-                g_wds.pWndState->invalidate(pWgt->id);
+                g_ws.pWndState->onEditChange(pWgt, std::move(g_ws.editState.str));
+                g_ws.editState.pWgt = nullptr;
+                g_ws.pWndState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
             case Key::Backspace:
@@ -637,26 +666,26 @@ static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
                 {
                     if (kc.m_ctrl)
                     {
-                        g_wds.editState.str.erase(0, cursor_pos);
+                        g_ws.editState.str.erase(0, cursor_pos);
                         cursor_pos = 0;
                     }
                     else
                     {
-                        g_wds.editState.str.erase(cursor_pos-1);
+                        g_ws.editState.str.erase(cursor_pos-1);
                         cursor_pos--;
                     }
-                    g_wds.pWndState->invalidate(pWgt->id);
+                    g_ws.pWndState->invalidate(pWgt->id);
                 }
                 key_handled = true;
                 break;
             case Key::Delete:
                 if (kc.m_ctrl)
-                    g_wds.editState.str.trim(cursor_pos);
+                    g_ws.editState.str.trim(cursor_pos);
                 else
-                    g_wds.editState.str.erase(cursor_pos);
+                    g_ws.editState.str.erase(cursor_pos);
 
                 key_handled = true;
-                g_wds.pWndState->invalidate(pWgt->id);
+                g_ws.pWndState->invalidate(pWgt->id);
                 break;
             case Key::Up:
             case Key::Down:
@@ -665,26 +694,26 @@ static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
                 if (cursor_pos > 0)
                 {
                     cursor_pos --;
-                    g_wds.pWndState->invalidate(pWgt->id);
+                    g_ws.pWndState->invalidate(pWgt->id);
                 }
                 key_handled = true;
                 break;
             case Key::Right:
-                if (cursor_pos < (signed)g_wds.editState.str.u8len())
+                if (cursor_pos < (signed)g_ws.editState.str.u8len())
                 {
                     cursor_pos++;
-                    g_wds.pWndState->invalidate(pWgt->id);
+                    g_ws.pWndState->invalidate(pWgt->id);
                 }
                 key_handled = true;
                 break;
             case Key::Home:
                 cursor_pos = 0;
-                g_wds.pWndState->invalidate(pWgt->id);
+                g_ws.pWndState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
             case Key::End:
-                cursor_pos = g_wds.editState.str.u8len();
-                g_wds.pWndState->invalidate(pWgt->id);
+                cursor_pos = g_ws.editState.str.u8len();
+                g_ws.pWndState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
             default:
@@ -693,21 +722,21 @@ static bool processKey_Edit(const Widget *pWgt, const KeyCode &kc)
         }
         else
         {
-            g_wds.editState.str.insert(cursor_pos, kc.utf8);
+            g_ws.editState.str.insert(cursor_pos, kc.utf8);
             cursor_pos++;
-            g_wds.pWndState->invalidate(pWgt->id);
+            g_ws.pWndState->invalidate(pWgt->id);
             key_handled = true;
         }
 
-        g_wds.editState.cursorPos = cursor_pos;
+        g_ws.editState.cursorPos = cursor_pos;
     }
     else if (kc.key == Key::Enter)
     {
         // enter edit mode
-        g_wds.editState.pWgt = pWgt;
-        g_wds.pWndState->getEditText(pWgt, g_wds.editState.str);
-        g_wds.editState.cursorPos = g_wds.editState.str.u8len();
-        g_wds.pWndState->invalidate(pWgt->id);
+        g_ws.editState.pWgt = pWgt;
+        g_ws.pWndState->getEditText(pWgt, g_ws.editState.str);
+        g_ws.editState.cursorPos = g_ws.editState.str.u8len();
+        g_ws.pWndState->invalidate(pWgt->id);
         key_handled = true;
     }
 
@@ -718,15 +747,15 @@ static bool processKey_CheckBox(const Widget *pWgt, const KeyCode &kc)
 {
     if (kc.mod_all == KEY_MOD_NONE && kc.utf8[0] == ' ')
     {
-        g_wds.pWndState->onCheckboxToggle(pWgt);
-        g_wds.pWndState->invalidate(pWgt->id);
+        g_ws.pWndState->onCheckboxToggle(pWgt);
+        g_ws.pWndState->invalidate(pWgt->id);
         return true;
     }
 
     if (kc.key == Key::Enter)
     {
-        g_wds.pWndState->onCheckboxToggle(pWgt);
-        g_wds.pWndState->invalidate(pWgt->id);
+        g_ws.pWndState->onCheckboxToggle(pWgt);
+        g_ws.pWndState->invalidate(pWgt->id);
         return true;
     }
 
@@ -737,14 +766,14 @@ static bool processKey_Radio(const Widget *pWgt, const KeyCode &kc)
 {
     if (kc.mod_all == KEY_MOD_NONE && kc.utf8[0] == ' ')
     {
-        g_wds.pWndState->onRadioSelect(pWgt);
+        g_ws.pWndState->onRadioSelect(pWgt);
         invalidateRadioGroup(pWgt);
         return true;
     }
 
     if (kc.key == Key::Enter)
     {
-        g_wds.pWndState->onRadioSelect(pWgt);
+        g_ws.pWndState->onRadioSelect(pWgt);
         invalidateRadioGroup(pWgt);
         return true;
     }
@@ -756,13 +785,17 @@ static bool processKey_Button(const Widget *pWgt, const KeyCode &kc)
 {
     if (kc.key == Key::Enter)
     {
-        g_wds.pMouseDownWgt = pWgt;
-        g_wds.pWndState->onButtonDown(pWgt);
-        g_wds.pWndState->invalidate(pWgt->id, true);
+        // pointer may change between onButtonUp and onButtonClick, so remember it
+        auto *p_wstate = g_ws.pWndState;
+
+        g_ws.pMouseDownWgt = pWgt;
+        p_wstate->onButtonDown(pWgt, kc);
+        p_wstate->invalidate(pWgt->id, true);
         sleepMs(50);
-        g_wds.pMouseDownWgt = nullptr;
-        g_wds.pWndState->onButtonUp(pWgt);
-        g_wds.pWndState->invalidate(pWgt->id);
+        g_ws.pMouseDownWgt = nullptr;
+        p_wstate->onButtonUp(pWgt, kc);
+        p_wstate->onButtonClick(pWgt, kc);
+        p_wstate->invalidate(pWgt->id);
         return true;
     }
 
@@ -791,12 +824,12 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
     case Key::Enter:
     {
         int16_t idx = 0, selidx = 0, cnt = 0;
-        g_wds.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
+        g_ws.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
         if (cnt > 0)
         {
             if (selidx >= 0 && selidx != idx)
-                g_wds.pWndState->onListBoxChange(pWgt, selidx);
-            g_wds.pWndState->invalidate(pWgt->id);
+                g_ws.pWndState->onListBoxChange(pWgt, selidx);
+            g_ws.pWndState->invalidate(pWgt->id);
         }
         return true;
     }
@@ -819,7 +852,7 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
     if (delta != 0)
     {
         int16_t idx = 0, selidx = 0, cnt = 0;
-        g_wds.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
+        g_ws.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
 
         if (cnt > 0)
         {
@@ -831,8 +864,8 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
             if (selidx >= cnt)
                 selidx = 0;
 
-            g_wds.pWndState->onListBoxSelect(pWgt, selidx);
-            g_wds.pWndState->invalidate(pWgt->id);
+            g_ws.pWndState->onListBoxSelect(pWgt, selidx);
+            g_ws.pWndState->invalidate(pWgt->id);
         }
         return true;
     }
@@ -843,7 +876,7 @@ static bool processKey_ListBox(const Widget *pWgt, const KeyCode &kc)
 static bool processKey_ComboBox(const Widget *pWgt, const KeyCode &kc)
 {
     int16_t idx = 0, selidx = 0, cnt = 0; bool drop_down = false;
-    g_wds.pWndState->getComboBoxState(pWgt, idx, selidx, cnt, drop_down);
+    g_ws.pWndState->getComboBoxState(pWgt, idx, selidx, cnt, drop_down);
 
     if (kc.utf8[0] == ' ')
     {
@@ -853,8 +886,8 @@ static bool processKey_ComboBox(const Widget *pWgt, const KeyCode &kc)
 
             if (drop_down)
             {
-                g_wds.pWndState->onComboBoxDrop(pWgt, true);
-                g_wds.pDropDownCombo = pWgt;
+                g_ws.pWndState->onComboBoxDrop(pWgt, true);
+                g_ws.pDropDownCombo = pWgt;
             }
             else
             {
@@ -871,28 +904,28 @@ static bool processKey_ComboBox(const Widget *pWgt, const KeyCode &kc)
         if (kc.key == Key::Up)
         {
             if (--selidx < 0) selidx = cnt-1;
-            g_wds.pWndState->onComboBoxSelect(pWgt, selidx);
+            g_ws.pWndState->onComboBoxSelect(pWgt, selidx);
         }
         else if (kc.key == Key::Down)
         {
             if (++selidx >= cnt) selidx = 0;
-            g_wds.pWndState->onComboBoxSelect(pWgt, selidx);
+            g_ws.pWndState->onComboBoxSelect(pWgt, selidx);
         }
         else if (kc.key == Key::PgUp && kc.mod_all == KEY_MOD_SPECIAL)
         {
             selidx -= pWgt->combobox.dropDownSize;
             if (selidx < 0) selidx = cnt-1;
-            g_wds.pWndState->onComboBoxSelect(pWgt, selidx);
+            g_ws.pWndState->onComboBoxSelect(pWgt, selidx);
         }
         else if (kc.key == Key::PgDown && kc.mod_all == KEY_MOD_SPECIAL)
         {
             selidx += pWgt->combobox.dropDownSize;
             if (selidx >= cnt) selidx = 0;
-            g_wds.pWndState->onComboBoxSelect(pWgt, selidx);
+            g_ws.pWndState->onComboBoxSelect(pWgt, selidx);
         }
         else if (kc.key == Key::Enter)
         {
-            g_wds.pWndState->onComboBoxChange(pWgt, selidx);
+            g_ws.pWndState->onComboBoxChange(pWgt, selidx);
             comboBoxHideList(pWgt);
         }
         else
@@ -905,7 +938,7 @@ static bool processKey_ComboBox(const Widget *pWgt, const KeyCode &kc)
         return false;
     }
 
-    g_wds.pWndState->invalidate(pWgt->id);
+    g_ws.pWndState->invalidate(pWgt->id);
     return true;
 }
 
@@ -937,7 +970,7 @@ static bool processKey_TextBox(const Widget *pWgt, const KeyCode &kc)
         const twins::Vector<twins::StringRange> *p_lines = nullptr;
         int16_t top_line = 0;
 
-        g_wds.pWndState->getTextBoxState(pWgt, &p_lines, top_line);
+        g_ws.pWndState->getTextBoxState(pWgt, &p_lines, top_line);
 
         if (p_lines)
         {
@@ -949,8 +982,8 @@ static bool processKey_TextBox(const Widget *pWgt, const KeyCode &kc)
             if (top_line < 0)
                 top_line = 0;
 
-            g_wds.pWndState->onTextBoxScroll(pWgt, top_line);
-            g_wds.pWndState->invalidate(pWgt->id);
+            g_ws.pWndState->onTextBoxScroll(pWgt, top_line);
+            g_ws.pWndState->invalidate(pWgt->id);
         }
         return true;
     }
@@ -960,7 +993,7 @@ static bool processKey_TextBox(const Widget *pWgt, const KeyCode &kc)
 
 static bool processKey(const KeyCode &kc)
 {
-    auto focused_id = g_wds.pWndState->getFocusedID();
+    auto focused_id = g_ws.pWndState->getFocusedID();
     const Widget* p_wgt = getWidgetByWID(focused_id);
     bool key_handled = false;
 
@@ -1017,8 +1050,8 @@ static void processMouse_CheckBox(const Widget *pWgt, const Rect &wgtRect, const
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
-        g_wds.pWndState->onCheckboxToggle(pWgt);
-        g_wds.pWndState->invalidate(pWgt->id);
+        g_ws.pWndState->onCheckboxToggle(pWgt);
+        g_ws.pWndState->invalidate(pWgt->id);
     }
 }
 
@@ -1027,29 +1060,42 @@ static void processMouse_Radio(const Widget *pWgt, const Rect &wgtRect, const Ke
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
-        g_wds.pWndState->onRadioSelect(pWgt);
+        g_ws.pWndState->onRadioSelect(pWgt);
         invalidateRadioGroup(pWgt);
     }
 }
 
 static void processMouse_Button(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
+    // pointer may change between onButtonUp and onButtonClick, so remember it
+    auto *p_wstate = g_ws.pWndState;
+
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
-        g_wds.pWndState->onButtonDown(pWgt);
-        g_wds.pWndState->invalidate(pWgt->id);
+        p_wstate->onButtonDown(pWgt, kc);
+        p_wstate->invalidate(pWgt->id);
     }
-    else if (kc.mouse.btn == MouseBtn::ButtonReleased && g_wds.pMouseDownWgt == pWgt)
+    else if (kc.mouse.btn == MouseBtn::ButtonReleased && g_ws.pMouseDownWgt == pWgt)
     {
-        g_wds.pWndState->onButtonUp(pWgt);
-        g_wds.pMouseDownWgt = nullptr;
-        g_wds.pWndState->invalidate(pWgt->id);
+        p_wstate->onButtonUp(pWgt, kc);
+        p_wstate->onButtonClick(pWgt, g_ws.mouseDownKeyCode);
+        g_ws.pMouseDownWgt = nullptr;
+        p_wstate->invalidate(pWgt->id);
     }
     else
     {
-        g_wds.pMouseDownWgt = nullptr;
+        g_ws.pMouseDownWgt = nullptr;
     }
+}
+
+static void processMouse_Button_Release(const Widget *pWgt, const KeyCode &kc)
+{
+    auto *p_wstate = g_ws.pWndState;
+
+    p_wstate->onButtonUp(pWgt, kc);
+    g_ws.pMouseDownWgt = nullptr;
+    p_wstate->invalidate(pWgt->id);
 }
 
 static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
@@ -1057,13 +1103,13 @@ static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
-        int idx = g_wds.pWndState->getPageCtrlPageIndex(pWgt);
+        int idx = g_ws.pWndState->getPageCtrlPageIndex(pWgt);
         int new_idx = kc.mouse.row - wgtRect.coord.row - 1;
 
         if (new_idx != idx && new_idx >= 0 && new_idx < pWgt->link.childsCnt)
         {
-            g_wds.pWndState->onPageControlPageChange(pWgt, new_idx);
-            g_wds.pWndState->invalidate(pWgt->id);
+            g_ws.pWndState->onPageControlPageChange(pWgt, new_idx);
+            g_ws.pWndState->invalidate(pWgt->id);
         }
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
@@ -1081,7 +1127,7 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
         bool focus_changed = changeFocusTo(pWgt->id);
 
         int16_t idx = 0, selidx = 0, cnt = 0;
-        g_wds.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
+        g_ws.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
 
         if (cnt <= 0)
             return;
@@ -1095,7 +1141,7 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
             if (new_selidx < (unsigned)cnt && (((signed)new_selidx != selidx) || focus_changed))
             {
                 selidx = new_selidx;
-                g_wds.pWndState->onListBoxSelect(pWgt, selidx);
+                g_ws.pWndState->onListBoxSelect(pWgt, selidx);
             }
         }
         else
@@ -1103,19 +1149,19 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
             if (new_selidx < (unsigned)cnt && new_selidx != (unsigned)idx)
             {
                 selidx = new_selidx;
-                g_wds.pWndState->onListBoxSelect(pWgt, selidx);
-                g_wds.pWndState->onListBoxChange(pWgt, selidx);
+                g_ws.pWndState->onListBoxSelect(pWgt, selidx);
+                g_ws.pWndState->onListBoxChange(pWgt, selidx);
             }
         }
 
-        g_wds.pWndState->invalidate(pWgt->id);
+        g_ws.pWndState->invalidate(pWgt->id);
     }
     else if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
     {
         changeFocusTo(pWgt->id);
 
         int16_t idx = 0, selidx = 0, cnt = 0;
-        g_wds.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
+        g_ws.pWndState->getListBoxState(pWgt, idx, selidx, cnt);
 
         if (cnt <= 0)
             return;
@@ -1130,8 +1176,8 @@ static void processMouse_ListBox(const Widget *pWgt, const Rect &wgtRect, const 
         if (selidx >= cnt)
             selidx = 0;
 
-        g_wds.pWndState->onListBoxSelect(pWgt, selidx);
-        g_wds.pWndState->invalidate(pWgt->id);
+        g_ws.pWndState->onListBoxSelect(pWgt, selidx);
+        g_ws.pWndState->invalidate(pWgt->id);
     }
 }
 
@@ -1140,26 +1186,27 @@ static void processMouse_ComboBox(const Widget *pWgt, const Rect &wgtRect, const
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
         changeFocusTo(pWgt->id);
+
         auto col = kc.mouse.col - wgtRect.coord.col;
         auto row = kc.mouse.row - wgtRect.coord.row - 1;
 
         if (row >= 0 && row < pWgt->combobox.dropDownSize)
         {
             int16_t idx = 0, selidx = 0, cnt = 0; bool drop_down = false;
-            g_wds.pWndState->getComboBoxState(pWgt, idx, selidx, cnt, drop_down);
+            g_ws.pWndState->getComboBoxState(pWgt, idx, selidx, cnt, drop_down);
             selidx = (selidx / pWgt->combobox.dropDownSize) * pWgt->combobox.dropDownSize; // top item
             selidx += row;
             if (selidx < cnt)
             {
-                g_wds.pWndState->onComboBoxSelect(pWgt, selidx);
-                g_wds.pWndState->invalidate(pWgt->id);
+                g_ws.pWndState->onComboBoxSelect(pWgt, selidx);
+                g_ws.pWndState->invalidate(pWgt->id);
             }
         }
         else if (col >= wgtRect.size.width - 3 && col <= wgtRect.size.width - 1)
         {
             // drop down arrow clicked
             int16_t _, cnt = 0; bool drop_down = false;
-            g_wds.pWndState->getComboBoxState(pWgt, _, _, cnt, drop_down);
+            g_ws.pWndState->getComboBoxState(pWgt, _, _, cnt, drop_down);
 
             if (cnt <= 0)
                 return;
@@ -1168,9 +1215,9 @@ static void processMouse_ComboBox(const Widget *pWgt, const Rect &wgtRect, const
 
             if (drop_down)
             {
-                g_wds.pWndState->onComboBoxDrop(pWgt, true);
-                g_wds.pWndState->invalidate(pWgt->id);
-                g_wds.pDropDownCombo = pWgt;
+                g_ws.pWndState->onComboBoxDrop(pWgt, true);
+                g_ws.pWndState->invalidate(pWgt->id);
+                g_ws.pDropDownCombo = pWgt;
             }
             else
             {
@@ -1183,7 +1230,7 @@ static void processMouse_ComboBox(const Widget *pWgt, const Rect &wgtRect, const
         changeFocusTo(pWgt->id);
 
         int16_t idx = 0, selidx = 0, cnt = 0; bool drop_down = false;
-        g_wds.pWndState->getComboBoxState(pWgt, idx, selidx, cnt, drop_down);
+        g_ws.pWndState->getComboBoxState(pWgt, idx, selidx, cnt, drop_down);
 
         if (!drop_down || cnt <= 0)
             return;
@@ -1198,27 +1245,29 @@ static void processMouse_ComboBox(const Widget *pWgt, const Rect &wgtRect, const
         if (selidx >= cnt)
             selidx = 0;
 
-        g_wds.pWndState->onComboBoxSelect(pWgt, selidx);
-        g_wds.pWndState->invalidate(pWgt->id);
+        g_ws.pWndState->onComboBoxSelect(pWgt, selidx);
+        g_ws.pWndState->invalidate(pWgt->id);
     }
     else if (kc.mouse.btn == MouseBtn::ButtonMid)
     {
-        changeFocusTo(pWgt->id);
+        twins::KeyCode key_left = kc;
+        key_left.mouse.btn = MouseBtn::ButtonLeft;
+        processMouse_ComboBox(pWgt, wgtRect, key_left);
 
         int16_t _, selidx = 0; bool drop_down = false;
-        g_wds.pWndState->getComboBoxState(pWgt, _, selidx, _, drop_down);
+        g_ws.pWndState->getComboBoxState(pWgt, _, selidx, _, drop_down);
 
         if (!drop_down)
             return;
 
-        g_wds.pWndState->onComboBoxChange(pWgt, selidx);
+        g_ws.pWndState->onComboBoxChange(pWgt, selidx);
         comboBoxHideList(pWgt);
     }
 }
 
 static void processMouse_CustomWgt(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
-    g_wds.pWndState->onCustomWidgetInputEvt(pWgt, kc);
+    g_ws.pWndState->onCustomWidgetInputEvt(pWgt, kc);
 }
 
 static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
@@ -1230,7 +1279,7 @@ static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const 
         const twins::Vector<twins::StringRange> *p_lines = nullptr;
         int16_t top_line = 0;
 
-        g_wds.pWndState->getTextBoxState(pWgt, &p_lines, top_line);
+        g_ws.pWndState->getTextBoxState(pWgt, &p_lines, top_line);
 
         if (p_lines && p_lines->size())
         {
@@ -1247,8 +1296,8 @@ static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const 
                 top_line = 0;
 
             changeFocusTo(pWgt->id);
-            g_wds.pWndState->onTextBoxScroll(pWgt, top_line);
-            g_wds.pWndState->invalidate(pWgt->id);
+            g_ws.pWndState->onTextBoxScroll(pWgt, top_line);
+            g_ws.pWndState->invalidate(pWgt->id);
         }
     }
 }
@@ -1268,21 +1317,27 @@ static bool processMouse(const KeyCode &kc)
     Rect rct;
     const Widget *p_wgt = getWidgetAt(kc.mouse.col, kc.mouse.row, rct);
 
-    if (g_wds.pMouseDownWgt)
+    if (g_ws.pMouseDownWgt)
     {
         // apply only for Button widget
-        if (g_wds.pMouseDownWgt->type == Widget::Button)
+        if (g_ws.pMouseDownWgt->type == Widget::Button)
         {
-            // mouse button released over another widget - generate event for previously clicked button
-            if (kc.mouse.btn == MouseBtn::ButtonReleased && g_wds.pMouseDownWgt != p_wgt)
-                p_wgt = g_wds.pMouseDownWgt;
+            // mouse button released over another widget - generate Up event for previously clicked button
+            if (kc.mouse.btn == MouseBtn::ButtonReleased && g_ws.pMouseDownWgt != p_wgt)
+            {
+                processMouse_Button_Release(g_ws.pMouseDownWgt, kc);
+                return true;
+            }
         }
     }
     else if (p_wgt)
     {
         // remember clicked widget
         if (kc.mouse.btn >= MouseBtn::ButtonLeft && kc.mouse.btn < MouseBtn::ButtonReleased)
-            g_wds.pMouseDownWgt = p_wgt;
+        {
+            g_ws.pMouseDownWgt = p_wgt;
+            g_ws.mouseDownKeyCode = kc;
+        }
     }
 
     if (!p_wgt)
@@ -1290,65 +1345,68 @@ static bool processMouse(const KeyCode &kc)
 
     //TWINS_LOG("WidgetAt(%2d:%2d)=%s ID:%u", kc.mouse.col, kc.mouse.row, toString(p_wgt->type), p_wgt->id);
 
-    if (g_wds.pDropDownCombo && (p_wgt->type != Widget::ComboBox))
+    if (g_ws.pDropDownCombo && (p_wgt->type != Widget::ComboBox))
     {
         // check if drop-down list clicked
         Rect dropdownlist_rct;
-        dropdownlist_rct.coord = getScreenCoord(g_wds.pDropDownCombo);
+        dropdownlist_rct.coord = getScreenCoord(g_ws.pDropDownCombo);
         dropdownlist_rct.coord.row++;
-        dropdownlist_rct.size.width = g_wds.pDropDownCombo->size.width;
-        dropdownlist_rct.size.height = g_wds.pDropDownCombo->combobox.dropDownSize;
+        dropdownlist_rct.size.width = g_ws.pDropDownCombo->size.width;
+        dropdownlist_rct.size.height = g_ws.pDropDownCombo->combobox.dropDownSize;
 
         if (isPointWithin(kc.mouse.col, kc.mouse.row, dropdownlist_rct))
         {
             // yes -> replace data for processing with g_ds.pDropDownCombo
-            p_wgt = g_wds.pDropDownCombo;
-            rct.coord = getScreenCoord(g_wds.pDropDownCombo);
-            rct.size = g_wds.pDropDownCombo->size;
+            p_wgt = g_ws.pDropDownCombo;
+            rct.coord = getScreenCoord(g_ws.pDropDownCombo);
+            rct.size = g_ws.pDropDownCombo->size;
         }
         else
         {
-            comboBoxHideList(g_wds.pDropDownCombo);
+            comboBoxHideList(g_ws.pDropDownCombo);
         }
     }
 
-    switch (p_wgt->type)
+    if (isEnabled(p_wgt))
     {
-    case Widget::Edit:
-        processMouse_Edit(p_wgt, rct, kc);
-        break;
-    case Widget::CheckBox:
-        processMouse_CheckBox(p_wgt, rct, kc);
-        break;
-    case Widget::Radio:
-        processMouse_Radio(p_wgt, rct, kc);
-        break;
-    case Widget::Button:
-        processMouse_Button(p_wgt, rct, kc);
-        break;
-    case Widget::PageCtrl:
-        processMouse_PageCtrl(p_wgt, rct, kc);
-        break;
-    case Widget::ListBox:
-        processMouse_ListBox(p_wgt, rct, kc);
-        break;
-    case Widget::ComboBox:
-        processMouse_ComboBox(p_wgt, rct, kc);
-        break;
-    case Widget::CustomWgt:
-        processMouse_CustomWgt(p_wgt, rct, kc);
-        break;
-    case Widget::TextBox:
-        processMouse_TextBox(p_wgt, rct, kc);
-        break;
-    default:
-        moveToHome();
-        g_wds.pMouseDownWgt = nullptr;
-        return false;
+        switch (p_wgt->type)
+        {
+        case Widget::Edit:
+            processMouse_Edit(p_wgt, rct, kc);
+            break;
+        case Widget::CheckBox:
+            processMouse_CheckBox(p_wgt, rct, kc);
+            break;
+        case Widget::Radio:
+            processMouse_Radio(p_wgt, rct, kc);
+            break;
+        case Widget::Button:
+            processMouse_Button(p_wgt, rct, kc);
+            break;
+        case Widget::PageCtrl:
+            processMouse_PageCtrl(p_wgt, rct, kc);
+            break;
+        case Widget::ListBox:
+            processMouse_ListBox(p_wgt, rct, kc);
+            break;
+        case Widget::ComboBox:
+            processMouse_ComboBox(p_wgt, rct, kc);
+            break;
+        case Widget::CustomWgt:
+            processMouse_CustomWgt(p_wgt, rct, kc);
+            break;
+        case Widget::TextBox:
+            processMouse_TextBox(p_wgt, rct, kc);
+            break;
+        default:
+            moveToHome();
+            g_ws.pMouseDownWgt = nullptr;
+            return false;
+        }
     }
 
     if (kc.mouse.btn == MouseBtn::ButtonReleased)
-        g_wds.pMouseDownWgt = nullptr;
+        g_ws.pMouseDownWgt = nullptr;
 
     return true;
 }
@@ -1387,7 +1445,7 @@ Coord getScreenCoord(const Widget *pWgt)
 {
     Coord coord = pWgt->coord;
     if (pWgt->type == Widget::Type::Window)
-        g_wds.pWndState->getWindowCoord(pWgt, coord);
+        g_ws.pWndState->getWindowCoord(pWgt, coord);
 
     if (pWgt->link.ownIdx > 0)
     {
@@ -1400,7 +1458,7 @@ Coord getScreenCoord(const Widget *pWgt)
             {
                 Coord wnd_coord = p_parent->coord;
                 // getWindowCoord is optional
-                g_wds.pWndState->getWindowCoord(p_parent, wnd_coord);
+                g_ws.pWndState->getWindowCoord(p_parent, wnd_coord);
                 coord += wnd_coord;
             }
             else
@@ -1442,29 +1500,20 @@ const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId)
     assert(pWindowWidgets);
     assert(pWindowWidgets->type == Widget::Window);
 
-    const Widget *p_wgts_bkp = g_wds.pWndWidgets;
-    g_wds.pWndWidgets = pWindowWidgets;
+    const Widget *p_wgts_bkp = g_ws.pWndWidgets;
+    g_ws.pWndWidgets = pWindowWidgets;
     const auto *p_wgt = getWidgetByWID(widgetId);
-    g_wds.pWndWidgets = p_wgts_bkp;
+    g_ws.pWndWidgets = p_wgts_bkp;
     return p_wgt;
 }
-
-//void setCursorAt(const Widget *pWindowWidgets, WID widgetId)
-//{
-//    assert(pWindowWidgets);
-//    assert(pWindowWidgets->type == Widget::Window);
-//
-//    const auto *p_wgt = getWidget(pWindowWidgets, widgetId);
-//    setCursorAt(p_wgt);
-//}
 
 bool processKey(const Widget *pWindowWidgets, const KeyCode &kc)
 {
     assert(pWindowWidgets);
     assert(pWindowWidgets->type == Widget::Window);
-    g_wds.pWndWidgets = pWindowWidgets;
-    g_wds.pWndState = pWindowWidgets->window.getState();
-    assert(g_wds.pWndState);
+    g_ws.pWndWidgets = pWindowWidgets;
+    g_ws.pWndState = pWindowWidgets->window.getState();
+    assert(g_ws.pWndState);
     bool key_processed = false;
 
     if (kc.key == Key::None)
@@ -1482,23 +1531,23 @@ bool processKey(const Widget *pWindowWidgets, const KeyCode &kc)
 
         if (!key_processed && kc.m_spec)
         {
-            if (g_wds.pDropDownCombo)
+            if (g_ws.pDropDownCombo)
             {
-                comboBoxHideList(g_wds.pDropDownCombo);
+                comboBoxHideList(g_ws.pDropDownCombo);
             }
 
             switch (kc.key)
             {
             case Key::Esc:
             {
-                auto curr_id = g_wds.pWndState->getFocusedID();
+                auto curr_id = g_ws.pWndState->getFocusedID();
                 auto new_id = getParentToFocus(curr_id);
                 key_processed = changeFocusTo(new_id);
                 break;
             }
             case Key::Tab:
             {
-                auto curr_id = g_wds.pWndState->getFocusedID();
+                auto curr_id = g_ws.pWndState->getFocusedID();
                 auto new_id = getNextToFocus(curr_id, !kc.m_shift);
                 key_processed = changeFocusTo(new_id);
                 break;
@@ -1509,24 +1558,58 @@ bool processKey(const Widget *pWindowWidgets, const KeyCode &kc)
         }
 
         if (!key_processed)
-            key_processed = g_wds.pWndState->onWindowUnhandledInputEvt(g_wds.pWndWidgets, kc);
+            key_processed = g_ws.pWndState->onWindowUnhandledInputEvt(g_ws.pWndWidgets, kc);
     }
 
-    g_wds.pWndWidgets = nullptr; g_wds.pWndState = nullptr;
+    g_ws.pWndWidgets = nullptr; g_ws.pWndState = nullptr;
     return key_processed;
 }
 
 void mainPgControlChangePage(const Widget *pWindowWidgets, bool next)
 {
     assert(pWindowWidgets);
-    g_wds.pWndWidgets = pWindowWidgets;
-    g_wds.pWndState = pWindowWidgets->window.getState();
-    assert(g_wds.pWndState);
+    g_ws.pWndWidgets = pWindowWidgets;
+    g_ws.pWndState = pWindowWidgets->window.getState();
+    assert(g_ws.pWndState);
 
     if (const auto *p_wgt = findMainPgControl())
         pgControlChangePage(p_wgt, next);
 
-    g_wds.pWndWidgets = nullptr; g_wds.pWndState = nullptr;
+    g_ws.pWndWidgets = nullptr; g_ws.pWndState = nullptr;
+}
+
+bool isWidgetVisible(const Widget *pWindowWidgets, const Widget *pWgt)
+{
+    assert(pWindowWidgets);
+    g_ws.pWndWidgets = pWindowWidgets;
+    g_ws.pWndState = pWindowWidgets->window.getState();
+    assert(g_ws.pWndState);
+
+    bool vis = isVisible(pWgt);
+    g_ws.pWndWidgets = nullptr; g_ws.pWndState = nullptr;
+    return vis;
+}
+
+bool isWidgetEnabled(const Widget *pWindowWidgets, const Widget *pWgt)
+{
+    assert(pWindowWidgets);
+    g_ws.pWndWidgets = pWindowWidgets;
+    g_ws.pWndState = pWindowWidgets->window.getState();
+    assert(g_ws.pWndState);
+
+    bool en = isEnabled(pWgt);
+    g_ws.pWndWidgets = nullptr; g_ws.pWndState = nullptr;
+    return en;
+}
+
+void resetInternalState()
+{
+    g_ws.pWndWidgets = nullptr;
+    g_ws.pWndState = nullptr;
+    g_ws.pFocusedWgt = nullptr;
+    g_ws.pMouseDownWgt = nullptr;
+    g_ws.pDropDownCombo = nullptr;
+    g_ws.editState.pWgt = nullptr;
 }
 
 // -----------------------------------------------------------------------------

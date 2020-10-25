@@ -46,6 +46,7 @@ struct WidgetState
     const Widget *pFocusedWgt = {};     //
     const Widget *pMouseDownWgt = {};   //
     const Widget *pDropDownCombo = {};
+    KeyCode       mouseDownKeyCode = {};
     struct                              // state of Edit being modified
     {
         const Widget *pWgt = nullptr;
@@ -54,14 +55,17 @@ struct WidgetState
     } editState;
 };
 
-extern WidgetState& g_wds;
+extern WidgetState& g_ws;
 
 // -----------------------------------------------------------------------------
 
-// require g_wds.pWindowWidgets set
+// require g_ws.pWindowWidgets set
 const Widget* getWidgetByWID(const WID widgetId);
 const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect);
-// does not require g_wds.pWindowWidgets
+bool isVisible(const Widget *pWgt);
+bool isEnabled(const Widget *pWgt);
+
+// does not require g_ws.pWindowWidgets
 const Widget* getParent(const Widget *pWgt);
 
 bool getWidgetWSS(WidgetSearchStruct &wss);
