@@ -110,10 +110,20 @@ static inline void setLogging(bool on)
         pPAL->setLogging(on);
 }
 
-static void logCurrentTime()
+void writeCurrentTime(uint64_t *pTimestamp)
 {
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+
+    if (pTimestamp)
+    {
+        tv.tv_sec = *pTimestamp >> 16;
+        tv.tv_usec = (*pTimestamp) & 0xFFFF;
+    }
+    else
+    {
+        gettimeofday(&tv, NULL);
+    }
+
     struct tm *p_stm = localtime(&tv.tv_sec);
 
 #if TWINS_PRECISE_TIMESTAMP
@@ -126,9 +136,11 @@ static void logCurrentTime()
 #endif
 }
 
-void log(const char *file, unsigned line, const char *prefix, const char *fmt, ...)
+void log(uint64_t *pTimestamp, const char *file, unsigned line, const char *prefix, const char *fmt, ...)
 {
     twins::Locker lck;
+
+    if (!prefix) prefix = "";
 
     // display only file name, trim the path
     if (const char *delim = strrchr(file, '/'))
@@ -138,7 +150,9 @@ void log(const char *file, unsigned line, const char *prefix, const char *fmt, .
     {
         if (fmt)
         {
-            printf(ESC_COLORS_DEFAULT "%s:%u: " ESC_BOLD, file, line);
+            printf(ESC_FG_COLOR(245));
+            printf(ESC_COLORS_DEFAULT "%s:%u%s" ESC_BOLD, file, line, prefix);
+            printf(ESC_FG_COLOR(253));
             va_list ap;
             va_start(ap, fmt);
             vprintf(fmt, ap);
@@ -157,10 +171,13 @@ void log(const char *file, unsigned line, const char *prefix, const char *fmt, .
 
     setLogging(true);
     writeStr(ESC_FG_COLOR(245));
-    logCurrentTime();
-    writeStrFmt(" %s:%u: ", file, line);
-    if (prefix) writeStr(prefix);
-    writeStr(ESC_FG_COLOR(253));
+    writeCurrentTime(pTimestamp);
+    writeStrFmt(" %s:%u%s", file, line, prefix);
+
+    if (strstr(prefix, "-D-"))
+        writeStr(ESC_FG_COLOR(248));
+    else
+        writeStr(ESC_FG_COLOR(253));
 
     if (fmt)
     {

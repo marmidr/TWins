@@ -65,6 +65,8 @@ Implementation is based on examples:
 - [x] color theme for window
 - [x] keyboard handler returns if key was handled by active widget
 - [x] support for mouse click
+- [ ] password input
+
 
 ## Prerequisites
 

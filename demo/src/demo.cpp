@@ -657,7 +657,7 @@ int main()
             // display decoded key
             if (kc.key == twins::Key::MouseEvent)
             {
-                TWINS_LOG("B%c %c%c%c %03d:%03d",
+                TWINS_LOG_D("B%c %c%c%c %03d:%03d",
                     '0' + (char)kc.mouse.btn,
                     kc.m_ctrl ? 'C' : ' ',
                     kc.m_alt ? 'A' : ' ',
@@ -666,7 +666,7 @@ int main()
             }
             else if (kc.key != twins::Key::None)
             {
-                TWINS_LOG("Key: '%s' %s", kc.name, key_handled ? "(handled)" : "");
+                TWINS_LOG_D("Key: '%s' %s", kc.name, key_handled ? "(handled)" : "");
             }
 
 
@@ -674,7 +674,7 @@ int main()
             {
                 static bool mouse_on = true;
                 mouse_on = !mouse_on;
-                TWINS_LOG("Mouse %s", mouse_on ? "ON" : "OFF");
+                TWINS_LOG_I("Mouse %s", mouse_on ? "ON" : "OFF");
                 twins::mouseMode(mouse_on ? twins::MouseMode::M2 : twins::MouseMode::Off);
                 twins::flushBuffer();
             }
