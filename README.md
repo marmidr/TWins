@@ -21,6 +21,7 @@ Implementation is based on examples:
 * http://0x80.pl/articles/terminals.html
 * https://www.jedsoft.org/slang/
 * https://www.systutorials.com/docs/linux/man/4-console_codes/#lbAF
+* https://rdrr.io/cran/fansi/man/sgr_to_html.html
 
 ## Primary goals
 

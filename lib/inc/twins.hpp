@@ -526,11 +526,6 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output);
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Draw single widget or entire window
- */
-void drawWidget(const Widget *pWindowWidgets, WID widgetId = WIDGET_ID_ALL);
-
-/**
  * @brief Draw selected widgets
  */
 void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t count);
@@ -544,6 +539,14 @@ inline void drawWidgets(const Widget *pWindowWidgets, const WID (&widgetIds)[N])
 inline void drawWidgets(const Widget *pWindowWidgets, const std::initializer_list<WID> &ids)
 {
     drawWidgets(pWindowWidgets, ids.begin(), ids.size());
+}
+
+/**
+ * @brief Draw single widget or entire window
+ */
+inline void drawWidget(const Widget *pWindowWidgets, WID widgetId = WIDGET_ID_ALL)
+{
+    drawWidgets(pWindowWidgets, &widgetId, 1);
 }
 
 /**

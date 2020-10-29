@@ -463,25 +463,25 @@ public:
         }
     }
 
-    // --- requests ---
-
-    void invalidate(twins::WID id, bool instantly = false) override
+private:
+    void invalidateImpl(const twins::WID *pId, uint16_t count, bool instantly) override
     {
-        if (id == twins::WIDGET_ID_NONE)
+        if (count == 1 && *pId == twins::WIDGET_ID_NONE)
         {
-            invalidatedWgts.clear();
+            invalidatedWgts.resize(0); // resize do not free memory if small chunk allocated
             return;
         }
 
         // state or focus changed - widget must be repainted
+
+        for (uint16_t i = 0; i < count; i++)
+            if (!invalidatedWgts.contains(pId[i]))
+                invalidatedWgts.append(pId[i]);
+
         if (instantly)
         {
-            WindowStateBase::invalidate(id, instantly);
-        }
-        else
-        {
-            if (!invalidatedWgts.contains(id))
-                invalidatedWgts.append(id);
+            WindowStateBase::invalidateImpl(invalidatedWgts.data(), invalidatedWgts.size(), true);
+            invalidatedWgts.resize(0);
         }
     }
 
@@ -709,7 +709,7 @@ int main()
             {
                 // keyboard code
                 twins::cursorSavePos();
-                twins::drawWidgets(wndMain.getWidgets(), {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+                wndMain.invalidate({ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
 
                 if (kc.mod_all != KEY_MOD_SPECIAL)
                 {
@@ -723,11 +723,10 @@ int main()
                 twins::cursorRestorePos();
             }
 
-
             if (twins::glob::wMngr.topWnd() == &wndMain)
             {
                 twins::drawWidgets(wndMain.getWidgets(), wndMain.invalidatedWgts.data(), wndMain.invalidatedWgts.size());
-                wndMain.invalidatedWgts.clear();
+                wndMain.invalidate(twins::WIDGET_ID_NONE); // clear
             }
         }
 

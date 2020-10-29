@@ -915,10 +915,13 @@ static void drawWidgetInternal(const Widget *pWgt)
 // ---- TWINS  P U B L I C  FUNCTIONS ------------------------------------------
 // -----------------------------------------------------------------------------
 
-void drawWidget(const Widget *pWindowWidgets, WID widgetId)
+void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t count)
 {
-    // bool glob_clear = !(g_ws.pWndArray || g_ws.pWndState);
+    if (count == 0)
+        return;
+
     assert(pWindowWidgets);
+    assert(pWidgetIds);
     assert(pWindowWidgets->type == Widget::Window);
     g_ws.pWndWidgets = pWindowWidgets;
     g_ws.pWndState = pWindowWidgets->window.getState();
@@ -927,62 +930,27 @@ void drawWidget(const Widget *pWindowWidgets, WID widgetId)
     cursorHide();
     flushBuffer();
 
-    if (widgetId == WIDGET_ID_ALL)
+    if (count == 1 && *pWidgetIds == WIDGET_ID_ALL)
     {
         drawWidgetInternal(pWindowWidgets);
     }
     else
     {
-        WidgetSearchStruct wss { searchedID : widgetId };
-
-        // search window for widget by it's Id
-        if (getWidgetWSS(wss) && wss.isVisible)
+        for (uint16_t i = 0; i < count; i++)
         {
-            g_ws.parentCoord = wss.parentCoord;
-            // set parent's background color
-            pushClBg(getWidgetBgColor(wss.pWidget));
-            drawWidgetInternal(wss.pWidget);
-            popClBg();
+            WidgetSearchStruct wss { searchedID : pWidgetIds[i] };
+
+            if (getWidgetWSS(wss) && wss.isVisible)
+            {
+                g_ws.parentCoord = wss.parentCoord;
+                // set parent's background color
+                pushClBg(getWidgetBgColor(wss.pWidget));
+                drawWidgetInternal(wss.pWidget);
+                popClBg();
+            }
         }
     }
 
-    // this function is often called from invalidate() - do not reset internal pointers!
-    // if (glob_clear) g_ws.pWndArray = nullptr, g_ws.pWndState = nullptr;
-    resetAttr();
-    resetClBg();
-    resetClFg();
-    setCursorAt(g_ws.pFocusedWgt);
-    cursorShow();
-    flushBuffer();
-}
-
-void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t count)
-{
-    // bool glob_clear = !(g_ws.pWndArray || g_ws.pWndState);
-    assert(pWindowWidgets);
-    assert(pWindowWidgets->type == Widget::Window);
-    g_ws.pWndWidgets = pWindowWidgets;
-    g_ws.pWndState = pWindowWidgets->window.getState();
-    assert(g_ws.pWndState);
-    g_ws.pFocusedWgt = getWidgetByWID(g_ws.pWndState->getFocusedID());
-    cursorHide();
-    flushBuffer();
-
-    for (unsigned i = 0; i < count; i++)
-    {
-        WidgetSearchStruct wss { searchedID : pWidgetIds[i] };
-
-        if (getWidgetWSS(wss) && wss.isVisible)
-        {
-            g_ws.parentCoord = wss.parentCoord;
-            // set parent's background color
-            pushClBg(getWidgetBgColor(wss.pWidget));
-            drawWidgetInternal(wss.pWidget);
-            popClBg();
-        }
-    }
-
-    // if (glob_clear) g_ws.pWndArray = nullptr, g_ws.pWndState = nullptr;
     resetAttr();
     resetClBg();
     resetClFg();

@@ -62,8 +62,14 @@ public:
     virtual void getComboBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) {}
     virtual int  getRadioIndex(const twins::Widget* pWgt) { return -1; }
     virtual void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, int16_t &topLine) {}
+
+public:
     // requests
-    virtual void invalidate(twins::WID id, bool instantly = false) {}
+    void invalidate(twins::WID id, bool instantly = false)                                { invalidateImpl(&id, 1, instantly); }
+    void invalidate(const std::initializer_list<twins::WID> &ids, bool instantly = false) { invalidateImpl(ids.begin(), ids.size(), instantly); }
+
+protected:
+    virtual void invalidateImpl(const twins::WID *pId, uint16_t count, bool instantly = false) {}
 };
 
 // -----------------------------------------------------------------------------
