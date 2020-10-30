@@ -174,6 +174,11 @@ public:
                 "ync"
             );
         }
+
+        if (pWgt->id == ID_BTN_YES)
+        {
+            twins::wgt::selectPage(getWidgets(), ID_PGCONTROL, ID_PAGE_5);
+        }
     }
 
     void onEditChange(const twins::Widget* pWgt, twins::String &&str) override
@@ -209,6 +214,7 @@ public:
 
     void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) override
     {
+        TWINS_LOG_I("NewPageIdx=%d", newPageIdx);
         if (pWgt->id == ID_PGCONTROL) mPgcPage = newPageIdx;
     }
 

@@ -560,11 +560,6 @@ const char * toString(Widget::Type type);
 Coord getScreenCoord(const Widget *pWgt);
 
 /**
- * @brief Return page id from \p pPageControl and \p pageIdx or \b WIDGET_ID_NONE
- */
-WID getPageID(const Widget *pPageControl, int8_t pageIdx);
-
-/**
  * @brief Return widget from its ID or \b nullptr
  */
 const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId);
@@ -594,6 +589,29 @@ bool isWidgetEnabled(const Widget *pWindowWidgets, const Widget *pWgt);
  * @brief Reset internal state after top window was changed
  */
 void resetInternalState(void);
+
+// -----------------------------------------------------------------------------
+
+/** Functions related to particular widget types */
+namespace wgt
+{
+
+/**
+ * @brief Return page id from \p pPageControl and \p pageIdx or \b WIDGET_ID_NONE
+ */
+WID getPageID(const Widget *pPageControl, int8_t pageIdx);
+
+/**
+ * @brief Return page index from \p pPageControl and \p pageID or -1 if not found
+ */
+int8_t getPageIdx(const Widget *pPageControl, WID pageID);
+
+/**
+ * @brief Find \p pageControlID widget and emit onPageControlPageChange() for given \p pageID
+ */
+void selectPage(const Widget *pWindowWidgets, WID pageControlID, WID pageID);
+
+}
 
 // -----------------------------------------------------------------------------
 

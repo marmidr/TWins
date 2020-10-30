@@ -1495,6 +1495,46 @@ WID getPageID(const Widget *pPageControl, int8_t pageIdx)
     return p_page->id;
 }
 
+namespace wgt
+{
+
+int8_t getPageIdx(const Widget *pPageControl, WID pageID)
+{
+    assert(pPageControl);
+    assert(pPageControl->type == Widget::PageCtrl);
+
+    const Widget *p_page = pPageControl;
+    p_page += pPageControl->link.childsIdx - pPageControl->link.ownIdx;
+    assert(p_page->type == Widget::Page);
+
+    for (uint8_t i = 0; i < pPageControl->link.childsCnt; i++)
+        if (p_page[i].id == pageID)
+            return i;
+
+    return -1;
+}
+
+void selectPage(const Widget *pWindowWidgets, WID pageControlID, WID pageID)
+{
+    assert(pWindowWidgets);
+    assert(pWindowWidgets->type == Widget::Window);
+    const auto *p_pgctrl = getWidget(pWindowWidgets, pageControlID);
+    int8_t pg_idx = getPageIdx(p_pgctrl, pageID);
+
+    if (pg_idx >= 0)
+    {
+        auto *p_wstate = pWindowWidgets->window.getState();
+        p_wstate->onPageControlPageChange(p_pgctrl, pg_idx);
+        p_wstate->invalidate(pageControlID);
+    }
+    else
+    {
+        TWINS_LOG_W("Widget Id=%d is not PageControl Id=%d page", pageID, pageControlID);
+    }
+}
+
+} // wgt
+
 const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId)
 {
     assert(pWindowWidgets);

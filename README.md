@@ -67,6 +67,8 @@ Implementation is based on examples:
 - [x] keyboard handler returns if key was handled by active widget
 - [x] support for mouse click
 - [ ] password input
+- [ ] double-width character support (emoticons 😁)
+- [ ] multiline solid button
 
 
 ## Prerequisites
