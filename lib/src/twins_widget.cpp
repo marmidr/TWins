@@ -131,8 +131,23 @@ const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
             r.size.width = 4 + utf8len(p_wgt->radio.text);
             break;
         case Widget::Button:
-            r.size.height = 1;
-            r.size.width = 4 + utf8len(p_wgt->button.text);
+            switch (p_wgt->button.style)
+            {
+            case ButtonStyle::Simple:
+                r.size.height = 1;
+                r.size.width = 4 + utf8len(p_wgt->button.text);
+                break;
+            case ButtonStyle::Solid:
+                r.size.height = 1;
+                r.size.width = 2 + utf8len(p_wgt->button.text);
+                break;
+            case ButtonStyle::Solid1p5:
+                r.size.height = 3;
+                r.size.width = 2 + utf8len(p_wgt->button.text);
+                break;
+            default:
+                break;
+            }
             break;
         case Widget::PageCtrl:
             r.size.width = p_wgt->pagectrl.tabWidth;
@@ -200,7 +215,21 @@ void setCursorAt(const Widget *pWgt)
         coord.col += 1;
         break;
     case Widget::Button:
-        coord.col += pWgt->button.style == ButtonStyle::Simple ? 2 : 1;
+        switch (pWgt->button.style)
+        {
+        case ButtonStyle::Simple:
+            coord.col += 2;
+            break;
+        case ButtonStyle::Solid:
+            coord.col += 1;
+            break;
+        case ButtonStyle::Solid1p5:
+            coord.col += 1;
+            coord.row += 1;
+            break;
+        default:
+            break;
+        }
         break;
     case Widget::PageCtrl:
         coord.row += 1;

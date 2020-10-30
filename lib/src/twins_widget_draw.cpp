@@ -529,7 +529,7 @@ static void drawButton(const Widget *pWgt)
         pushClFg(clfg);
         writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     }
-    else
+    else if (pWgt->button.style == ButtonStyle::Solid)
     {
         {
             FontMemento _m;
@@ -551,7 +551,7 @@ static void drawButton(const Widget *pWgt)
         {
             // erase trailing shadow
             pushClBg(getWidgetBgColor(getParent(pWgt)));
-            writeStr(" ");
+            writeChar(' ');
             // erase shadow below
             moveTo(g_ws.parentCoord.col + pWgt->coord.col + 1, g_ws.parentCoord.row + pWgt->coord.row + 1);
             writeStr(" ", shadow_len);
@@ -570,6 +570,60 @@ static void drawButton(const Widget *pWgt)
             moveTo(g_ws.parentCoord.col + pWgt->coord.col + 1, g_ws.parentCoord.row + pWgt->coord.row + 1);
             writeStr("▀", shadow_len);
         }
+    }
+    else if (pWgt->button.style == ButtonStyle::Solid1p5)
+    {
+        g_ws.str.clear();
+        g_ws.str << " " << pWgt->button.text << " ";
+        auto clbg = getWidgetBgColor(pWgt);
+        auto clparbg = getWidgetBgColor(getParent(pWgt));
+        const auto bnt_len = 2 + g_ws.str.u8len(pWgt->button.text, nullptr, true);
+        const char* scl_shadow = ESC_BG_COLOR(233);
+        const char* scl_bg2fg = transcodeClBg2Fg(encodeCl(clbg));
+        FontMemento _m;
+
+        // upper half line
+        moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
+        pushClBg(clparbg);
+        if (pressed)
+            pushClFg(clfg);
+        else
+            writeStr(scl_bg2fg);
+        writeStr("▄", bnt_len);
+
+        // middle line - text
+        moveBy(-bnt_len, 1);
+        pushClBg(clbg);
+        pushClFg(clfg);
+        if (pressed) pushAttr(FontAttrib::Inverse);
+        if (focused) pushAttr(FontAttrib::Bold);
+        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+        if (focused) popAttr();
+        if (pressed) popAttr();
+
+        // middle-shadow
+        if (pressed)
+            pushClBg(clparbg);
+        else
+            writeStr(scl_shadow);
+        writeChar(' ');
+
+        // lower half-line
+        moveBy(-bnt_len-1, 1);
+        if (pressed)
+        {
+            pushClFg(clfg);
+            pushClBg(clparbg);
+        }
+        else
+        {
+            writeStr(scl_bg2fg);
+            writeStr(scl_shadow);
+        }
+        writeStr("▀", bnt_len);
+
+        // trailing shadow
+        writeChar(' ');
     }
 }
 

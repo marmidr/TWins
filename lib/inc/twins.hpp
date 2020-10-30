@@ -125,6 +125,9 @@ ColorBG intensifyClTheme(ColorBG cl);
 template<typename CL>
 inline void intensifyClIf(bool cond, CL &cl) { if (cond) cl = intensifyCl(cl); }
 
+/** @brief Transcode Background color sequence to Foreground color sequence */
+const char* transcodeClBg2Fg(const char *bgColorCode);
+
 /**
  * @brief Font attributes; some of them may be combined
  */
@@ -170,6 +173,8 @@ enum class ButtonStyle : uint8_t
 {
     Simple,
     Solid,
+    Solid1p5,
+    // Solid3,
 };
 
 /**

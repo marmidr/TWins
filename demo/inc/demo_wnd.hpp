@@ -66,6 +66,7 @@ enum WndMainIDs
                 ID_LBX_UNDEROPTIONS,
                 ID_BTN_SAYYES,
                 ID_BTN_SAYNO,
+                ID_BTN_1P5,
         ID_LABEL_FTR,
 };
 
