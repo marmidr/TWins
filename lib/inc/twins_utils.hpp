@@ -31,11 +31,11 @@ twins::Vector<twins::StringRange> splitWords(const char *str, const char *delim 
 
 /** @brief Insert \p newLine and ellipsis to ensure the line length is always < \p maxLineLen
  *  @param str input string
- *  @param maxLineLen max number of printable characters that fits into line of text
+ *  @param areaWidth max number of printable characters that fits into line of text
  *  @param delim set of characters where word wrap can occur
  *  @param separator sequence to insert to break too long line
  */
-twins::String wordWrap(const char *str, uint16_t maxLineLen, const char *delim = " \t\n", const char *separator = "\n");
+twins::String wordWrap(const char *str, uint16_t areaWidth, const char *delim = " \t\n", const char *separator = "\n");
 
 /** @brief Split lines using newline character
  *  @param str input string
@@ -43,10 +43,10 @@ twins::String wordWrap(const char *str, uint16_t maxLineLen, const char *delim =
  */
 twins::Vector<twins::StringRange> splitLines(const char *str);
 
-/** @brief Prepend single line \p str with spaces to make it centered on \p rowLength area.
+/** @brief Prepend single line \p str with spaces to make it centered on \p areaWidth area.
  *         ESC sequences are ignored
  */
-twins::String centerText(twins::String str, uint16_t rowLength);
+twins::String centerText(twins::String str, uint16_t areaWidth);
 
 // -----------------------------------------------------------------------------
 

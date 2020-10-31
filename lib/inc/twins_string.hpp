@@ -39,8 +39,8 @@ public:
     String& erase(int16_t pos, int16_t len = 1);
     /** @brief Insert string \p s at \p pos */
     String& insert(int16_t pos, const char *s, int16_t repeat = 1);
-    /** @brief If shorter than len - add spaces; if longer - calls trim */
-    void setLength(int16_t len, bool addEllipsis = false, bool ignoreESC = false);
+    /** @brief If shorter than \p newWidth - add spaces; if longer - calls trim */
+    void setWidth(int16_t newWidth, bool addEllipsis = false);
     /** @brief Set size to zero; release buffer memory only if capacity >= \p threshordToFree */
     String& clear(uint16_t threshordToFree = 500);
     /** @brief Return string size, in bytes */
@@ -71,7 +71,7 @@ public:
     /** @brief Text width on terminal */
     static inline unsigned width(const char *str, const char *strEnd = nullptr) { return u8len(str, strEnd, true, true); }
     /** @brief Return pointer to \p str moved by \p toSkip UTF-8 characters, omitting ESC sequences */
-    static const char* u8skipIgnoreEsc(const char *str, unsigned toSkip);
+    static const char* u8skip(const char *str, unsigned toSkip, bool ignoreESC = true);
 
 private:
     void freeBuff();

@@ -207,8 +207,8 @@ TEST(UTILS, centerText)
     }
 
     {
-        auto s = twins::util::centerText("aBc", 6);
-        EXPECT_STREQ(" aBc", s.cstr());
+        auto s = twins::util::centerText("🔷aBc", 7);
+        EXPECT_STREQ(" 🔷aBc", s.cstr());
     }
 
     {

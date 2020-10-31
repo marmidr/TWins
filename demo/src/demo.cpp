@@ -120,13 +120,13 @@ public:
             wid = ID_WND;
 
         mTxtBox1Text = ESC_BOLD
-                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam arcu magna, placerat sit amet libero at, aliquam fermentum augue.\n"
+                    "🔶 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam arcu magna, placerat sit amet libero at, aliquam fermentum augue.\n"
                     ESC_NORMAL
                     ESC_FG_Gold
-                    "Morbi egestas consectetur malesuada. Mauris vehicula, libero eget tempus ullamcorper, nisi lorem efficitur velit, vel bibendum augue eros vel lorem. Duis vestibulum magna a ornare bibendum. Curabitur eleifend dictum odio, eu ultricies nunc eleifend et.\n"
+                    " Morbi egestas consectetur malesuada. Mauris vehicula, libero eget tempus ullamcorper, nisi lorem efficitur velit, vel bibendum augue eros vel lorem. Duis vestibulum magna a ornare bibendum. Curabitur eleifend dictum odio, eu ultricies nunc eleifend et.\n"
                     "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.\n"
                     ESC_FG_GreenYellow
-                    "Interdum et malesuada fames ac ante ipsum primis in faucibus. Aenean malesuada lacus leo, a eleifend lorem suscipit sed.\n" "▄";
+                    "🔷 Interdum et malesuada fames ac ante ipsum primis in faucibus. Aenean malesuada lacus leo, a eleifend lorem suscipit sed.\n" "▄";
         mTxtBox2Text = "Lorem ipsum ▄";
         mEdt1Text = "00 11 22 33 44 55 66 77 88 99 aa bb cc dd";
         mEdt2Text = "73+37=100";
@@ -368,9 +368,8 @@ public:
                 ESC_BOLD "Name:\n" ESC_NORMAL
                 "  20 Hits on 2\n"
                 ESC_BOLD "Description:\n" ESC_NORMAL
-                "  Latest, most lo♡ed radio hits. ❤"
+                "  Latest, most lo💖ed radio hits. "
                 ;
-                // note: the ❤ is double-width glyph (U+1F90D)
             out = twins::util::wordWrap(s, pWgt->size.width, " \n", "\n  ");
         }
     }
@@ -416,12 +415,14 @@ public:
 
     void getListBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) override
     {
+        const char *plants[4] = {"🌷", "🌱", "🌲", "🌵"};
+
         if (pWgt->id == ID_LISTBOX)
         {
             if (itemIdx == 3)
                 out.appendFmt(ESC_BOLD "Item" ESC_NORMAL " 0034567890123456789*");
             else
-                out.appendFmt(ESC_FG_BLACK "Item" ESC_FG_BLUE " %03d", itemIdx);
+                out.appendFmt(ESC_FG_BLACK "Item" ESC_FG_BLUE " %03d %s", itemIdx, plants[itemIdx & 0x03]);
         }
     }
 

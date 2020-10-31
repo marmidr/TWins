@@ -124,26 +124,26 @@ const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
             break;
         case Widget::CheckBox:
             r.size.height = 1;
-            r.size.width = 4 + utf8len(p_wgt->checkbox.text);
+            r.size.width = 4 + String::width(p_wgt->checkbox.text);
             break;
         case Widget::Radio:
             r.size.height = 1;
-            r.size.width = 4 + utf8len(p_wgt->radio.text);
+            r.size.width = 4 + String::width(p_wgt->radio.text);
             break;
         case Widget::Button:
             switch (p_wgt->button.style)
             {
             case ButtonStyle::Simple:
                 r.size.height = 1;
-                r.size.width = 4 + utf8len(p_wgt->button.text);
+                r.size.width = 4 + String::width(p_wgt->button.text);
                 break;
             case ButtonStyle::Solid:
                 r.size.height = 1;
-                r.size.width = 2 + utf8len(p_wgt->button.text);
+                r.size.width = 2 + String::width(p_wgt->button.text);
                 break;
             case ButtonStyle::Solid1p5:
                 r.size.height = 3;
-                r.size.width = 2 + utf8len(p_wgt->button.text);
+                r.size.width = 2 + String::width(p_wgt->button.text);
                 break;
             default:
                 break;

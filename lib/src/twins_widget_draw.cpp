@@ -299,8 +299,8 @@ static void drawWindow(const Widget *pWgt)
 
     if (wnd_title.size())
     {
-        auto capt_len = wnd_title.u8len(true);
-        moveTo(wnd_coord.col + (pWgt->size.width - capt_len - 4)/2, wnd_coord.row);
+        auto title_width = wnd_title.width();
+        moveTo(wnd_coord.col + (pWgt->size.width - title_width - 4)/2, wnd_coord.row);
         pushAttr(FontAttrib::Bold);
         writeStrFmt("╡ %s ╞", wnd_title.cstr());
         popAttr();
@@ -331,8 +331,8 @@ static void drawPanel(const Widget *pWgt)
     // title
     if (pWgt->panel.title)
     {
-        auto capt_len = utf8len(pWgt->panel.title);
-        moveTo(my_coord.col + (pWgt->size.width - capt_len - 2)/2, my_coord.row);
+        auto title_width = String::width(pWgt->panel.title);
+        moveTo(my_coord.col + (pWgt->size.width - title_width - 2)/2, my_coord.row);
         pushAttr(FontAttrib::Bold);
         writeStrFmt(" %s ", pWgt->panel.title);
         popAttr();
@@ -390,10 +390,10 @@ static void drawLabel(const Widget *pWgt)
         }
 
         if (line_width)
-            s_line.setLength(line_width, true, true);
+            s_line.setWidth(line_width, true);
 
         writeStrLen(s_line.cstr(), s_line.size());
-        moveBy(-s_line.u8len(true), 1);
+        moveBy(-s_line.width(), 1);
         flushBuffer();
 
         if (!p_eol && !pWgt->size.height)
@@ -425,24 +425,24 @@ static void drawEdit(const Widget *pWgt)
         g_ws.pWndState->getEditText(pWgt, g_ws.str);
     }
 
-    const int txt_len = g_ws.str.u8len();
+    const int txt_width = g_ws.str.width();
 
     if (display_pos > 0)
     {
-        auto *str_beg = String::u8skipIgnoreEsc(g_ws.str.cstr(), display_pos + 1);
+        auto *str_beg = String::u8skip(g_ws.str.cstr(), display_pos + 1);
         String s("◁");
         s << str_beg;
         g_ws.str = std::move(s);
     }
 
-    if (display_pos + max_w <= txt_len)
+    if (display_pos + max_w <= txt_width)
     {
-        g_ws.str.setLength(pWgt->size.width-3-1);
+        g_ws.str.setWidth(pWgt->size.width-3-1);
         g_ws.str.append("▷");
     }
     else
     {
-        g_ws.str.setLength(pWgt->size.width-3);
+        g_ws.str.setWidth(pWgt->size.width-3);
     }
     g_ws.str.append("[^]");
 
@@ -545,7 +545,7 @@ static void drawButton(const Widget *pWgt)
             writeStrLen(g_ws.str.cstr(), g_ws.str.size());
         }
 
-        auto shadow_len = 2 + String::u8len(pWgt->button.text, nullptr, true);
+        auto shadow_len = 2 + String::width(pWgt->button.text);
 
         if (pressed)
         {
@@ -577,7 +577,7 @@ static void drawButton(const Widget *pWgt)
         g_ws.str << " " << pWgt->button.text << " ";
         auto clbg = getWidgetBgColor(pWgt);
         auto clparbg = getWidgetBgColor(getParent(pWgt));
-        const auto bnt_len = 2 + g_ws.str.u8len(pWgt->button.text, nullptr, true);
+        const auto bnt_len = 2 + String::width(pWgt->button.text);
         const char* scl_shadow = ESC_BG_COLOR(233);
         const char* scl_bg2fg = transcodeClBg2Fg(encodeCl(clbg));
         FontMemento _m;
@@ -643,7 +643,7 @@ static void drawPageControl(const Widget *pWgt)
     g_ws.str.clear();
     g_ws.str.append(' ', (pWgt->pagectrl.tabWidth-8) / 2);
     g_ws.str.append("≡ MENU ≡");
-    g_ws.str.setLength(pWgt->pagectrl.tabWidth);
+    g_ws.str.setWidth(pWgt->pagectrl.tabWidth);
     moveTo(my_coord.col, my_coord.row);
     pushAttr(FontAttrib::Inverse);
     writeStrLen(g_ws.str.cstr(), g_ws.str.size());
@@ -665,7 +665,7 @@ static void drawPageControl(const Widget *pWgt)
         // draw page title
         g_ws.str.clear();
         g_ws.str.appendFmt("%s%s", i == pg_idx ? "►" : " ", p_page->page.title);
-        g_ws.str.setLength(pWgt->pagectrl.tabWidth, true, true);
+        g_ws.str.setWidth(pWgt->pagectrl.tabWidth, true);
 
         moveTo(my_coord.col, my_coord.row + i + 1);
 
@@ -769,12 +769,12 @@ static void drawList(DrawListParams &p)
         {
             p.getItem(p.top_item + i, g_ws.str);
             g_ws.str.insert(0, is_current_item ? "►" : " ");
-            g_ws.str.setLength(p.wgt_width - 1 - p.frame_size, true, true);
+            g_ws.str.setWidth(p.wgt_width - 1 - p.frame_size, true);
         }
         else
         {
             // empty string - to erase old content
-            g_ws.str.setLength(p.wgt_width - 1 - p.frame_size);
+            g_ws.str.setWidth(p.wgt_width - 1 - p.frame_size);
         }
 
         if (p.focused && is_sel_item) pushAttr(FontAttrib::Inverse);
@@ -821,7 +821,7 @@ static void drawComboBox(const Widget *pWgt)
         g_ws.str.clear();
         g_ws.pWndState->getComboBoxItem(pWgt, item_idx, g_ws.str);
         g_ws.str.insert(0, " ");
-        g_ws.str.setLength(pWgt->size.width - 4, true, true);
+        g_ws.str.setWidth(pWgt->size.width - 4, true);
         g_ws.str << " [▼]";
 
         moveTo(my_coord.col, my_coord.row);
@@ -921,7 +921,7 @@ static void drawTextBox(const Widget *pWgt)
             const auto &sr = (*p_lines)[top_line + i];
             g_ws.str.appendLen(sr.data, sr.size);
         }
-        g_ws.str.setLength(pWgt->size.width - 2, true, true);
+        g_ws.str.setWidth(pWgt->size.width - 2, true);
         moveTo(my_coord.col + 1, my_coord.row + i + 1);
         writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     }

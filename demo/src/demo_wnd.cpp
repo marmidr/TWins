@@ -136,7 +136,7 @@ static constexpr twins::Widget page1Childs[] =
         coord   : { 1, 1 },
         size    : { 21, 5 },
         { panel : {
-            title       : "VER",
+            title       : "VER 🍀",
             fgColor     : twins::ColorFG::White,
             bgColor     : twins::ColorBG::PanelVer,
         }},
@@ -629,7 +629,7 @@ static constexpr twins::Widget page6Childs[] =
         coord   : { 38, 7 },
         size    : {},
         { button : {
-            text    : "1.5 Height",
+            text    : "1.5 🍋 Height",
             fgColor : twins::ColorFG::White,
             bgColor : twins::ColorBG::ButtonGreen,
             style   : twins::ButtonStyle::Solid1p5

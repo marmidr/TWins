@@ -131,7 +131,7 @@ String& String::trim(int16_t trimPos, bool addEllipsis, bool ignoreESC)
 
     if (ignoreESC)
     {
-        p = const_cast<char*>(u8skipIgnoreEsc(p, trimPos));
+        p = const_cast<char*>(u8skip(p, trimPos));
     }
     else
     {
@@ -230,17 +230,17 @@ String& String::insert(int16_t pos, const char *s, int16_t repeat)
     return *this;
 }
 
-void String::setLength(int16_t len, bool addEllipsis, bool ignoreESC)
+void String::setWidth(int16_t newWidth, bool addEllipsis)
 {
-    if (len < 0)
+    if (newWidth < 0)
         return;
 
-    int u8length = u8len(ignoreESC);
+    int w = width();
 
-    if (u8length <= len)
-        append(' ', len - u8length);
+    if (w <= newWidth)
+        append(' ', newWidth - w);
     else
-        trim(len, addEllipsis, ignoreESC);
+        trim(newWidth, addEllipsis, true);
 }
 
 String& String::clear(uint16_t threshordToFree)
@@ -456,7 +456,7 @@ unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC, bool
     return len;
 }
 
-const char* String::u8skipIgnoreEsc(const char *str, unsigned toSkip)
+const char* String::u8skip(const char *str, unsigned toSkip, bool ignoreESC)
 {
     if (!str || !*str)
         return "";
@@ -466,13 +466,18 @@ const char* String::u8skipIgnoreEsc(const char *str, unsigned toSkip)
 
     while (str < str_end && skipped < toSkip)
     {
-        unsigned esc_len = escLen(str);
-        bool seq_found = esc_len > 0;
-
-        for (; esc_len && (str < str_end); )
+        bool seq_found = false;
+        
+        if (ignoreESC)
         {
-            str += esc_len;
-            esc_len = escLen(str);
+            unsigned esc_len = escLen(str);
+            seq_found = esc_len > 0;
+
+            for (; esc_len && (str < str_end); )
+            {
+                str += esc_len;
+                esc_len = escLen(str);
+            }
         }
 
         if (str < str_end)
