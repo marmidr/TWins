@@ -136,7 +136,7 @@ static constexpr twins::Widget page1Childs[] =
         coord   : { 1, 1 },
         size    : { 21, 5 },
         { panel : {
-            title       : "VER 🍀",
+            title       : "VER 🍁",
             fgColor     : twins::ColorFG::White,
             bgColor     : twins::ColorBG::PanelVer,
         }},
@@ -660,12 +660,25 @@ static constexpr twins::Widget wndMain =
     link    : { (const twins::Widget[])
     {
         {
+            type    : twins::Widget::Button,
+            id      : ID_BTN_TOASTER,
+            coord   : { 1, 1 },
+            size    : { 14, 1 },
+            { button : {
+                text    : {},
+                fgColor : twins::ColorFG::Yellow,
+                bgColor : {},
+                style   : twins::ButtonStyle::Simple
+            }}
+        },
+        {
             type    : twins::Widget::PageCtrl,
             id      : ID_PGCONTROL,
             coord   : { 1,  1 },
             size    : { 75, 12 },
             { pagectrl : {
                 tabWidth    : 14,
+                vertOffs    : 2,
             }},
             link    : { (const twins::Widget[])
             {
@@ -708,7 +721,7 @@ static constexpr twins::Widget wndMain =
                     coord   : {},
                     size    : {},
                     { page : {
-                        title       : "Inactiv",
+                        title       : "Inactiv 🍀",
                         fgColor     : twins::ColorFG::White,
                     }},
                     link    : { page4Childs }

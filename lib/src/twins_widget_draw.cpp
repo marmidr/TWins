@@ -510,16 +510,22 @@ static void drawButton(const Widget *pWgt)
     const bool focused = g_ws.pWndState->isFocused(pWgt);
     const bool pressed = pWgt == g_ws.pMouseDownWgt;
     auto clfg = getWidgetFgColor(pWgt);
+    String txt;
 
     intensifyClIf(focused, clfg);
+
+    if (pWgt->button.text)
+        txt = pWgt->button.text;
+    else
+        g_ws.pWndState->getButtonText(pWgt, txt);
 
     if (pWgt->button.style == ButtonStyle::Simple)
     {
         FontMemento _m;
-        g_ws.str.clear();
-        g_ws.str.append(focused ? "[<" : "[ ");
-        g_ws.str.append(pWgt->button.text);
-        g_ws.str.append(focused ? ">]" : " ]");
+        g_ws.str.clear()
+                .append("[ ")
+                .append(txt)
+                .append(" ]");
 
         moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
         if (focused) pushAttr(FontAttrib::Bold);
@@ -534,7 +540,7 @@ static void drawButton(const Widget *pWgt)
         {
             FontMemento _m;
             g_ws.str.clear();
-            g_ws.str << " " << pWgt->button.text << " ";
+            g_ws.str << " " << txt << " ";
 
             auto clbg = getWidgetBgColor(pWgt);
             moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
@@ -545,7 +551,7 @@ static void drawButton(const Widget *pWgt)
             writeStrLen(g_ws.str.cstr(), g_ws.str.size());
         }
 
-        auto shadow_len = 2 + String::width(pWgt->button.text);
+        auto shadow_len = 2 + txt.width();
 
         if (pressed)
         {
@@ -560,12 +566,10 @@ static void drawButton(const Widget *pWgt)
         else
         {
             FontMemento _m;
-
             // trailing shadow
             pushClBg(getWidgetBgColor(getParent(pWgt)));
             writeStr(ESC_FG_COLOR(233));
             writeStr("▄");
-
             // shadow below
             moveTo(g_ws.parentCoord.col + pWgt->coord.col + 1, g_ws.parentCoord.row + pWgt->coord.row + 1);
             writeStr("▀", shadow_len);
@@ -574,7 +578,7 @@ static void drawButton(const Widget *pWgt)
     else if (pWgt->button.style == ButtonStyle::Solid1p5)
     {
         g_ws.str.clear();
-        g_ws.str << " " << pWgt->button.text << " ";
+        g_ws.str << " " << txt << " ";
         auto clbg = getWidgetBgColor(pWgt);
         auto clparbg = getWidgetBgColor(getParent(pWgt));
         const auto bnt_len = 2 + String::width(pWgt->button.text);
@@ -614,13 +618,17 @@ static void drawButton(const Widget *pWgt)
         {
             pushClFg(clfg);
             pushClBg(clparbg);
+            writeStr("▀");
+            pushClBg(clparbg);
         }
         else
         {
             writeStr(scl_bg2fg);
+            pushClBg(clparbg);
+            writeStr("▀");
             writeStr(scl_shadow);
         }
-        writeStr("▀", bnt_len);
+        writeStr("▀", bnt_len-1);
 
         // trailing shadow
         writeChar(' ');
@@ -630,7 +638,7 @@ static void drawButton(const Widget *pWgt)
 static void drawPageControl(const Widget *pWgt)
 {
     const auto my_coord = g_ws.parentCoord + pWgt->coord;
-
+    FontMemento _m;
     pushClBg(getWidgetBgColor(pWgt));
     pushClFg(getWidgetFgColor(pWgt));
     drawArea(my_coord + Coord{pWgt->pagectrl.tabWidth, 0}, pWgt->size - Size{pWgt->pagectrl.tabWidth, 0},
@@ -644,7 +652,7 @@ static void drawPageControl(const Widget *pWgt)
     g_ws.str.append(' ', (pWgt->pagectrl.tabWidth-8) / 2);
     g_ws.str.append("≡ MENU ≡");
     g_ws.str.setWidth(pWgt->pagectrl.tabWidth);
-    moveTo(my_coord.col, my_coord.row);
+    moveTo(my_coord.col, my_coord.row + pWgt->pagectrl.vertOffs);
     pushAttr(FontAttrib::Inverse);
     writeStrLen(g_ws.str.cstr(), g_ws.str.size());
     popAttr();
@@ -652,12 +660,12 @@ static void drawPageControl(const Widget *pWgt)
     // draw tabs and pages
     const int pg_idx = g_ws.pWndState->getPageCtrlPageIndex(pWgt);
     // const bool focused = g_ws.pWndState->isFocused(pWgt);
-    moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
+    // moveTo(g_ws.parentCoord.col + pWgt->coord.col, g_ws.parentCoord.row + pWgt->coord.row);
     flushBuffer();
 
     for (int i = 0; i < pWgt->link.childsCnt; i++)
     {
-        if (i == pWgt->size.height-1)
+        if (i == pWgt->size.height - 1 - pWgt->pagectrl.vertOffs)
             break;
 
         const auto *p_page = &g_ws.pWndWidgets[pWgt->link.childsIdx + i];
@@ -667,7 +675,7 @@ static void drawPageControl(const Widget *pWgt)
         g_ws.str.appendFmt("%s%s", i == pg_idx ? "►" : " ", p_page->page.title);
         g_ws.str.setWidth(pWgt->pagectrl.tabWidth, true);
 
-        moveTo(my_coord.col, my_coord.row + i + 1);
+        moveTo(my_coord.col, my_coord.row + pWgt->pagectrl.vertOffs + i + 1);
 
         // for Page we do not want inherit after it's title color
         auto clfg = p_page->page.fgColor;
@@ -689,8 +697,6 @@ static void drawPageControl(const Widget *pWgt)
         }
     }
 
-    popClBg();
-    popClFg();
     g_ws.parentCoord = coord_bkp;
 }
 

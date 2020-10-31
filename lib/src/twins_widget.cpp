@@ -131,24 +131,30 @@ const Widget* getWidgetAt(uint8_t col, uint8_t row, Rect &wgtRect)
             r.size.width = 4 + String::width(p_wgt->radio.text);
             break;
         case Widget::Button:
+        {
+            uint16_t txt_w = 0;
+            if (p_wgt->button.text)
+                txt_w = String::width(p_wgt->button.text);
+
             switch (p_wgt->button.style)
             {
             case ButtonStyle::Simple:
                 r.size.height = 1;
-                r.size.width = 4 + String::width(p_wgt->button.text);
+                r.size.width = txt_w ? 4 + txt_w : p_wgt->size.width;
                 break;
             case ButtonStyle::Solid:
                 r.size.height = 1;
-                r.size.width = 2 + String::width(p_wgt->button.text);
+                r.size.width = txt_w ? 2 + txt_w : p_wgt->size.width;
                 break;
             case ButtonStyle::Solid1p5:
                 r.size.height = 3;
-                r.size.width = 2 + String::width(p_wgt->button.text);
+                r.size.width = txt_w ? 2 + txt_w : p_wgt->size.width;
                 break;
             default:
                 break;
             }
             break;
+        }
         case Widget::PageCtrl:
             r.size.width = p_wgt->pagectrl.tabWidth;
             break;
@@ -232,7 +238,7 @@ void setCursorAt(const Widget *pWgt)
         }
         break;
     case Widget::PageCtrl:
-        coord.row += 1;
+        coord.row += 1 + pWgt->pagectrl.vertOffs;
         coord.row += g_ws.pWndState->getPageCtrlPageIndex(pWgt);
         break;
     case Widget::ListBox:
@@ -1133,7 +1139,7 @@ static void processMouse_PageCtrl(const Widget *pWgt, const Rect &wgtRect, const
     {
         changeFocusTo(pWgt->id);
         int idx = g_ws.pWndState->getPageCtrlPageIndex(pWgt);
-        int new_idx = kc.mouse.row - wgtRect.coord.row - 1;
+        int new_idx = kc.mouse.row - wgtRect.coord.row - 1 - pWgt->pagectrl.vertOffs;
 
         if (new_idx != idx && new_idx >= 0 && new_idx < pWgt->link.childsCnt)
         {
@@ -1511,6 +1517,9 @@ Coord getScreenCoord(const Widget *pWgt)
     return coord;
 }
 
+namespace wgt
+{
+
 WID getPageID(const Widget *pPageControl, int8_t pageIdx)
 {
     assert(pPageControl);
@@ -1523,9 +1532,6 @@ WID getPageID(const Widget *pPageControl, int8_t pageIdx)
     p_page += (pPageControl->link.childsIdx - pPageControl->link.ownIdx) + pageIdx;
     return p_page->id;
 }
-
-namespace wgt
-{
 
 int8_t getPageIdx(const Widget *pPageControl, WID pageID)
 {

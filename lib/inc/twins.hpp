@@ -282,6 +282,7 @@ struct Widget
         struct
         {
             uint8_t     tabWidth;
+            uint8_t     vertOffs;
         } pagectrl;
 
         struct
@@ -616,7 +617,7 @@ int8_t getPageIdx(const Widget *pPageControl, WID pageID);
  */
 void selectPage(const Widget *pWindowWidgets, WID pageControlID, WID pageID);
 
-}
+} // wgt
 
 // -----------------------------------------------------------------------------
 

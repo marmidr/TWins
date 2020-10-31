@@ -119,6 +119,8 @@ public:
             // wid = twins::WIDGET_ID_NONE;
             wid = ID_WND;
 
+        mWgtProp[ID_BTN_1P5].enabled = true;
+
         mTxtBox1Text = ESC_BOLD
                     "🔶 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam arcu magna, placerat sit amet libero at, aliquam fermentum augue.\n"
                     ESC_NORMAL
@@ -155,9 +157,11 @@ public:
 
         if (pWgt->id == ID_BTN_SAYNO)
         {
-            auto &prp = mWgtProp[ID_BTN_SAYYES];
-            prp.enabled = !prp.enabled;
+            mWgtProp[ID_BTN_SAYYES].enabled = !mWgtProp[ID_BTN_SAYYES].enabled;
             invalidate(ID_BTN_SAYYES);
+
+            mWgtProp[ID_BTN_1P5].enabled = !mWgtProp[ID_BTN_1P5].enabled;
+            invalidate(ID_BTN_1P5);
         }
     }
 
@@ -295,18 +299,20 @@ public:
 
     bool isEnabled(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_PANEL_VERSIONS)
+        switch (pWgt->id)
+        {
+        case ID_PANEL_VERSIONS:
         {
             auto &prp = mWgtProp[pWgt->id];
             prp.enabled = !prp.enabled;
             return prp.enabled;
         }
-
-        if (pWgt->id == ID_CHBX_C)
+        case ID_CHBX_C:
             return false;
-
-        if (pWgt->id == ID_BTN_SAYYES)
+        case ID_BTN_SAYYES:
+        case ID_BTN_1P5:
             return mWgtProp[pWgt->id].enabled;
+        }
 
         return true;
     }
@@ -415,7 +421,7 @@ public:
 
     void getListBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) override
     {
-        const char *plants[4] = {"🌷", "🌱", "🌲", "🌵"};
+        const char *plants[4] = {"🌷", "🌱", "🌲", "🌻"};
 
         if (pWgt->id == ID_LISTBOX)
         {
@@ -467,6 +473,14 @@ public:
                 mTxtBox2Text.config(pWgt->size.width-2, " \n");
                 *ppLines = &mTxtBox2Text.getLines();
             }
+        }
+    }
+
+    void getButtonText(const twins::Widget* pWgt, twins::String &out) override
+    {
+        if (pWgt->id == ID_BTN_TOASTER)
+        {
+            out.appendFmt("  ✉   📢  ");
         }
     }
 

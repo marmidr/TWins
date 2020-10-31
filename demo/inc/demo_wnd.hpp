@@ -14,6 +14,7 @@ enum WndMainIDs
 {
     ID_INVALID, // value 0 is reserved to WIDGET_ID_NONE
     ID_WND,
+        ID_BTN_TOASTER,
         ID_PGCONTROL,
             ID_PAGE_1,
                 ID_PANEL_VERSIONS,

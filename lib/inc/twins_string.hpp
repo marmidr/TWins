@@ -30,6 +30,8 @@ public:
     String& appendLen(const char *s, int16_t sLen);
     /** @brief Append \p repeat of given characters \p c */
     String& append(char c, int16_t repeat = 1);
+    /** @brief Append new string \p s */
+    inline String& append(const String& s) { return append(s.cstr()); }
     /** @brief Append formatted string */
     String& appendFmt(const char *fmt, ...);
     void appendVFmt(const char *fmt, va_list ap);
@@ -59,9 +61,9 @@ public:
     String& operator =(const String &other);
     String& operator =(String &&other);
     /** @brief Convenient append operator */
-    String& operator <<(char c) { append(c); return *this; }
-    String& operator <<(const char *s) { append(s); return *this; }
-    String& operator <<(const String &other) { append(other.cstr()); return *this; }
+    String& operator <<(char c) { return append(c); }
+    String& operator <<(const char *s) { return append(s); }
+    String& operator <<(const String &s) { return appendLen(s.cstr(), s.size()); }
 
     /** @brief Return ESC sequence length starting at \p str */
     static unsigned escLen(const char *str, const char *strEnd = nullptr);

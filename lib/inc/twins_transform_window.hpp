@@ -36,8 +36,8 @@ constexpr void checkWidgetParams(const twins::Widget *pWgt) noexcept
     if (pWgt->type == Widget::ProgressBar)
         cexpr_assert(pWgt, pWgt->size.height == 1);
 
-    // if (pWgt->type == Widget::Label)
-    //     cexpr_assert(pWgt, pWgt->size.width >= 1 && pWgt->size.height >= 1);
+    if (pWgt->type == Widget::Button)
+        cexpr_assert(pWgt, pWgt->button.text || (pWgt->size.width >= 2));
 }
 
 /**

@@ -398,6 +398,8 @@ const UnicodeBlockRange wideSymbolRanges[] =
     { 0x1F600, 0x1F64F },
     // https://www.compart.com/en/unicode/block/U+1F680
     { 0x1F680, 0x1F6FF },
+    // https://www.compart.com/en/unicode/block/U+1F900
+    { 0x1F900, 0x1F9FF },
 };
 
 unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC, bool realWidth)
@@ -467,7 +469,7 @@ const char* String::u8skip(const char *str, unsigned toSkip, bool ignoreESC)
     while (str < str_end && skipped < toSkip)
     {
         bool seq_found = false;
-        
+
         if (ignoreESC)
         {
             unsigned esc_len = escLen(str);
