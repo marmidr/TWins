@@ -36,4 +36,6 @@
 
 int utf8seqlen(char const *str);
 int utf8len(char const *str);
-int utf8nlen(char const *str, int strsize);
+// int utf8nlen(char const *str, int strsize);
+long utf8getchar(char const *src);
+int utf8charlen(long ch);

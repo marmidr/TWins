@@ -45,8 +45,11 @@ public:
     String& clear(uint16_t threshordToFree = 500);
     /** @brief Return string size, in bytes */
     unsigned size() const { return mSize; }
-    /** @brief Return string length, in characters, assuming UTF-8 encoding */
-    unsigned u8len(bool ignoreESC = false) const;
+    /** @brief Return length of UTF-8 string, ignoring ESC sequences inside it
+     *         and recognizing double-width glyphs */
+    unsigned u8len(bool ignoreESC = false, bool realWidth = false) const;
+    /** @brief Text width on terminal */
+    inline unsigned width() { return u8len(true, true); }
     /** @brief Return C-style string buffer */
     const char *cstr() const { return mpBuff ? mpBuff : ""; }
     /** @brief Reserve buffer if u know the string size in advance */
@@ -62,8 +65,11 @@ public:
 
     /** @brief Return ESC sequence length starting at \p str */
     static unsigned escLen(const char *str, const char *strEnd = nullptr);
-    /** @brief Return length of UTF-8 string \p str, ignoring ESC sequences inside it */
-    static unsigned u8len(const char *str, const char *strEnd = nullptr, bool ignoreESC = false);
+    /** @brief Return length of UTF-8 string \p str, ignoring ESC sequences inside it
+     *         and recognizing double-width glyphs */
+    static unsigned u8len(const char *str, const char *strEnd = nullptr, bool ignoreESC = false, bool realWidth = false);
+    /** @brief Text width on terminal */
+    static inline unsigned width(const char *str, const char *strEnd = nullptr) { return u8len(str, strEnd, true, true); }
     /** @brief Return pointer to \p str moved by \p toSkip UTF-8 characters, omitting ESC sequences */
     static const char* u8skipIgnoreEsc(const char *str, unsigned toSkip);
 

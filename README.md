@@ -68,7 +68,7 @@ Implementation is based on examples:
 - [x] support for mouse click
 - [ ] password input
 - [ ] double-width character support (emoticons 😁)
-- [ ] multiline solid button
+- [x] multiline solid button
 
 
 ## Prerequisites

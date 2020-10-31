@@ -284,9 +284,9 @@ String& String::operator=(String &&other)
     return *this;
 }
 
-unsigned String::u8len(bool ignoreESC) const
+unsigned String::u8len(bool ignoreESC, bool realWidth) const
 {
-    return u8len(mpBuff, mpBuff + mSize, ignoreESC);
+    return u8len(mpBuff, mpBuff + mSize, ignoreESC, realWidth);
 }
 
 void String::reserve(uint16_t newCapacity)
@@ -341,16 +341,17 @@ unsigned String::escLen(const char *str, const char *strEnd)
 
     // ESC_BG_RGB(r,g,b)    \e[48;2;255;255;255m
     constexpr uint8_t esc_max_seq_len = 20;
-    unsigned max_sl;
-
-    if (strEnd && (strEnd - str < esc_max_seq_len))
-        max_sl = strEnd - str;
-    else
-        max_sl = esc_max_seq_len;
 
     if (str && *str == '\e')
     {
         unsigned sl = 1;
+        unsigned max_sl;
+
+        if (strEnd && (strEnd - str < esc_max_seq_len))
+            max_sl = strEnd - str;
+        else
+            max_sl = esc_max_seq_len;
+
         while (sl < max_sl)
         {
             const char c = str[sl];
@@ -380,12 +381,31 @@ unsigned String::escLen(const char *str, const char *strEnd)
     return 0;
 }
 
-unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC)
+struct UnicodeBlockRange
+{
+    long first, last;
+};
+
+const UnicodeBlockRange wideSymbolRanges[] =
+{
+    // https://www.compart.com/en/unicode/block/U+2600
+    { 0x02600, 0x026FF },
+    // https://www.compart.com/en/unicode/block/U+2700
+    { 0x02700, 0x027BF },
+    // https://www.compart.com/en/unicode/block/U+1F300
+    { 0x1F300, 0x1F5FF },
+    // https://www.compart.com/en/unicode/block/U+1F600
+    { 0x1F600, 0x1F64F },
+    // https://www.compart.com/en/unicode/block/U+1F680
+    { 0x1F680, 0x1F6FF },
+};
+
+unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC, bool realWidth)
 {
     if (!str || !*str)
         return 0;
 
-    if (!ignoreESC)
+    if (!(ignoreESC | realWidth))
         return (unsigned)utf8len(str);
 
     if (!strEnd)
@@ -395,22 +415,36 @@ unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC)
 
     while (str < strEnd)
     {
-        unsigned esc_len = escLen(str, strEnd);
-        bool seq_found = esc_len > 0;
+        bool seq_found = false;
 
-        for (; esc_len && (str < strEnd); )
+        if (ignoreESC)
         {
-            str += esc_len;
-            esc_len = escLen(str, strEnd);
+            unsigned esc_len = escLen(str, strEnd);
+            seq_found = esc_len > 0;
+
+            while (esc_len && (str < strEnd))
+            {
+                str += esc_len;
+                esc_len = escLen(str, strEnd);
+            }
         }
 
         if (str < strEnd)
         {
-            if (int u8_len = utf8seqlen(str))
+            long u8ch = utf8getchar(str);
+
+            if (int u8_len = utf8charlen(u8ch))
             {
                 seq_found = true;
                 len++;
                 str += u8_len;
+
+                if (realWidth && u8ch >= 0x02600)
+                {
+                    for (const auto &r : wideSymbolRanges)
+                        if (u8ch >= r.first && u8ch <= r.last)
+                            len++;
+                }
             }
         }
 
@@ -458,7 +492,6 @@ const char* String::u8skipIgnoreEsc(const char *str, unsigned toSkip)
 
     return str;
 }
-
 
 // -----------------------------------------------------------------------------
 

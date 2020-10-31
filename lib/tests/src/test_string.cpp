@@ -437,3 +437,16 @@ TEST(STRING, u8skipIgnoreEsc)
     EXPECT_STREQ("Ć\e[1;2AĘ", twins::String::u8skipIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ", 2));
     EXPECT_STREQ("", twins::String::u8skipIgnoreEsc("Ą\e[ABĆ\e[1;2AĘ", 4));
 }
+
+TEST(STRING, emoticons)
+{
+    EXPECT_EQ(11, twins::String::u8len("😉\e[1m*\e[0m🍺", nullptr, false, false));
+    EXPECT_EQ(13, twins::String::u8len("😉\e[1m*\e[0m🍺", nullptr, false, true));
+    EXPECT_EQ( 3, twins::String::u8len("😉\e[1m*\e[0m🍺", nullptr, true, false));
+    EXPECT_EQ( 5, twins::String::u8len("😉\e[1m*\e[0m🍺", nullptr, true, true));
+
+    EXPECT_EQ( 5, twins::String::width("😉\e[1m*\e[0m🍺"));
+
+    twins::String s("😉\e[1m*\e[0m🍺");
+    EXPECT_EQ( 5, s.width());
+}
