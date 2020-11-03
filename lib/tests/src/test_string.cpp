@@ -174,8 +174,8 @@ TEST_F(STRING_Test, stream_append)
     s.append("x");
     EXPECT_STREQ("x", s.cstr());
 
-    s << "► " << "Service Menu";
-    EXPECT_STREQ("x► Service Menu", s.cstr());
+    s << "► " << "Service Menu" << ':';
+    EXPECT_STREQ("x► Service Menu:", s.cstr());
 }
 
 TEST_F(STRING_Test, trim_no_ellipsis)

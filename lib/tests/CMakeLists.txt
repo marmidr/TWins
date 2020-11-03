@@ -16,7 +16,7 @@ add_executable(${TARGETNAME}
     src/test_map.cpp
     src/test_twins.cpp
     src/test_input_posix.cpp
-    src/test_widget_draw.cpp
+    src/test_widget.cpp
 )
 
 target_compile_options(${TARGETNAME} PRIVATE

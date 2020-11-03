@@ -87,7 +87,11 @@ const char* encodeCl(ColorBG cl)
 
 const char* transcodeClBg2Fg(const char *bgColorCode)
 {
-    assert(bgColorCode && *bgColorCode == '\e');
+    if (!bgColorCode)
+        return "";
+    if (*bgColorCode != '\e')
+        return bgColorCode;
+
     strncpy(clCodeBuffer, bgColorCode, sizeof(clCodeBuffer));
     clCodeBuffer[sizeof(clCodeBuffer)-1] = '\0';
 

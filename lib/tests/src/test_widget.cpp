@@ -99,10 +99,21 @@ public:
         topLine = 2;
     }
 
-protected:
+    void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) override
+    {
+        pgIndex = newPageIdx;
+    }
+
+    int getPageCtrlPageIndex(const twins::Widget* pWgt) override
+    {
+        return pgIndex;
+    }
+
+public:
     const twins::Widget *mpWgts = nullptr;
     twins::WID wgtId = {};
     twins::util::WrappedString wrapString;
+    uint8_t pgIndex = 0;
 };
 
 
@@ -335,7 +346,7 @@ twins::IWindowState * getWndTest()
 
 // -----------------------------------------------------------------------------
 
-class WIDGETDRW : public testing::Test
+class WIDGET : public testing::Test
 {
 protected:
     void SetUp() override
@@ -350,7 +361,7 @@ protected:
 
 // -----------------------------------------------------------------------------
 
-TEST_F(WIDGETDRW, drawWidget)
+TEST_F(WIDGET, drawWidget)
 {
     twins::drawWidget(pWndTestWidgets, ID_TEXTBOX);
 
@@ -368,13 +379,13 @@ TEST_F(WIDGETDRW, drawWidget)
     TWINS_LOG("Drawn in %u ms", t);
 }
 
-TEST_F(WIDGETDRW, drawWidgets)
+TEST_F(WIDGET, drawWidgets)
 {
     twins::WID wids[] = { ID_CHECK, ID_PANEL };
     twins::drawWidgets(pWndTestWidgets, wids);
 }
 
-TEST_F(WIDGETDRW, wndManager)
+TEST_F(WIDGET, wndManager)
 {
     twins::WndManager wmngr;
 
@@ -386,4 +397,101 @@ TEST_F(WIDGETDRW, wndManager)
     EXPECT_EQ(getWndTest(), wmngr.topWnd());
     wmngr.popWnd();
     EXPECT_EQ(0, wmngr.size());
+}
+
+TEST_F(WIDGET, toString)
+{
+    for (int wgt = twins::Widget::None; wgt < twins::Widget::_Count; wgt++)
+    {
+        const char *wname = twins::toString(twins::Widget::Type(wgt));
+        EXPECT_TRUE(wname);
+        EXPECT_STRNE(wname, "");
+    }
+
+    const char *wname = twins::toString(twins::Widget::Type(-1));
+    EXPECT_STREQ(wname, "?");
+}
+
+TEST_F(WIDGET, getScreenCoord)
+{
+    const auto *p_wnd = wndTest.getWidgets();
+    ASSERT_NE(nullptr, p_wnd);
+    ASSERT_EQ(twins::Widget::Window, p_wnd->type);
+    const auto *p_lbl = twins::getWidget(p_wnd, ID_LED);
+    ASSERT_NE(nullptr, p_lbl);
+    ASSERT_EQ(twins::Widget::Led, p_lbl->type);
+
+    {
+        twins::resetInternalState();
+        auto c = twins::getScreenCoord(p_lbl);
+        EXPECT_EQ(34, c.col);
+        EXPECT_EQ(18, c.row);
+    }
+
+    {
+        twins::resetInternalState();
+        auto c = twins::getScreenCoord(p_wnd);
+        EXPECT_EQ(5, c.col);
+        EXPECT_EQ(5, c.row);
+    }
+}
+
+TEST_F(WIDGET, pageControl)
+{
+    const auto *p_wnd = wndTest.getWidgets();
+    ASSERT_NE(nullptr, p_wnd);
+    const auto *p_pgctrl = twins::getWidget(p_wnd, ID_PGCTRL);
+
+    {
+        auto id = twins::wgt::getPageID(p_pgctrl, 0);
+        EXPECT_EQ(ID_PAGE1, id);
+
+        id = twins::wgt::getPageID(p_pgctrl, 123);
+        EXPECT_EQ(twins::WIDGET_ID_NONE, id);
+
+        id = twins::wgt::getPageID(p_pgctrl, -3);
+        EXPECT_EQ(twins::WIDGET_ID_NONE, id);
+    }
+
+    {
+        auto idx = twins::wgt::getPageIdx(p_pgctrl, ID_PAGE2);
+        EXPECT_EQ(1, idx);
+
+        idx = twins::wgt::getPageIdx(p_pgctrl, 123);
+        EXPECT_EQ(-1, idx);
+    }
+
+    {
+        wndTest.pgIndex = 0;
+        twins::wgt::selectNextPage(p_wnd, ID_PGCTRL, true);
+        EXPECT_EQ(1, wndTest.pgIndex);
+        twins::wgt::selectNextPage(p_wnd, ID_PGCTRL, true);
+        EXPECT_EQ(0, wndTest.pgIndex);
+        twins::wgt::selectNextPage(p_wnd, ID_PGCTRL, false);
+        EXPECT_EQ(1, wndTest.pgIndex);
+        twins::wgt::selectNextPage(p_wnd, ID_PGCTRL, false);
+        EXPECT_EQ(0, wndTest.pgIndex);
+
+        wndTest.pgIndex = 0;
+        twins::wgt::selectPage(p_wnd, ID_PGCTRL, ID_PAGE2);
+        EXPECT_EQ(1, wndTest.pgIndex);
+    }
+}
+
+TEST_F(WIDGET, isWidgetVisible)
+{
+    const auto *p_wnd = wndTest.getWidgets();
+    ASSERT_NE(nullptr, p_wnd);
+    const auto *p_btn = twins::getWidget(p_wnd, ID_BTN1);
+
+    EXPECT_TRUE(twins::isWidgetVisible(p_wnd, p_btn));
+}
+
+TEST_F(WIDGET, isWidgetEnabled)
+{
+    const auto *p_wnd = wndTest.getWidgets();
+    ASSERT_NE(nullptr, p_wnd);
+    const auto *p_btn = twins::getWidget(p_wnd, ID_BTN1);
+
+    EXPECT_TRUE(twins::isWidgetEnabled(p_wnd, p_btn));
 }

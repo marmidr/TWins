@@ -325,11 +325,11 @@ TEST(UTILS, numEdit)
 
 TEST(UTILS, numEditLimited)
 {
-    twins::KeyCode kc = { m_spec : true };
+    twins::KeyCode kc = {};
+    kc.m_spec = true;
     twins::String str;
     int16_t cursorPos = 0;
     bool succ;
-
 
     // up, no wrap
     kc.key = twins::Key::Up;

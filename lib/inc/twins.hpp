@@ -209,6 +209,7 @@ struct Widget
         ComboBox,
         CustomWgt,
         TextBox,
+        _Count
     };
 
     Type    type = {};
@@ -390,7 +391,7 @@ struct WidgetProp
     };
 
     // applies to every widget
-    bool enabled;
+    bool enabled = true;
 };
 
 /** @brief Object remembers terminal font colors and attribute,
@@ -573,13 +574,7 @@ const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId);
 /**
  * @brief Process keyboard/mouse signal received by console
  */
-bool processKey(const Widget *pWindow, const KeyCode &kc);
-
-/**
- * @brief As the PgUp/PgDn are often used by consoles, let the user decide
- *        when to change page
- */
-void mainPgControlChangePage(const Widget *pWindowWidgets, bool next);
+bool processInput(const Widget *pWindow, const KeyCode &kc);
 
 /**
  * @brief Check if widget is visible, checking all its parents
@@ -616,6 +611,12 @@ int8_t getPageIdx(const Widget *pPageControl, WID pageID);
  * @brief Find \p pageControlID widget and emit onPageControlPageChange() for given \p pageID
  */
 void selectPage(const Widget *pWindowWidgets, WID pageControlID, WID pageID);
+
+/**
+ * @brief As the PgUp/PgDn are often used by console, let the user decide
+ *        when to change page
+ */
+void selectNextPage(const Widget *pWindowWidgets, WID pageControlID, bool next);
 
 } // wgt
 

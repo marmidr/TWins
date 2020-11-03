@@ -672,7 +672,7 @@ int main()
 
             twins::decodeInputSeq(rbKeybInput, kc);
             // pass key to top-window
-            bool key_handled = twins::processKey(twins::glob::wMngr.topWnd()->getWidgets(), kc);
+            bool key_handled = twins::processInput(twins::glob::wMngr.topWnd()->getWidgets(), kc);
             wndMain.lblKeyName = kc.name;
 
             // display decoded key
@@ -717,12 +717,12 @@ int main()
             else if (kc.m_spec && kc.m_ctrl && (kc.key == twins::Key::PgUp || kc.key == twins::Key::PgDown))
             {
                 if (twins::glob::wMngr.topWnd() == &wndMain)
-                    twins::mainPgControlChangePage(wndMain.getWidgets(), kc.key == twins::Key::PgDown);
+                    twins::wgt::selectNextPage(wndMain.getWidgets(), ID_PGCONTROL, kc.key == twins::Key::PgDown);
             }
             else if (kc.m_spec && (kc.key == twins::Key::F9 || kc.key == twins::Key::F10))
             {
                 if (twins::glob::wMngr.topWnd() == &wndMain)
-                    twins::mainPgControlChangePage(wndMain.getWidgets(), kc.key == twins::Key::F10);
+                    twins::wgt::selectNextPage(wndMain.getWidgets(), ID_PGCONTROL, kc.key == twins::Key::F10);
             }
 
 

@@ -48,6 +48,9 @@ TEST_F(TWINS, encodeCl)
 
         cl = twins::encodeCl(twins::ColorFG::Inherit);
         EXPECT_STREQ(cl, "");
+
+        cl = twins::encodeCl(twins::ColorFG::ThemeBegin);
+        EXPECT_STREQ(cl, "");
     }
 
     {
@@ -55,6 +58,9 @@ TEST_F(TWINS, encodeCl)
         EXPECT_STRNE(cl, "");
 
         cl = twins::encodeCl(twins::ColorBG::Inherit);
+        EXPECT_STREQ(cl, "");
+
+        cl = twins::encodeCl(twins::ColorBG::ThemeBegin);
         EXPECT_STREQ(cl, "");
     }
 }
@@ -67,6 +73,9 @@ TEST_F(TWINS, intensifyCl)
 
         cl = twins::intensifyCl(twins::ColorFG::Inherit);
         EXPECT_EQ(twins::ColorFG::Inherit, cl);
+
+        cl = twins::intensifyCl(twins::ColorFG::Default);
+        EXPECT_EQ(twins::ColorFG::WhiteIntense, cl);
     }
 
     {
@@ -75,14 +84,51 @@ TEST_F(TWINS, intensifyCl)
 
         cl = twins::intensifyCl(twins::ColorBG::Inherit);
         EXPECT_EQ(twins::ColorBG::Inherit, cl);
+
+        cl = twins::intensifyCl(twins::ColorBG::Default);
+        EXPECT_EQ(twins::ColorBG::BlackIntense, cl);
     }
 
     {
  	    auto cl = twins::ColorBG::White;
         twins::intensifyClIf(false, cl);
         EXPECT_EQ(twins::ColorBG::White, cl);
+
         twins::intensifyClIf(true, cl);
         EXPECT_EQ(twins::ColorBG::WhiteIntense, cl);
+    }
+}
+
+TEST_F(TWINS, transcodeClBg2Fg)
+{
+    {
+        const char*cl_fg = twins::transcodeClBg2Fg(nullptr);
+        EXPECT_STREQ("", cl_fg);
+    }
+
+    {
+        const char*cl_fg = twins::transcodeClBg2Fg("Forward");
+        EXPECT_STREQ("Forward", cl_fg);
+    }
+
+    {
+        const char*cl_fg = twins::transcodeClBg2Fg(ESC_BG_Salmon);
+        EXPECT_STREQ(ESC_FG_Salmon, cl_fg);
+    }
+
+    {
+        const char*cl_fg = twins::transcodeClBg2Fg(ESC_BG_GREEN);
+        EXPECT_STREQ(ESC_FG_GREEN, cl_fg);
+    }
+
+    {
+        const char*cl_fg = twins::transcodeClBg2Fg(ESC_BG_GREEN_INTENSE);
+        EXPECT_STREQ(ESC_FG_GREEN_INTENSE, cl_fg);
+    }
+
+    {
+        const char*cl_fg = twins::transcodeClBg2Fg(ESC_BG_COLOR(15));
+        EXPECT_STREQ(ESC_FG_COLOR(15), cl_fg);
     }
 }
 
@@ -108,21 +154,33 @@ TEST_F(TWINS, log)
 
 TEST_F(TWINS, attr)
 {
-    twins::pushAttr(twins::FontAttrib::None);
-    twins::pushAttr(twins::FontAttrib::Bold);
-    twins::pushAttr(twins::FontAttrib::Faint);
-    twins::pushAttr(twins::FontAttrib::Italics);
-    twins::pushAttr(twins::FontAttrib::Underline);
-    twins::pushAttr(twins::FontAttrib::Blink);
-    twins::pushAttr(twins::FontAttrib::Inverse);
-    twins::pushAttr(twins::FontAttrib::Invisible);
-    twins::pushAttr(twins::FontAttrib::StrikeThrough);
-    twins::pushAttr(twins::FontAttrib::StrikeThrough);
-    twins::popAttr(6);
+    {
+        twins::pushAttr(twins::FontAttrib::None);
+        twins::pushAttr(twins::FontAttrib::Bold);
+        twins::pushAttr(twins::FontAttrib::Faint);
+        twins::pushAttr(twins::FontAttrib::Italics);
+        twins::pushAttr(twins::FontAttrib::Underline);
+        twins::pushAttr(twins::FontAttrib::Blink);
+        twins::pushAttr(twins::FontAttrib::Inverse);
+        twins::pushAttr(twins::FontAttrib::Invisible);
+        twins::pushAttr(twins::FontAttrib::StrikeThrough);
+        twins::pushAttr(twins::FontAttrib::StrikeThrough);
+        twins::popAttr(6);
 
-    twins::resetAttr();
-    twins::resetClFg();
-    twins::resetClBg();
+        twins::resetAttr();
+        twins::resetClFg();
+        twins::resetClBg();
+    }
+
+    {
+        twins::pushAttr(twins::FontAttrib::Faint);
+        twins::popAttr();
+    }
+
+    {
+        twins::pushAttr(twins::FontAttrib::Italics);
+        twins::popAttr();
+    }
 }
 
 TEST_F(TWINS, logRaw)

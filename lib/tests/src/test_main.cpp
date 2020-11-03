@@ -33,8 +33,10 @@ struct TestPAL : twins::DefaultPAL
         twins::init(this);
     }
 
-    ~TestPAL()
+    void deInit()
     {
+        // moved here to cover the code
+        twins::mouseMode(twins::MouseMode::Off);
         deinit();
         twins::deinit();
     }
@@ -64,6 +66,7 @@ int main(int argc, char **argv)
     argc = vargs.size();
 
     testing::InitGoogleTest(&argc, vargs.data());
-
-    return RUN_ALL_TESTS();
+    int rc = RUN_ALL_TESTS();
+    test_pal.deInit();
+    return rc;
 }

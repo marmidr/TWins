@@ -85,12 +85,6 @@ void deinit(void)
     pPAL = nullptr;
 }
 
-IPal& pal(void)
-{
-    assert(pPAL);
-    return *pPAL;
-}
-
 bool lock(bool wait)
 {
     if (pPAL)

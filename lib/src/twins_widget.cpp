@@ -267,6 +267,7 @@ void setCursorAt(const Widget *pWgt)
 
 bool isVisible(const Widget *pWgt)
 {
+    assert(g_ws.pWndState);
     bool vis = g_ws.pWndState->isVisible(pWgt);
     int parent_idx = pWgt->link.parentIdx;
 
@@ -286,6 +287,7 @@ bool isVisible(const Widget *pWgt)
 
 bool isEnabled(const Widget *pWgt)
 {
+    assert(g_ws.pWndState);
     bool en = g_ws.pWndState->isEnabled(pWgt);
     int parent_idx = pWgt->link.parentIdx;
 
@@ -609,6 +611,7 @@ static const Widget *findMainPgControl()
 
 static void pgControlChangePage(const Widget *pWgt, bool next)
 {
+    if (!pWgt) return;
     assert(pWgt);
     assert(pWgt->type == Widget::PageCtrl);
 
@@ -1337,7 +1340,6 @@ static void processMouse_TextBox(const Widget *pWgt, const Rect &wgtRect, const 
     }
 }
 
-
 static bool processMouse(const KeyCode &kc)
 {
     if (kc.mouse.btn == MouseBtn::ButtonGoBack || kc.mouse.btn == MouseBtn::ButtonGoForward)
@@ -1480,7 +1482,7 @@ Coord getScreenCoord(const Widget *pWgt)
 {
     Coord coord = pWgt->coord;
     if (pWgt->type == Widget::Type::Window)
-        g_ws.pWndState->getWindowCoord(pWgt, coord);
+        pWgt->window.getState()->getWindowCoord(pWgt, coord);
 
     if (pWgt->link.ownIdx > 0)
     {
@@ -1493,7 +1495,7 @@ Coord getScreenCoord(const Widget *pWgt)
             {
                 Coord wnd_coord = p_parent->coord;
                 // getWindowCoord is optional
-                g_ws.pWndState->getWindowCoord(p_parent, wnd_coord);
+                p_parent->window.getState()->getWindowCoord(p_parent, wnd_coord);
                 coord += wnd_coord;
             }
             else
@@ -1517,59 +1519,6 @@ Coord getScreenCoord(const Widget *pWgt)
     return coord;
 }
 
-namespace wgt
-{
-
-WID getPageID(const Widget *pPageControl, int8_t pageIdx)
-{
-    assert(pPageControl);
-    assert(pPageControl->type == Widget::PageCtrl);
-
-    if (pageIdx < 0 || pageIdx >= pPageControl->link.childsCnt)
-        return WIDGET_ID_NONE;
-
-    const Widget *p_page = pPageControl;
-    p_page += (pPageControl->link.childsIdx - pPageControl->link.ownIdx) + pageIdx;
-    return p_page->id;
-}
-
-int8_t getPageIdx(const Widget *pPageControl, WID pageID)
-{
-    assert(pPageControl);
-    assert(pPageControl->type == Widget::PageCtrl);
-
-    const Widget *p_page = pPageControl;
-    p_page += pPageControl->link.childsIdx - pPageControl->link.ownIdx;
-    assert(p_page->type == Widget::Page);
-
-    for (uint8_t i = 0; i < pPageControl->link.childsCnt; i++)
-        if (p_page[i].id == pageID)
-            return i;
-
-    return -1;
-}
-
-void selectPage(const Widget *pWindowWidgets, WID pageControlID, WID pageID)
-{
-    assert(pWindowWidgets);
-    assert(pWindowWidgets->type == Widget::Window);
-    const auto *p_pgctrl = getWidget(pWindowWidgets, pageControlID);
-    int8_t pg_idx = getPageIdx(p_pgctrl, pageID);
-
-    if (pg_idx >= 0)
-    {
-        auto *p_wstate = pWindowWidgets->window.getState();
-        p_wstate->onPageControlPageChange(p_pgctrl, pg_idx);
-        p_wstate->invalidate(pageControlID);
-    }
-    else
-    {
-        TWINS_LOG_W("Widget Id=%d is not PageControl Id=%d page", pageID, pageControlID);
-    }
-}
-
-} // wgt
-
 const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId)
 {
     assert(pWindowWidgets);
@@ -1582,7 +1531,7 @@ const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId)
     return p_wgt;
 }
 
-bool processKey(const Widget *pWindowWidgets, const KeyCode &kc)
+bool processInput(const Widget *pWindowWidgets, const KeyCode &kc)
 {
     assert(pWindowWidgets);
     assert(pWindowWidgets->type == Widget::Window);
@@ -1640,19 +1589,6 @@ bool processKey(const Widget *pWindowWidgets, const KeyCode &kc)
     return key_processed;
 }
 
-void mainPgControlChangePage(const Widget *pWindowWidgets, bool next)
-{
-    assert(pWindowWidgets);
-    g_ws.pWndWidgets = pWindowWidgets;
-    g_ws.pWndState = pWindowWidgets->window.getState();
-    assert(g_ws.pWndState);
-
-    if (const auto *p_wgt = findMainPgControl())
-        pgControlChangePage(p_wgt, next);
-
-    g_ws.pWndWidgets = nullptr; g_ws.pWndState = nullptr;
-}
-
 bool isWidgetVisible(const Widget *pWindowWidgets, const Widget *pWgt)
 {
     assert(pWindowWidgets);
@@ -1686,6 +1622,73 @@ void resetInternalState()
     g_ws.pDropDownCombo = nullptr;
     g_ws.editState.pWgt = nullptr;
 }
+
+// -----------------------------------------------------------------------------
+
+namespace wgt
+{
+
+WID getPageID(const Widget *pPageControl, int8_t pageIdx)
+{
+    assert(pPageControl);
+    assert(pPageControl->type == Widget::PageCtrl);
+
+    if (pageIdx < 0 || pageIdx >= pPageControl->link.childsCnt)
+        return WIDGET_ID_NONE;
+
+    const Widget *p_page = pPageControl;
+    p_page += (pPageControl->link.childsIdx - pPageControl->link.ownIdx) + pageIdx;
+    return p_page->id;
+}
+
+int8_t getPageIdx(const Widget *pPageControl, WID pageID)
+{
+    assert(pPageControl);
+    assert(pPageControl->type == Widget::PageCtrl);
+
+    const Widget *p_page = pPageControl;
+    p_page += pPageControl->link.childsIdx - pPageControl->link.ownIdx;
+    assert(p_page->type == Widget::Page);
+
+    for (uint8_t i = 0; i < pPageControl->link.childsCnt; i++)
+        if (p_page[i].id == pageID)
+            return i;
+
+    return -1;
+}
+
+void selectPage(const Widget *pWindowWidgets, WID pageControlID, WID pageID)
+{
+    assert(pWindowWidgets);
+    assert(pWindowWidgets->type == Widget::Window);
+    const auto *p_pgctrl = getWidget(pWindowWidgets, pageControlID);
+    int8_t pg_idx = getPageIdx(p_pgctrl, pageID);
+
+    if (pg_idx >= 0)
+    {
+        auto *p_wstate = pWindowWidgets->window.getState();
+        p_wstate->onPageControlPageChange(p_pgctrl, pg_idx);
+        p_wstate->invalidate(pageControlID);
+    }
+    else
+    {
+        TWINS_LOG_W("Widget Id=%d is not PageControl Id=%d page", pageID, pageControlID);
+    }
+}
+
+void selectNextPage(const Widget *pWindowWidgets, WID pageControlID, bool next)
+{
+    assert(pWindowWidgets);
+    assert(pWindowWidgets->type == Widget::Window);
+    g_ws.pWndWidgets = pWindowWidgets;
+    g_ws.pWndState = pWindowWidgets->window.getState();
+    assert(g_ws.pWndState);
+    const auto *p_pgctrl = getWidget(pWindowWidgets, pageControlID);
+    pgControlChangePage(p_pgctrl, next);
+    g_ws.pWndWidgets = nullptr; g_ws.pWndState = nullptr;
+}
+
+} // wgt
 
 // -----------------------------------------------------------------------------
 

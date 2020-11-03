@@ -21,6 +21,7 @@ pipelines:
     - step:
         caches:
           - pip
+          - cmake
         script: # Modify the commands below to build your repository.
           - apt-get update
           - apt-get install -y cmake
@@ -33,6 +34,5 @@ pipelines:
           - ctest -V
           - apt-get install -y python-pip
           - pip install cpp-coveralls gcovr
-          #- coveralls -b . -r .. -i "lib" -E ".*/lib/tests/.*" -t xyTXxJUFndVGPY153wKb3aLwb8P71CAwr
-          - coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t xyTXxJUFndVGPY153wKb3aLwb8P71CAwr
+          - coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t W1vBS6Hvg6wtzaqdV2E4B4OVTIvxJmNXI
 
