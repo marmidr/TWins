@@ -33,7 +33,6 @@ struct TestPAL : twins::DefaultPAL
         twins::init(this);
     }
 
-    // void deInit()
     ~TestPAL()
     {
         // moved here to cover the code
@@ -69,8 +68,5 @@ int main(int argc, char **argv)
     testing::InitGoogleTest(&argc, vargs.data());
     int rc = RUN_ALL_TESTS();
     fprintf(stderr, "\n*** Tests finished ***\n");
-    // fprintf(stderr, "release PAL... ");
-    // test_pal.deInit();
-    // fprintf(stderr, " done.\n");
     return rc;
 }

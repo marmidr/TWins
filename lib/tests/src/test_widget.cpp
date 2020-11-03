@@ -25,6 +25,7 @@ enum WndTestIDs
                 ID_LBL2,
                 ID_BTN1,
                 ID_BTN2,
+                ID_BTN3,
                 ID_LED,
             ID_PAGE2,
         ID_PANEL,
@@ -109,11 +110,28 @@ public:
         return pgIndex;
     }
 
+    void onButtonClick(const twins::Widget* pWgt, const twins::KeyCode &kc) override
+    {
+        clickedId = pWgt->id;
+    }
+
+    void onCheckboxToggle(const twins::Widget* pWgt) override
+    {
+        chbxChecked = !chbxChecked;
+    }
+
+    bool getCheckboxChecked(const twins::Widget* pWgt) override
+    {
+        return chbxChecked;
+    }
+
 public:
     const twins::Widget *mpWgts = nullptr;
     twins::WID wgtId = {};
+    twins::WID clickedId = {};
     twins::util::WrappedString wrapString;
     uint8_t pgIndex = 0;
+    bool chbxChecked = {};
 };
 
 
@@ -201,6 +219,18 @@ static constexpr twins::Widget wndTestDef =
                                 fgColor : {},
                                 bgColor : {},
                                 style   : twins::ButtonStyle::Simple
+                            }}
+                        },
+                        {
+                            type    : twins::Widget::Button,
+                            id      : ID_BTN3,
+                            coord   : { 15, 8 },
+                            size    : {},
+                            { button : {
+                                text    : "1.5 Line",
+                                fgColor : {},
+                                bgColor : {},
+                                style   : twins::ButtonStyle::Solid1p5
                             }}
                         },
                         {
@@ -494,4 +524,133 @@ TEST_F(WIDGET, isWidgetEnabled)
     const auto *p_btn = twins::getWidget(p_wnd, ID_BTN1);
 
     EXPECT_TRUE(twins::isWidgetEnabled(p_wnd, p_btn));
+}
+
+TEST_F(WIDGET, processInput_Key)
+{
+    const auto *p_wnd = wndTest.getWidgets();
+    ASSERT_NE(nullptr, p_wnd);
+
+    {
+        twins::KeyCode kc = {};
+        twins::processInput(p_wnd, kc);
+    }
+
+    {
+        twins::KeyCode kc = {};
+        kc.key = twins::Key::Esc;
+        kc.m_spec = true;
+        twins::processInput(p_wnd, kc);
+    }
+
+    {
+        twins::KeyCode kc = {};
+        kc.key = twins::Key::Tab;
+        kc.m_spec = true;
+        twins::processInput(p_wnd, kc);
+    }
+
+    {
+        twins::KeyCode kc = {};
+        kc.key = twins::Key::Home;
+        kc.m_spec = true;
+        twins::processInput(p_wnd, kc);
+    }
+}
+
+TEST_F(WIDGET, processInput_OnWidget)
+{
+    const auto *p_wnd = wndTest.getWidgets();
+    ASSERT_NE(nullptr, p_wnd);
+
+    {
+        wndTest.wgtId = ID_PGCTRL;
+        wndTest.pgIndex = 0;
+        twins::KeyCode kc = {};
+        kc.m_spec = true;
+
+        kc.key = twins::Key::PgDown;
+        twins::processInput(p_wnd, kc);
+        EXPECT_EQ(1, wndTest.pgIndex);
+
+        kc.key = twins::Key::PgUp;
+        twins::processInput(p_wnd, kc);
+        EXPECT_EQ(0, wndTest.pgIndex);
+
+        kc.key = twins::Key::F1;
+        twins::processInput(p_wnd, kc);
+        EXPECT_EQ(0, wndTest.pgIndex);
+    }
+
+    {
+        wndTest.wgtId = ID_CHECK;
+        wndTest.chbxChecked = false;
+        twins::KeyCode kc = {};
+        kc.m_spec = true;
+
+        kc.key = twins::Key::Enter;
+        twins::processInput(p_wnd, kc);
+        EXPECT_TRUE(wndTest.chbxChecked);
+
+        kc.key = twins::Key::Enter;
+        twins::processInput(p_wnd, kc);
+        EXPECT_FALSE(wndTest.chbxChecked);
+
+        kc.key = twins::Key::F1;
+        twins::processInput(p_wnd, kc);
+        EXPECT_FALSE(wndTest.chbxChecked);
+    }
+
+    {
+        wndTest.wgtId = ID_BTN1;
+        wndTest.clickedId = {};
+        twins::KeyCode kc = {};
+        kc.m_spec = true;
+
+        kc.key = twins::Key::Enter;
+        twins::processInput(p_wnd, kc);
+        EXPECT_EQ(ID_BTN1, wndTest.clickedId);
+
+        wndTest.clickedId = {};
+        kc.key = twins::Key::Enter;
+        twins::processInput(p_wnd, kc);
+        EXPECT_EQ(ID_BTN1, wndTest.clickedId);
+
+        wndTest.clickedId = {};
+        kc.key = twins::Key::F1;
+        twins::processInput(p_wnd, kc);
+        EXPECT_EQ(0, wndTest.clickedId);
+    }
+}
+
+TEST_F(WIDGET, processInput_Mouse_BtnClick)
+{
+    const auto *p_wnd = wndTest.getWidgets();
+    ASSERT_NE(nullptr, p_wnd);
+
+    {
+        // outside window
+        twins::KeyCode kc = {};
+        kc.key = twins::Key::MouseEvent;
+        kc.mouse.btn = twins::MouseBtn::ButtonLeft;
+        twins::processInput(p_wnd, kc);
+    }
+
+    {
+        // button click
+        const auto *p_btn = twins::getWidget(p_wnd, ID_BTN1);
+        auto btn_coord = twins::getScreenCoord(p_btn);
+
+        wndTest.clickedId = {};
+        twins::KeyCode kc = {};
+        kc.key = twins::Key::MouseEvent;
+        kc.mouse.btn = twins::MouseBtn::ButtonLeft;
+        kc.mouse.col = btn_coord.col;
+        kc.mouse.row = btn_coord.row;
+        twins::processInput(p_wnd, kc);
+
+        kc.mouse.btn = twins::MouseBtn::ButtonReleased;
+        twins::processInput(p_wnd, kc);
+        EXPECT_EQ(ID_BTN1, wndTest.clickedId);
+    }
 }
