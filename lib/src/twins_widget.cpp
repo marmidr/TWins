@@ -1521,6 +1521,12 @@ const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId)
     return getWidgetByWID(env, widgetId);
 }
 
+const Widget* getWidgetParent(const Widget *pWgt)
+{
+    assert(pWgt);
+    return getParent(pWgt);
+}
+
 bool processInput(const Widget *pWindowWidgets, const KeyCode &kc)
 {
     CallEnv env(pWindowWidgets);

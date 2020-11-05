@@ -572,6 +572,11 @@ Coord getScreenCoord(const Widget *pWgt);
 const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId);
 
 /**
+ * @brief Return widget \p pWgt parent widget
+ */
+const Widget* getWidgetParent(const Widget *pWgt);
+
+/**
  * @brief Process keyboard/mouse signal received by console
  */
 bool processInput(const Widget *pWindow, const KeyCode &kc);

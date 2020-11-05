@@ -114,12 +114,11 @@ public:
     {
         WindowStateBase::init(pWindowWgts);
         mFocusedIds.resize(wndMainNumPages);
+        mPgcPage = 0;
 
         for (auto &wid : mFocusedIds)
             // wid = twins::WIDGET_ID_NONE;
             wid = ID_WND;
-
-        mWgtProp[ID_BTN_1P5].enabled = true;
 
         mTxtBox1Text = ESC_BOLD
                     "🔶 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam arcu magna, placerat sit amet libero at, aliquam fermentum augue.\n"
@@ -301,14 +300,9 @@ public:
     {
         switch (pWgt->id)
         {
-        case ID_PANEL_VERSIONS:
-        {
-            auto &prp = mWgtProp[pWgt->id];
-            prp.enabled = !prp.enabled;
-            return prp.enabled;
-        }
         case ID_CHBX_C:
             return false;
+        case ID_PANEL_VERSIONS:
         case ID_BTN_SAYYES:
         case ID_BTN_1P5:
             return mWgtProp[pWgt->id].enabled;
@@ -324,19 +318,16 @@ public:
 
     bool isVisible(const twins::Widget* pWgt) override
     {
-        //if (pWgt->id == ID_WND)    return bb.wndMngr().topWnd() == pWgt; // always visible
-        if (pWgt->id == ID_PAGE_1) return mPgcPage == 0;
-        if (pWgt->id == ID_PAGE_2) return mPgcPage == 1;
-        if (pWgt->id == ID_PAGE_3) return mPgcPage == 2;
-        if (pWgt->id == ID_PAGE_4) return mPgcPage == 3;
-        if (pWgt->id == ID_PAGE_5) return mPgcPage == 4;
-        if (pWgt->id == ID_PAGE_6) return mPgcPage == 5;
+        if (pWgt->type == twins::Widget::Page)
+            return twins::wgt::getPageID(twins::getWidgetParent(pWgt), mPgcPage) == pWgt->id;
 
         return true;
     }
 
     twins::WID& getFocusedID() override
     {
+        // TODO: distinguish window widgets (use mFocusedId) and page-control widgets (use mFocusedIds[pageidx])
+        //       not possible as long this function returns a reference
         return mFocusedIds[mPgcPage];
     }
 
