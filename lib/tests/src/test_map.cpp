@@ -8,28 +8,55 @@
 #include "gmock/gmock.h"
 
 #include "twins_map.hpp"
+#include <string>
 
 // -----------------------------------------------------------------------------
 
+const char *itostr(int i)
+{
+    static char buff[10];
+    snprintf(buff, sizeof(buff), "%d", i);
+    return buff;
+}
+
 TEST(MAP, add_many)
 {
-    twins::Map<short, int> m;
+    twins::Map<short, long long> m;
     EXPECT_EQ(0, m.size());
     const int step = 3;
+    const int nodes = 300;
 
-    for (int i = 1; i < 100; i += step)
+    for (int i = 1; i < nodes; i += step)
         m[i] = i;
 
-    EXPECT_EQ(100/step, m.size());
+    EXPECT_EQ(nodes/step, m.size());
+    EXPECT_EQ(16, m.bucketsCount());
 
-    for (int i = 1; i < 100; i += step)
+    for (int i = 1; i < nodes; i += step)
         EXPECT_EQ(i, m[i]);
+
+    fprintf(stderr, "distro: %d\n", m.distribution());
+    EXPECT_GE(m.distribution(), 90);
 
     // for (unsigned i = 0; i < m.bucketsCount(); i++)
     // {
     //     const auto *p = m.bucket(i);
     //     printf("bucket[%u] = %u\n", i, p->size());
     // }
+}
+
+TEST(MAP, add_many_strings)
+{
+    twins::Map<short, std::string> m;
+    EXPECT_EQ(0, m.size());
+    const int nodes = 100;
+
+    for (int i = 0; i < nodes; i ++)
+        m[i] = itostr(i);
+
+    EXPECT_EQ(nodes, m.size());
+    EXPECT_EQ(16, m.bucketsCount());
+    EXPECT_STREQ("42", m[42].c_str());
 }
 
 TEST(MAP, remove_clear)

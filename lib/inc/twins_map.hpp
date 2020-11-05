@@ -51,8 +51,11 @@ public:
             mBuckets.resize(4);
         }
 
-        auto *p_node = getNode(key);
-        return p_node->val;
+        if (mNodes >= (mBuckets.size() * 8))
+            growBuckets();
+
+        auto &node = getNode(key);
+        return node.val;
     }
 
     /** @brief Check if given key is known to the map */
@@ -95,6 +98,8 @@ public:
     /** @brief Clear all map entries */
     void clear()
     {
+        mBuckets.resize(4);
+
         for (auto &bkt : mBuckets)
             bkt.clear();
 
@@ -158,13 +163,13 @@ private:
         return hashBuff(&key, sizeof(K));
     }
 
-    unsigned getBucketIdx(Hash hash) const
+    inline unsigned getBucketIdx(Hash hash) const
     {
         // mBuckets.size() must be power of 2
         return hash & (mBuckets.size() - 1);
     }
 
-    Node* getNode(const K &key)
+    Node& getNode(const K &key)
     {
         auto hash = hashAny(key);
         auto bidx = getBucketIdx(hash);
@@ -172,19 +177,32 @@ private:
 
         for (auto &node : bkt)
             if (node.hash == hash && node.key == key)
-                return &node;
+                return node;
 
         auto &node = mBuckets[bidx].append();
         mNodes++;
-
-        if (mNodes >= (mBuckets.size() << 3))
-        {
-            // double the buckets
-        }
-
         node.hash = hash;
         node.key = key;
-        return &node;
+        return node;
+    }
+
+    void growBuckets()
+    {
+        Vector<Bucket> old_buckets = std::move(mBuckets);
+        mBuckets.resize(old_buckets.size() * 2);
+
+        for (const auto &old_bkt : old_buckets)
+        {
+            for (auto &old_node : old_bkt)
+            {
+                auto hash = hashAny(old_node.key);
+                auto bidx = getBucketIdx(hash);
+                auto &node = mBuckets[bidx].append();
+                node.hash = hash;
+                node.key = old_node.key;
+                node.val = std::move(old_node.val);
+            }
+        }
     }
 
 private:
