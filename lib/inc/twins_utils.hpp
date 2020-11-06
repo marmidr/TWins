@@ -20,6 +20,8 @@ namespace twins::util
 
 /** @brief Like \b strchr() but with limited length */
 const char* strnchr(const char *str, int strSz, char c);
+/** @brief Like \b strchr() but with pointed end of string */
+const char* strechr(const char *str, const char *estr, char c);
 
 /** @brief Split string into separate words using any of \p delim characters as delimiters
  *  @param str input string

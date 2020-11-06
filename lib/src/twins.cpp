@@ -6,6 +6,7 @@
 
 #include "twins.hpp"
 #include "twins_stack.hpp"
+#include "twins_utils.hpp"
 
 #include <string.h>
 #include <stdio.h>
@@ -237,12 +238,89 @@ int writeChar(char c, int16_t repeat)
 
 int writeStr(const char *s, int16_t repeat)
 {
-    return pPAL ? pPAL->writeStr(s, repeat) : 0;
+    if (!pPAL)
+        return 0;
+
+    if (g_ts.attrFaint)
+    {
+        int written = 0;
+        const uint16_t s_len = strlen(s);
+
+        while (repeat--)
+            written += writeStrLen(s, s_len);
+
+        return written;
+    }
+    else
+    {
+        return pPAL->writeStr(s, repeat);
+    }
+}
+
+inline uint16_t beginsWith(const char *str, const char *preffix, uint16_t preffixLen)
+{
+    return (strncmp(str, preffix, preffixLen) == 0) ? preffixLen : 0;
 }
 
 int writeStrLen(const char *s, uint16_t sLen)
 {
-    return pPAL ? pPAL->writeStrLen(s, sLen) : 0;
+    if (!pPAL)
+        return 0;
+
+    if (g_ts.attrFaint)
+    {
+        int written = 0;
+        const char *ps = s;
+        const char *const es = s + sLen;
+        const char *esc = util::strechr(ps, es, '\e');
+
+        // \e[1m***\e[0m
+        // \e[1m\e[30m***\e[0m
+        // ###\e[1m***\e[0m
+        // ###\e[0m\e[1m
+
+        while (esc)
+        {
+            // write text before ESC
+            int n = esc - ps;
+            pPAL->writeStrLen(ps, n);
+            ps += n;
+            written += n;
+
+            // weird, but working contruct
+            (n = beginsWith(ps, ESC_BOLD, 4)) || (n = beginsWith(ps, ESC_NORMAL, 5));
+
+            if (n)
+            {
+                // skip bold/normal sequence to preserve faint attribute
+                ps += n;
+                // find next ESC
+                esc = util::strechr(ps, es, '\e');
+            }
+            else
+            {
+                // find next ESC
+                esc = util::strechr(ps + 1, es, '\e');
+            }
+
+            n = esc ? esc - ps : es - ps;
+            pPAL->writeStrLen(ps, n);
+            ps += n;
+            written += n;
+        }
+
+        if (ps < es)
+        {
+            pPAL->writeStrLen(ps, es - ps);
+            written += es - ps;
+        }
+
+        return written;
+    }
+    else
+    {
+        return pPAL->writeStrLen(s, sLen);
+    }
 }
 
 int writeStrFmt(const char *fmt, ...)
@@ -252,7 +330,7 @@ int writeStrFmt(const char *fmt, ...)
 
     va_list ap;
     va_start(ap, fmt);
-    int n = pPAL->writeStrVFmt(fmt, ap);
+    int n = writeStrVFmt(fmt, ap);
     va_end(ap);
     return n;
 }

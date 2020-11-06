@@ -26,6 +26,17 @@ const char* strnchr(const char *str, int strSz, char c)
     return nullptr;
 }
 
+const char* strechr(const char *str, const char *estr, char c)
+{
+    while (str < estr)
+    {
+        if (*str == c) return str;
+        str++;
+    }
+
+    return nullptr;
+}
+
 Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDelim)
 {
     if (!str || !*str)

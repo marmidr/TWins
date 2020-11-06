@@ -12,15 +12,21 @@
 
 // -----------------------------------------------------------------------------
 
-// static const char *getLineBuff()
-// {
-//     if (auto *pal = dynamic_cast<twins::DefaultPAL*>(twins::pPAL))
-//     {
-//         return pal->lineBuff.cstr();
-//     }
+static const char *getLineBuff()
+{
+    if (auto *pal = dynamic_cast<twins::DefaultPAL*>(twins::pPAL))
+    {
+        return pal->lineBuff.cstr();
+    }
 
-//     return "";
-// }
+    return "";
+}
+
+static void clrLineBuff()
+{
+    if (auto *pal = dynamic_cast<twins::DefaultPAL*>(twins::pPAL))
+        pal->lineBuff.clear();
+}
 
 // -----------------------------------------------------------------------------
 
@@ -142,6 +148,10 @@ TEST_F(TWINS, log)
     twins::flushBuffer();
     twins::log(nullptr, __FILE__, __LINE__, nullptr, nullptr);
 
+    // own timestamp
+    uint64_t timestamp;
+    twins::log(&timestamp, __FILE__, __LINE__, "-I-", "Message");
+
     // no PAL
     auto *pal_bkp = twins::pPAL;
     twins::pPAL = nullptr;
@@ -193,4 +203,69 @@ TEST_F(TWINS, logRaw)
 TEST_F(TWINS, sleep)
 {
     twins::sleepMs(10);
+}
+
+TEST_F(TWINS, preserveFaint)
+{
+    const char *s = "";
+
+    // normal
+    {
+        s = "A" ESC_BOLD "B" ESC_NORMAL;
+        twins::writeStr(s);
+        EXPECT_STREQ(s, getLineBuff());
+        clrLineBuff();
+
+        s = "A" ESC_BOLD ESC_NORMAL "B";
+        twins::writeStr(s);
+        EXPECT_STREQ(s, getLineBuff());
+        clrLineBuff();
+
+        s = ESC_BOLD ESC_NORMAL;
+        twins::writeStr(s);
+        EXPECT_STREQ(s, getLineBuff());
+        clrLineBuff();
+
+        s = ESC_BOLD "A" ESC_NORMAL;
+        twins::writeStr(s);
+        EXPECT_STREQ(s, getLineBuff());
+        clrLineBuff();
+
+        s = "AB";
+        twins::writeStr(s);
+        EXPECT_STREQ(s, getLineBuff());
+        clrLineBuff();
+    }
+
+    // fainted
+    twins::FontMemento m;
+    twins::pushAttr(twins::FontAttrib::Faint);
+    clrLineBuff();
+
+    {
+        s = "A" ESC_BOLD "B" ESC_NORMAL;
+        twins::writeStr(s);
+        EXPECT_STREQ("AB", getLineBuff());
+        clrLineBuff();
+
+        s = "A" ESC_BOLD ESC_NORMAL "B";
+        twins::writeStr(s);
+        EXPECT_STREQ("AB", getLineBuff());
+        clrLineBuff();
+
+        s = ESC_BOLD ESC_NORMAL;
+        twins::writeStr(s);
+        EXPECT_STREQ("", getLineBuff());
+        clrLineBuff();
+
+        s = ESC_BOLD "A" ESC_NORMAL;
+        twins::writeStr(s);
+        EXPECT_STREQ("A", getLineBuff());
+        clrLineBuff();
+
+        s = "AB";
+        twins::writeStr(s);
+        EXPECT_STREQ("AB", getLineBuff());
+        clrLineBuff();
+    }
 }

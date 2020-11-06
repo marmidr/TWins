@@ -35,8 +35,6 @@ struct TestPAL : twins::DefaultPAL
 
     ~TestPAL()
     {
-        // moved here to cover the code
-        twins::mouseMode(twins::MouseMode::Off);
         deinit();
         twins::deinit();
     }
@@ -66,7 +64,9 @@ int main(int argc, char **argv)
     argc = vargs.size();
 
     testing::InitGoogleTest(&argc, vargs.data());
+    twins::mouseMode(twins::MouseMode::M1);
     int rc = RUN_ALL_TESTS();
+    twins::mouseMode(twins::MouseMode::Off);
     fprintf(stderr, "\n*** Tests finished ***\n");
     return rc;
 }

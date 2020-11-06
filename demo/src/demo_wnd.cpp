@@ -758,10 +758,11 @@ static constexpr twins::Widget wndMain =
             size    : {}, //{ 78, 1 },
             { label : {
                 text    :  " "
-                           ESC_BOLD "F4 "       ESC_NORMAL "Mouse On/Off"   "  "
+                           ESC_BOLD "F2 "       ESC_NORMAL "Wnd En"   "  "
+                           ESC_BOLD "F4 "       ESC_NORMAL "Mouse On"   "  "
                            ESC_BOLD "F5 "       ESC_NORMAL "Refresh"        "  "
                            ESC_BOLD "F6 "       ESC_NORMAL "Clr Logs"       "  "
-                           ESC_BOLD "F9/F10 "   ESC_NORMAL "Change Page"    "  "
+                           ESC_BOLD "F9/F10 "   ESC_NORMAL "Page"    "  "
                            "\u2581" "\u2582" "\u2583" "\u2584" "\u2585" "\u2586" "\u2587" "\u2588" "\U0001F569"
                            ,
                 fgColor : twins::ColorFG::White,

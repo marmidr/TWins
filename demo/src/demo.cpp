@@ -300,6 +300,8 @@ public:
     {
         switch (pWgt->id)
         {
+        case ID_WND:
+            return wndEnabled;
         case ID_CHBX_C:
             return false;
         case ID_PANEL_VERSIONS:
@@ -501,6 +503,7 @@ public:
     twins::String lblKeycodeSeq;
     twins::String lblKeyName;
     twins::Vector<twins::WID> invalidatedWgts;
+    bool wndEnabled = true;
 
 private:
     int16_t mPgbarPos = 0;
@@ -682,7 +685,12 @@ int main()
             }
 
 
-            if (kc.m_spec && kc.key == twins::Key::F4)
+            if (kc.m_spec && kc.key == twins::Key::F2)
+            {
+                wndMain.wndEnabled = !wndMain.wndEnabled;
+                wndMain.invalidate(ID_WND);
+            }
+            else if (kc.m_spec && kc.key == twins::Key::F4)
             {
                 static bool mouse_on = true;
                 mouse_on = !mouse_on;
