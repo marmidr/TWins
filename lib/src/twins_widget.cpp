@@ -1034,6 +1034,9 @@ static bool processKey(CallEnv &env, const KeyCode &kc)
     if (!p_wgt)
         return false;
 
+    if (!isEnabled(env, p_wgt))
+        return true;
+
     switch (p_wgt->type)
     {
     case Widget::Edit:
@@ -1342,7 +1345,8 @@ static bool processMouse(CallEnv &env, const KeyCode &kc)
     {
         if (const auto *p_wgt = findMainPgControl(env))
         {
-            pgControlChangePage(env, p_wgt, kc.mouse.btn == MouseBtn::ButtonGoForward);
+            if (isEnabled(env, p_wgt))
+                pgControlChangePage(env, p_wgt, kc.mouse.btn == MouseBtn::ButtonGoForward);
             return true;
         }
     }
