@@ -82,11 +82,60 @@ TEST(MAP, remove_clear)
     EXPECT_EQ(0, m.size());
 }
 
-TEST(MAP, key_bool)
+TEST(MAP, key_arithmetic)
 {
-    twins::Map<bool, int> m;
-    EXPECT_EQ(0, m.size());
+    {
+        twins::Map<bool, int> m;
+        EXPECT_EQ(0, m.size());
 
-    m[false] = 1;
-    m[true] = 2;
+        m[false] = 1;
+        m[true] = 2;
+        EXPECT_EQ(2, m[true]);
+    }
+
+    {
+        twins::Map<double, bool> m;
+
+        EXPECT_FALSE(m[3.14]);
+        m[3.14] = true;
+        EXPECT_TRUE(m[3.14]);
+    }
+}
+
+TEST(MAP, key_enum)
+{
+    {
+        enum Valves {VLV_None, VLV_Forward, VLV_Backward} ;
+        twins::Map<Valves, bool> m;
+
+        EXPECT_FALSE(m[VLV_Forward]);
+        m[VLV_Forward] = true;
+        EXPECT_TRUE(m[VLV_Forward]);
+    }
+
+    {
+        enum class Valves {None, Forward, Backward} ;
+        twins::Map<Valves, int> m;
+        m[Valves::Forward] = true;
+    }
+}
+
+TEST(MAP, key_cstr)
+{
+    {
+        twins::Map<const char*, bool> m;
+
+        EXPECT_FALSE(m["Göbekli Tepe"]);
+        m["Göbekli Tepe"] = true;
+        EXPECT_TRUE(m["Göbekli Tepe"]);
+    }
+
+    {
+        twins::Map<char*, bool> m;
+        char key[10]; strcpy(key, "*key");
+
+        EXPECT_FALSE(m[key]);
+        m[key] = true;
+        EXPECT_TRUE(m[key]);
+    }
 }

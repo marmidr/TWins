@@ -150,17 +150,18 @@ private:
         return hash;
     }
 
-    // template <typename std::enable_if<
-    //     std::is_same<const char*, K>::value || std::is_same<char*, K>::value, int>::type = 0>
-    // Hash hashAny(const K &key) const
-    // {
-    //     return hashBuff(key, strlen(key));
-    // }
-
-    template <typename std::enable_if<std::is_integral<K>::value, int>::type = 0>
-    Hash hashAny(const K &key) const
+    template <typename Key, typename std::enable_if<
+        std::is_same<const char*, Key>::value || std::is_same<char*, Key>::value, int>::type = 0>
+    Hash hashAny(const Key &key) const
     {
-        return hashBuff(&key, sizeof(K));
+        return hashBuff(key, strlen(key));
+    }
+
+    template <typename Key, typename std::enable_if<
+        std::is_arithmetic<Key>::value || std::is_enum<Key>::value, int>::type = 0>
+    Hash hashAny(const Key &key) const
+    {
+        return hashBuff(&key, sizeof(Key));
     }
 
     inline unsigned getBucketIdx(Hash hash) const
