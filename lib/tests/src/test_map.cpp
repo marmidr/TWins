@@ -99,6 +99,11 @@ TEST(MAP, key_arithmetic)
         EXPECT_FALSE(m[3.14]);
         m[3.14] = true;
         EXPECT_TRUE(m[3.14]);
+
+        EXPECT_FALSE(m[0.0]);
+        EXPECT_FALSE(m[-0.0]);
+        m[-0.0] = true;
+        EXPECT_TRUE(m[0.0]);
     }
 }
 
@@ -120,14 +125,16 @@ TEST(MAP, key_enum)
     }
 }
 
-TEST(MAP, key_cstr)
+TEST(MAP, key_string)
 {
     {
         twins::Map<const char*, bool> m;
 
         EXPECT_FALSE(m["Göbekli Tepe"]);
         m["Göbekli Tepe"] = true;
-        EXPECT_TRUE(m["Göbekli Tepe"]);
+        std::string k = "Göbekli Tepe"; // same key, different pointer value
+        EXPECT_TRUE(m[k.c_str()]);
+        EXPECT_EQ(1, m.size());
     }
 
     {
@@ -137,5 +144,15 @@ TEST(MAP, key_cstr)
         EXPECT_FALSE(m[key]);
         m[key] = true;
         EXPECT_TRUE(m[key]);
+    }
+
+    // example of own hashing object for not embedded key type
+    {
+        struct HashStdStr { static uint16_t hash(const std::string& str) { return twins::bernsteinHashImpl(str.data(), str.size()); } };
+        twins::Map<std::string, bool, HashStdStr> m;
+
+        EXPECT_FALSE(m["exists"]);
+        m["exists"] = true;
+        EXPECT_TRUE(m["exists"]);
     }
 }

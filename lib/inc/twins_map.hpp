@@ -7,6 +7,7 @@
 #pragma once
 #include "twins_common.hpp"
 #include "twins_vector.hpp"
+#include "twins_hash.hpp"
 
 #include <utility>  // std::move
 #include <memory>   // new(addr) T()
@@ -20,7 +21,7 @@ namespace twins
 /**
  * @brief Simple hashing map for Key-Value pairs
  */
-template<typename K, typename V>
+template<typename K, typename V, typename H = HashDefault>
 class Map
 {
 public:
@@ -36,10 +37,7 @@ public:
     using Bucket = Vector<Node>;
 
 public:
-    Map()
-    {
-    }
-
+    Map() = default;
     ~Map() = default;
 
     /** @brief Direct access operator; return existing value, creates new otherwise */
@@ -61,7 +59,7 @@ public:
     /** @brief Check if given key is known to the map */
     bool contains(const K &key)
     {
-        auto hash = hashAny(key);
+        auto hash = H::hash(key);
         auto bidx = getBucketIdx(hash);
         auto &bkt = mBuckets[bidx];
 
@@ -75,7 +73,7 @@ public:
     /** @brief Remove entry */
     void remove(const K &key)
     {
-        auto hash = hashAny(key);
+        auto hash = H::hash(key);
         auto &bkt = mBuckets[getBucketIdx(hash)];
 
         for (unsigned i = 0; i < bkt.size(); i++)
@@ -140,29 +138,7 @@ public:
     }
 
 private:
-    Hash hashBuff(const void *data, unsigned length) const
-    {
-        const char *p = (const char*)data;
-        // modified Dan Bernstein hash function for strings
-        unsigned hash = 5381;
-        for (unsigned i = 0; i < length; i++)
-            hash = ((hash << 5) + hash) ^ *p++; // (hash * 33) ^ *p
-        return hash;
-    }
-
-    template <typename Key, typename std::enable_if<
-        std::is_same<const char*, Key>::value || std::is_same<char*, Key>::value, int>::type = 0>
-    Hash hashAny(const Key &key) const
-    {
-        return hashBuff(key, strlen(key));
-    }
-
-    template <typename Key, typename std::enable_if<
-        std::is_arithmetic<Key>::value || std::is_enum<Key>::value, int>::type = 0>
-    Hash hashAny(const Key &key) const
-    {
-        return hashBuff(&key, sizeof(Key));
-    }
+    using key_is_cstr = typename std::conditional< std::is_same<const char*, K>::value || std::is_same<char*, K>::value, std::true_type, std::false_type >::type;
 
     inline unsigned getBucketIdx(Hash hash) const
     {
@@ -170,14 +146,26 @@ private:
         return hash & (mBuckets.size() - 1);
     }
 
+    template<typename Key>
+    inline bool keysEqual(Key k1, Key k2, std::true_type)
+    {
+        return strcmp(k1, k2) == 0;
+    }
+
+    template<typename Key>
+    inline bool keysEqual(const Key &k1, const Key &k2, std::false_type)
+    {
+        return k1 == k2;
+    }
+
     Node& getNode(const K &key)
     {
-        auto hash = hashAny(key);
+        auto hash = H::hash(key);
         auto bidx = getBucketIdx(hash);
         auto &bkt = mBuckets[bidx];
 
         for (auto &node : bkt)
-            if (node.hash == hash && node.key == key)
+            if ((node.hash == hash) && keysEqual(node.key, key, key_is_cstr{}))
                 return node;
 
         auto &node = mBuckets[bidx].append();
@@ -196,7 +184,7 @@ private:
         {
             for (auto &old_node : old_bkt)
             {
-                auto hash = hashAny(old_node.key);
+                auto hash = H::hash(old_node.key);
                 auto bidx = getBucketIdx(hash);
                 auto &node = mBuckets[bidx].append();
                 node.hash = hash;
