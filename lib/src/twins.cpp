@@ -42,7 +42,7 @@ struct TwinsState
 };
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
-static char ts_buff[sizeof(TwinsState)] alignas(TwinsState);
+static char ts_buff alignas(TwinsState) [sizeof(TwinsState)];
 TwinsState& g_ts = (TwinsState&)ts_buff;
 
 // -----------------------------------------------------------------------------

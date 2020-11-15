@@ -37,6 +37,7 @@ Implementation is based on examples:
     - [x] control codes (Up/Down, Del, Ctrl, Home, ...)
 - [x] buffered terminal output
 - [x] platform abstraction layer (PAL) to ease porting
+- [ ] make it compile in clang
 
 ## Secondary goals
 

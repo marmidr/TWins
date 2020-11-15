@@ -23,9 +23,9 @@
 
 
 #if TWINS_USE_KEY_NAMES
-# define KEY_DEF(seq, name, code, mod)   seq, name, (Key)code, mod, (sizeof(seq)-1),
+# define KEY_DEF(seq, name, code, mod)   seq, name, (Key)code, mod, sizeof(seq)-1,
 #else
-# define KEY_DEF(seq, name, code, mod)   seq,       (Key)code, mod, (sizeof(seq)-1),
+# define KEY_DEF(seq, name, code, mod)   seq,       (Key)code, mod, sizeof(seq)-1,
 #endif
 
 // -----------------------------------------------------------------------------

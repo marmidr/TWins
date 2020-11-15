@@ -324,7 +324,7 @@ struct Widget
     };
 
     /** parent <- this -> childs linking */
-    union
+    union Link
     {
         __TWINS_LINK_SECRET;
         //

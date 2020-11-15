@@ -643,9 +643,6 @@ static constexpr twins::Widget wndMain =
     // NOTE: all members must be initialized, in order they are declared,
     // otherwise GCC may fail to compile: 'sorry, unimplemented: non-trivial designated initializers not supported'
 
-    // C-style:     .id = ID_WND,
-    // C++ style:   id : ID_WND,
-
     type    : twins::Widget::Window,
     id      : ID_WND,
     coord   : { 15, 1 },

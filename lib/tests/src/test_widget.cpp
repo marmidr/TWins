@@ -49,7 +49,7 @@ public:
 
     const twins::Widget *getWidgets() const override { return mpWgts; }
 
-    twins::WID& getFocusedID() { return wgtId; };
+    twins::WID& getFocusedID() override { return wgtId; };
 
     void getLabelText(const twins::Widget*, twins::String &out) override
     {

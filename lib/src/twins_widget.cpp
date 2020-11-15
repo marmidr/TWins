@@ -19,7 +19,7 @@ namespace twins
 {
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
-static char wds_buff[sizeof(WidgetState)] alignas(WidgetState);
+static char wds_buff alignas(WidgetState) [sizeof(WidgetState)];
 WidgetState& g_ws = (WidgetState&)wds_buff;
 
 // forward decl
