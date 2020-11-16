@@ -475,6 +475,10 @@ public:
         {
             out.appendFmt("  ✉   📢  ");
         }
+        else if (pWgt->id == ID_BTN_1P5)
+        {
+            out << "1.5 🍋 Height";
+        }
     }
 
 private:

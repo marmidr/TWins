@@ -510,10 +510,9 @@ static void drawButton(CallEnv &env, const Widget *pWgt)
     const bool focused = env.pState->isFocused(pWgt);
     const bool pressed = pWgt == g_ws.pMouseDownWgt;
     auto clfg = getWidgetFgColor(pWgt);
-    String txt;
-
     intensifyClIf(focused, clfg);
 
+    String txt;
     if (pWgt->button.text)
         txt = pWgt->button.text;
     else
@@ -581,7 +580,7 @@ static void drawButton(CallEnv &env, const Widget *pWgt)
         g_ws.str << " " << txt << " ";
         auto clbg = getWidgetBgColor(pWgt);
         auto clparbg = getWidgetBgColor(getParent(pWgt));
-        const auto bnt_len = 2 + String::width(pWgt->button.text);
+        const auto bnt_len = 2 + txt.width();
         const char* scl_shadow = ESC_BG_COLOR(233);
         const char* scl_bg2fg = transcodeClBg2Fg(encodeCl(clbg));
         FontMemento _m;

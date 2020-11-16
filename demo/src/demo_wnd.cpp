@@ -627,9 +627,9 @@ static constexpr twins::Widget page6Childs[] =
         type    : twins::Widget::Button,
         id      : ID_BTN_1P5,
         coord   : { 38, 7 },
-        size    : {},
+        size    : { 12, 0 },
         { button : {
-            text    : "1.5 🍋 Height",
+            text    : {},
             fgColor : twins::ColorFG::White,
             bgColor : twins::ColorBG::ButtonGreen,
             style   : twins::ButtonStyle::Solid1p5
