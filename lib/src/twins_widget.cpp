@@ -133,22 +133,31 @@ const Widget* getWidgetAt(CallEnv &env, uint8_t col, uint8_t row, Rect &wgtRect)
         case Widget::Button:
         {
             uint16_t txt_w = 0;
+
             if (p_wgt->button.text)
                 txt_w = String::width(p_wgt->button.text);
+            else if (p_wgt->size.width)
+                txt_w = p_wgt->size.width;
+            else
+            {
+                g_ws.str.clear();
+                env.pState->getButtonText(p_wgt, g_ws.str);
+                txt_w = g_ws.str.width();
+            }
 
             switch (p_wgt->button.style)
             {
             case ButtonStyle::Simple:
                 r.size.height = 1;
-                r.size.width = txt_w ? 4 + txt_w : p_wgt->size.width;
+                r.size.width = 4 + txt_w;
                 break;
             case ButtonStyle::Solid:
                 r.size.height = 1;
-                r.size.width = txt_w ? 2 + txt_w : p_wgt->size.width;
+                r.size.width = 2 + txt_w;
                 break;
             case ButtonStyle::Solid1p5:
                 r.size.height = 3;
-                r.size.width = txt_w ? 2 + txt_w : p_wgt->size.width;
+                r.size.width = 2 + txt_w;
                 break;
             default:
                 break;

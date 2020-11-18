@@ -207,13 +207,24 @@ Vector<StringRange> splitLines(const char *str)
     return out;
 }
 
-twins::String centerText(twins::String str, uint16_t areaWidth)
+twins::String centerText(const char *str, uint16_t areaWidth)
 {
-    twins::String out(std::move(str));
-    auto txt_width = out.width();
+    auto str_width = twins::String::width(str);
+    twins::String out;
 
-    if (areaWidth - txt_width > 1)
-        out.insert(0, " ", (areaWidth - txt_width)/2);
+    if (areaWidth - str_width > 0)
+    {
+        uint16_t leading_spaces = (areaWidth - str_width)/2;
+        // note that for reservation a buffer length is needed, not visual text width
+        out.reserve(strlen(str) + (areaWidth - str_width));
+        out.append(' ', leading_spaces)
+           .append(str)
+           .append(' ', areaWidth - str_width - leading_spaces);
+    }
+    else
+    {
+        out = str;
+    }
 
     return out;
 }

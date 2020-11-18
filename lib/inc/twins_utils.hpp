@@ -45,10 +45,10 @@ twins::String wordWrap(const char *str, uint16_t areaWidth, const char *delim = 
  */
 twins::Vector<twins::StringRange> splitLines(const char *str);
 
-/** @brief Prepend single line \p str with spaces to make it centered on \p areaWidth area.
+/** @brief Prepend single line \p str with spaces and append spaces to make it centered on \p areaWidth .
  *         ESC sequences are ignored
  */
-twins::String centerText(twins::String str, uint16_t areaWidth);
+twins::String centerText(const char *str, uint16_t areaWidth);
 
 // -----------------------------------------------------------------------------
 
