@@ -14,11 +14,11 @@
 namespace twins
 {
 
-uint32_t bernsteinHashImpl(const void *data, unsigned length)
+uint32_t bernsteinHashImpl(const void *data, unsigned length, uint32_t seed = 5381)
 {
     const char *p = (const char*)data;
     // modified Dan Bernstein hash function for strings
-    uint32_t hash = 5381;
+    uint32_t hash = seed;
     for (unsigned i = 0; i < length; i++)
         hash = ((hash << 5) + hash) ^ *p++; // (hash * 33) ^ *p
     return hash;

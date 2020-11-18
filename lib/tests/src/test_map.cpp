@@ -30,13 +30,13 @@ TEST(MAP, add_many)
         m[i] = i;
 
     EXPECT_EQ(nodes/step, m.size());
-    EXPECT_EQ(16, m.bucketsCount());
+    EXPECT_EQ(32, m.bucketsCount());
 
     for (int i = 1; i < nodes; i += step)
         EXPECT_EQ(i, m[i]);
 
     fprintf(stderr, "distro: %d\n", m.distribution());
-    EXPECT_GE(m.distribution(), 90);
+    EXPECT_GE(m.distribution(), 85);
 
     // for (unsigned i = 0; i < m.bucketsCount(); i++)
     // {
@@ -55,7 +55,7 @@ TEST(MAP, add_many_strings)
         m[i] = itostr(i);
 
     EXPECT_EQ(nodes, m.size());
-    EXPECT_EQ(16, m.bucketsCount());
+    EXPECT_EQ(32, m.bucketsCount());
     EXPECT_STREQ("42", m[42].c_str());
 }
 
@@ -113,6 +113,7 @@ TEST(MAP, key_enum)
         enum Valves {VLV_None, VLV_Forward, VLV_Backward} ;
         twins::Map<Valves, bool> m;
 
+        EXPECT_FALSE(m.contains(VLV_None));
         EXPECT_FALSE(m[VLV_Forward]);
         m[VLV_Forward] = true;
         EXPECT_TRUE(m[VLV_Forward]);
@@ -129,10 +130,13 @@ TEST(MAP, key_string)
 {
     {
         twins::Map<const char*, bool> m;
+        const char *key = "Göbekli Tepe";
+        EXPECT_FALSE(m.contains(key));
+        EXPECT_FALSE(m[key]);
+        EXPECT_TRUE(m.contains(key));
 
-        EXPECT_FALSE(m["Göbekli Tepe"]);
-        m["Göbekli Tepe"] = true;
-        std::string k = "Göbekli Tepe"; // same key, different pointer value
+        m[key] = true;
+        std::string k = key; // same key, different pointer value
         EXPECT_TRUE(m[k.c_str()]);
         EXPECT_EQ(1, m.size());
     }

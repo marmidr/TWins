@@ -35,14 +35,15 @@ public:
     };
 
     using Bucket = Vector<Node>;
+    using Buckets = Vector<Bucket>;
 
     class Iter
     {
     public:
         struct NodeIdx
         {
-            uint16_t bktIdx = -1;
-            uint16_t itemIdx = 0;
+            uint16_t bktIdx;
+            uint16_t itemIdx;
             bool operator ==(const NodeIdx& other) const { return bktIdx == other.bktIdx && itemIdx == other.itemIdx; }
         };
 
@@ -50,7 +51,7 @@ public:
         Iter(void) = delete;
 
         Iter(Map<K, V, H> &map, bool begin)
-            : mMap(map)
+            : mBkts(map.mBuckets)
         {
             if (begin)
             {
@@ -59,14 +60,14 @@ public:
             }
             else
             {
-                mIdx.bktIdx = mMap.mBuckets.size();
+                mIdx.bktIdx = mBkts.size();
             }
 
             mIdx.itemIdx = 0;
         }
 
         Iter(const Iter &other)
-            : mMap(other.mMap)
+            : mBkts(other.mBkts)
         {
             mIdx = other.mIdx;
         }
@@ -74,14 +75,14 @@ public:
         bool operator == (const Iter &other) const { return mIdx == other.mIdx; }
         bool operator != (const Iter &other) const { return !(mIdx == other.mIdx); }
         const Node * operator -> (void) const { return &operator*(); }
-        const Node & operator * (void)  const { return mMap.mBuckets[mIdx.bktIdx][mIdx.itemIdx]; }
+        const Node & operator * (void)  const { return mBkts[mIdx.bktIdx][mIdx.itemIdx]; }
 
         // ++it
         Iter& operator ++(void)
         {
-            if (mIdx.bktIdx < mMap.mBuckets.size())
+            if (mIdx.bktIdx < mBkts.size())
             {
-                if (++mIdx.itemIdx >= mMap.mBuckets[mIdx.bktIdx].size())
+                if (++mIdx.itemIdx >= mBkts[mIdx.bktIdx].size())
                 {
                     mIdx.itemIdx = 0;
                     mIdx.bktIdx++;
@@ -95,37 +96,14 @@ public:
     private:
         void goToNextNonemptyBucket()
         {
-            while (mIdx.bktIdx < mMap.mBuckets.size() && mMap.mBuckets[mIdx.bktIdx].size() == 0)
+            while (mIdx.bktIdx < mBkts.size() && mBkts[mIdx.bktIdx].size() == 0)
                 mIdx.bktIdx++;
         }
 
     protected:
-        Map<K, V, H> &mMap;
-        NodeIdx       mIdx;
+        Buckets &mBkts;
+        NodeIdx  mIdx;
     };
-
-    // class ConstIter
-    // {
-    // public:
-    //     ConstIter(void) = delete;
-    //     ConstIter(const Vector<T> &vec, unsigned idx  = 0) { mIdx = vec.data() + idx; }
-    //     ConstIter(const ConstIter &other) { mIdx = other.mIdx; }
-
-    //     bool operator == (const ConstIter &other) const { return mIdx == other.mIdx; }
-    //     bool operator != (const ConstIter &other) const { return mIdx != other.mIdx; }
-    //     const T & operator *  (void) const { return *mIdx; }
-    //     const T * operator -> (void) const { return mIdx; }
-
-    //     // ++it
-    //     ConstIter& operator ++(void)
-    //     {
-    //         mIdx++;
-    //         return *this;
-    //     }
-
-    // protected:
-    //     const T* mIdx;
-    // };
 
 public:
     Map() = default;
@@ -140,22 +118,25 @@ public:
             mBuckets.resize(4);
         }
 
-        if (mNodes >= (mBuckets.size() * 8))
+        if (mNodes >= (mBuckets.size() * 4))
             growBuckets();
 
         auto &node = getNode(key);
         return node.val;
     }
 
-    /** @brief Check if given key is known to the map */
-    bool contains(const K &key)
+    /** @brief Check if given key exists */
+    bool contains(const K &key) const
     {
+        if (!mBuckets.size())
+            return false;
+
         auto hash = H::hash(key);
         auto bidx = getBucketIdx(hash);
-        auto &bkt = mBuckets[bidx];
+        const auto &bkt = mBuckets[bidx];
 
         for (auto &node : bkt)
-            if (node.hash == hash && node.key == key)
+            if ((node.hash == hash) && keysEqual(node.key, key, key_is_cstr{}))
                 return true;
 
         return false;
@@ -164,12 +145,15 @@ public:
     /** @brief Remove entry */
     void remove(const K &key)
     {
+        if (!mBuckets.size())
+            return;
+
         auto hash = H::hash(key);
         auto &bkt = mBuckets[getBucketIdx(hash)];
 
         for (unsigned i = 0; i < bkt.size(); i++)
         {
-            if (bkt[i].hash == hash && bkt[i].key == key)
+            if ((bkt[i].hash == hash) && keysEqual(bkt[i].key, key, key_is_cstr{}))
             {
                 bkt.remove(i);
                 mNodes--;
@@ -187,12 +171,14 @@ public:
     /** @brief Clear all map entries */
     void clear()
     {
-        mBuckets.resize(4);
+        if (mBuckets.size())
+        {
+            mNodes = 0;
+            mBuckets.resize(4);
 
-        for (auto &bkt : mBuckets)
-            bkt.clear();
-
-        mNodes = 0;
+            for (auto &bkt : mBuckets)
+                bkt.clear();
+        }
     }
 
     /** @brief Number of buckets - for test purposes */
@@ -231,11 +217,11 @@ public:
     Iter begin(void) { return Iter(*this, true); }
     Iter end(void)   { return Iter(*this, false); }
 
-    // ConstIter begin(void) const { return ConstIter(*this, 0); }
-    // ConstIter end(void)   const { return ConstIter(*this, size()); }
-
 private:
-    using key_is_cstr = typename std::conditional< std::is_same<const char*, K>::value || std::is_same<char*, K>::value, std::true_type, std::false_type >::type;
+    using key_is_cstr = typename std::conditional<
+                            std::is_same<const char*, K>::value || std::is_same<char*, K>::value,
+                            std::true_type, std::false_type
+                        >::type;
 
     inline unsigned getBucketIdx(Hash hash) const
     {
@@ -244,13 +230,13 @@ private:
     }
 
     template<typename Key>
-    inline bool keysEqual(Key k1, Key k2, std::true_type)
+    inline bool keysEqual(Key k1, Key k2, std::true_type) const
     {
         return strcmp(k1, k2) == 0;
     }
 
     template<typename Key>
-    inline bool keysEqual(const Key &k1, const Key &k2, std::false_type)
+    inline bool keysEqual(const Key &k1, const Key &k2, std::false_type) const
     {
         return k1 == k2;
     }
@@ -274,7 +260,7 @@ private:
 
     void growBuckets()
     {
-        Vector<Bucket> old_buckets = std::move(mBuckets);
+        auto old_buckets = std::move(mBuckets);
         mBuckets.resize(old_buckets.size() * 2);
 
         for (const auto &old_bkt : old_buckets)
@@ -292,7 +278,7 @@ private:
     }
 
 private:
-    Vector<Bucket> mBuckets;
+    Buckets  mBuckets;
     uint16_t mNodes = 0;
 };
 
