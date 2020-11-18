@@ -29,12 +29,103 @@ public:
 
     struct Node
     {
-        Hash hash;
-        K    key;
-        V    val;
+        Hash      hash;
+        K         key;
+        mutable V val;
     };
 
     using Bucket = Vector<Node>;
+
+    class Iter
+    {
+    public:
+        struct NodeIdx
+        {
+            uint16_t bktIdx = -1;
+            uint16_t itemIdx = 0;
+            bool operator ==(const NodeIdx& other) const { return bktIdx == other.bktIdx && itemIdx == other.itemIdx; }
+        };
+
+    public:
+        Iter(void) = delete;
+
+        Iter(Map<K, V, H> &map, bool begin)
+            : mMap(map)
+        {
+            if (begin)
+            {
+                mIdx.bktIdx = 0;
+                goToNextNonemptyBucket();
+            }
+            else
+            {
+                mIdx.bktIdx = mMap.mBuckets.size();
+            }
+
+            mIdx.itemIdx = 0;
+        }
+
+        Iter(const Iter &other)
+            : mMap(other.mMap)
+        {
+            mIdx = other.mIdx;
+        }
+
+        bool operator == (const Iter &other) const { return mIdx == other.mIdx; }
+        bool operator != (const Iter &other) const { return !(mIdx == other.mIdx); }
+        const Node * operator -> (void) const { return &operator*(); }
+        const Node & operator * (void)  const { return mMap.mBuckets[mIdx.bktIdx][mIdx.itemIdx]; }
+
+        // ++it
+        Iter& operator ++(void)
+        {
+            if (mIdx.bktIdx < mMap.mBuckets.size())
+            {
+                if (++mIdx.itemIdx >= mMap.mBuckets[mIdx.bktIdx].size())
+                {
+                    mIdx.itemIdx = 0;
+                    mIdx.bktIdx++;
+                    goToNextNonemptyBucket();
+                }
+            }
+
+            return *this;
+        }
+
+    private:
+        void goToNextNonemptyBucket()
+        {
+            while (mIdx.bktIdx < mMap.mBuckets.size() && mMap.mBuckets[mIdx.bktIdx].size() == 0)
+                mIdx.bktIdx++;
+        }
+
+    protected:
+        Map<K, V, H> &mMap;
+        NodeIdx       mIdx;
+    };
+
+    // class ConstIter
+    // {
+    // public:
+    //     ConstIter(void) = delete;
+    //     ConstIter(const Vector<T> &vec, unsigned idx  = 0) { mIdx = vec.data() + idx; }
+    //     ConstIter(const ConstIter &other) { mIdx = other.mIdx; }
+
+    //     bool operator == (const ConstIter &other) const { return mIdx == other.mIdx; }
+    //     bool operator != (const ConstIter &other) const { return mIdx != other.mIdx; }
+    //     const T & operator *  (void) const { return *mIdx; }
+    //     const T * operator -> (void) const { return mIdx; }
+
+    //     // ++it
+    //     ConstIter& operator ++(void)
+    //     {
+    //         mIdx++;
+    //         return *this;
+    //     }
+
+    // protected:
+    //     const T* mIdx;
+    // };
 
 public:
     Map() = default;
@@ -136,6 +227,12 @@ public:
 
         return 100 - (100 * over_expected / mNodes);
     }
+
+    Iter begin(void) { return Iter(*this, true); }
+    Iter end(void)   { return Iter(*this, false); }
+
+    // ConstIter begin(void) const { return ConstIter(*this, 0); }
+    // ConstIter end(void)   const { return ConstIter(*this, size()); }
 
 private:
     using key_is_cstr = typename std::conditional< std::is_same<const char*, K>::value || std::is_same<char*, K>::value, std::true_type, std::false_type >::type;

@@ -156,3 +156,62 @@ TEST(MAP, key_string)
         EXPECT_TRUE(m["exists"]);
     }
 }
+
+TEST(MAP, iterators_small)
+{
+    twins::Map<short, int> m;
+    EXPECT_EQ(0, m.size());
+
+    // map empty
+    {
+        int n = 0;
+        for (auto it : m)
+            (void)it, n++;
+        EXPECT_EQ(0, n);
+    }
+
+    // 1 element
+    {
+        m[0] = 0;
+        EXPECT_EQ(1, m.size());
+        EXPECT_EQ(4, m.bucketsCount());
+
+        for (auto it : m)
+        {
+            printf("m[%d | %04x] : %d\n", it.key, it.hash, it.val);
+            it.val++;
+        }
+    }
+}
+
+TEST(MAP, iterators_big)
+{
+    twins::Map<short, int> m;
+    EXPECT_EQ(0, m.size());
+
+    for (int i = 4; i < 10; i++)
+        m[i] = i*10;
+
+    {
+        auto b = m.begin();
+        auto e = m.end();
+
+        while (b != e)
+        {
+            // b->hash;
+            ++b;
+        }
+    }
+
+    {
+        int n = 0;
+        for (auto it : m)
+        {
+            printf("m[%d | %04x] : %d\n", it.key, it.hash, it.val);
+            it.val++;
+            n++;
+        }
+
+        EXPECT_EQ(m.size(), n);
+    }
+}
