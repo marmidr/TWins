@@ -538,14 +538,14 @@ public:
         if (onButton)
             onButton(pWgt->id);
 
-        twins::glob::wMngr.popWnd();
+        twins::glob::wMngr.hide(this);
     }
 
     bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         if (kc.key == twins::Key::Esc)
         {
-            twins::glob::wMngr.popWnd();
+            twins::glob::wMngr.hide(this);
             return true;
         }
         return false;
@@ -572,7 +572,7 @@ public:
     {
         switch (pWgt->id)
         {
-        case IDPP_WND:          return twins::glob::wMngr.topWndWidgets() == pWgt;
+        case IDPP_WND:          return twins::glob::wMngr.topWnd() == this;
         case IDPP_BTN_YES:      return strstr(buttons.cstr(), "y") != nullptr;
         case IDPP_BTN_NO:       return strstr(buttons.cstr(), "n") != nullptr;
         case IDPP_BTN_CANCEL:   return strstr(buttons.cstr(), "c") != nullptr;
@@ -627,7 +627,7 @@ void showPopup(twins::String title, twins::String message, std::function<void(tw
     wndPopup.onButton = onButton;
     wndPopup.buttons = buttons;
 
-    twins::glob::wMngr.pushWnd(getWndPopup());
+    twins::glob::wMngr.show(getWndPopup());
 }
 
 // -----------------------------------------------------------------------------
@@ -637,7 +637,7 @@ int main()
     // printf("Win1 controls: %u" "\n", wndMain.topWnd.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
     twins::screenClrAll();
-    twins::glob::wMngr.pushWnd(getWndMain());
+    twins::glob::wMngr.show(getWndMain());
     twins::inputPosixInit(100);
     twins::mouseMode(twins::MouseMode::M2);
     twins::flushBuffer();

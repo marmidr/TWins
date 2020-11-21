@@ -421,11 +421,11 @@ TEST_F(WIDGET, wndManager)
 
     EXPECT_EQ(0, wmngr.size());
     EXPECT_EQ(nullptr, wmngr.topWndWidgets());
-    wmngr.pushWnd(getWndTest());
+    wmngr.show(getWndTest());
     wmngr.redrawAll();
     EXPECT_EQ(1, wmngr.size());
     EXPECT_EQ(getWndTest(), wmngr.topWnd());
-    wmngr.popWnd();
+    wmngr.hide(getWndTest());
     EXPECT_EQ(0, wmngr.size());
 }
 

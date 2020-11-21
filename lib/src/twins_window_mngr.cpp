@@ -13,18 +13,36 @@ namespace twins
 
 // -----------------------------------------------------------------------------
 
-void WndManager::pushWnd(twins::IWindowState *pWindow)
+void WndManager::show(twins::IWindowState *pWnd, bool bringToTop)
 {
-    mWindows.append(pWindow);
-    twins::resetInternalState();
-    twins::drawWidget(pWindow->getWidgets());
+    int idx = -1;
+
+    if (mWindows.find(pWnd, &idx) && bringToTop)
+    {
+        // is on the list
+        if (idx < (int)(mWindows.size())-1)
+        {
+            // and is not on top
+            mWindows.remove(idx, true);
+            mWindows.append(pWnd);
+            redrawAll();
+        }
+    }
+    else
+    {
+        mWindows.append(pWnd);
+        twins::resetInternalState();
+        twins::drawWidget(pWnd->getWidgets());
+    }
 }
 
-void WndManager::popWnd()
+void WndManager::hide(twins::IWindowState *pWnd)
 {
-    if (mWindows.size())
+    int idx = -1;
+
+    if (mWindows.find(pWnd, &idx))
     {
-        mWindows.remove(mWindows.size()-1);
+        mWindows.remove(idx);
 
         if (mWindows.size())
         {
@@ -36,6 +54,16 @@ void WndManager::popWnd()
             twins::flushBuffer();
         }
     }
+}
+
+bool WndManager::visible(twins::IWindowState *pWnd) const
+{
+    return pWnd ? mWindows.contains(pWnd) : false;
+}
+
+const twins::Widget* WndManager::topWndWidgets()
+{
+    return mWindows.size() ? topWnd()->getWidgets() : nullptr;
 }
 
 void WndManager::redrawAll()
