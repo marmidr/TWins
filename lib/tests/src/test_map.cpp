@@ -14,7 +14,7 @@
 
 const char *itostr(int i)
 {
-    static char buff[10];
+    static char buff[12];
     snprintf(buff, sizeof(buff), "%d", i);
     return buff;
 }
