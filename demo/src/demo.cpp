@@ -13,6 +13,7 @@
 #include "twins_pal_defimpl.hpp"
 #include "twins_glob.hpp"
 #include "twins_window_state_base.hpp"
+#include "twins_cli.hpp"
 
 #include "demo_wnd.hpp"
 
@@ -632,10 +633,8 @@ void showPopup(twins::String title, twins::String message, std::function<void(tw
 
 // -----------------------------------------------------------------------------
 
-int main()
+static void gui()
 {
-    // printf("Win1 controls: %u" "\n", wndMain.topWnd.childCount);
-    // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
     twins::screenClrAll();
     twins::glob::wMngr.show(getWndMain());
     twins::inputPosixInit(100);
@@ -762,6 +761,83 @@ int main()
     twins::mouseMode(twins::MouseMode::Off);
     twins::flushBuffer();
     twins::inputPosixFree();
+}
+
+// -----------------------------------------------------------------------------
+
+static void cli()
+{
+    const twins::cli::Cmd commands[] =
+    {
+        {
+            "ver",
+            "\r\n"
+            "    Show SW version",
+            TWINS_CLI_HANDLER
+            {
+                twins::writeStrFmt("cmd '%s' called" "\r\n", argv[0]);
+            }
+        },
+        {
+            "stop S",
+            "\r\n"
+            "    Stop everything",
+            TWINS_CLI_HANDLER
+            {
+                twins::writeStrFmt("cmd '%s' called" "\r\n", argv[0]);
+            }
+        },
+        {
+            "move",
+            "<up/dn/home>" "\r\n"
+            "    Perform a move",
+            TWINS_CLI_HANDLER
+            {
+                twins::writeStrFmt("cmd '%s'(", argv[0]);
+                for (int i = 1; i < argc; i++) twins::writeStrFmt("%s, ", argv[i]);
+                twins::writeStr(")\r\n");
+            }
+        },
+        { /* terminator*/ }
+    };
+
+    twins::writeStr(ESC_INVERSE_ON "TWins CLI mode; type 'help' for commands (Ctrl+D - quit)" ESC_INVERSE_OFF "\n");
+    twins::inputPosixInit(100);
+    twins::cli::prompt(false);
+    twins::flushBuffer();
+
+    for (;;)
+    {
+        bool quit_req = false;
+        const char *posix_inp = twins::inputPosixRead(quit_req);
+        if (quit_req)
+        {
+            twins::writeStr(ESC_FG_MAGENTA "Quit requested" ESC_FG_DEFAULT);
+            break;
+        }
+
+        twins::cli::write(posix_inp);
+        twins::cli::checkAndExec(commands);
+        twins::flushBuffer();
+    }
+
+    twins::writeStr("\r\n");
+    twins::flushBuffer();
+    twins::inputPosixFree();
+}
+
+// -----------------------------------------------------------------------------
+
+int main(int argc, char **argv)
+{
+    bool mode_cli = argc >= 2 && (strcmp("-cli", argv[1]) == 0);
+    // printf("Win1 controls: %u" "\n", wndMain.topWnd.childCount);
+    // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
+
+    if (mode_cli)
+        cli();
+    else
+        gui();
 
     printf(ESC_BOLD "Memory stats: max chunks: %d, max allocated: %d B\n" ESC_NORMAL,
         ((DemoPAL&)twins::glob::pal).stats.memChunksMax,

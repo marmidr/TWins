@@ -284,6 +284,47 @@ String& String::operator=(String &&other)
     return *this;
 }
 
+bool String::operator==(const char *str) const
+{
+    if (!str)
+        return false;
+
+    return strcmp(cstr(), str) == 0;
+}
+
+bool String::startsWith(const char *str) const
+{
+    if (!str || !*str)
+        return false;
+
+    int16_t l = strlen(str);
+    return strncmp(cstr(), str, l) == 0;
+}
+
+bool String::endsWith(const char *str) const
+{
+    if (!str || !*str)
+        return false;
+
+    int16_t l = strlen(str);
+    if (l > mSize)
+        return false;
+
+    return strcmp(cstr() + mSize - l, str) == 0;
+}
+
+int String::find(const char *str) const
+{
+    if (!str || !*str)
+        return -1;
+
+    const char *p = strstr(cstr(), str);
+    if (!p)
+        return -1;
+
+    return p - cstr();
+}
+
 unsigned String::u8len(bool ignoreESC, bool realWidth) const
 {
     return u8len(mpBuff, mpBuff + mSize, ignoreESC, realWidth);

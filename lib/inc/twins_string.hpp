@@ -56,6 +56,11 @@ public:
     const char *cstr() const { return mpBuff ? mpBuff : ""; }
     /** @brief Reserve buffer if u know the string size in advance */
     void reserve(uint16_t newCapacity);
+    /** @brief Useful tests */
+    bool startsWith(const char *str) const;
+    bool endsWith(const char *str) const;
+    int  find(const char *str) const;
+    bool contains(const char *str) const { return find(str) >= 0; }
     /** @brief Convenient assign operators */
     String& operator =(const char *s);
     String& operator =(const String &other);
@@ -64,6 +69,9 @@ public:
     String& operator <<(char c) { return append(c); }
     String& operator <<(const char *s) { return append(s); }
     String& operator <<(const String &s) { return appendLen(s.cstr(), s.size()); }
+    /** @brief Equality operator */
+    bool operator==(const String &s) const { return operator==(s.cstr()); }
+    bool operator==(const char *str) const;
 
     /** @brief Return ESC sequence length starting at \p str */
     static unsigned escLen(const char *str, const char *strEnd = nullptr);
@@ -75,11 +83,11 @@ public:
     /** @brief Return pointer to \p str moved by \p toSkip UTF-8 characters, omitting ESC sequences */
     static const char* u8skip(const char *str, unsigned toSkip, bool ignoreESC = true);
 
-private:
+protected:
     void freeBuff();
     bool sourceIsOurs(const char *s) const { return (s >= mpBuff) && (s < mpBuff + mCapacity); }
 
-private:
+protected:
     char *  mpBuff = nullptr;
     int16_t mCapacity = 0;
     int16_t mSize = 0;

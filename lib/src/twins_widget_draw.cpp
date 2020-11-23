@@ -183,7 +183,7 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     g_ws.str.append(frame[0]);
 #if TWINS_FAST_FILL
     g_ws.str.append(frame[1]);
-    g_ws.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
+    g_ws.str.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 3);
 #else
     g_ws.str.append(frame[1], size.width - 2);
 #endif
@@ -199,7 +199,7 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     {
     #if TWINS_FAST_FILL
         g_ws.str.append(frame[4]);
-        g_ws.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
+        g_ws.str.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 3);
     #else
         g_ws.str.append(frame[4], size.width - 2);
     #endif
@@ -229,7 +229,7 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     g_ws.str.append(frame[6]);
 #if TWINS_FAST_FILL
     g_ws.str.append(frame[7]);
-    g_ws.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 3);
+    g_ws.str.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 3);
 #else
     g_ws.str.append(frame[7], size.width - 2);
 #endif
@@ -251,7 +251,7 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
         // g_ws.str = ESC_FG_BLACK;
     #if TWINS_FAST_FILL
         g_ws.str.append("█");
-        g_ws.str.appendFmt(ESC_REPEAT_LAST_CHAR_FMT, size.width - 1);
+        g_ws.str.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 1);
     #else
         g_ws.str.append("█", size.width);
     #endif

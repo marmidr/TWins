@@ -17,6 +17,7 @@ add_executable(${TARGETNAME}
     src/test_twins.cpp
     src/test_input_posix.cpp
     src/test_widget.cpp
+    src/test_cli.cpp
 )
 
 target_compile_options(${TARGETNAME} PRIVATE
@@ -28,11 +29,6 @@ target_link_libraries(${TARGETNAME}
     twins
     gtest
     gmock
-)
-
-target_include_directories(${TARGETNAME}
-    PRIVATE
-        inc
 )
 
 # ---

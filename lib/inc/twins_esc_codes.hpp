@@ -47,6 +47,9 @@
 #define ESC_UNDERLINE_ON                ANSI_CSI("4m")
 #define ESC_UNDERLINE_OFF               ANSI_CSI("24m")
 
+#define ESC_OVERLINE_ON                 ANSI_CSI("53m")
+#define ESC_OVERLINE_OFF                ANSI_CSI("55m")
+
 // if not blinks, the bg color may be lighter
 #define ESC_BLINK                       ANSI_CSI("5m")
 #define ESC_BLINK_OFF                   ANSI_CSI("25m")
@@ -449,6 +452,34 @@
 #define ESC_LINE_INSERT(n)              ANSI_CSI(#n "L")
 #define ESC_LINE_INSERT_FMT             ESC_LINE_INSERT(%u)
 
+/** @brief Delete line */
+#define ESC_LINE_DELETE(n)              ANSI_CSI(#n "M")
+#define ESC_LINE_DELETE_FMT             ESC_LINE_DELETE(%u)
+
+//@}
+
+/*******************************************************************************
+ * @name Character control
+ */
+
+//@{
+
+/** @brief Repeat last character \p n times - not fully supported */
+#define ESC_CHAR_REPEAT_LAST(n)         ANSI_CSI(#n "b")
+#define ESC_CHAR_REPEAT_LAST_FMT        ESC_CHAR_REPEAT_LAST(%u)
+
+/** @brief Erase \p n characters (replace with space)  */
+#define ESC_CHAR_ERASE(n)               ANSI_CSI(#n "X")
+#define ESC_CHAR_ERASE_FMT              ESC_CHAR_ERASE(%u)
+
+/** @brief Delete \p n characters */
+#define ESC_CHAR_DELETE(n)              ANSI_CSI(#n "P")
+#define ESC_CHAR_DELETE_FMT             ESC_CHAR_DELETE(%u)
+
+/** @brief Insert character */
+#define ESC_CHAR_INSERT(n)              ANSI_CSI(#n "@")
+#define ESC_CHAR_INSERT_FMT             ESC_CHAR_INSERT(%u)
+
 //@}
 
 /*******************************************************************************
@@ -507,10 +538,6 @@
 
 /** @brief */
 #define ESC_BELL                        "\007"
-
-/** @brief Repeat last character \p n times - not fully supported */
-#define ESC_REPEAT_LAST_CHAR(n)         ANSI_CSI(#n "b")
-#define ESC_REPEAT_LAST_CHAR_FMT        ESC_REPEAT_LAST_CHAR(%u)
 
 /** @brief Character encoding */
 #define ESC_ENCODING_ISO8858_1          ANSI_ESC("%@")

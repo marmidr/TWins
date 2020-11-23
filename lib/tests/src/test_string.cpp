@@ -449,3 +449,55 @@ TEST(STRING, emoticons)
     twins::String s("😉\e[1m*\e[0m🍺");
     EXPECT_EQ( 5, s.width());
 }
+
+TEST(STRING, startsWith)
+{
+    {
+        twins::String s;
+        EXPECT_FALSE(s.startsWith(nullptr));
+        EXPECT_FALSE(s.startsWith(""));
+
+        s = "*ĄBĆDĘ#";
+        EXPECT_TRUE(s.startsWith("*Ą"));
+        EXPECT_TRUE(s.startsWith(s.cstr()));
+        EXPECT_FALSE(s.startsWith("0123456789.123456789"));
+        EXPECT_FALSE(s.startsWith("?"));
+    }
+
+    {
+        twins::String s;
+        EXPECT_FALSE(s.endsWith(nullptr));
+        EXPECT_FALSE(s.endsWith(""));
+
+        s = "*ĄBĆDĘ#";
+        EXPECT_TRUE(s.endsWith("Ę#"));
+        EXPECT_TRUE(s.endsWith(s.cstr()));
+        EXPECT_FALSE(s.endsWith("0123456789.123456789"));
+        EXPECT_FALSE(s.endsWith("?"));
+    }
+}
+
+TEST(STRING, find)
+{
+    twins::String s;
+    EXPECT_EQ(-1, s.find(nullptr));
+    EXPECT_EQ(-1, s.find(""));
+
+    s = "*ĄBĆDĘ#";
+    EXPECT_EQ(-1, s.find(""));
+    EXPECT_EQ(0,  s.find("*"));
+    EXPECT_EQ(4,  s.find("Ć"));
+}
+
+TEST(STRING, eq)
+{
+    twins::String s;
+    EXPECT_FALSE(s == nullptr);
+    EXPECT_TRUE(s == "");
+
+    s = "*ĄBĆDĘ#";
+    EXPECT_TRUE(s == "*ĄBĆDĘ#");
+    EXPECT_TRUE(s == s);
+
+    EXPECT_FALSE(s == "*ĄBĆDĘ?#");
+}

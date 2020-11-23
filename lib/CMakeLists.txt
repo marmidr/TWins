@@ -21,6 +21,7 @@ add_library(${TARGETNAME}
     src/twins_ansi_esc_decoder.cpp
     src/twins_utils.cpp
     src/twins_window_mngr.cpp
+    src/twins_cli.cpp
 )
 
 target_include_directories(${TARGETNAME}

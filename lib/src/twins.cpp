@@ -67,8 +67,14 @@ void FontMementoManual::restore()
 
 // -----------------------------------------------------------------------------
 
-extern void widgetInit();
-extern void widgetDeInit();
+extern void widgetInit(void);
+extern void widgetDeInit(void);
+
+namespace cli
+{
+extern void init(void);
+extern void deInit(void);
+}
 
 void init(IPal *pal)
 {
@@ -77,12 +83,14 @@ void init(IPal *pal)
     pPAL = pal;
     new (&g_ts) TwinsState{};
     widgetInit();
+    cli::init();
 }
 
 void deinit(void)
 {
     g_ts.~TwinsState();
     widgetDeInit();
+    cli::deInit();
     pPAL = nullptr;
 }
 
