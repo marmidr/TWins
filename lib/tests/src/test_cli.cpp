@@ -28,8 +28,11 @@ protected:
 
 TEST_F(CLI, commands)
 {
-    static bool ver_called, stop_called;
-    ver_called = stop_called = false;
+    static bool ver_called;
+    static char move_dir;
+
+    ver_called = false;
+    move_dir = 0;
 
     twins::cli::Cmd commands[] =
     {
@@ -49,7 +52,6 @@ TEST_F(CLI, commands)
             "    Stop everything",
             TWINS_CLI_HANDLER
             {
-                stop_called = true;
             }
         },
         {
@@ -58,16 +60,17 @@ TEST_F(CLI, commands)
             "    Perform a move",
             TWINS_CLI_HANDLER
             {
+                if (argc == 2)
+                    move_dir = *argv[1];
             }
         },
         { /* terminator */ }
     };
 
-    // twins::cli::write("ver" "\r\n"); // TODO: process entire string, not just first code
-    twins::cli::write("v");
-    twins::cli::write("e");
-    twins::cli::write("r");
-    twins::cli::write("\r\n");
+    twins::cli::write("ver" "\r\n");
+    twins::cli::checkAndExec(commands);
+    twins::cli::write("move up" "\r\n");
     twins::cli::checkAndExec(commands);
     EXPECT_TRUE(ver_called);
+    EXPECT_EQ('u', move_dir);
 }

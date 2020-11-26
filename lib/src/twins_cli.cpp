@@ -67,9 +67,11 @@ void deInit(void)
 void reset(void)
 {
     g_cs.keybInput.clear();
-    g_cs.lineBuff.clear();
     g_cs.cmd.clear();
     g_cs.lineBuff.clear();
+    g_cs.cursorPos = 0;
+    g_cs.history.clear();
+    g_cs.historyIdx = 0;
 }
 
 void write(const char* str, uint8_t len)
@@ -78,139 +80,150 @@ void write(const char* str, uint8_t len)
     if (!len) return;
     g_cs.keybInput.write(str, len);
 
-    KeyCode kc = {};
-    decodeInputSeq(g_cs.keybInput, kc);
-
-    // see processKey_Edit()
-    if (kc.m_spec)
+    while (true)
     {
-        switch (kc.key)
-        {
-        case Key::Up:
-        case Key::Down:
-            if (g_cs.history.size())
-            {
-                g_cs.historyIdx += kc.key == Key::Up ? -1 : 1;
-                if (g_cs.historyIdx < 0)
-                    g_cs.historyIdx = 0;
-                else if (g_cs.historyIdx >= (int)g_cs.history.size())
-                    g_cs.historyIdx = g_cs.history.size()-1;
+        KeyCode kc = {};
 
-                moveBy(-g_cs.lineBuff.u8len(), 0);
-                writeStr(ESC_LINE_ERASE_RIGHT);
-                g_cs.lineBuff = g_cs.history[g_cs.historyIdx];
-                g_cs.cursorPos = g_cs.lineBuff.u8len();
-                writeStrLen(g_cs.lineBuff.cstr(), g_cs.lineBuff.size());
-            }
-            str = nullptr; // suppress echo
+        auto processen_len = g_cs.keybInput.size();
+        decodeInputSeq(g_cs.keybInput, kc);
+        processen_len = processen_len - g_cs.keybInput.size();
+
+        if (kc.key == Key::None)
             break;
-        case Key::Left:
-            if (g_cs.cursorPos > 0)
-                g_cs.cursorPos--;
-            else
-                str = nullptr; // suppress echo
-            break;
-        case Key::Right:
-            if (g_cs.cursorPos < (signed)g_cs.lineBuff.u8len())
-                g_cs.cursorPos++;
-            else
-                str = nullptr; // suppress echo
-            break;
-        case Key::Home:
-            moveBy(-g_cs.cursorPos, 0);
-            g_cs.cursorPos = 0;
-            str = nullptr; // suppress echo
-            break;
-        case Key::End:
-            moveBy(-g_cs.cursorPos, 0);
-            g_cs.cursorPos = g_cs.lineBuff.u8len();
-            moveBy(g_cs.cursorPos, 0);
-            str = nullptr; // suppress echo
-            break;
-        case Key::Delete:
-            if (g_cs.cursorPos > 0)
+
+        if (kc.m_spec)
+        {
+            switch (kc.key)
             {
-                if (kc.m_ctrl)
+            case Key::Up:
+            case Key::Down:
+                if (g_cs.history.size())
                 {
-                    g_cs.lineBuff.trim(g_cs.cursorPos);
+                    g_cs.historyIdx += kc.key == Key::Up ? -1 : 1;
+
+                    if (g_cs.historyIdx < 0)
+                        g_cs.historyIdx = 0;
+                    else if (g_cs.historyIdx >= (int)g_cs.history.size())
+                        g_cs.historyIdx = g_cs.history.size()-1;
+
+                    moveBy(-g_cs.lineBuff.u8len(), 0);
                     writeStr(ESC_LINE_ERASE_RIGHT);
+                    g_cs.lineBuff = g_cs.history[g_cs.historyIdx];
+                    g_cs.cursorPos = g_cs.lineBuff.u8len();
+                    writeStrLen(g_cs.lineBuff.cstr(), g_cs.lineBuff.size());
                 }
+                str = nullptr; // suppress echo
+                break;
+            case Key::Left:
+                if (g_cs.cursorPos > 0)
+                    g_cs.cursorPos--;
                 else
+                    str = nullptr; // suppress echo
+                break;
+            case Key::Right:
+                if (g_cs.cursorPos < (signed)g_cs.lineBuff.u8len())
+                    g_cs.cursorPos++;
+                else
+                    str = nullptr; // suppress echo
+                break;
+            case Key::Home:
+                moveBy(-g_cs.cursorPos, 0);
+                g_cs.cursorPos = 0;
+                str = nullptr; // suppress echo
+                break;
+            case Key::End:
+                moveBy(-g_cs.cursorPos, 0);
+                g_cs.cursorPos = g_cs.lineBuff.u8len();
+                moveBy(g_cs.cursorPos, 0);
+                str = nullptr; // suppress echo
+                break;
+            case Key::Delete:
+                if (g_cs.cursorPos > 0)
                 {
-                    g_cs.lineBuff.erase(g_cs.cursorPos);
+                    if (kc.m_ctrl)
+                    {
+                        g_cs.lineBuff.trim(g_cs.cursorPos);
+                        writeStr(ESC_LINE_ERASE_RIGHT);
+                    }
+                    else
+                    {
+                        g_cs.lineBuff.erase(g_cs.cursorPos);
+                        writeStr(ESC_CHAR_DELETE(1));
+                    }
+                }
+                str = nullptr; // suppress echo
+                break;
+            case Key::Backspace:
+                if (g_cs.cursorPos > 0)
+                {
+                    if (kc.m_ctrl)
+                    {
+                        g_cs.lineBuff.erase(0, g_cs.cursorPos);
+                        g_cs.cursorPos = 0;
+                    }
+                    else
+                    {
+                        g_cs.lineBuff.erase(g_cs.cursorPos-1);
+                        g_cs.cursorPos--;
+                    }
+
+                    moveBy(-1, 0);
                     writeStr(ESC_CHAR_DELETE(1));
                 }
-            }
-            str = nullptr; // suppress echo
-            break;
-        case Key::Backspace:
-            if (g_cs.cursorPos > 0)
-            {
-                if (kc.m_ctrl)
-                {
-                    g_cs.lineBuff.erase(0, g_cs.cursorPos);
-                    g_cs.cursorPos = 0;
-                }
-                else
-                {
-                    g_cs.lineBuff.erase(g_cs.cursorPos-1);
-                    g_cs.cursorPos--;
-                }
-
-                moveBy(-1, 0);
-                writeStr(ESC_CHAR_DELETE(1));
-            }
-            str = nullptr; // suppress echo
-            break;
-        case Key::Tab:
-            // auto complete
-            str = nullptr; // suppress echo
-            break;
-        case Key::Enter:
-            if (g_cs.lineBuff.size())
-            {
-                // append to history, limit history to 20
-                int idx = 0;
-
-                if (auto *str = g_cs.history.find(g_cs.lineBuff, &idx))
-                {
-                    // move to top
-                    String tmp = std::move(*str);
-                    g_cs.history.remove(idx, true);
-                    g_cs.history.append(std::move(tmp));
-                }
-                else
-                {
-                    g_cs.history.append(g_cs.lineBuff);
-                    if (g_cs.history.size() > 20)
-                        g_cs.history.remove(0, true);
-                }
-
-                g_cs.historyIdx = g_cs.history.size();
-                g_cs.cmd = std::move(g_cs.lineBuff);
-                g_cs.lineBuff.clear();
-            }
-            else
-            {
-                prompt(true);
                 str = nullptr; // suppress echo
-            }
-            g_cs.cursorPos = 0;
-            break;
-        default:
-            break;
-        }
+                break;
+            case Key::Tab:
+                // auto complete
+                str = nullptr; // suppress echo
+                break;
+            case Key::Enter:
+                if (g_cs.lineBuff.size())
+                {
+                    // append to history, limit history to 20
+                    int idx = 0;
 
-        if (str) writeStrLen(str, len);
-    }
-    else
-    {
-        // append/insert
-        g_cs.lineBuff.insert(g_cs.cursorPos, kc.utf8);
-        g_cs.cursorPos += 1;
-        // echo
-        writeStr(ESC_CHAR_INSERT(1));
-        writeStrLen(str, len);
+                    if (auto *str = g_cs.history.find(g_cs.lineBuff, &idx))
+                    {
+                        // move to top
+                        String tmp = std::move(*str);
+                        g_cs.history.remove(idx, true);
+                        g_cs.history.append(std::move(tmp));
+                    }
+                    else
+                    {
+                        g_cs.history.append(g_cs.lineBuff);
+                        if (g_cs.history.size() > 20)
+                            g_cs.history.remove(0, true);
+                    }
+
+                    // cmd X \r cmd Y \r cmd Z...
+                    // TODO: move only part before '\r'
+                    g_cs.historyIdx = g_cs.history.size();
+                    g_cs.cmd = std::move(g_cs.lineBuff);
+                    g_cs.lineBuff.clear();
+                }
+                else
+                {
+                    prompt(true);
+                    str = nullptr; // suppress echo
+                }
+                g_cs.cursorPos = 0;
+                break;
+            default:
+                break;
+            }
+
+            if (str) writeStrLen(str, len);
+        }
+        else
+        {
+            // append/insert
+            g_cs.lineBuff.insert(g_cs.cursorPos, kc.utf8);
+            g_cs.cursorPos += 1;
+            // echo
+            writeStr(ESC_CHAR_INSERT(1));
+            writeStrLen(str, len);
+        }
     }
 
     // writeStrFmt(" cur:%d ", g_cs.cursorPos);

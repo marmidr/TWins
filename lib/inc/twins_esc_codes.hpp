@@ -468,7 +468,7 @@
 #define ESC_CHAR_REPEAT_LAST(n)         ANSI_CSI(#n "b")
 #define ESC_CHAR_REPEAT_LAST_FMT        ESC_CHAR_REPEAT_LAST(%u)
 
-/** @brief Erase \p n characters (replace with space)  */
+/** @brief Erase \p n characters (replace with space) */
 #define ESC_CHAR_ERASE(n)               ANSI_CSI(#n "X")
 #define ESC_CHAR_ERASE_FMT              ESC_CHAR_ERASE(%u)
 
@@ -476,7 +476,7 @@
 #define ESC_CHAR_DELETE(n)              ANSI_CSI(#n "P")
 #define ESC_CHAR_DELETE_FMT             ESC_CHAR_DELETE(%u)
 
-/** @brief Insert character */
+/** @brief Insert \p n characters */
 #define ESC_CHAR_INSERT(n)              ANSI_CSI(#n "@")
 #define ESC_CHAR_INSERT_FMT             ESC_CHAR_INSERT(%u)
 

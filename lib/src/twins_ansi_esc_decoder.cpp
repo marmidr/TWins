@@ -412,14 +412,15 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
 
                 switch (mouse_btn & 0xE3)
                 {
-                    case 0x00: output.mouse.btn = MouseBtn::ButtonLeft; break;
-                    case 0x01: output.mouse.btn = MouseBtn::ButtonMid; break;
-                    case 0x02: output.mouse.btn = MouseBtn::ButtonRight; break;
-                    case 0x03: output.mouse.btn = MouseBtn::ButtonReleased; break;
-                    case 0x80: output.mouse.btn = MouseBtn::ButtonGoBack; break;
-                    case 0x81: output.mouse.btn = MouseBtn::ButtonGoForward; break;
-                    case 0x40: output.mouse.btn = MouseBtn::WheelUp; break;
-                    case 0x41: output.mouse.btn = MouseBtn::WheelDown; break;
+                case 0x00: output.mouse.btn = MouseBtn::ButtonLeft; break;
+                case 0x01: output.mouse.btn = MouseBtn::ButtonMid; break;
+                case 0x02: output.mouse.btn = MouseBtn::ButtonRight; break;
+                case 0x03: output.mouse.btn = MouseBtn::ButtonReleased; break;
+                case 0x80: output.mouse.btn = MouseBtn::ButtonGoBack; break;
+                case 0x81: output.mouse.btn = MouseBtn::ButtonGoForward; break;
+                case 0x40: output.mouse.btn = MouseBtn::WheelUp; break;
+                case 0x41: output.mouse.btn = MouseBtn::WheelDown; break;
+                default: break;
                 }
 
                 //TWINS_LOG("MouseBtn:0x%x", (unsigned)mouse_btn);
