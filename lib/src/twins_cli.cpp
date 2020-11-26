@@ -17,10 +17,16 @@ namespace twins::cli
 
 using Argv = Vector<const char*>;
 
-
 class StringBuff : public String
 {
 public:
+    StringBuff()
+    {}
+
+    StringBuff(const char *s)
+        : String(s)
+    {}
+
     StringBuff& operator =(String &&other)
     {
         String::operator=(std::move(other));
@@ -83,10 +89,7 @@ void write(const char* str, uint8_t len)
     while (true)
     {
         KeyCode kc = {};
-
-        auto processen_len = g_cs.keybInput.size();
         decodeInputSeq(g_cs.keybInput, kc);
-        processen_len = processen_len - g_cs.keybInput.size();
 
         if (kc.key == Key::None)
             break;
@@ -237,6 +240,9 @@ History& getHistory(void)
 
 void printHelp(const Cmd* pCommands)
 {
+    writeStr(ESC_BOLD "help" ESC_NORMAL "\r\n" "    this help" "\r\n");
+    writeStr(ESC_BOLD "hist" ESC_NORMAL "\r\n" "    commands history" "\r\n");
+
     while (pCommands->name)
     {
         writeStr(ESC_BOLD);
@@ -249,9 +255,17 @@ void printHelp(const Cmd* pCommands)
     }
 }
 
-void tokenize(Argv &argv)
+void printHistory()
 {
-    char *p = g_cs.cmd.data();
+    int i = 1;
+    for (const auto &s : g_cs.history)
+        writeStrFmt("%2d. %s\r\n", i++, s.cstr());
+    flushBuffer();
+}
+
+void tokenize(StringBuff &cmd, Argv &argv)
+{
+    char *p = cmd.data();
 
     // skip leading spaces
     while (*p == ' ')
@@ -288,11 +302,27 @@ const Cmd* find(const Cmd* pCommands, Argv &argv)
 {
     if (argv.size())
     {
-        const char *cmd = argv[0];
+        const char *cmd_name = argv[0];
 
         for (; pCommands->name; pCommands++)
-            if (strcmp(pCommands->name, cmd) == 0)
+        {
+            // name
+            // name|alias
+            const char *name = pCommands->name;
+            if (!*name) continue;
+            const char *ename = strchr(name, '|');
+            if (!ename) ename = name + strlen(name);
+
+            if (strncmp(name, cmd_name, ename-name) == 0)
                 return pCommands;
+
+            if (*ename == '|')
+            {
+                name = ename+1;
+                if (strcmp(name, cmd_name) == 0)
+                    return pCommands;
+            }
+        }
     }
 
     return nullptr;
@@ -311,6 +341,8 @@ void prompt(bool newln)
 
 bool checkAndExec(const Cmd* pCommands)
 {
+    assert(pCommands);
+
     if (!g_cs.cmd.size())
         return false;
 
@@ -325,11 +357,20 @@ bool checkAndExec(const Cmd* pCommands)
         return true;
     }
 
-    Argv argv;
-    tokenize(argv);
+    if (g_cs.cmd == "hist")
+    {
+        printHistory();
+        prompt(false);
+        flushBuffer();
+        g_cs.cmd.clear();
+        return true;
+    }
 
-    if (const auto *pcmd = find(pCommands, argv))
-        exec(*pcmd, argv);
+    Argv argv;
+    tokenize(g_cs.cmd, argv);
+
+    if (const auto *p_cmd = find(pCommands, argv))
+        exec(*p_cmd, argv);
     else
         writeStr("unknown command" "\r\n");
 
@@ -337,6 +378,31 @@ bool checkAndExec(const Cmd* pCommands)
     flushBuffer();
     g_cs.cmd.clear();
     return true;
+}
+
+bool exec(const char *cmdline, const Cmd* pCommands)
+{
+    assert(cmdline);
+    assert(pCommands);
+
+    Argv argv;
+    StringBuff cmd(cmdline);
+    tokenize(cmd, argv);
+    bool found = false;
+
+    if (const auto *pcmd = find(pCommands, argv))
+    {
+        found = true;
+        exec(*pcmd, argv);
+    }
+    else
+    {
+        writeStr("unknown command" "\r\n");
+    }
+
+    prompt(false);
+    flushBuffer();
+    return found;
 }
 
 // -----------------------------------------------------------------------------

@@ -20,7 +20,7 @@
 namespace twins
 {
 
-String::String(const char*s)
+String::String(const char *s)
 {
     assert(pPAL);
     append(s);

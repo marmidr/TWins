@@ -779,7 +779,7 @@ static void cli()
             }
         },
         {
-            "stop S",
+            "stop|S",
             "\r\n"
             "    Stop everything",
             TWINS_CLI_HANDLER

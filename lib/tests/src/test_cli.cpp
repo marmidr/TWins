@@ -30,28 +30,45 @@ TEST_F(CLI, commands)
 {
     static bool ver_called;
     static char move_dir;
+    static const twins::cli::Cmd *p_commands = nullptr; // to solve lack of lambda captures
 
     ver_called = false;
     move_dir = 0;
 
-    twins::cli::Cmd commands[] =
+    const twins::cli::Cmd commands[] =
     {
         {
-            "", "", {}
+            "",
+            "",
+            {}
         },
+        #if TWINS_LAMBDA_CMD
         {
-            "ver",
-            "    Show SW version",
+            "ver|V",
+            "    Show SW version; alias 'V'",
+            [&vcalled = ver_called](uint8_t argc, const char **argv)
+            {
+                // with full lambda, captures are possible but costs more
+                vcalled = true;
+            }
+        },
+        #else
+        {
+            "ver|V",
+            "    Show SW version; alis 'V'",
             TWINS_CLI_HANDLER
             {
                 ver_called = true;
             }
         },
+        #endif
         {
-            "stop S",
-            "    Stop everything",
+            "call_ver",
+            "    call 'V'",
             TWINS_CLI_HANDLER
             {
+                assert(p_commands);
+                twins::cli::exec("V", p_commands);
             }
         },
         {
@@ -73,4 +90,17 @@ TEST_F(CLI, commands)
     twins::cli::checkAndExec(commands);
     EXPECT_TRUE(ver_called);
     EXPECT_EQ('u', move_dir);
+
+    // test for alias
+    ver_called = false;
+    twins::cli::write("V" "\r\n");
+    twins::cli::checkAndExec(commands);
+    EXPECT_TRUE(ver_called);
+
+    // test for call
+    p_commands = commands;
+    ver_called = false;
+    twins::cli::write("call_ver" "\r\n");
+    twins::cli::checkAndExec(commands);
+    EXPECT_TRUE(ver_called);
 }

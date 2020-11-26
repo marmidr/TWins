@@ -5,16 +5,21 @@
  *****************************************************************************/
 
 #pragma once
-#include <stdint.h>
 #include "twins_vector.hpp"
 #include "twins_string.hpp"
+
+#include <stdint.h>
+
+#if !TWINS_LIGHTWEIGHT_CMD
+# include <functional>
+#endif
 
 // -----------------------------------------------------------------------------
 
 namespace twins::cli
 {
 
-#define TWINS_CLI_HANDLER       [](uint8_t argc, const char **argv)
+#define TWINS_CLI_HANDLER  [](uint8_t argc, const char **argv)
 
 /**
  * @brief Struct holding command name and pointer to handler function
@@ -24,7 +29,11 @@ struct Cmd
 {
     const char* name;
     const char* help;
+    #if TWINS_LIGHTWEIGHT_CMD
     void (*handler)(uint8_t argc, const char **argv);
+    #else
+    std::function<void(uint8_t argc, const char **argv)> handler;
+    #endif
 };
 
 
@@ -58,6 +67,14 @@ History& getHistory(void);
  * @return true if command line is complete and handler was found and executed
  */
 bool checkAndExec(const Cmd* pCommands);
+
+/**
+ * @brief Execute command line \p cmdline.
+ * @param cmdline command and arguments; terminator \b \r not required
+ * @param pCommands array of \b Cmd, terminated with empty cmd {}
+ * @return true if handler was found and executed
+ */
+bool exec(const char *cmdline, const Cmd* pCommands);
 
 // -----------------------------------------------------------------------------
 
