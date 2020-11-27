@@ -15,8 +15,6 @@
 namespace twins::cli
 {
 
-using Argv = Vector<const char*>;
-
 class StringBuff : public String
 {
 public:
@@ -54,6 +52,8 @@ struct CliState
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
 static char cs_buff alignas(CliState) [sizeof(CliState)];
 CliState& g_cs = (CliState&)cs_buff;
+
+bool verbose = true;
 
 // -----------------------------------------------------------------------------
 
@@ -273,6 +273,7 @@ void tokenize(StringBuff &cmd, Argv &argv)
 
     while (*p)
     {
+        // TODO: support for quoted arguments, eg: `cmd -n "Bob Walker"`
         argv.append(p);
 
         // search for separator
@@ -290,12 +291,15 @@ void tokenize(StringBuff &cmd, Argv &argv)
             p++;
     }
 
-    // debug:
-    writeStr(ESC_ITALICS_ON ESC_FG_BLACK_INTENSE "Command: ");
-    for (const char *a : argv)
-        writeStrFmt("\'%s\' ", a);
-    writeStr(ESC_ITALICS_OFF ESC_FG_DEFAULT "\r\n");
-    flushBuffer();
+    if (verbose)
+    {
+        // debug:
+        writeStr(ESC_ITALICS_ON ESC_FG_BLACK_INTENSE "Command: ");
+        for (const char *a : argv)
+            writeStrFmt("\'%s\' ", a);
+        writeStr(ESC_ITALICS_OFF ESC_FG_DEFAULT "\r\n");
+        flushBuffer();
+    }
 }
 
 const Cmd* find(const Cmd* pCommands, Argv &argv)
@@ -326,11 +330,6 @@ const Cmd* find(const Cmd* pCommands, Argv &argv)
     }
 
     return nullptr;
-}
-
-void exec(const Cmd &cmd, Argv &argv)
-{
-    cmd.handler(argv.size(), argv.data());
 }
 
 void prompt(bool newln)
@@ -370,7 +369,7 @@ bool checkAndExec(const Cmd* pCommands)
     tokenize(g_cs.cmd, argv);
 
     if (const auto *p_cmd = find(pCommands, argv))
-        exec(*p_cmd, argv);
+        p_cmd->handler(argv);
     else
         writeStr("unknown command" "\r\n");
 
@@ -390,10 +389,10 @@ bool exec(const char *cmdline, const Cmd* pCommands)
     tokenize(cmd, argv);
     bool found = false;
 
-    if (const auto *pcmd = find(pCommands, argv))
+    if (const auto *p_cmd = find(pCommands, argv))
     {
         found = true;
-        exec(*pcmd, argv);
+        p_cmd->handler(argv);
     }
     else
     {

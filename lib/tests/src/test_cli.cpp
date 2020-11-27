@@ -46,7 +46,7 @@ TEST_F(CLI, commands)
         {
             "ver|V",
             "    Show SW version; alias 'V'",
-            [&vcalled = ver_called](uint8_t argc, const char **argv)
+            [&vcalled = ver_called](twins::cli::Argv &argv)
             {
                 // with full lambda, captures are possible but costs more
                 vcalled = true;
@@ -77,7 +77,7 @@ TEST_F(CLI, commands)
             "    Perform a move",
             TWINS_CLI_HANDLER
             {
-                if (argc == 2)
+                if (argv.size() >= 2)
                     move_dir = *argv[1];
             }
         },

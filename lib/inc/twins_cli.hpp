@@ -19,7 +19,9 @@
 namespace twins::cli
 {
 
-#define TWINS_CLI_HANDLER  [](uint8_t argc, const char **argv)
+using Argv = Vector<const char*>;
+
+#define TWINS_CLI_HANDLER  [](twins::cli::Argv &argv)
 
 /**
  * @brief Struct holding command name and pointer to handler function
@@ -30,9 +32,9 @@ struct Cmd
     const char* name;
     const char* help;
     #if TWINS_LIGHTWEIGHT_CMD
-    void (*handler)(uint8_t argc, const char **argv);
+    void (*handler)(Argv &argv);
     #else
-    std::function<void(uint8_t argc, const char **argv)> handler;
+    std::function<void(Argv &argv)> handler;
     #endif
 };
 
@@ -40,6 +42,11 @@ struct Cmd
 // -----------------------------------------------------------------------------
 
 using History = Vector<String>;
+
+/**
+ * @brief Controls parser debug output
+ */
+extern bool verbose;
 
 /**
  * @brief Clear command line buffer

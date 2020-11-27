@@ -794,7 +794,7 @@ static void cli()
             TWINS_CLI_HANDLER
             {
                 twins::writeStrFmt("cmd '%s'(", argv[0]);
-                for (int i = 1; i < argc; i++) twins::writeStrFmt("%s, ", argv[i]);
+                for (auto a : argv) twins::writeStrFmt("%s, ", a);
                 twins::writeStr(")\r\n");
             }
         },
