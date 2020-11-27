@@ -86,6 +86,9 @@ void write(const char* str, uint8_t len)
     if (!len) return;
     g_cs.keybInput.write(str, len);
 
+    // debug
+    // const char *str_cpy = str;
+
     while (true)
     {
         KeyCode kc = {};
@@ -229,8 +232,11 @@ void write(const char* str, uint8_t len)
         }
     }
 
-    // writeStrFmt(" cur:%d ", g_cs.cursorPos);
     flushBuffer();
+
+    // debug
+    // if (*str_cpy == '\e') str_cpy++;
+    // fprintf(stderr, "%s, cur:%d \r\n", str_cpy, g_cs.cursorPos);
 }
 
 History& getHistory(void)
@@ -266,6 +272,9 @@ void printHistory()
 void tokenize(StringBuff &cmd, Argv &argv)
 {
     char *p = cmd.data();
+    // fputs(">>", stderr);
+    // fputs(p, stderr);
+    // fputs("<<\n", stderr);
 
     // skip leading spaces
     while (*p == ' ')
@@ -367,16 +376,22 @@ bool checkAndExec(const Cmd* pCommands)
 
     Argv argv;
     tokenize(g_cs.cmd, argv);
+    bool found = false;
 
     if (const auto *p_cmd = find(pCommands, argv))
+    {
+        found = true;
         p_cmd->handler(argv);
+    }
     else
+    {
         writeStr("unknown command" "\r\n");
+    }
 
     prompt(false);
     flushBuffer();
     g_cs.cmd.clear();
-    return true;
+    return found;
 }
 
 bool exec(const char *cmdline, const Cmd* pCommands)

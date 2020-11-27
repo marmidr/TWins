@@ -770,12 +770,20 @@ static void cli()
     const twins::cli::Cmd commands[] =
     {
         {
-            "ver",
-            "\r\n"
-            "    Show SW version",
+            "verb",
+            "[<1/0>]" "\r\n"
+            "    Enable/disable verbose mode",
             TWINS_CLI_HANDLER
             {
-                twins::writeStrFmt("cmd '%s' called" "\r\n", argv[0]);
+                if (argv.size() >= 2)
+                {
+                    twins::cli::verbose = strcmp(argv[1], "1") == 0;
+                    twins::writeStrFmt("CLI verbose set to %s" "\r\n", twins::cli::verbose ? "ON" : "OFF");
+                }
+                else
+                {
+                    twins::writeStrFmt("CLI verbose is %s" "\r\n", twins::cli::verbose ? "ON" : "OFF");
+                }
             }
         },
         {
@@ -812,7 +820,7 @@ static void cli()
         const char *posix_inp = twins::inputPosixRead(quit_req);
         if (quit_req)
         {
-            twins::writeStr(ESC_FG_MAGENTA "Quit requested" ESC_FG_DEFAULT);
+            twins::writeStr(ESC_FG_MAGENTA "QUIT requested" ESC_FG_DEFAULT);
             break;
         }
 
