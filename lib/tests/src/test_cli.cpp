@@ -85,36 +85,36 @@ TEST_F(CLI, commands)
         { /* terminator */ }
     };
 
-    twins::cli::write("ver" "\r\n");
+    twins::cli::process("ver" "\r\n");
     twins::cli::checkAndExec(commands);
-    twins::cli::write("move up" "\r\n");
+    twins::cli::process("move up" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
     EXPECT_TRUE(ver_called);
     EXPECT_EQ('u', move_dir);
 
     // test for alias
     ver_called = false;
-    twins::cli::write("V" "\r\n");
+    twins::cli::process("V" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
     EXPECT_TRUE(ver_called);
 
     // test for call
     p_commands = commands;
     ver_called = false;
-    twins::cli::write("call_ver" "\r\n");
+    twins::cli::process("call_ver" "\r\n");
     twins::cli::checkAndExec(commands);
     EXPECT_TRUE(ver_called);
 
     // print history
-    twins::cli::write("hist" "\r\n");
+    twins::cli::process("hist" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
 
     // print help
-    twins::cli::write("help" "\r\n");
+    twins::cli::process("help" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
 
     // unknown cmd
-    twins::cli::write("say-ello\r\n");
+    twins::cli::process("say-ello\r\n");
     EXPECT_FALSE(twins::cli::checkAndExec(commands));
 
     // get history
@@ -136,36 +136,36 @@ TEST_F(CLI, control_codes)
     };
 
     // empty command
-    twins::cli::write("\r\n");
+    twins::cli::process("\r\n");
     EXPECT_FALSE(twins::cli::checkAndExec(commands));
 
     // put something to history
-    twins::cli::write("HELLO\r\n");
+    twins::cli::process("HELLO\r\n");
     EXPECT_FALSE(twins::cli::checkAndExec(commands));
 
     // put wrong command and modify it as in terminal
     {
         twins::cli::reset();
-        twins::cli::write("HERO");
+        twins::cli::process("HERO");
         // left
-        twins::cli::write("\e[D");
-        twins::cli::write("\e[D");
+        twins::cli::process("\e[D");
+        twins::cli::process("\e[D");
         // del R
-        twins::cli::write("\e[3~");
+        twins::cli::process("\e[3~");
         // insert LL
-        twins::cli::write("LL");
+        twins::cli::process("LL");
         // right
-        twins::cli::write("\e[C");
+        twins::cli::process("\e[C");
         // append !
-        twins::cli::write("!");
+        twins::cli::process("!");
         // home
-        twins::cli::write("\e[H");
-        twins::cli::write("*");
+        twins::cli::process("\e[H");
+        twins::cli::process("*");
         // end
-        twins::cli::write("\e[F");
-        twins::cli::write("#");
+        twins::cli::process("\e[F");
+        twins::cli::process("#");
         // and run it
-        twins::cli::write("\r");
+        twins::cli::process("\r");
         EXPECT_TRUE(twins::cli::checkAndExec(commands));
     }
 
@@ -173,12 +173,12 @@ TEST_F(CLI, control_codes)
     EXPECT_FALSE(twins::cli::checkAndExec(commands));
 
     // up - recall from history
-    twins::cli::write("\e[A");
-    twins::cli::write("\r\n");
+    twins::cli::process("\e[A");
+    twins::cli::process("\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
 
     // down
-    twins::cli::write("\e[B");
+    twins::cli::process("\e[B");
 }
 
 static std::string args_value;
@@ -205,25 +205,25 @@ TEST_F(CLI, quoted_args)
 
     // no arg
     args_value.clear();
-    twins::cli::write("name" "\r\n");
+    twins::cli::process("name" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
     EXPECT_TRUE(args_value.empty());
 
     // arg ok
     args_value.clear();
-    twins::cli::write("name   Tiamat \"Heaven Of High\" -s TFG" "\r\n");
+    twins::cli::process("name   Tiamat \"Heaven Of High\" -s TFG" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
     EXPECT_STREQ(args_value.c_str(), "Tiamat - Heaven Of High");
 
     // missing closing quote
     args_value.clear();
-    twins::cli::write(" name Therion \"Clavicula 🔱 Nox" "\r\n");
+    twins::cli::process(" name Therion \"Clavicula 🔱 Nox" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
     EXPECT_STREQ(args_value.c_str(), "Therion - Clavicula 🔱 Nox");
 
     // double
     // args_value.clear();
-    // twins::cli::write("nasib \"\"The Mawarannahr\"\"" "\r\n");
+    // twins::cli::process("nasib \"\"The Mawarannahr\"\"" "\r\n");
     // EXPECT_TRUE(twins::cli::checkAndExec(commands));
     // EXPECT_STREQ(args_value.c_str(), "nasib \"The Mawarannahr\"");
 }

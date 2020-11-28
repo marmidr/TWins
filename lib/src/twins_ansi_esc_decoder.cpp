@@ -33,8 +33,6 @@
 namespace twins
 {
 
-constexpr unsigned ESC_MaxSeqLen = 7; // not including leading '\e'
-
 struct SeqMap
 {
     // ESC sequence
@@ -371,38 +369,43 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
 
 static uint8_t decodeFailCtr = 0;
 static uint8_t prevCR = 0;
+static bool prevEscIgnored = false;
 
 void decodeInputSeqReset()
 {
     // for testing
     decodeFailCtr = 0;
     prevCR = 0;
+    prevEscIgnored = false;
 }
 
-void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
+uint8_t decodeInputSeq(RingBuff<char> &input, KeyCode &output)
 {
     output.key = Key::None;
     output.mod_all = 0;
     output.name = "<?>";
 
     if (input.size() == 0)
-        return;
+        return 0;
 
-    char seq[ESC_MaxSeqLen+1];
+    char seq[ESC_SEQ_MAX_LENGTH];
 
     while (input.size())
     {
-        auto seq_sz = input.copy(seq, ESC_MaxSeqLen);
+        auto seq_sz = input.copy(seq, ESC_SEQ_MAX_LENGTH-1);
         seq[seq_sz] = '\0';
-        const char c0 = seq[0];
         prevCR >>= 1; // set = 2 and then shift is faster than: if(prevCR) prevCR--;
 
         // 1. ANSI escape sequence
         //    check for two following ESC characters to avoid lock
-        if (seq_sz > 1 && c0 == (char)Ansi::ESC && seq[1] != (char)Ansi::ESC)
+        if (seq_sz > 1 &&
+            seq[0] == (char)Ansi::ESC &&
+            seq[1] != (char)Ansi::ESC)
         {
             if (seq_sz < 3) // sequence too short
-                return;
+                return 0;
+
+            prevEscIgnored = false;
 
             // check mouse code
             if (seq_sz >= 6 && seq[1] == '[' && seq[2] == 'M')
@@ -437,7 +440,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 #endif
 
                 input.skip(6);
-                return;
+                return 6;
             }
 
             // binary search: find key map in max 7 steps
@@ -449,7 +452,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 output.name = p_km->name;
                 #endif
                 input.skip(1 + p_km->seqlen); // +1 for ESC
-                return;
+                return 1 + p_km->seqlen;
             }
 
             // ESC sequence invalid or unknown?
@@ -478,26 +481,36 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 input.clear();
             }
 
-            return;
+            return 0;
         }
         else
         {
+            // single character
+            if (seq[0] == (char)Ansi::ESC && seq_sz == 1 && !prevEscIgnored)
+            {
+                // avoid situations where ESC not followed by another code
+                // is decoded as freestanding Esc key
+                prevEscIgnored = true;
+                return 0;
+            }
+
+            prevEscIgnored = false;
             bool skip = false;
 
             // 2. check for special key
             // note: it conflicts with ctrl_keys_map[] but has higher priority
             for (const auto &km : special_keys_map)
             {
-                if (c0 == km.c)
+                if (seq[0] == km.c)
                 {
-                    if (c0 == (char)Ansi::CR)
+                    if (seq[0] == (char)Ansi::CR)
                     {
                         // CR   -> treat as LF
                         // CRLF -> ignore LF
                         //   LF -> LF
                         prevCR = 2;
                     }
-                    else if (c0 == (char)Ansi::LF && prevCR)
+                    else if (seq[0] == (char)Ansi::LF && prevCR)
                     {
                         input.skip(1);
                         prevCR = 0;
@@ -511,7 +524,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                     output.name = km.name;
                     #endif
                     input.skip(1);
-                    return;
+                    return 1;
                 }
             }
 
@@ -520,7 +533,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
             // 3. check for one of Ctrl+[A..Z]
             for (const auto &km : ctrl_keys_map)
             {
-                if (c0 == km.c)
+                if (seq[0] == km.c)
                 {
                     output.utf8[0] = (char)km.key;
                     output.utf8[1] = '\0';
@@ -529,7 +542,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                     output.name = km.name;
                     #endif
                     input.skip(1);
-                    return;
+                    return 1;
                 }
             }
 
@@ -548,7 +561,7 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 #endif
 
                 input.skip(sl);
-                return;
+                return sl;
             }
             else
             {
@@ -556,10 +569,12 @@ void decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 if (seq_sz >= 4)    // data is long enough to store UTF8 sequence
                     input.skip(1);  // skip one byte to prevent locking
                 else
-                    return;         // try next time with more data
+                    return 0;       // try next time with more data
             }
         }
     }
+
+    return 0;
 }
 
 // -----------------------------------------------------------------------------

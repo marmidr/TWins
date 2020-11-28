@@ -7,8 +7,13 @@
 #pragma once
 #include "twins_vector.hpp"
 #include "twins_string.hpp"
+#include "twins_ringbuffer.hpp"
 
 #include <stdint.h>
+
+#ifndef TWINS_LIGHTWEIGHT_CMD
+# define TWINS_LIGHTWEIGHT_CMD 1
+#endif
 
 #if !TWINS_LIGHTWEIGHT_CMD
 # include <functional>
@@ -43,25 +48,30 @@ struct Cmd
 
 using History = Vector<String>;
 
-/**
- * @brief Controls parser debug output
- */
+/** @brief Controls command parser debug output */
 extern bool verbose;
+/** @brief Echo NL if CR (Enter) key detected */
+extern bool echoNlAfterCr;
 
 /**
- * @brief Clear command line buffer
+ * @brief Reset internal state: buffers, counters, cursor
  */
 void reset(void);
 
 /**
- * @brief Append \p str to line buffer, emit echo
+ * @brief Process \p data, emit echo
  */
-void write(const char* str, uint8_t str_len = 0);
+void process(const char* data, uint8_t dataLen = 0);
 
 /**
- * @brief New line >
+ * @brief Process buffer \p rb, emit echo
  */
-void prompt(bool newln = true);
+void process(twins::RingBuff<char> &rb);
+
+/**
+ * @brief CRLF >
+ */
+void prompt(bool newLn = true);
 
 /**
  * @brief Returns the command history

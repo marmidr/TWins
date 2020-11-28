@@ -15,30 +15,6 @@
 namespace twins::cli
 {
 
-class StringBuff : public String
-{
-public:
-    StringBuff()
-    {}
-
-    StringBuff(const char *s)
-        : String(s)
-    {}
-
-    StringBuff& operator =(String &&other)
-    {
-        String::operator=(std::move(other));
-        return *this;
-    }
-
-    char *data()
-    {
-        if (!mpBuff) append("");
-        return mpBuff;
-    }
-};
-
-
 struct CliState
 {
     String      lineBuff;
@@ -46,7 +22,7 @@ struct CliState
     History     history;
     int16_t     cursorPos = 0;
     int16_t     historyIdx = 0;
-    RingBuff<char> keybInput;
+    RingBuff<char> ringBuff;
 };
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
@@ -54,14 +30,13 @@ static char cs_buff alignas(CliState) [sizeof(CliState)];
 CliState& g_cs = (CliState&)cs_buff;
 
 bool verbose = true;
+bool echoNlAfterCr = false;
 
 // -----------------------------------------------------------------------------
 
 void init(void)
 {
     new (&g_cs) CliState{};
-    // long enough to handle short command line at once
-    g_cs.keybInput.init(60);
 }
 
 void deInit(void)
@@ -73,7 +48,7 @@ void deInit(void)
 
 void reset(void)
 {
-    g_cs.keybInput.clear();
+    g_cs.ringBuff.clear();
     g_cs.cmd.clear();
     g_cs.lineBuff.clear();
     g_cs.cursorPos = 0;
@@ -81,25 +56,54 @@ void reset(void)
     g_cs.historyIdx = 0;
 }
 
-void write(const char* str, uint8_t len)
+void process(const char* data, uint8_t dataLen)
 {
-    if (!len) len = strlen(str);
-    if (!len) return;
-    g_cs.keybInput.write(str, len);
+    if (!data)
+        data = "";
 
-    // debug
-    // const char *str_cpy = str;
+    if (!dataLen)
+        dataLen = strlen(data);
+
+    if (g_cs.ringBuff.capacity() == 0)
+        g_cs.ringBuff.init(ESC_SEQ_MAX_LENGTH+2);
+
+    while (dataLen)
+    {
+        uint8_t to_write = dataLen > ESC_SEQ_MAX_LENGTH ? ESC_SEQ_MAX_LENGTH : dataLen;
+
+        g_cs.ringBuff.write(data, to_write);
+        process(g_cs.ringBuff);
+
+        data += to_write;
+        dataLen -= to_write;
+    }
+
+    // additional processing to handle ESC decoding state machine
+    if (g_cs.ringBuff.size())
+        process(g_cs.ringBuff);
+}
+
+void process(twins::RingBuff<char> &rb)
+{
+    char seq[ESC_SEQ_MAX_LENGTH];
 
     while (true)
     {
+        rb.copy(seq, sizeof(seq));
+
         KeyCode kc = {};
-        decodeInputSeq(g_cs.keybInput, kc);
+        uint8_t seq_len = decodeInputSeq(rb, kc);
 
         if (kc.key == Key::None)
             break;
 
-        if (kc.m_spec)
+        seq[seq_len] = '\0';
+        const char *p_seq = seq; // echo decoded sequence
+
+        if (kc.m_spec || kc.m_ctrl)
         {
+            // fprintf(stderr, ESC_FG_RED "^" ESC_FG_DEFAULT); fflush(stderr);
+
             switch (kc.key)
             {
             case Key::Up:
@@ -119,33 +123,33 @@ void write(const char* str, uint8_t len)
                     g_cs.cursorPos = g_cs.lineBuff.u8len();
                     writeStrLen(g_cs.lineBuff.cstr(), g_cs.lineBuff.size());
                 }
-                str = nullptr; // suppress echo
+                p_seq = nullptr; // suppress echo
                 break;
             case Key::Left:
                 if (g_cs.cursorPos > 0)
                     g_cs.cursorPos--;
                 else
-                    str = nullptr; // suppress echo
+                    p_seq = nullptr; // suppress echo
                 break;
             case Key::Right:
                 if (g_cs.cursorPos < (signed)g_cs.lineBuff.u8len())
                     g_cs.cursorPos++;
                 else
-                    str = nullptr; // suppress echo
+                    p_seq = nullptr; // suppress echo
                 break;
             case Key::Home:
                 moveBy(-g_cs.cursorPos, 0);
                 g_cs.cursorPos = 0;
-                str = nullptr; // suppress echo
+                p_seq = nullptr; // suppress echo
                 break;
             case Key::End:
                 moveBy(-g_cs.cursorPos, 0);
                 g_cs.cursorPos = g_cs.lineBuff.u8len();
                 moveBy(g_cs.cursorPos, 0);
-                str = nullptr; // suppress echo
+                p_seq = nullptr; // suppress echo
                 break;
             case Key::Delete:
-                if (g_cs.cursorPos > 0)
+                if (g_cs.cursorPos >= 0)
                 {
                     if (kc.m_ctrl)
                     {
@@ -158,7 +162,7 @@ void write(const char* str, uint8_t len)
                         writeStr(ESC_CHAR_DELETE(1));
                     }
                 }
-                str = nullptr; // suppress echo
+                p_seq = nullptr; // suppress echo
                 break;
             case Key::Backspace:
                 if (g_cs.cursorPos > 0)
@@ -166,26 +170,30 @@ void write(const char* str, uint8_t len)
                     if (kc.m_ctrl)
                     {
                         g_cs.lineBuff.erase(0, g_cs.cursorPos);
+                        moveBy(-g_cs.cursorPos, 0);
+                        writeStrFmt(ESC_CHAR_DELETE_FMT, g_cs.cursorPos);
                         g_cs.cursorPos = 0;
                     }
                     else
                     {
                         g_cs.lineBuff.erase(g_cs.cursorPos-1);
                         g_cs.cursorPos--;
-                    }
 
-                    moveBy(-1, 0);
-                    writeStr(ESC_CHAR_DELETE(1));
+                        moveBy(-1, 0);
+                        writeStr(ESC_CHAR_DELETE(1));
+                    }
                 }
-                str = nullptr; // suppress echo
+                p_seq = nullptr; // suppress echo
                 break;
             case Key::Tab:
                 // auto complete
-                str = nullptr; // suppress echo
+                p_seq = nullptr; // suppress echo
                 break;
             case Key::Enter:
                 if (g_cs.lineBuff.size())
                 {
+                    if (echoNlAfterCr) twins::writeChar('\n');
+
                     // append to history, limit history to 20
                     int idx = 0;
 
@@ -212,7 +220,7 @@ void write(const char* str, uint8_t len)
                 else
                 {
                     prompt(true);
-                    str = nullptr; // suppress echo
+                    p_seq = nullptr; // suppress echo
                 }
                 g_cs.cursorPos = 0;
                 break;
@@ -220,24 +228,29 @@ void write(const char* str, uint8_t len)
                 break;
             }
 
-            if (str) writeStrLen(str, len);
+            // echo
+            if (p_seq) writeStrLen(p_seq, seq_len);
         }
         else
         {
             // append/insert
-            g_cs.lineBuff.insert(g_cs.cursorPos, kc.utf8);
-            g_cs.cursorPos += 1;
-            // echo
-            writeStr(ESC_CHAR_INSERT(1));
-            writeStrLen(str, len);
+            if (g_cs.lineBuff.u8len() < 100)
+            {
+                g_cs.lineBuff.insert(g_cs.cursorPos, kc.utf8);
+                g_cs.cursorPos += 1;
+                // echo
+                writeStr(ESC_CHAR_INSERT(1));
+                writeStrLen(p_seq, seq_len);
+            }
+            else
+            {
+                // line length limit exceeded
+                writeStr(ESC_BELL);
+            }
         }
     }
 
     flushBuffer();
-
-    // debug
-    // if (*str_cpy == '\e') str_cpy++;
-    // fprintf(stderr, "%s, cur:%d \r\n", str_cpy, g_cs.cursorPos);
 }
 
 History& getHistory(void)
@@ -360,9 +373,9 @@ const Cmd* find(const Cmd* pCommands, Argv &argv)
     return nullptr;
 }
 
-void prompt(bool newln)
+void prompt(bool newLn)
 {
-    if (newln) writeStr("\r\n");
+    if (newLn) writeStr("\r\n");
     writeStr(ESC_FG_GREEN_INTENSE "> " ESC_FG_WHITE_INTENSE);
 }
 

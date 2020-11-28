@@ -7,6 +7,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdarg.h>
+#include <utility> // move
 
 // -----------------------------------------------------------------------------
 
@@ -14,7 +15,7 @@ namespace twins
 {
 
 /**
- * @brief
+ * @brief The heart of this library
  */
 class String
 {
@@ -91,6 +92,35 @@ protected:
     char *  mpBuff = nullptr;
     int16_t mCapacity = 0;
     int16_t mSize = 0;
+};
+
+
+/**
+ * @brief String with write-access
+ */
+class StringBuff : public String
+{
+public:
+    StringBuff() = default;
+
+    StringBuff(const char *s)
+        : String(s)
+    {}
+
+    StringBuff& operator =(String &&other)
+    {
+        String::operator=(std::move(other));
+        return *this;
+    }
+
+    /**
+     * @brief Returns pointer to writeable internal buffer limited by \b sz.size()
+     */
+    char *data()
+    {
+        if (!mpBuff) append("");
+        return mpBuff;
+    }
 };
 
 // -----------------------------------------------------------------------------

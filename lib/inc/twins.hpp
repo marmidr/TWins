@@ -507,6 +507,7 @@ inline void cursorShow(void)        { writeStr(ESC_CURSOR_SHOW); }
  * @brief Lines manipulation
  */
 inline void insertLines(uint16_t count) { writeStrFmt(ESC_LINE_INSERT_FMT, count); }
+inline void deleteLines(uint16_t count) { writeStrFmt(ESC_LINE_DELETE_FMT, count); }
 
 /**
  * @brief Screen manipulation
@@ -527,8 +528,9 @@ void mouseMode(MouseMode mode);
 
 /**
  * @brief Decode ANSI keyboard/mouse sequence from \p input and produce readable Key Code \p output
+ * @return Length of sequence if decoded, 0 otherwise
  */
-void decodeInputSeq(RingBuff<char> &input, KeyCode &output);
+uint8_t decodeInputSeq(RingBuff<char> &input, KeyCode &output);
 
 // -----------------------------------------------------------------------------
 

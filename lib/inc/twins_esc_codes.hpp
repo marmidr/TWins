@@ -26,9 +26,9 @@
 
 // -----------------------------------------------------------------------------
 
-#define ANSI_CSI(x)     "\033" "["  x  // Control Sequence Introducer
-#define ANSI_OSC(x)     "\033" "]"  x  // Operating System Command
-#define ANSI_ST(x)      "\033" "\\" x  // String Terminator
+#define ANSI_CSI(x)     "\e" "["  x  // Control Sequence Introducer
+#define ANSI_OSC(x)     "\e" "]"  x  // Operating System Command
+#define ANSI_ST(x)      "\e" "\\" x  // String Terminator
 
 /*******************************************************************************
  * @name Text Display Modifier Escape Sequences
@@ -548,6 +548,8 @@
 #define ESC_REPORT_SCREEN_CHARS         ANSI_CSI("19t")
 #define ESC_REPORT_CAPABILITIES         ANSI_CSI("c")
 
+/** @brief Maximum ESC sequence length (including null) */
+#define ESC_SEQ_MAX_LENGTH              8
 
 // bash: blink screen until key pressed
 // { while true; do printf \\e[?5h; sleep 0.3; printf \\e[?5l; read -s -n1 -t1 && break; done; }
