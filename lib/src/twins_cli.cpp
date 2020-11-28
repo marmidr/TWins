@@ -60,7 +60,8 @@ bool verbose = true;
 void init(void)
 {
     new (&g_cs) CliState{};
-    g_cs.keybInput.init(20);
+    // long enough to handle short command line at once
+    g_cs.keybInput.init(60);
 }
 
 void deInit(void)
@@ -282,8 +283,26 @@ void tokenize(StringBuff &cmd, Argv &argv)
 
     while (*p)
     {
-        // TODO: support for quoted arguments, eg: `cmd -n "Bob Walker"`
-        argv.append(p);
+        // support for quoted arguments, eg: `cmd -n "Bob Walker"`
+        if (*p == '"')
+        {
+            p++;
+            argv.append(p);
+
+            while (*p && *p != '"')
+                p++;
+
+            if (!*p) // end of command line ?
+                break;
+
+            // erase closing quote
+            *p = '\0';
+            p++;
+        }
+        else
+        {
+            argv.append(p);
+        }
 
         // search for separator
         while (*p && *p != ' ')

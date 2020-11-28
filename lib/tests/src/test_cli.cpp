@@ -180,3 +180,50 @@ TEST_F(CLI, control_codes)
     // down
     twins::cli::write("\e[B");
 }
+
+static std::string args_value;
+
+TEST_F(CLI, quoted_args)
+{
+    const twins::cli::Cmd commands[] =
+    {
+        {
+            "name",
+            "  <\"first name\">",
+            TWINS_CLI_HANDLER
+            {
+                if (argv.size() >= 3)
+                {
+                    args_value =  argv[1];
+                    args_value += " - ";
+                    args_value += argv[2];
+                }
+            }
+        },
+        { /* terminator */ }
+    };
+
+    // no arg
+    args_value.clear();
+    twins::cli::write("name" "\r\n");
+    EXPECT_TRUE(twins::cli::checkAndExec(commands));
+    EXPECT_TRUE(args_value.empty());
+
+    // arg ok
+    args_value.clear();
+    twins::cli::write("name   Tiamat \"Heaven Of High\" -s TFG" "\r\n");
+    EXPECT_TRUE(twins::cli::checkAndExec(commands));
+    EXPECT_STREQ(args_value.c_str(), "Tiamat - Heaven Of High");
+
+    // missing closing quote
+    args_value.clear();
+    twins::cli::write(" name Therion \"Clavicula 🔱 Nox" "\r\n");
+    EXPECT_TRUE(twins::cli::checkAndExec(commands));
+    EXPECT_STREQ(args_value.c_str(), "Therion - Clavicula 🔱 Nox");
+
+    // double
+    // args_value.clear();
+    // twins::cli::write("nasib \"\"The Mawarannahr\"\"" "\r\n");
+    // EXPECT_TRUE(twins::cli::checkAndExec(commands));
+    // EXPECT_STREQ(args_value.c_str(), "nasib \"The Mawarannahr\"");
+}
