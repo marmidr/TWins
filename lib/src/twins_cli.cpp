@@ -56,7 +56,7 @@ void reset(void)
     g_cs.historyIdx = 0;
 }
 
-void process(const char* data, uint8_t dataLen)
+void processInput(const char* data, uint8_t dataLen)
 {
     if (!data)
         data = "";
@@ -72,7 +72,7 @@ void process(const char* data, uint8_t dataLen)
         uint8_t to_write = dataLen > ESC_SEQ_MAX_LENGTH ? ESC_SEQ_MAX_LENGTH : dataLen;
 
         g_cs.ringBuff.write(data, to_write);
-        process(g_cs.ringBuff);
+        processInput(g_cs.ringBuff);
 
         data += to_write;
         dataLen -= to_write;
@@ -80,10 +80,10 @@ void process(const char* data, uint8_t dataLen)
 
     // additional processing to handle ESC decoding state machine
     if (g_cs.ringBuff.size())
-        process(g_cs.ringBuff);
+        processInput(g_cs.ringBuff);
 }
 
-void process(twins::RingBuff<char> &rb)
+void processInput(twins::RingBuff<char> &rb)
 {
     char seq[ESC_SEQ_MAX_LENGTH];
 
@@ -92,12 +92,12 @@ void process(twins::RingBuff<char> &rb)
         rb.copy(seq, sizeof(seq));
 
         KeyCode kc = {};
-        uint8_t seq_len = decodeInputSeq(rb, kc);
+        uint8_t seq_sz = decodeInputSeq(rb, kc);
 
         if (kc.key == Key::None)
             break;
 
-        seq[seq_len] = '\0';
+        seq[seq_sz] = '\0';
         const char *p_seq = seq; // echo decoded sequence
 
         if (kc.m_spec || kc.m_ctrl)
@@ -229,7 +229,7 @@ void process(twins::RingBuff<char> &rb)
             }
 
             // echo
-            if (p_seq) writeStrLen(p_seq, seq_len);
+            if (p_seq) writeStrLen(p_seq, seq_sz);
         }
         else
         {
@@ -240,7 +240,7 @@ void process(twins::RingBuff<char> &rb)
                 g_cs.cursorPos += 1;
                 // echo
                 writeStr(ESC_CHAR_INSERT(1));
-                writeStrLen(p_seq, seq_len);
+                writeStrLen(p_seq, seq_sz);
             }
             else
             {
@@ -426,7 +426,7 @@ bool checkAndExec(const Cmd* pCommands)
     return found;
 }
 
-bool exec(const char *cmdline, const Cmd* pCommands)
+bool execLine(const char *cmdline, const Cmd* pCommands)
 {
     assert(cmdline);
     assert(pCommands);

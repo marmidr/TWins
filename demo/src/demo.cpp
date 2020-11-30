@@ -825,7 +825,7 @@ static void cli()
         }
 
         // add new data or process state machine
-        twins::cli::process(posix_inp);
+        twins::cli::processInput(posix_inp);
         // execute if command completed
         twins::cli::checkAndExec(commands);
         twins::flushBuffer();

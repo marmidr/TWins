@@ -61,12 +61,12 @@ void reset(void);
 /**
  * @brief Process \p data, emit echo
  */
-void process(const char* data, uint8_t dataLen = 0);
+void processInput(const char* data, uint8_t dataLen = 0);
 
 /**
  * @brief Process buffer \p rb, emit echo
  */
-void process(twins::RingBuff<char> &rb);
+void processInput(twins::RingBuff<char> &rb);
 
 /**
  * @brief CRLF >
@@ -91,7 +91,7 @@ bool checkAndExec(const Cmd* pCommands);
  * @param pCommands array of \b Cmd, terminated with empty cmd {}
  * @return true if handler was found and executed
  */
-bool exec(const char *cmdline, const Cmd* pCommands);
+bool execLine(const char *cmdline, const Cmd* pCommands);
 
 // -----------------------------------------------------------------------------
 

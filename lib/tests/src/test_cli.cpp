@@ -69,7 +69,7 @@ TEST_F(CLI, commands)
             TWINS_CLI_HANDLER
             {
                 assert(p_commands);
-                twins::cli::exec("    V  ", p_commands);
+                twins::cli::execLine("    V  ", p_commands);
             }
         },
         {
@@ -85,36 +85,36 @@ TEST_F(CLI, commands)
         { /* terminator */ }
     };
 
-    twins::cli::process("ver" "\r\n");
+    twins::cli::processInput("ver" "\r\n");
     twins::cli::checkAndExec(commands);
-    twins::cli::process("move up" "\r\n");
+    twins::cli::processInput("move up" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
     EXPECT_TRUE(ver_called);
     EXPECT_EQ('u', move_dir);
 
     // test for alias
     ver_called = false;
-    twins::cli::process("V" "\r\n");
+    twins::cli::processInput("V" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
     EXPECT_TRUE(ver_called);
 
     // test for call
     p_commands = commands;
     ver_called = false;
-    twins::cli::process("call_ver" "\r\n");
+    twins::cli::processInput("call_ver" "\r\n");
     twins::cli::checkAndExec(commands);
     EXPECT_TRUE(ver_called);
 
     // print history
-    twins::cli::process("hist" "\r\n");
+    twins::cli::processInput("hist" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
 
     // print help
-    twins::cli::process("help" "\r\n");
+    twins::cli::processInput("help" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
 
     // unknown cmd
-    twins::cli::process("say-ello\r\n");
+    twins::cli::processInput("say-ello\r\n");
     EXPECT_FALSE(twins::cli::checkAndExec(commands));
 
     // get history
@@ -136,36 +136,36 @@ TEST_F(CLI, control_codes)
     };
 
     // empty command
-    twins::cli::process("\r\n");
+    twins::cli::processInput("\r\n");
     EXPECT_FALSE(twins::cli::checkAndExec(commands));
 
     // put something to history
-    twins::cli::process("HELLO\r\n");
+    twins::cli::processInput("HELLO\r\n");
     EXPECT_FALSE(twins::cli::checkAndExec(commands));
 
     // put wrong command and modify it as in terminal
     {
         twins::cli::reset();
-        twins::cli::process("HERO");
+        twins::cli::processInput("HERO");
         // left
-        twins::cli::process("\e[D");
-        twins::cli::process("\e[D");
+        twins::cli::processInput("\e[D");
+        twins::cli::processInput("\e[D");
         // del R
-        twins::cli::process("\e[3~");
+        twins::cli::processInput("\e[3~");
         // insert LL
-        twins::cli::process("LL");
+        twins::cli::processInput("LL");
         // right
-        twins::cli::process("\e[C");
+        twins::cli::processInput("\e[C");
         // append !
-        twins::cli::process("!");
+        twins::cli::processInput("!");
         // home
-        twins::cli::process("\e[H");
-        twins::cli::process("*");
+        twins::cli::processInput("\e[H");
+        twins::cli::processInput("*");
         // end
-        twins::cli::process("\e[F");
-        twins::cli::process("#");
+        twins::cli::processInput("\e[F");
+        twins::cli::processInput("#");
         // and run it
-        twins::cli::process("\r");
+        twins::cli::processInput("\r");
         EXPECT_TRUE(twins::cli::checkAndExec(commands));
     }
 
@@ -173,12 +173,12 @@ TEST_F(CLI, control_codes)
     EXPECT_FALSE(twins::cli::checkAndExec(commands));
 
     // up - recall from history
-    twins::cli::process("\e[A");
-    twins::cli::process("\r\n");
+    twins::cli::processInput("\e[A");
+    twins::cli::processInput("\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
 
     // down
-    twins::cli::process("\e[B");
+    twins::cli::processInput("\e[B");
 }
 
 static std::string args_value;
@@ -205,19 +205,19 @@ TEST_F(CLI, quoted_args)
 
     // no arg
     args_value.clear();
-    twins::cli::process("name" "\r\n");
+    twins::cli::processInput("name" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
     EXPECT_TRUE(args_value.empty());
 
     // arg ok
     args_value.clear();
-    twins::cli::process("name   Tiamat \"Heaven Of High\" -s TFG" "\r\n");
+    twins::cli::processInput("name   Tiamat \"Heaven Of High\" -s TFG" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
     EXPECT_STREQ(args_value.c_str(), "Tiamat - Heaven Of High");
 
     // missing closing quote
     args_value.clear();
-    twins::cli::process(" name Therion \"Clavicula 🔱 Nox" "\r\n");
+    twins::cli::processInput(" name Therion \"Clavicula 🔱 Nox" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
     EXPECT_STREQ(args_value.c_str(), "Therion - Clavicula 🔱 Nox");
 
