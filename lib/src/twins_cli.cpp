@@ -77,10 +77,6 @@ void processInput(const char* data, uint8_t dataLen)
         data += to_write;
         dataLen -= to_write;
     }
-
-    // additional processing to handle ESC decoding state machine
-    if (g_cs.ringBuff.size())
-        processInput(g_cs.ringBuff);
 }
 
 void processInput(twins::RingBuff<char> &rb)

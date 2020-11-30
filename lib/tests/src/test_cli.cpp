@@ -177,8 +177,10 @@ TEST_F(CLI, control_codes)
     twins::cli::processInput("\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
 
-    // down
+    // down - recall from history
     twins::cli::processInput("\e[B");
+    twins::cli::processInput("\r");
+    EXPECT_TRUE(twins::cli::checkAndExec(commands));
 }
 
 static std::string args_value;
@@ -226,4 +228,26 @@ TEST_F(CLI, quoted_args)
     // twins::cli::process("nasib \"\"The Mawarannahr\"\"" "\r\n");
     // EXPECT_TRUE(twins::cli::checkAndExec(commands));
     // EXPECT_STREQ(args_value.c_str(), "nasib \"The Mawarannahr\"");
+}
+
+TEST_F(CLI, sliced_esc)
+{
+    const twins::cli::Cmd commands[] =
+    {
+        {
+            "name",
+            "",
+            TWINS_CLI_HANDLER { }
+        },
+        { /* terminator */ }
+    };
+
+    // incomplete command
+    twins::cli::processInput("nae");
+    // left
+    twins::cli::processInput("\e"); // shall not be interpreted as ESC
+    twins::cli::processInput("[D"); // now give "Left"
+    // insert missing 'm' and "Enter"
+    twins::cli::processInput("m\r");
+    EXPECT_TRUE(twins::cli::checkAndExec(commands));
 }
