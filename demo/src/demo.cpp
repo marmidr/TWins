@@ -669,7 +669,7 @@ static void gui()
 
             twins::decodeInputSeq(rbKeybInput, kc);
             // pass key to top-window
-            bool key_handled = twins::processInput(twins::glob::wMngr.topWnd()->getWidgets(), kc);
+            bool key_handled = twins::processInput(twins::glob::wMngr.topWndWidgets(), kc);
             wndMain.lblKeyName = kc.name;
 
             // display decoded key

@@ -58,6 +58,7 @@ const char * const frame_double[] =
 
 // forward decl
 static void drawWidgetInternal(CallEnv &env, const Widget *pWgt);
+static void drawPage(CallEnv &env, const Widget *pWgt, bool eraseBg = false);
 
 // -----------------------------------------------------------------------------
 // ---- TWINS PRIVATE FUNCTIONS ------------------------------------------------
@@ -691,7 +692,7 @@ static void drawPageControl(CallEnv &env, const Widget *pWgt)
         {
             flushBuffer();
             env.parentCoord.col += pWgt->pagectrl.tabWidth;
-            drawWidgetInternal(env, p_page);
+            drawPage(env, p_page);
             env.parentCoord.col -= pWgt->pagectrl.tabWidth;
         }
     }
@@ -699,8 +700,17 @@ static void drawPageControl(CallEnv &env, const Widget *pWgt)
     env.parentCoord = coord_bkp;
 }
 
-static void drawPage(CallEnv &env, const Widget *pWgt)
+static void drawPage(CallEnv &env, const Widget *pWgt, bool eraseBg)
 {
+    if (eraseBg)
+    {
+        const Widget *p_pgctrl = getParent(pWgt);
+        auto page_coord = getScreenCoord(p_pgctrl);
+        page_coord.col += p_pgctrl->pagectrl.tabWidth;
+        drawArea(page_coord, p_pgctrl->size - Size{p_pgctrl->pagectrl.tabWidth, 0},
+            ColorBG::Inherit, ColorFG::Inherit, FrameStyle::PgControl);
+    }
+
     // draw childrens
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
         drawWidgetInternal(env, &env.pWidgets[i]);
@@ -955,7 +965,7 @@ static void drawWidgetInternal(CallEnv &env, const Widget *pWgt)
     case Widget::Button:        drawButton(env, pWgt); break;
     case Widget::Led:           drawLed(env, pWgt); break;
     case Widget::PageCtrl:      drawPageControl(env, pWgt); break;
-    case Widget::Page:          drawPage(env, pWgt); break;
+    case Widget::Page:          drawPage(env, pWgt, true); break;
     case Widget::ProgressBar:   drawProgressBar(env, pWgt); break;
     case Widget::ListBox:       drawListBox(env, pWgt); break;;
     case Widget::ComboBox:      drawComboBox(env, pWgt); break;

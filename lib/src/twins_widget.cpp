@@ -653,8 +653,6 @@ static void comboBoxHideList(CallEnv &env, const Widget *pWgt)
     env.pState->onComboBoxDrop(pWgt, false);
     // redraw parent to hide list
     const auto *p_parent = getParent(pWgt);
-    if (p_parent->type == Widget::Page)
-        p_parent = getParent(p_parent);
     env.pState->invalidate(p_parent->id);
     g_ws.pDropDownCombo = nullptr;
 }
