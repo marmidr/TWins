@@ -12,6 +12,7 @@ add_executable(${TARGETNAME}
     src/test_string.cpp
     src/test_utils.cpp
     src/test_stack.cpp
+    src/test_queue.cpp
     src/test_vector.cpp
     src/test_map.cpp
     src/test_twins.cpp
