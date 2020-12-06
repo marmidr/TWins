@@ -113,6 +113,12 @@ public:
         return *this;
     }
 
+    StringBuff& operator =(const String &other)
+    {
+        String::operator=(other);
+        return *this;
+    }
+
     /**
      * @brief Returns pointer to writeable internal buffer limited by \b sz.size()
      */

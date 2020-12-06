@@ -163,7 +163,9 @@ TEST_F(CLI, control_codes)
         twins::cli::processInput("*");
         // end
         twins::cli::processInput("\e[F");
-        twins::cli::processInput("#");
+        twins::cli::processInput("##");
+        // backspace
+        twins::cli::processInput("\x7F"); // Ansi::DEL == Backspace
         // and run it
         twins::cli::processInput("\r");
         EXPECT_TRUE(twins::cli::checkAndExec(commands));
@@ -250,4 +252,35 @@ TEST_F(CLI, sliced_esc)
     // insert missing 'm' and "Enter"
     twins::cli::processInput("m\r");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
+}
+
+TEST_F(CLI, many_cmds_in_buffer)
+{
+    static bool push_called, pop_called, size_called;
+
+    const twins::cli::Cmd commands[] =
+    {
+        {
+            "push", "", TWINS_CLI_HANDLER { push_called = true; }
+        },
+        {
+            "pop", "", TWINS_CLI_HANDLER { pop_called = true; }
+        },
+        {
+            "size", "", TWINS_CLI_HANDLER { size_called = true; }
+        },
+        { /* terminator */ }
+    };
+
+    push_called = pop_called = size_called = false;
+
+    // push a few commands before checking
+    twins::cli::processInput("push 1\r" "size\r" "pop\r ");
+    EXPECT_TRUE(twins::cli::checkAndExec(commands));
+    EXPECT_TRUE(push_called);
+    EXPECT_TRUE(twins::cli::checkAndExec(commands));
+    EXPECT_TRUE(size_called);
+    EXPECT_TRUE(twins::cli::checkAndExec(commands));
+    EXPECT_TRUE(pop_called);
+    EXPECT_FALSE(twins::cli::checkAndExec(commands));
 }

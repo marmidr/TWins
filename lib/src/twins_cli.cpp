@@ -7,6 +7,7 @@
 #include "twins.hpp"
 #include "twins_cli.hpp"
 #include "twins_ringbuffer.hpp"
+#include "twins_queue.hpp"
 
 #include <string.h>
 
@@ -23,12 +24,14 @@ struct CliState
     int16_t     cursorPos = 0;
     int16_t     historyIdx = 0;
     RingBuff<char> ringBuff;
+    Queue<String>  cmds;
 };
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
 static char cs_buff alignas(CliState) [sizeof(CliState)];
 CliState& g_cs = (CliState&)cs_buff;
 
+// global variables
 bool verbose = true;
 bool echoNlAfterCr = false;
 
@@ -207,10 +210,8 @@ void processInput(twins::RingBuff<char> &rb)
                             g_cs.history.remove(0, true);
                     }
 
-                    // cmd X \r cmd Y \r cmd Z...
-                    // TODO: move only part before '\r'
                     g_cs.historyIdx = g_cs.history.size();
-                    g_cs.cmd = std::move(g_cs.lineBuff);
+                    g_cs.cmds.push(std::move(g_cs.lineBuff));
                     g_cs.lineBuff.clear();
                 }
                 else
@@ -225,7 +226,8 @@ void processInput(twins::RingBuff<char> &rb)
             }
 
             // echo
-            if (p_seq) writeStrLen(p_seq, seq_sz);
+            if (p_seq)
+                writeStrLen(p_seq, seq_sz);
         }
         else
         {
@@ -378,6 +380,10 @@ void prompt(bool newLn)
 bool checkAndExec(const Cmd* pCommands)
 {
     assert(pCommands);
+    if (g_cs.cmds.size() == 0)
+        return false;
+
+    g_cs.cmd = std::move(*g_cs.cmds.pop());
 
     if (!g_cs.cmd.size())
         return false;
@@ -416,7 +422,8 @@ bool checkAndExec(const Cmd* pCommands)
         writeStr("unknown command" "\r\n");
     }
 
-    prompt(false);
+    prompt(false); // TODO: only if command handler finished it's execution;
+                   // handler may call async job and later tell CLI the job is done
     flushBuffer();
     g_cs.cmd.clear();
     return found;
