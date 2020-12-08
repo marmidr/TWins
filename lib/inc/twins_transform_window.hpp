@@ -97,6 +97,15 @@ constexpr int transformWidgetTreeToArray(twins::Array<twins::Widget, N> &arr, co
     {
         freeSlotIdx = transformWidgetTreeToArray<N>(arr, p_child, child_idx, freeSlotIdx);
         arr[child_idx].link.parentIdx = wgtIdx;
+
+        if (arr[child_idx].type == Widget::Layer)
+        {
+            // layer coord is always 0,0
+            arr[child_idx].coord = {};
+            // layer size is always it's parent size
+            arr[child_idx].size = arr[wgtIdx].size;
+        }
+
         child_idx++;
     }
 

@@ -209,6 +209,7 @@ struct Widget
         ComboBox,
         CustomWgt,
         TextBox,
+        Layer,
         _Count
     };
 
@@ -321,6 +322,10 @@ struct Widget
             ColorFG     fgColor;
             ColorBG     bgColor;
         } textbox;
+
+        struct
+        {
+        } layer;
     };
 
     /** parent <- this -> childs linking */

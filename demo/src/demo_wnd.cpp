@@ -313,64 +313,104 @@ static constexpr twins::Widget page1Childs[] =
 static constexpr twins::Widget page2Childs[] =
 {
     {
-        type    : twins::Widget::Label,
-        id      : ID_LABEL_LBHELP,
-        coord   : { 24, 2 },
-        size    : { 35, 4 },
-        { label : {
-            text    : "  ▫▫▫▫▫ " ESC_INVERSE_ON "ListBox" ESC_INVERSE_OFF " ▫▫▫▫▫" "\n"
-                      "• " ESC_UNDERLINE_ON "Up/Down" ESC_UNDERLINE_OFF " -> change item" "\n"
-                      "• " ESC_UNDERLINE_ON "PgUp/PgDown" ESC_UNDERLINE_OFF " -> scroll page" "\n"
-                      "• " ESC_UNDERLINE_ON "Enter" ESC_UNDERLINE_OFF " -> select the item",
-            fgColor : twins::ColorFG::YellowIntense,
-            bgColor : twins::ColorBG::LabelBlue,
-        }}
-    },
-    {
-        type    : twins::Widget::ListBox,
-        id      : ID_LISTBOX,
-        coord   : { 2, 2 },
-        size    : { 20, 8 },
-        { listbox : {
-            fgColor : twins::ColorFG::Green,
-            bgColor : twins::ColorBG::White,
-            noFrame : false
-        }}
-    },
-    {
-        type    : twins::Widget::Radio,
-        id      : ID_RADIO_1,
-        coord   : { 25, 7 },
+        type    : twins::Widget::Layer,
+        id      : ID_LAYER_1,
+        coord   : {},
         size    : {},
-        { radio : {
-            text    : "YES",
-            fgColor : twins::ColorFG::Radio,
-            groupId : 1,
-            radioId : 0,
+        link    : { (const twins::Widget[])
+        {
+            {
+                type    : twins::Widget::Label,
+                id      : ID_LABEL_MULTI_FMT,
+                coord   : { 24, 2 },
+                size    : { 35, 4 },
+                { label : {
+                    text    : "  ▫▫▫▫▫ " ESC_INVERSE_ON "ListBox" ESC_INVERSE_OFF " ▫▫▫▫▫" "\n"
+                            "• " ESC_UNDERLINE_ON "Up/Down" ESC_UNDERLINE_OFF " -> change item" "\n"
+                            "• " ESC_UNDERLINE_ON "PgUp/PgDown" ESC_UNDERLINE_OFF " -> scroll page" "\n"
+                            "• " ESC_UNDERLINE_ON "Enter" ESC_UNDERLINE_OFF " -> select the item",
+                    fgColor : twins::ColorFG::YellowIntense,
+                    bgColor : twins::ColorBG::LabelBlue,
+                }}
+            },
+            {
+                type    : twins::Widget::ListBox,
+                id      : ID_LISTBOX,
+                coord   : { 2, 2 },
+                size    : { 20, 8 },
+                { listbox : {
+                    fgColor : twins::ColorFG::Green,
+                    bgColor : twins::ColorBG::White,
+                    noFrame : false
+                }}
+            },
+            { /* NUL */ }
         }}
     },
     {
-        type    : twins::Widget::Radio,
-        id      : ID_RADIO_2,
-        coord   : { 35, 7 },
+        type    : twins::Widget::Layer,
+        id      : ID_LAYER_2,
+        coord   : {},
         size    : {},
-        { radio : {
-            text    : "NO",
-            fgColor : twins::ColorFG::Yellow,
-            groupId : 1,
-            radioId : 1,
+        link    : { (const twins::Widget[])
+        {
+            {
+                type    : twins::Widget::Radio,
+                id      : ID_RADIO_1,
+                coord   : { 25, 7 },
+                size    : {},
+                { radio : {
+                    text    : "YES",
+                    fgColor : twins::ColorFG::Radio,
+                    groupId : 1,
+                    radioId : 0,
+                }}
+            },
+            {
+                type    : twins::Widget::Radio,
+                id      : ID_RADIO_2,
+                coord   : { 35, 7 },
+                size    : {},
+                { radio : {
+                    text    : "NO",
+                    fgColor : twins::ColorFG::Yellow,
+                    groupId : 1,
+                    radioId : 1,
+                }}
+            },
+            {
+                type    : twins::Widget::Radio,
+                id      : ID_RADIO_3,
+                coord   : { 44, 7 },
+                size    : {},
+                { radio : {
+                    text    : "Don't know",
+                    fgColor : {},
+                    groupId : 1,
+                    radioId : 2,
+                }}
+            },
+            { /* NUL */ }
         }}
     },
     {
-        type    : twins::Widget::Radio,
-        id      : ID_RADIO_3,
-        coord   : { 44, 7 },
+        type    : twins::Widget::CheckBox,
+        id      : ID_CHBX_L1,
+        coord   : { 25, 9 },
         size    : {},
-        { radio : {
-            text    : "Don't know",
-            fgColor : {},
-            groupId : 1,
-            radioId : 2,
+        { checkbox : {
+            text    : "Layer 1",
+            fgColor : {}
+        }}
+    },
+    {
+        type    : twins::Widget::CheckBox,
+        id      : ID_CHBX_L2,
+        coord   : { 40, 9 },
+        size    : {},
+        { checkbox : {
+            text    : "Layer 2",
+            fgColor : {}
         }}
     },
     { /* NUL */ }
@@ -681,7 +721,7 @@ static constexpr twins::Widget wndMain =
             {
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_1,
+                    id      : ID_PAGE_VER,
                     coord   : {},
                     size    : {},
                     { page : {
@@ -692,7 +732,7 @@ static constexpr twins::Widget wndMain =
                 },
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_2,
+                    id      : ID_PAGE_SERV,
                     coord   : {},
                     size    : {},
                     { page : {
@@ -703,7 +743,7 @@ static constexpr twins::Widget wndMain =
                 },
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_3,
+                    id      : ID_PAGE_DIAG,
                     coord   : {},
                     size    : {},
                     { page : {
@@ -714,7 +754,7 @@ static constexpr twins::Widget wndMain =
                 },
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_4,
+                    id      : ID_PAGE_INACTIV,
                     coord   : {},
                     size    : {},
                     { page : {
@@ -725,7 +765,7 @@ static constexpr twins::Widget wndMain =
                 },
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_5,
+                    id      : ID_PAGE_TEXTBOX,
                     coord   : {},
                     size    : {},
                     { page : {
@@ -736,7 +776,7 @@ static constexpr twins::Widget wndMain =
                 },
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_6,
+                    id      : ID_PAGE_COMBOBOX,
                     coord   : {},
                     size    : {},
                     { page : {

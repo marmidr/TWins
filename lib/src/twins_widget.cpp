@@ -356,6 +356,7 @@ static bool isParent(const Widget *pWgt)
     case Widget::Panel:
     case Widget::PageCtrl:
     case Widget::Page:
+    case Widget::Layer:
         return true;
     default:
         return false;
@@ -416,6 +417,7 @@ static const Widget* getNextFocusable(CallEnv &env, const Widget *pParent, WID f
     case Widget::Window:
     case Widget::Panel:
     case Widget::Page:
+    case Widget::Layer:
     {
         p_childs  = env.pWidgets + pParent->link.childsIdx;
         child_cnt = pParent->link.childsCnt;
@@ -445,11 +447,20 @@ static const Widget* getNextFocusable(CallEnv &env, const Widget *pParent, WID f
     if (child_cnt == 0)
         return nullptr;
 
-    if (!pFirstParent && (pParent->type == Widget::Panel || pParent->type == Widget::Page))
+    switch (pParent->type)
     {
-        // it must be Panel or Page because while traversing we never step below Page level
-        // TWINS_LOG("1st parent[%s id:%u]", toString(pParent->type), pParent->id);
-        pFirstParent = pParent;
+    case Widget::Page:
+    case Widget::Panel:
+    case Widget::Layer:
+        if (!pFirstParent)
+        {
+            // it must be Panel/Page/Layer because while traversing we never step below Page level
+            // TWINS_LOG("1st parent[%s id:%u]", toString(pParent->type), pParent->id);
+            pFirstParent = pParent;
+        }
+        break;
+    default:
+        break;
     }
 
     assert(p_childs);
@@ -500,8 +511,8 @@ static const Widget* getNextFocusable(CallEnv &env, const Widget *pParent, WID f
 
         if (p_wgt == p_childs + child_cnt || p_wgt == p_childs - 1)
         {
-            // border reached: if we are on Panel, jump to panel's parent next child
-            if (pParent->type == Widget::Panel)
+            // border reached: if we are on Panel or Layer, jump to next sibling
+            if (pParent->type == Widget::Panel || pParent->type == Widget::Layer)
                 return getNextFocusable(env, getParent(pParent), pParent->id, forward, pFirstParent);
 
             if (p_wgt > p_childs) p_wgt = p_childs;
@@ -1481,6 +1492,7 @@ const char * toString(Widget::Type type)
     CASE_WGT_STR(ComboBox)
     CASE_WGT_STR(CustomWgt)
     CASE_WGT_STR(TextBox)
+    CASE_WGT_STR(Layer)
     default: return "?";
     }
 }

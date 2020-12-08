@@ -57,6 +57,7 @@ Implementation is based on examples:
     - [ ] scrollbar
     - [ ] horizontal page control
     - [x] popup windows
+    - [x] layers - to control visibility of groups of widgets
 - navigation
     - [x] widgets navigation by Tab/Esc key
     - [x] render focused widget state

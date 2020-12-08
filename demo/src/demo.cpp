@@ -132,6 +132,8 @@ public:
         mTxtBox2Text = "Lorem ipsum ▄";
         mEdt1Text = "00 11 22 33 44 55 66 77 88 99 aa bb cc dd";
         mEdt2Text = "73+37=100";
+        mWgtProp[ID_CHBX_L1].chbx.checked = true;
+        mWgtProp[ID_CHBX_L2].chbx.checked = true;
     }
 
     ~WndMainState()
@@ -181,7 +183,7 @@ public:
 
         if (pWgt->id == ID_BTN_YES)
         {
-            twins::wgt::selectPage(getWidgets(), ID_PGCONTROL, ID_PAGE_5);
+            twins::wgt::selectPage(getWidgets(), ID_PGCONTROL, ID_PAGE_TEXTBOX);
         }
     }
 
@@ -206,14 +208,26 @@ public:
 
     void onCheckboxToggle(const twins::Widget* pWgt) override
     {
+        auto &chkd = mWgtProp[pWgt->id].chbx.checked;
+        chkd = !chkd;
+
         switch (pWgt->id)
         {
-        case ID_CHBX_ENBL: TWINS_LOG("CHBX_ENBL"); break;
-        case ID_CHBX_LOCK: TWINS_LOG("CHBX_LOCK"); break;
-        default: TWINS_LOG("CHBX"); break;
+        case ID_CHBX_ENBL:
+            TWINS_LOG("CHBX_ENBL");
+            break;
+        case ID_CHBX_LOCK:
+            TWINS_LOG("CHBX_LOCK");
+            break;
+        case ID_CHBX_L1:
+        case ID_CHBX_L2:
+            invalidate(ID_PAGE_SERV);
+            break;
+        default:
+            TWINS_LOG("CHBX");
+            break;
         }
 
-        mWgtProp[pWgt->id].chbx.checked = !mWgtProp[pWgt->id].chbx.checked;
     }
 
     void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) override
@@ -324,7 +338,12 @@ public:
         if (pWgt->type == twins::Widget::Page)
             return twins::wgt::getPageID(twins::getWidgetParent(pWgt), mPgcPage) == pWgt->id;
 
-        return true;
+        switch (pWgt->id)
+        {
+        case ID_LAYER_1: return mWgtProp[ID_CHBX_L1].chbx.checked;
+        case ID_LAYER_2: return mWgtProp[ID_CHBX_L2].chbx.checked;
+        default:         return true;
+        }
     }
 
     twins::WID& getFocusedID() override

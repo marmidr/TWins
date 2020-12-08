@@ -944,6 +944,13 @@ static void drawTextBox(CallEnv &env, const Widget *pWgt)
     flushBuffer();
 }
 
+static void drawLayer(CallEnv &env, const Widget *pWgt)
+{
+    // draw only childrens; to erase, redraw layer's parent
+    for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
+        drawWidgetInternal(env, &env.pWidgets[i]);
+}
+
 // -----------------------------------------------------------------------------
 
 static void drawWidgetInternal(CallEnv &env, const Widget *pWgt)
@@ -971,6 +978,7 @@ static void drawWidgetInternal(CallEnv &env, const Widget *pWgt)
     case Widget::ComboBox:      drawComboBox(env, pWgt); break;
     case Widget::CustomWgt:     drawCustomWgt(env, pWgt); break;
     case Widget::TextBox:       drawTextBox(env, pWgt); break;
+    case Widget::Layer:         drawLayer(env, pWgt); break;
     default:                    break;
     }
 
