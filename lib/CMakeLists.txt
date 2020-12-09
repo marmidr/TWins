@@ -30,38 +30,46 @@ target_include_directories(${TARGETNAME}
         inc
 )
 
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
+    target_precompile_headers(${TARGETNAME}
+        PRIVATE
+            <utility>
+            <type_traits>
+            <memory>
+    )
+endif()
 
-if (${TWINS_USE_FASTFILL})
+if (TWINS_USE_FASTFILL)
     target_compile_definitions(${TARGETNAME} PRIVATE -DTWINS_FAST_FILL=1)
 else()
     target_compile_definitions(${TARGETNAME} PRIVATE -DTWINS_FAST_FILL=0)
 endif()
 
-if (${TWINS_PAL_FULLIMPL})
+if (TWINS_PAL_FULLIMPL)
     target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PAL_FULLIMPL=1)
 else()
     target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PAL_FULLIMPL=0)
 endif()
 
-if (${TWINS_USE_PRECISE_TIMESTAMP})
+if (TWINS_USE_PRECISE_TIMESTAMP)
     target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PRECISE_TIMESTAMP=1)
 else()
     target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_PRECISE_TIMESTAMP=0)
 endif()
 
-if (${TWINS_USE_LIGHTWEIGHT_CMD})
+if (TWINS_USE_LIGHTWEIGHT_CMD)
     target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_LIGHTWEIGHT_CMD=1)
 else()
     target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_LIGHTWEIGHT_CMD=0)
 endif()
 
-if (NOT ${TWINS_THEME_DIR} STREQUAL "")
+if (NOT "${TWINS_THEME_DIR}" STREQUAL "")
     target_include_directories(${TARGETNAME} PUBLIC ${TWINS_THEME_DIR})
     target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_THEMES=1)
     message(STATUS "TWins themes enabled")
 endif()
 
-if (${TWINS_BUILD_UT})
+if (TWINS_BUILD_UT)
     option(TWINS_USE_SANITIZERS "Use GCC sanitizers for Unit Tests" ON)
     set(GCC_SANITIZERS "")
 
