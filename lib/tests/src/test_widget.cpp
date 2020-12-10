@@ -391,6 +391,55 @@ protected:
 
 // -----------------------------------------------------------------------------
 
+TEST_F(WIDGET, isPointIn)
+{
+    twins::Rect r;
+    r.coord = {2, 1};
+    r.size = {10, 5};
+
+    // x < left
+    EXPECT_FALSE(twins::isPointWithin(1, 1, r));
+    // x >= right
+    EXPECT_FALSE(twins::isPointWithin(r.coord.col + r.size.width, 1, r));
+    // y < top
+    EXPECT_FALSE(twins::isPointWithin(2, 0, r));
+    // y >= bottom
+    EXPECT_FALSE(twins::isPointWithin(2, r.coord.row + r.size.height, r));
+
+    // x == left, y == top
+    EXPECT_TRUE(twins::isPointWithin(2, 1, r));
+    // x = right-1, y = bottom-1
+    EXPECT_TRUE(twins::isPointWithin(r.coord.col + r.size.width - 1, r.coord.row + r.size.height - 1, r));
+
+
+    // rect is empty
+    r.size = {0, 0};
+    EXPECT_FALSE(twins::isPointWithin(2, 1, r));
+}
+
+TEST_F(WIDGET, isRectIn)
+{
+    const twins::Rect e = { {2, 1}, {10, 5}};
+    const twins::Rect i = e;
+
+    // internal is the same size as external
+    EXPECT_TRUE(twins::isRectWithin(i, e));
+    // internal is smaller and do not touch external
+    EXPECT_TRUE(twins::isRectWithin({ {3, 2}, {8, 3}}, e));
+
+    // l,t corner within, r,b outside
+    EXPECT_FALSE(twins::isRectWithin(i + twins::Size{1,1}, e));
+
+    // internal excess to the left
+    EXPECT_FALSE(twins::isRectWithin(i - twins::Coord{1,0}, e));
+    // internal excess to the right
+    EXPECT_FALSE(twins::isRectWithin(i + twins::Coord{1,0}, e));
+    // internal excess to the top
+    EXPECT_FALSE(twins::isRectWithin(i - twins::Coord{0,1}, e));
+    // internal excess to the bottom
+    EXPECT_FALSE(twins::isRectWithin(i + twins::Coord{0,1}, e));
+}
+
 TEST_F(WIDGET, drawWidget)
 {
     twins::drawWidget(pWndTestWidgets, ID_TEXTBOX);

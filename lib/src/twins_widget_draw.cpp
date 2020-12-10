@@ -766,7 +766,7 @@ static void drawList(DrawListParams &p)
 {
     if (p.items_cnt > p.items_visible)
     {
-        drawListScrollBarV(p.coord + Size{uint8_t(p.wgt_width-1), p.frame_size},
+        drawListScrollBarV(p.coord + Coord{uint8_t(p.wgt_width-1), p.frame_size},
             p.items_visible, p.items_cnt-1, p.sel_idx);
     }
 
@@ -906,7 +906,7 @@ static void drawTextBox(CallEnv &env, const Widget *pWgt)
         top_line = 0;
     }
 
-    drawListScrollBarV(my_coord + Size{uint8_t(pWgt->size.width-1), 1},
+    drawListScrollBarV(my_coord + Coord{uint8_t(pWgt->size.width-1), 1},
         lines_visible, p_lines->size() - lines_visible, top_line);
 
     flushBuffer();

@@ -22,10 +22,6 @@ namespace twins
 static char wds_buff alignas(WidgetState) [sizeof(WidgetState)];
 WidgetState& g_ws = (WidgetState&)wds_buff;
 
-// forward decl
-static bool isPointWithin(uint8_t col, uint8_t row, const Rect& e);
-static bool isRectWithin(const Rect& i, const Rect& e);
-
 // -----------------------------------------------------------------------------
 // ---- TWINS INTERNAL FUNCTIONS -----------------------------------------------
 // -----------------------------------------------------------------------------
@@ -312,25 +308,26 @@ bool isEnabled(CallEnv &env, const Widget *pWgt)
     return en;
 }
 
+bool isPointWithin(uint8_t col, uint8_t row, const Rect& r)
+{
+    return col >= r.coord.col &&
+           col <  r.coord.col + r.size.width &&
+           row >= r.coord.row &&
+           row <  r.coord.row + r.size.height;
+}
+
+bool isRectWithin(const Rect& i, const Rect& e)
+{
+    // i'ntern <= e'xtern
+    return i.coord.col                 >= e.coord.col &&
+           i.coord.col + i.size.width  <= e.coord.col + e.size.width &&
+           i.coord.row                 >= e.coord.row &&
+           i.coord.row + i.size.height <= e.coord.row + e.size.height;
+}
+
 // -----------------------------------------------------------------------------
 // ---- TWINS PRIVATE FUNCTIONS ------------------------------------------------
 // -----------------------------------------------------------------------------
-
-static bool isPointWithin(uint8_t col, uint8_t row, const Rect& e)
-{
-    return col >= e.coord.col &&
-           col <  e.coord.col + e.size.width &&
-           row >= e.coord.row &&
-           row <  e.coord.row + e.size.height;
-}
-
-static bool isRectWithin(const Rect& i, const Rect& e)
-{
-    return i.coord.col                 >= e.coord.col &&
-           i.coord.col + i.size.width  <  e.coord.col + e.size.width &&
-           i.coord.row                 >= e.coord.row &&
-           i.coord.row + i.size.height <  e.coord.row + e.size.height;
-}
 
 static void invalidateRadioGroup(CallEnv &env, const Widget *pRadio)
 {

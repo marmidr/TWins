@@ -317,6 +317,7 @@ static constexpr twins::Widget page2Childs[] =
         id      : ID_LAYER_1,
         coord   : {},
         size    : {},
+        { layer : {} },
         link    : { (const twins::Widget[])
         {
             {
@@ -352,6 +353,7 @@ static constexpr twins::Widget page2Childs[] =
         id      : ID_LAYER_2,
         coord   : {},
         size    : {},
+        { layer : {} },
         link    : { (const twins::Widget[])
         {
             {

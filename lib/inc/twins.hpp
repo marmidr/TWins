@@ -50,6 +50,22 @@ struct Size
     uint8_t height;
 };
 
+/** @brief Rectangle area */
+struct Rect
+{
+    Coord coord;
+    Size  size;
+
+    void setMax()
+    {
+        coord.col = 1;
+        coord.row = 1;
+        size.width = 0xff;
+        size.height = 0xff;
+    }
+};
+
+
 /** @brief Foreground colors */
 enum class ColorFG : uint8_t
 {
@@ -603,6 +619,16 @@ bool isWidgetEnabled(const Widget *pWindowWidgets, const Widget *pWgt);
  */
 void resetInternalState(void);
 
+/**
+ * @brief Checks if point is withing rectangle
+ */
+bool isPointWithin(uint8_t col, uint8_t row, const Rect& r);
+
+/**
+ * @brief Checks if internal rect \p i is within or covers external rectangle \p e
+ */
+bool isRectWithin(const Rect& i, const Rect& e);
+
 // -----------------------------------------------------------------------------
 
 /** Functions related to particular widget types */
@@ -653,6 +679,80 @@ struct Locker
 private:
     bool mIsLocked;
 };
+
+// -----------------------------------------------------------------------------
+
+inline void operator += (Coord &cord, const Coord &offs)
+{
+    cord.col += offs.col;
+    cord.row += offs.row;
+}
+
+inline void operator -= (Coord &cord, const Coord &offs)
+{
+    cord.col -= offs.col;
+    cord.row -= offs.row;
+}
+
+inline Coord operator + (const Coord &cord1, const Coord &cord2)
+{
+    Coord ret = {
+        uint8_t(cord1.col + cord2.col),
+        uint8_t(cord1.row + cord2.row)
+    };
+    return ret;
+}
+
+inline Coord operator - (const Coord &cord1, const Coord &cord2)
+{
+    Coord ret = {
+        uint8_t(cord1.col - cord2.col),
+        uint8_t(cord1.row - cord2.row)
+    };
+    return ret;
+}
+
+inline Size operator + (const Size &sz1, const Size &sz2)
+{
+    Size ret = {
+        uint8_t(sz1.width + sz2.width),
+        uint8_t(sz1.height + sz2.height)
+    };
+    return ret;
+}
+
+inline Size operator - (const Size &sz1, const Size &sz2)
+{
+    Size ret = {
+        uint8_t(sz1.width - sz2.width),
+        uint8_t(sz1.height - sz2.height)
+    };
+    return ret;
+}
+
+inline Rect operator + (const Rect &r, const Size &sz)
+{
+    Rect ret = { r.coord, r.size + sz };
+    return ret;
+}
+
+inline Rect operator - (const Rect &r, const Size &sz)
+{
+    Rect ret = { r.coord, r.size - sz };
+    return ret;
+}
+
+inline Rect operator + (const Rect &r, const Coord &cord)
+{
+    Rect ret = { r.coord + cord, r.size };
+    return ret;
+}
+
+inline Rect operator - (const Rect &r, const Coord &cord)
+{
+    Rect ret = { r.coord - cord, r.size };
+    return ret;
+}
 
 // -----------------------------------------------------------------------------
 
