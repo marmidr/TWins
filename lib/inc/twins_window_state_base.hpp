@@ -37,15 +37,15 @@ public:
         return pWgt->id == mFocusedId;
     }
 
-    void invalidate(twins::WID id, bool instantly) override
+    void invalidateImpl(const twins::WID *pId, uint16_t count, bool instantly) override
     {
-        if (id == twins::WIDGET_ID_NONE)
+        if (count == 1 && *pId == twins::WIDGET_ID_NONE)
             return;
 
         // state or focus changed - widget must be repainted
         if (getWidgets())
         {
-            twins::drawWidget(getWidgets(), id);
+            twins::drawWidgets(getWidgets(), pId, count);
             twins::flushBuffer();
         }
         else

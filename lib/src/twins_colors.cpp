@@ -55,6 +55,8 @@ const char * const mapClBg[] =
     ESC_BG_WHITE_INTENSE
 };
 
+static char clCodeBuffer[20];
+
 // -----------------------------------------------------------------------------
 
 const char* encodeCl(ColorFG cl)
@@ -81,6 +83,37 @@ const char* encodeCl(ColorBG cl)
     #endif
 
     return "";
+}
+
+const char* transcodeClBg2Fg(const char *bgColorCode)
+{
+    if (!bgColorCode)
+        return "";
+    if (*bgColorCode != '\e')
+        return bgColorCode;
+
+    strncpy(clCodeBuffer, bgColorCode, sizeof(clCodeBuffer));
+    clCodeBuffer[sizeof(clCodeBuffer)-1] = '\0';
+
+    // \e[4?m               --> \e[3?m
+    // \e[48;2;000;111;222m --> \e[38;2;000;111;222m
+    // \e[48;5;253m         --> \e[38;5;253m
+    // \e[10?m              --> \e[9?m
+    char c2 = clCodeBuffer[2];
+    char c3 = clCodeBuffer[3];
+
+    // lazy, lazy check...
+    if (c2 == '4')
+    {
+        clCodeBuffer[2] = '3';
+    }
+    else if (c2 == '1' && c3 == '0')
+    {
+        memmove(clCodeBuffer+3, clCodeBuffer+4, sizeof(clCodeBuffer)-4);
+        clCodeBuffer[2] = '9';
+    }
+
+    return clCodeBuffer;
 }
 
 ColorFG intensifyCl(ColorFG cl)

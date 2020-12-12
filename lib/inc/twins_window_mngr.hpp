@@ -20,12 +20,11 @@ class WndManager
 public:
     ~WndManager() { /* printf("~WndManager()\n");*/ }
 
-    /** @brief show \p pWindow on top */
-    void pushWnd(twins::IWindowState *pWindow);
+    /** @brief show \p pWnd if not visible */
+    void show(twins::IWindowState *pWnd, bool bringToTop = false);
 
-
-    /** @brief hide top window */
-    void popWnd();
+    /** @brief hide window */
+    void hide(twins::IWindowState *pWnd);
 
     /** @brief return top window */
     twins::IWindowState *topWnd()
@@ -34,11 +33,11 @@ public:
         return *mWindows.back();
     }
 
+    /** @brief check if given window is on the list */
+    bool visible(twins::IWindowState *pWnd) const;
+
     /** @brief return top window widgets or nullptr */
-    const twins::Widget* topWndWidgets()
-    {
-        return mWindows.size() ? topWnd()->getWidgets() : nullptr;
-    }
+    const twins::Widget* topWndWidgets();
 
     /** @brief number of windows on stack */
     unsigned size() const { return mWindows.size(); }
@@ -47,8 +46,8 @@ public:
     void redrawAll();
 
     /** all windows iterator */
-    const auto begin() { return mWindows.begin(); }
-    const auto end()   { return mWindows.end(); }
+    auto begin() { return mWindows.begin(); }
+    auto end()   { return mWindows.end(); }
 
 private:
     twins::Vector<twins::IWindowState *> mWindows;

@@ -79,6 +79,36 @@
      ((src[0] & 0xFF) == 0xF0 ? 4 : 0))))
 
 
+#define UTF8_GET_CHAR(src)          \
+    ((src[0] & 0x80) == 0 ? src[0] :    \
+     (((src[0] & 0xFF) >= 0xC2 &&       \
+        (src[0] & 0xFF) <= 0xDF &&      \
+        (src[1] & 0xC0) == 0x80) ?      \
+          ((long)(src[0] & 0x1F) << 6) |\
+           (long)(src[1] & 0x3F) :      \
+     ((src[0] & 0xF0) == 0xE0 &&        \
+       (src[1] & 0xC0) == 0x80 &&       \
+       (src[2] & 0xC0) == 0x80 ?        \
+         ((long)(src[0] & 0x0F) << 12) |\
+         ((long)(src[1] & 0x3F) << 6) | \
+         ((long)src[2] & 0x3F) :        \
+     ((src[0] & 0xFF) == 0xF0 &&        \
+       (src[1] & 0xC0) == 0x80 &&       \
+       (src[2] & 0xC0) == 0x80 &&       \
+       (src[3] & 0xC0) == 0x80 ?        \
+         (long)((src[1] & 0x3F) << 12) |\
+         (long)((src[2] & 0x3F) << 6) | \
+         (long)(src[3] & 0x3F) : -1))))
+
+
+#define UTF8_CHAR_LENGTH(ch)            \
+    ((ch >= 0x00000L && ch <= 0x0007FL) ? 1 :   \
+     (ch >= 0x00080L && ch <= 0x007FFL) ? 2 :   \
+     (ch >= 0x00800L && ch <= 0x0FFFFL) ? 3 :   \
+     (ch >= 0x10000L && ch <= 0x3FFFFL) ? 4 : 0)
+
+// -----------------------------------------------------------------------------
+
 int utf8seqlen(char const *str)
 {
     if (str == NULL)
@@ -110,6 +140,19 @@ int utf8len(char const *str)
     }
 
     return len;
+}
+
+long utf8getchar(char const *src)
+{
+    if (src == NULL)
+        return -1;
+
+    return UTF8_GET_CHAR(src);
+}
+
+int utf8charlen(long ch)
+{
+    return UTF8_CHAR_LENGTH(ch);
 }
 
 /*

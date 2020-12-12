@@ -20,7 +20,7 @@
 namespace twins
 {
 
-String::String(const char*s)
+String::String(const char *s)
 {
     assert(pPAL);
     append(s);
@@ -131,7 +131,7 @@ String& String::trim(int16_t trimPos, bool addEllipsis, bool ignoreESC)
 
     if (ignoreESC)
     {
-        p = const_cast<char*>(u8skipIgnoreEsc(p, trimPos));
+        p = const_cast<char*>(u8skip(p, trimPos));
     }
     else
     {
@@ -230,17 +230,17 @@ String& String::insert(int16_t pos, const char *s, int16_t repeat)
     return *this;
 }
 
-void String::setLength(int16_t len, bool addEllipsis, bool ignoreESC)
+void String::setWidth(int16_t newWidth, bool addEllipsis)
 {
-    if (len < 0)
+    if (newWidth < 0)
         return;
 
-    int u8length = u8len(ignoreESC);
+    int w = width();
 
-    if (u8length <= len)
-        append(' ', len - u8length);
+    if (w <= newWidth)
+        append(' ', newWidth - w);
     else
-        trim(len, addEllipsis, ignoreESC);
+        trim(newWidth, addEllipsis, true);
 }
 
 String& String::clear(uint16_t threshordToFree)
@@ -284,9 +284,50 @@ String& String::operator=(String &&other)
     return *this;
 }
 
-unsigned String::u8len(bool ignoreESC) const
+bool String::operator==(const char *str) const
 {
-    return u8len(mpBuff, mpBuff + mSize, ignoreESC);
+    if (!str)
+        return false;
+
+    return strcmp(cstr(), str) == 0;
+}
+
+bool String::startsWith(const char *str) const
+{
+    if (!str || !*str)
+        return false;
+
+    int16_t l = strlen(str);
+    return strncmp(cstr(), str, l) == 0;
+}
+
+bool String::endsWith(const char *str) const
+{
+    if (!str || !*str)
+        return false;
+
+    int16_t l = strlen(str);
+    if (l > mSize)
+        return false;
+
+    return strcmp(cstr() + mSize - l, str) == 0;
+}
+
+int String::find(const char *str) const
+{
+    if (!str || !*str)
+        return -1;
+
+    const char *p = strstr(cstr(), str);
+    if (!p)
+        return -1;
+
+    return p - cstr();
+}
+
+unsigned String::u8len(bool ignoreESC, bool realWidth) const
+{
+    return u8len(mpBuff, mpBuff + mSize, ignoreESC, realWidth);
 }
 
 void String::reserve(uint16_t newCapacity)
@@ -341,16 +382,17 @@ unsigned String::escLen(const char *str, const char *strEnd)
 
     // ESC_BG_RGB(r,g,b)    \e[48;2;255;255;255m
     constexpr uint8_t esc_max_seq_len = 20;
-    unsigned max_sl;
-
-    if (strEnd && (strEnd - str < esc_max_seq_len))
-        max_sl = strEnd - str;
-    else
-        max_sl = esc_max_seq_len;
 
     if (str && *str == '\e')
     {
         unsigned sl = 1;
+        unsigned max_sl;
+
+        if (strEnd && (strEnd - str < esc_max_seq_len))
+            max_sl = strEnd - str;
+        else
+            max_sl = esc_max_seq_len;
+
         while (sl < max_sl)
         {
             const char c = str[sl];
@@ -380,12 +422,33 @@ unsigned String::escLen(const char *str, const char *strEnd)
     return 0;
 }
 
-unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC)
+struct UnicodeBlockRange
+{
+    long first, last;
+};
+
+const UnicodeBlockRange wideSymbolRanges[] =
+{
+    // https://www.compart.com/en/unicode/block/U+2600
+    { 0x02600, 0x026FF },
+    // https://www.compart.com/en/unicode/block/U+2700
+    { 0x02700, 0x027BF },
+    // https://www.compart.com/en/unicode/block/U+1F300
+    { 0x1F300, 0x1F5FF },
+    // https://www.compart.com/en/unicode/block/U+1F600
+    { 0x1F600, 0x1F64F },
+    // https://www.compart.com/en/unicode/block/U+1F680
+    { 0x1F680, 0x1F6FF },
+    // https://www.compart.com/en/unicode/block/U+1F900
+    { 0x1F900, 0x1F9FF },
+};
+
+unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC, bool realWidth)
 {
     if (!str || !*str)
         return 0;
 
-    if (!ignoreESC)
+    if (!(ignoreESC | realWidth))
         return (unsigned)utf8len(str);
 
     if (!strEnd)
@@ -395,22 +458,36 @@ unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC)
 
     while (str < strEnd)
     {
-        unsigned esc_len = escLen(str, strEnd);
-        bool seq_found = esc_len > 0;
+        bool seq_found = false;
 
-        for (; esc_len && (str < strEnd); )
+        if (ignoreESC)
         {
-            str += esc_len;
-            esc_len = escLen(str, strEnd);
+            unsigned esc_len = escLen(str, strEnd);
+            seq_found = esc_len > 0;
+
+            while (esc_len && (str < strEnd))
+            {
+                str += esc_len;
+                esc_len = escLen(str, strEnd);
+            }
         }
 
         if (str < strEnd)
         {
-            if (int u8_len = utf8seqlen(str))
+            long u8ch = utf8getchar(str);
+
+            if (int u8_len = utf8charlen(u8ch))
             {
                 seq_found = true;
                 len++;
                 str += u8_len;
+
+                if (realWidth && u8ch >= 0x02600)
+                {
+                    for (const auto &r : wideSymbolRanges)
+                        if (u8ch >= r.first && u8ch <= r.last)
+                            len++;
+                }
             }
         }
 
@@ -422,7 +499,7 @@ unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC)
     return len;
 }
 
-const char* String::u8skipIgnoreEsc(const char *str, unsigned toSkip)
+const char* String::u8skip(const char *str, unsigned toSkip, bool ignoreESC)
 {
     if (!str || !*str)
         return "";
@@ -432,13 +509,18 @@ const char* String::u8skipIgnoreEsc(const char *str, unsigned toSkip)
 
     while (str < str_end && skipped < toSkip)
     {
-        unsigned esc_len = escLen(str);
-        bool seq_found = esc_len > 0;
+        bool seq_found = false;
 
-        for (; esc_len && (str < str_end); )
+        if (ignoreESC)
         {
-            str += esc_len;
-            esc_len = escLen(str);
+            unsigned esc_len = escLen(str);
+            seq_found = esc_len > 0;
+
+            for (; esc_len && (str < str_end); )
+            {
+                str += esc_len;
+                esc_len = escLen(str);
+            }
         }
 
         if (str < str_end)
@@ -458,7 +540,6 @@ const char* String::u8skipIgnoreEsc(const char *str, unsigned toSkip)
 
     return str;
 }
-
 
 // -----------------------------------------------------------------------------
 

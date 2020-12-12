@@ -117,7 +117,7 @@ public:
         if (mSize == 0)
             return nullptr;
 
-        T *ret = mpBuff[mHead++];
+        T *ret = mpBuff + mHead++;
         mSize--;
         if (mHead == mCapacity)
             mHead = 0;

@@ -192,29 +192,39 @@ TEST(UTILS, splitLines)
     }
 }
 
+TEST(UTILS, centerText)
+{
+    {
+        auto s = twins::util::centerText("aBc", 2);
+        EXPECT_STREQ("aBc", s.cstr());
+    }
+
+    {
+        auto s = twins::util::centerText("aBc", 4);
+        EXPECT_STREQ("aBc ", s.cstr());
+    }
+
+    {
+        auto s = twins::util::centerText("aBc", 5);
+        EXPECT_STREQ(" aBc ", s.cstr());
+    }
+
+    {
+        auto s = twins::util::centerText("🔷aBc", 7);
+        EXPECT_STREQ(" 🔷aBc ", s.cstr());
+    }
+
+    {
+        auto s = twins::util::centerText("aBc", 10);
+        EXPECT_STREQ("   aBc    ", s.cstr());
+    }
+}
+
 TEST(UTILS, WrappedString_empty)
 {
     twins::util::WrappedString ws;
     EXPECT_FALSE(ws.isDirty());
     EXPECT_EQ(0, ws.getLines().size());
-}
-
-TEST(UTILS, centerText)
-{
-    {
-        auto s = twins::util::centerText("aBc", 4);
-        EXPECT_STREQ("aBc", s.cstr());
-    }
-
-    {
-        auto s = twins::util::centerText("aBc", 6);
-        EXPECT_STREQ(" aBc", s.cstr());
-    }
-
-    {
-        auto s = twins::util::centerText("aBc", 10);
-        EXPECT_STREQ("   aBc", s.cstr());
-    }
 }
 
 TEST(UTILS, WrappedString_getlines)
@@ -325,11 +335,11 @@ TEST(UTILS, numEdit)
 
 TEST(UTILS, numEditLimited)
 {
-    twins::KeyCode kc = { m_spec : true };
+    twins::KeyCode kc = {};
+    kc.m_spec = true;
     twins::String str;
     int16_t cursorPos = 0;
     bool succ;
-
 
     // up, no wrap
     kc.key = twins::Key::Up;

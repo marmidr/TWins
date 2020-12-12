@@ -136,7 +136,7 @@ static constexpr twins::Widget page1Childs[] =
         coord   : { 1, 1 },
         size    : { 21, 5 },
         { panel : {
-            title       : "VER",
+            title       : "VER 🍁",
             fgColor     : twins::ColorFG::White,
             bgColor     : twins::ColorBG::PanelVer,
         }},
@@ -313,64 +313,106 @@ static constexpr twins::Widget page1Childs[] =
 static constexpr twins::Widget page2Childs[] =
 {
     {
-        type    : twins::Widget::Label,
-        id      : ID_LABEL_LBHELP,
-        coord   : { 24, 2 },
-        size    : { 35, 4 },
-        { label : {
-            text    : "  ▫▫▫▫▫ " ESC_INVERSE_ON "ListBox" ESC_INVERSE_OFF " ▫▫▫▫▫" "\n"
-                      "• " ESC_UNDERLINE_ON "Up/Down" ESC_UNDERLINE_OFF " -> change item" "\n"
-                      "• " ESC_UNDERLINE_ON "PgUp/PgDown" ESC_UNDERLINE_OFF " -> scroll page" "\n"
-                      "• " ESC_UNDERLINE_ON "Enter" ESC_UNDERLINE_OFF " -> select the item",
-            fgColor : twins::ColorFG::YellowIntense,
-            bgColor : twins::ColorBG::LabelBlue,
-        }}
-    },
-    {
-        type    : twins::Widget::ListBox,
-        id      : ID_LISTBOX,
-        coord   : { 2, 2 },
-        size    : { 20, 8 },
-        { listbox : {
-            fgColor : twins::ColorFG::Green,
-            bgColor : twins::ColorBG::White,
-            noFrame : false
-        }}
-    },
-    {
-        type    : twins::Widget::Radio,
-        id      : ID_RADIO_1,
-        coord   : { 25, 7 },
+        type    : twins::Widget::Layer,
+        id      : ID_LAYER_1,
+        coord   : {},
         size    : {},
-        { radio : {
-            text    : "YES",
-            fgColor : twins::ColorFG::Radio,
-            groupId : 1,
-            radioId : 0,
+        { layer : {} },
+        link    : { (const twins::Widget[])
+        {
+            {
+                type    : twins::Widget::Label,
+                id      : ID_LABEL_MULTI_FMT,
+                coord   : { 24, 2 },
+                size    : { 35, 4 },
+                { label : {
+                    text    : "  ▫▫▫▫▫ " ESC_INVERSE_ON "ListBox" ESC_INVERSE_OFF " ▫▫▫▫▫" "\n"
+                            "• " ESC_UNDERLINE_ON "Up/Down" ESC_UNDERLINE_OFF " -> change item" "\n"
+                            "• " ESC_UNDERLINE_ON "PgUp/PgDown" ESC_UNDERLINE_OFF " -> scroll page" "\n"
+                            "• " ESC_UNDERLINE_ON "Enter" ESC_UNDERLINE_OFF " -> select the item",
+                    fgColor : twins::ColorFG::YellowIntense,
+                    bgColor : twins::ColorBG::LabelBlue,
+                }}
+            },
+            {
+                type    : twins::Widget::ListBox,
+                id      : ID_LISTBOX,
+                coord   : { 2, 2 },
+                size    : { 20, 8 },
+                { listbox : {
+                    fgColor : twins::ColorFG::Green,
+                    bgColor : twins::ColorBG::White,
+                    noFrame : false
+                }}
+            },
+            { /* NUL */ }
         }}
     },
     {
-        type    : twins::Widget::Radio,
-        id      : ID_RADIO_2,
-        coord   : { 35, 7 },
+        type    : twins::Widget::Layer,
+        id      : ID_LAYER_2,
+        coord   : {},
         size    : {},
-        { radio : {
-            text    : "NO",
-            fgColor : twins::ColorFG::Yellow,
-            groupId : 1,
-            radioId : 1,
+        { layer : {} },
+        link    : { (const twins::Widget[])
+        {
+            {
+                type    : twins::Widget::Radio,
+                id      : ID_RADIO_1,
+                coord   : { 25, 7 },
+                size    : {},
+                { radio : {
+                    text    : "YES",
+                    fgColor : twins::ColorFG::Radio,
+                    groupId : 1,
+                    radioId : 0,
+                }}
+            },
+            {
+                type    : twins::Widget::Radio,
+                id      : ID_RADIO_2,
+                coord   : { 35, 7 },
+                size    : {},
+                { radio : {
+                    text    : "NO",
+                    fgColor : twins::ColorFG::Yellow,
+                    groupId : 1,
+                    radioId : 1,
+                }}
+            },
+            {
+                type    : twins::Widget::Radio,
+                id      : ID_RADIO_3,
+                coord   : { 44, 7 },
+                size    : {},
+                { radio : {
+                    text    : "Don't know",
+                    fgColor : {},
+                    groupId : 1,
+                    radioId : 2,
+                }}
+            },
+            { /* NUL */ }
         }}
     },
     {
-        type    : twins::Widget::Radio,
-        id      : ID_RADIO_3,
-        coord   : { 44, 7 },
+        type    : twins::Widget::CheckBox,
+        id      : ID_CHBX_L1,
+        coord   : { 25, 9 },
         size    : {},
-        { radio : {
-            text    : "Don't know",
-            fgColor : {},
-            groupId : 1,
-            radioId : 2,
+        { checkbox : {
+            text    : "Layer 1",
+            fgColor : {}
+        }}
+    },
+    {
+        type    : twins::Widget::CheckBox,
+        id      : ID_CHBX_L2,
+        coord   : { 40, 9 },
+        size    : {},
+        { checkbox : {
+            text    : "Layer 2",
+            fgColor : {}
         }}
     },
     { /* NUL */ }
@@ -623,6 +665,18 @@ static constexpr twins::Widget page6Childs[] =
             style   : twins::ButtonStyle::Simple
         }}
     },
+    {
+        type    : twins::Widget::Button,
+        id      : ID_BTN_1P5,
+        coord   : { 38, 7 },
+        size    : { 0, 0 },
+        { button : {
+            text    : {},
+            fgColor : twins::ColorFG::White,
+            bgColor : twins::ColorBG::ButtonGreen,
+            style   : twins::ButtonStyle::Solid1p5
+        }}
+    },
     { /* NUL */ }
 };
 
@@ -630,9 +684,6 @@ static constexpr twins::Widget wndMain =
 {
     // NOTE: all members must be initialized, in order they are declared,
     // otherwise GCC may fail to compile: 'sorry, unimplemented: non-trivial designated initializers not supported'
-
-    // C-style:     .id = ID_WND,
-    // C++ style:   id : ID_WND,
 
     type    : twins::Widget::Window,
     id      : ID_WND,
@@ -648,18 +699,31 @@ static constexpr twins::Widget wndMain =
     link    : { (const twins::Widget[])
     {
         {
+            type    : twins::Widget::Button,
+            id      : ID_BTN_TOASTER,
+            coord   : { 1, 1 },
+            size    : { 14, 1 },
+            { button : {
+                text    : {},
+                fgColor : twins::ColorFG::Yellow,
+                bgColor : {},
+                style   : twins::ButtonStyle::Simple
+            }}
+        },
+        {
             type    : twins::Widget::PageCtrl,
             id      : ID_PGCONTROL,
             coord   : { 1,  1 },
             size    : { 75, 12 },
             { pagectrl : {
                 tabWidth    : 14,
+                vertOffs    : 2,
             }},
             link    : { (const twins::Widget[])
             {
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_1,
+                    id      : ID_PAGE_VER,
                     coord   : {},
                     size    : {},
                     { page : {
@@ -670,7 +734,7 @@ static constexpr twins::Widget wndMain =
                 },
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_2,
+                    id      : ID_PAGE_SERV,
                     coord   : {},
                     size    : {},
                     { page : {
@@ -681,7 +745,7 @@ static constexpr twins::Widget wndMain =
                 },
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_3,
+                    id      : ID_PAGE_DIAG,
                     coord   : {},
                     size    : {},
                     { page : {
@@ -692,18 +756,18 @@ static constexpr twins::Widget wndMain =
                 },
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_4,
+                    id      : ID_PAGE_INACTIV,
                     coord   : {},
                     size    : {},
                     { page : {
-                        title       : "Inactiv",
+                        title       : "Inactiv 🍀",
                         fgColor     : twins::ColorFG::White,
                     }},
                     link    : { page4Childs }
                 },
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_5,
+                    id      : ID_PAGE_TEXTBOX,
                     coord   : {},
                     size    : {},
                     { page : {
@@ -714,7 +778,7 @@ static constexpr twins::Widget wndMain =
                 },
                 {
                     type    : twins::Widget::Page,
-                    id      : ID_PAGE_6,
+                    id      : ID_PAGE_COMBOBOX,
                     coord   : {},
                     size    : {},
                     { page : {
@@ -733,10 +797,11 @@ static constexpr twins::Widget wndMain =
             size    : {}, //{ 78, 1 },
             { label : {
                 text    :  " "
-                           ESC_BOLD "F4 "       ESC_NORMAL "Mouse On/Off"   "  "
+                           ESC_BOLD "F2 "       ESC_NORMAL "Wnd En"   "  "
+                           ESC_BOLD "F4 "       ESC_NORMAL "Mouse On"   "  "
                            ESC_BOLD "F5 "       ESC_NORMAL "Refresh"        "  "
                            ESC_BOLD "F6 "       ESC_NORMAL "Clr Logs"       "  "
-                           ESC_BOLD "F9/F10 "   ESC_NORMAL "Change Page"    "  "
+                           ESC_BOLD "F9/F10 "   ESC_NORMAL "Page"    "  "
                            "\u2581" "\u2582" "\u2583" "\u2584" "\u2585" "\u2586" "\u2587" "\u2588" "\U0001F569"
                            ,
                 fgColor : twins::ColorFG::White,

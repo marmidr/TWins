@@ -381,9 +381,16 @@ public:
     }
 
     /** @brief Simpy check if vector contains \p val */
-    bool contains(const T &val)
+    bool contains(const T &val) const
     {
-        return find(val) != nullptr;
+        const auto *p = data();
+        int n = mSize;
+
+        while (n--)
+            if (*p++ == val)
+                return true;
+
+        return false;
     }
 
     /** @brief Remove all items and free memory */

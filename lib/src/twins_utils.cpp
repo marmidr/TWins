@@ -26,6 +26,17 @@ const char* strnchr(const char *str, int strSz, char c)
     return nullptr;
 }
 
+const char* strechr(const char *str, const char *estr, char c)
+{
+    while (str < estr)
+    {
+        if (*str == c) return str;
+        str++;
+    }
+
+    return nullptr;
+}
+
 Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDelim)
 {
     if (!str || !*str)
@@ -100,9 +111,9 @@ Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDel
     return out;
 }
 
-String wordWrap(const char *str, uint16_t maxLineLen, const char *delim, const char *separator)
+String wordWrap(const char *str, uint16_t areaWidth, const char *delim, const char *separator)
 {
-    if (maxLineLen < 1)
+    if (areaWidth < 1)
         return {};
     if (!str || !*str)
         return {};
@@ -145,21 +156,21 @@ String wordWrap(const char *str, uint16_t maxLineLen, const char *delim, const c
             continue;
         }
 
-        auto word_len = twins::String::u8len(w.data, w.data + w.size, true);
+        auto word_width = String::width(w.data, w.data + w.size);
 
-        if (line_len + word_len <= maxLineLen)
+        if (line_len + word_width <= areaWidth)
         {
             out.appendLen(w.data, w.size);
-            line_len += word_len;
+            line_len += word_width;
         }
         else
         {
-            if (word_len > maxLineLen)
+            if (word_width > areaWidth)
             {
                 if (line_len > 0)
                     out << separator;
 
-                out.appendLen(w.data, maxLineLen-1);
+                out.appendLen(w.data, areaWidth-1);
                 out << "…" << separator;
                 line_len = 0;
                 continue;
@@ -169,7 +180,7 @@ String wordWrap(const char *str, uint16_t maxLineLen, const char *delim, const c
                 out << separator;
 
             out.appendLen(w.data, w.size);
-            line_len = word_len;
+            line_len = word_width;
         }
     }
 
@@ -196,13 +207,24 @@ Vector<StringRange> splitLines(const char *str)
     return out;
 }
 
-twins::String centerText(twins::String str, uint16_t rowLength)
+twins::String centerText(const char *str, uint16_t areaWidth)
 {
-    twins::String out(std::move(str));
-    auto txt_len = out.u8len(true);
+    auto str_width = twins::String::width(str);
+    twins::String out;
 
-    if (rowLength - txt_len > 1)
-        out.insert(0, " ", (rowLength - txt_len)/2);
+    if (areaWidth - str_width > 0)
+    {
+        uint16_t leading_spaces = (areaWidth - str_width)/2;
+        // note that for reservation a buffer length is needed, not visual text width
+        out.reserve(strlen(str) + (areaWidth - str_width));
+        out.append(' ', leading_spaces)
+           .append(str)
+           .append(' ', areaWidth - str_width - leading_spaces);
+    }
+    else
+    {
+        out = str;
+    }
 
     return out;
 }

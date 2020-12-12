@@ -156,6 +156,7 @@ enum class Key : uint8_t
     Tab,
     Enter,
     Backspace,
+    Pause,
     //
     Up,
     Down,

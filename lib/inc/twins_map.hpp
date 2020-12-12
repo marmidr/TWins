@@ -7,6 +7,7 @@
 #pragma once
 #include "twins_common.hpp"
 #include "twins_vector.hpp"
+#include "twins_hash.hpp"
 
 #include <utility>  // std::move
 #include <memory>   // new(addr) T()
@@ -20,7 +21,7 @@ namespace twins
 /**
  * @brief Simple hashing map for Key-Value pairs
  */
-template<typename K, typename V>
+template<typename K, typename V, typename H = HashDefault>
 class Map
 {
 public:
@@ -28,18 +29,84 @@ public:
 
     struct Node
     {
-        Hash hash;
-        K    key;
-        V    val;
+        Hash      hash;
+        K         key;
+        mutable V val;
     };
 
     using Bucket = Vector<Node>;
+    using Buckets = Vector<Bucket>;
+
+    class Iter
+    {
+    public:
+        struct NodeIdx
+        {
+            uint16_t bktIdx;
+            uint16_t itemIdx;
+            bool operator ==(const NodeIdx& other) const { return bktIdx == other.bktIdx && itemIdx == other.itemIdx; }
+        };
+
+    public:
+        Iter(void) = delete;
+
+        Iter(Map<K, V, H> &map, bool begin)
+            : mBkts(map.mBuckets)
+        {
+            if (begin)
+            {
+                mIdx.bktIdx = 0;
+                goToNextNonemptyBucket();
+            }
+            else
+            {
+                mIdx.bktIdx = mBkts.size();
+            }
+
+            mIdx.itemIdx = 0;
+        }
+
+        Iter(const Iter &other)
+            : mBkts(other.mBkts)
+        {
+            mIdx = other.mIdx;
+        }
+
+        bool operator == (const Iter &other) const { return mIdx == other.mIdx; }
+        bool operator != (const Iter &other) const { return !(mIdx == other.mIdx); }
+        const Node * operator -> (void) const { return &operator*(); }
+        const Node & operator * (void)  const { return mBkts[mIdx.bktIdx][mIdx.itemIdx]; }
+
+        // ++it
+        Iter& operator ++(void)
+        {
+            if (mIdx.bktIdx < mBkts.size())
+            {
+                if (++mIdx.itemIdx >= mBkts[mIdx.bktIdx].size())
+                {
+                    mIdx.itemIdx = 0;
+                    mIdx.bktIdx++;
+                    goToNextNonemptyBucket();
+                }
+            }
+
+            return *this;
+        }
+
+    private:
+        void goToNextNonemptyBucket()
+        {
+            while (mIdx.bktIdx < mBkts.size() && mBkts[mIdx.bktIdx].size() == 0)
+                mIdx.bktIdx++;
+        }
+
+    protected:
+        Buckets &mBkts;
+        NodeIdx  mIdx;
+    };
 
 public:
-    Map()
-    {
-    }
-
+    Map() = default;
     ~Map() = default;
 
     /** @brief Direct access operator; return existing value, creates new otherwise */
@@ -51,19 +118,25 @@ public:
             mBuckets.resize(4);
         }
 
-        auto *p_node = getNode(key);
-        return p_node->val;
+        if (mNodes >= (mBuckets.size() * 4))
+            growBuckets();
+
+        auto &node = getNode(key);
+        return node.val;
     }
 
-    /** @brief Check if given key is known to the map */
-    bool contains(const K &key)
+    /** @brief Check if given key exists */
+    bool contains(const K &key) const
     {
-        auto hash = hashAny(key);
+        if (!mBuckets.size())
+            return false;
+
+        auto hash = H::hash(key);
         auto bidx = getBucketIdx(hash);
-        auto &bkt = mBuckets[bidx];
+        const auto &bkt = mBuckets[bidx];
 
         for (auto &node : bkt)
-            if (node.hash == hash && node.key == key)
+            if ((node.hash == hash) && keysEqual(node.key, key, key_is_cstr{}))
                 return true;
 
         return false;
@@ -72,12 +145,15 @@ public:
     /** @brief Remove entry */
     void remove(const K &key)
     {
-        auto hash = hashAny(key);
+        if (!mBuckets.size())
+            return;
+
+        auto hash = H::hash(key);
         auto &bkt = mBuckets[getBucketIdx(hash)];
 
         for (unsigned i = 0; i < bkt.size(); i++)
         {
-            if (bkt[i].hash == hash && bkt[i].key == key)
+            if ((bkt[i].hash == hash) && keysEqual(bkt[i].key, key, key_is_cstr{}))
             {
                 bkt.remove(i);
                 mNodes--;
@@ -95,10 +171,14 @@ public:
     /** @brief Clear all map entries */
     void clear()
     {
-        for (auto &bkt : mBuckets)
-            bkt.clear();
+        if (mBuckets.size())
+        {
+            mNodes = 0;
+            mBuckets.resize(4);
 
-        mNodes = 0;
+            for (auto &bkt : mBuckets)
+                bkt.clear();
+        }
     }
 
     /** @brief Number of buckets - for test purposes */
@@ -134,61 +214,71 @@ public:
         return 100 - (100 * over_expected / mNodes);
     }
 
+    Iter begin(void) { return Iter(*this, true); }
+    Iter end(void)   { return Iter(*this, false); }
+
 private:
-    Hash hashBuff(const void *data, unsigned length) const
-    {
-        const char *p = (const char*)data;
-        // modified Dan Bernstein hash function for strings
-        unsigned hash = 5381;
-        for (unsigned i = 0; i < length; i++)
-            hash = ((hash << 5) + hash) ^ *p++; // (hash * 33) ^ *p
-        return hash;
-    }
+    using key_is_cstr = typename std::conditional<
+                            std::is_same<const char*, K>::value || std::is_same<char*, K>::value,
+                            std::true_type, std::false_type
+                        >::type;
 
-    // template <typename std::enable_if<
-    //     std::is_same<const char*, K>::value || std::is_same<char*, K>::value, int>::type = 0>
-    // Hash hashAny(const K &key) const
-    // {
-    //     return hashBuff(key, strlen(key));
-    // }
-
-    template <typename std::enable_if<std::is_integral<K>::value, int>::type = 0>
-    Hash hashAny(const K &key) const
-    {
-        return hashBuff(&key, sizeof(K));
-    }
-
-    unsigned getBucketIdx(Hash hash) const
+    inline unsigned getBucketIdx(Hash hash) const
     {
         // mBuckets.size() must be power of 2
         return hash & (mBuckets.size() - 1);
     }
 
-    Node* getNode(const K &key)
+    template<typename Key>
+    inline bool keysEqual(Key k1, Key k2, std::true_type) const
     {
-        auto hash = hashAny(key);
+        return strcmp(k1, k2) == 0;
+    }
+
+    template<typename Key>
+    inline bool keysEqual(const Key &k1, const Key &k2, std::false_type) const
+    {
+        return k1 == k2;
+    }
+
+    Node& getNode(const K &key)
+    {
+        auto hash = H::hash(key);
         auto bidx = getBucketIdx(hash);
         auto &bkt = mBuckets[bidx];
 
         for (auto &node : bkt)
-            if (node.hash == hash && node.key == key)
-                return &node;
+            if ((node.hash == hash) && keysEqual(node.key, key, key_is_cstr{}))
+                return node;
 
         auto &node = mBuckets[bidx].append();
         mNodes++;
-
-        if (mNodes >= (mBuckets.size() << 3))
-        {
-            // double the buckets
-        }
-
         node.hash = hash;
         node.key = key;
-        return &node;
+        return node;
+    }
+
+    void growBuckets()
+    {
+        auto old_buckets = std::move(mBuckets);
+        mBuckets.resize(old_buckets.size() * 2);
+
+        for (const auto &old_bkt : old_buckets)
+        {
+            for (auto &old_node : old_bkt)
+            {
+                auto hash = H::hash(old_node.key);
+                auto bidx = getBucketIdx(hash);
+                auto &node = mBuckets[bidx].append();
+                node.hash = hash;
+                node.key = old_node.key;
+                node.val = std::move(old_node.val);
+            }
+        }
     }
 
 private:
-    Vector<Bucket> mBuckets;
+    Buckets  mBuckets;
     uint16_t mNodes = 0;
 };
 

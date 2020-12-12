@@ -26,9 +26,9 @@
 
 // -----------------------------------------------------------------------------
 
-#define ANSI_CSI(x)     "\033" "["  x  // Control Sequence Introducer
-#define ANSI_OSC(x)     "\033" "]"  x  // Operating System Command
-#define ANSI_ST(x)      "\033" "\\" x  // String Terminator
+#define ANSI_CSI(x)     "\e" "["  x  // Control Sequence Introducer
+#define ANSI_OSC(x)     "\e" "]"  x  // Operating System Command
+#define ANSI_ST(x)      "\e" "\\" x  // String Terminator
 
 /*******************************************************************************
  * @name Text Display Modifier Escape Sequences
@@ -46,6 +46,9 @@
 
 #define ESC_UNDERLINE_ON                ANSI_CSI("4m")
 #define ESC_UNDERLINE_OFF               ANSI_CSI("24m")
+
+#define ESC_OVERLINE_ON                 ANSI_CSI("53m")
+#define ESC_OVERLINE_OFF                ANSI_CSI("55m")
 
 // if not blinks, the bg color may be lighter
 #define ESC_BLINK                       ANSI_CSI("5m")
@@ -449,6 +452,34 @@
 #define ESC_LINE_INSERT(n)              ANSI_CSI(#n "L")
 #define ESC_LINE_INSERT_FMT             ESC_LINE_INSERT(%u)
 
+/** @brief Delete line */
+#define ESC_LINE_DELETE(n)              ANSI_CSI(#n "M")
+#define ESC_LINE_DELETE_FMT             ESC_LINE_DELETE(%u)
+
+//@}
+
+/*******************************************************************************
+ * @name Character control
+ */
+
+//@{
+
+/** @brief Repeat last character \p n times - not fully supported */
+#define ESC_CHAR_REPEAT_LAST(n)         ANSI_CSI(#n "b")
+#define ESC_CHAR_REPEAT_LAST_FMT        ESC_CHAR_REPEAT_LAST(%u)
+
+/** @brief Erase \p n characters (replace with space) */
+#define ESC_CHAR_ERASE(n)               ANSI_CSI(#n "X")
+#define ESC_CHAR_ERASE_FMT              ESC_CHAR_ERASE(%u)
+
+/** @brief Delete \p n characters */
+#define ESC_CHAR_DELETE(n)              ANSI_CSI(#n "P")
+#define ESC_CHAR_DELETE_FMT             ESC_CHAR_DELETE(%u)
+
+/** @brief Insert \p n characters */
+#define ESC_CHAR_INSERT(n)              ANSI_CSI(#n "@")
+#define ESC_CHAR_INSERT_FMT             ESC_CHAR_INSERT(%u)
+
 //@}
 
 /*******************************************************************************
@@ -508,10 +539,6 @@
 /** @brief */
 #define ESC_BELL                        "\007"
 
-/** @brief Repeat last character \p n times - not fully supported */
-#define ESC_REPEAT_LAST_CHAR(n)         ANSI_CSI(#n "b")
-#define ESC_REPEAT_LAST_CHAR_FMT        ESC_REPEAT_LAST_CHAR(%u)
-
 /** @brief Character encoding */
 #define ESC_ENCODING_ISO8858_1          ANSI_ESC("%@")
 #define ESC_ENCODING_UTF8               ANSI_ESC("%G")
@@ -521,6 +548,8 @@
 #define ESC_REPORT_SCREEN_CHARS         ANSI_CSI("19t")
 #define ESC_REPORT_CAPABILITIES         ANSI_CSI("c")
 
+/** @brief Maximum ESC sequence length (including null) */
+#define ESC_SEQ_MAX_LENGTH              8
 
 // bash: blink screen until key pressed
 // { while true; do printf \\e[?5h; sleep 0.3; printf \\e[?5l; read -s -n1 -t1 && break; done; }

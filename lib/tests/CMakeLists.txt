@@ -12,11 +12,13 @@ add_executable(${TARGETNAME}
     src/test_string.cpp
     src/test_utils.cpp
     src/test_stack.cpp
+    src/test_queue.cpp
     src/test_vector.cpp
     src/test_map.cpp
     src/test_twins.cpp
     src/test_input_posix.cpp
-    src/test_widget_draw.cpp
+    src/test_widget.cpp
+    src/test_cli.cpp
 )
 
 target_compile_options(${TARGETNAME} PRIVATE
@@ -30,10 +32,17 @@ target_link_libraries(${TARGETNAME}
     gmock
 )
 
-target_include_directories(${TARGETNAME}
-    PRIVATE
-        inc
-)
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
+    # https://cmake.org/cmake/help/v3.19/command/target_precompile_headers.html
+    # 51s -> 40s
+    target_precompile_headers(${TARGETNAME}
+        PRIVATE
+            <string>
+            <vector>
+            <gtest/gtest.h>
+            <gmock/gmock.h>
+    )
+endif()
 
 # ---
 

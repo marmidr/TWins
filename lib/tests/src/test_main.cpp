@@ -64,6 +64,9 @@ int main(int argc, char **argv)
     argc = vargs.size();
 
     testing::InitGoogleTest(&argc, vargs.data());
-
-    return RUN_ALL_TESTS();
+    twins::mouseMode(twins::MouseMode::M1);
+    int rc = RUN_ALL_TESTS();
+    twins::mouseMode(twins::MouseMode::Off);
+    fprintf(stderr, "\n*** Tests finished ***\n");
+    return rc;
 }

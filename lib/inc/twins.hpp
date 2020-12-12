@@ -15,9 +15,10 @@
 // -----------------------------------------------------------------------------
 
 #define TWINS_LOG(...)          TWINS_LOG_I(__VA_ARGS__) // deprecated
-#define TWINS_LOG_I(...)        twins::log(__FILE__, __LINE__,                  "-I- ", "" __VA_ARGS__)
-#define TWINS_LOG_W(...)        twins::log(__FILE__, __LINE__, ESC_FG_YELLOW    "-W- ", "" __VA_ARGS__)
-#define TWINS_LOG_E(...)        twins::log(__FILE__, __LINE__, ESC_FG_RED       "-E- ", "" __VA_ARGS__)
+#define TWINS_LOG_D(...)        twins::log(nullptr, __FILE__, __LINE__,                 "-D- ", "" __VA_ARGS__)
+#define TWINS_LOG_I(...)        twins::log(nullptr, __FILE__, __LINE__, ESC_FG_WHITE    "-I- ", "" __VA_ARGS__)
+#define TWINS_LOG_W(...)        twins::log(nullptr, __FILE__, __LINE__, ESC_FG_YELLOW   "-W- ", "" __VA_ARGS__)
+#define TWINS_LOG_E(...)        twins::log(nullptr, __FILE__, __LINE__, ESC_FG_RED      "-E- ", "" __VA_ARGS__)
 
 #ifndef __TWINS_LINK_SECRET
 # define __TWINS_LINK_SECRET    void*_
@@ -48,6 +49,22 @@ struct Size
     uint8_t width;
     uint8_t height;
 };
+
+/** @brief Rectangle area */
+struct Rect
+{
+    Coord coord;
+    Size  size;
+
+    void setMax()
+    {
+        coord.col = 1;
+        coord.row = 1;
+        size.width = 0xff;
+        size.height = 0xff;
+    }
+};
+
 
 /** @brief Foreground colors */
 enum class ColorFG : uint8_t
@@ -124,6 +141,9 @@ ColorBG intensifyClTheme(ColorBG cl);
 template<typename CL>
 inline void intensifyClIf(bool cond, CL &cl) { if (cond) cl = intensifyCl(cl); }
 
+/** @brief Transcode Background color sequence to Foreground color sequence */
+const char* transcodeClBg2Fg(const char *bgColorCode);
+
 /**
  * @brief Font attributes; some of them may be combined
  */
@@ -169,6 +189,8 @@ enum class ButtonStyle : uint8_t
 {
     Simple,
     Solid,
+    Solid1p5,
+    // Solid3,
 };
 
 /**
@@ -203,6 +225,8 @@ struct Widget
         ComboBox,
         CustomWgt,
         TextBox,
+        Layer,
+        _Count
     };
 
     Type    type = {};
@@ -276,6 +300,7 @@ struct Widget
         struct
         {
             uint8_t     tabWidth;
+            uint8_t     vertOffs;
         } pagectrl;
 
         struct
@@ -313,10 +338,14 @@ struct Widget
             ColorFG     fgColor;
             ColorBG     bgColor;
         } textbox;
+
+        struct
+        {
+        } layer;
     };
 
     /** parent <- this -> childs linking */
-    union
+    union Link
     {
         __TWINS_LINK_SECRET;
         //
@@ -383,7 +412,7 @@ struct WidgetProp
     };
 
     // applies to every widget
-    bool enabled;
+    bool enabled = true;
 };
 
 /** @brief Object remembers terminal font colors and attribute,
@@ -436,12 +465,15 @@ bool lock(bool wait = true);
 void unlock(void);
 
 /** @brief used by TWINS_LOG() */
-void log(const char *file, unsigned line, const char *prefix, const char *fmt, ...);
+void log(uint64_t *pTimestamp, const char *file, unsigned line, const char *prefix, const char *fmt, ...);
 
 /** @brief Logs with more control */
 void logRawBegin(const char *prologue = "", bool timeStamp = false);
 void logRawWrite(const char *msg);
 void logRawEnd(const char *epilogue = "");
+
+/** @brief Print HH:MM:SS.mmm */
+void writeCurrentTime(uint64_t *pTimestamp = nullptr);
 
 /**
  * @brief Delay for given number if milliseconds
@@ -496,6 +528,7 @@ inline void cursorShow(void)        { writeStr(ESC_CURSOR_SHOW); }
  * @brief Lines manipulation
  */
 inline void insertLines(uint16_t count) { writeStrFmt(ESC_LINE_INSERT_FMT, count); }
+inline void deleteLines(uint16_t count) { writeStrFmt(ESC_LINE_DELETE_FMT, count); }
 
 /**
  * @brief Screen manipulation
@@ -516,15 +549,11 @@ void mouseMode(MouseMode mode);
 
 /**
  * @brief Decode ANSI keyboard/mouse sequence from \p input and produce readable Key Code \p output
+ * @return Length of sequence if decoded, 0 otherwise
  */
-void decodeInputSeq(RingBuff<char> &input, KeyCode &output);
+uint8_t decodeInputSeq(RingBuff<char> &input, KeyCode &output);
 
 // -----------------------------------------------------------------------------
-
-/**
- * @brief Draw single widget or entire window
- */
-void drawWidget(const Widget *pWindowWidgets, WID widgetId = WIDGET_ID_ALL);
 
 /**
  * @brief Draw selected widgets
@@ -543,6 +572,14 @@ inline void drawWidgets(const Widget *pWindowWidgets, const std::initializer_lis
 }
 
 /**
+ * @brief Draw single widget or entire window
+ */
+inline void drawWidget(const Widget *pWindowWidgets, WID widgetId = WIDGET_ID_ALL)
+{
+    drawWidgets(pWindowWidgets, &widgetId, 1);
+}
+
+/**
  * @brief Return widget type as string
  */
 const char * toString(Widget::Type type);
@@ -553,25 +590,19 @@ const char * toString(Widget::Type type);
 Coord getScreenCoord(const Widget *pWgt);
 
 /**
- * @brief Return page id from \p pPageControl and \p pageIdx or \b WIDGET_ID_NONE
- */
-WID getPageID(const Widget *pPageControl, int8_t pageIdx);
-
-/**
  * @brief Return widget from its ID or \b nullptr
  */
 const Widget* getWidget(const Widget *pWindowWidgets, WID widgetId);
 
 /**
- * @brief Process keyboard/mouse signal received by console
+ * @brief Return widget \p pWgt parent widget
  */
-bool processKey(const Widget *pWindow, const KeyCode &kc);
+const Widget* getWidgetParent(const Widget *pWgt);
 
 /**
- * @brief As the PgUp/PgDn are often used by consoles, let the user decide
- *        when to change page
+ * @brief Process keyboard/mouse signal received by console
  */
-void mainPgControlChangePage(const Widget *pWindowWidgets, bool next);
+bool processInput(const Widget *pWindow, const KeyCode &kc);
 
 /**
  * @brief Check if widget is visible, checking all its parents
@@ -587,6 +618,45 @@ bool isWidgetEnabled(const Widget *pWindowWidgets, const Widget *pWgt);
  * @brief Reset internal state after top window was changed
  */
 void resetInternalState(void);
+
+/**
+ * @brief Checks if point is withing rectangle
+ */
+bool isPointWithin(uint8_t col, uint8_t row, const Rect& r);
+
+/**
+ * @brief Checks if internal rect \p i is within or covers external rectangle \p e
+ */
+bool isRectWithin(const Rect& i, const Rect& e);
+
+// -----------------------------------------------------------------------------
+
+/** Functions related to particular widget types */
+namespace wgt
+{
+
+/**
+ * @brief Return page id from \p pPageControl and \p pageIdx or \b WIDGET_ID_NONE
+ */
+WID getPageID(const Widget *pPageControl, int8_t pageIdx);
+
+/**
+ * @brief Return page index from \p pPageControl and \p pageID or -1 if not found
+ */
+int8_t getPageIdx(const Widget *pPageControl, WID pageID);
+
+/**
+ * @brief Find \p pageControlID widget and emit onPageControlPageChange() for given \p pageID
+ */
+void selectPage(const Widget *pWindowWidgets, WID pageControlID, WID pageID);
+
+/**
+ * @brief As the PgUp/PgDn are often used by console, let the user decide
+ *        when to change page
+ */
+void selectNextPage(const Widget *pWindowWidgets, WID pageControlID, bool next);
+
+} // wgt
 
 // -----------------------------------------------------------------------------
 
@@ -609,6 +679,80 @@ struct Locker
 private:
     bool mIsLocked;
 };
+
+// -----------------------------------------------------------------------------
+
+inline void operator += (Coord &cord, const Coord &offs)
+{
+    cord.col += offs.col;
+    cord.row += offs.row;
+}
+
+inline void operator -= (Coord &cord, const Coord &offs)
+{
+    cord.col -= offs.col;
+    cord.row -= offs.row;
+}
+
+inline Coord operator + (const Coord &cord1, const Coord &cord2)
+{
+    Coord ret = {
+        uint8_t(cord1.col + cord2.col),
+        uint8_t(cord1.row + cord2.row)
+    };
+    return ret;
+}
+
+inline Coord operator - (const Coord &cord1, const Coord &cord2)
+{
+    Coord ret = {
+        uint8_t(cord1.col - cord2.col),
+        uint8_t(cord1.row - cord2.row)
+    };
+    return ret;
+}
+
+inline Size operator + (const Size &sz1, const Size &sz2)
+{
+    Size ret = {
+        uint8_t(sz1.width + sz2.width),
+        uint8_t(sz1.height + sz2.height)
+    };
+    return ret;
+}
+
+inline Size operator - (const Size &sz1, const Size &sz2)
+{
+    Size ret = {
+        uint8_t(sz1.width - sz2.width),
+        uint8_t(sz1.height - sz2.height)
+    };
+    return ret;
+}
+
+inline Rect operator + (const Rect &r, const Size &sz)
+{
+    Rect ret = { r.coord, r.size + sz };
+    return ret;
+}
+
+inline Rect operator - (const Rect &r, const Size &sz)
+{
+    Rect ret = { r.coord, r.size - sz };
+    return ret;
+}
+
+inline Rect operator + (const Rect &r, const Coord &cord)
+{
+    Rect ret = { r.coord + cord, r.size };
+    return ret;
+}
+
+inline Rect operator - (const Rect &r, const Coord &cord)
+{
+    Rect ret = { r.coord - cord, r.size };
+    return ret;
+}
 
 // -----------------------------------------------------------------------------
 

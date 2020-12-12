@@ -26,13 +26,10 @@ pipelines:
           - apt-get install -y cmake
           - git submodule update --init --remote
           - g++ --version
-          - mkdir build
-          - cd build
-          - cmake -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON ..
+          - mkdir build && cd build
+          - cmake -DCMAKE_BUILD_TYPE=Debug -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON ..
           - make -j4
-          - ctest -V
+          - ctest -V --output-on-failure --timeout 20
           - apt-get install -y python-pip
           - pip install cpp-coveralls gcovr
-          #- coveralls -b . -r .. -i "lib" -E ".*/lib/tests/.*" -t xyTXxJUFndVGPY153wKb3aLwb8P71CAwr
-          - coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t xyTXxJUFndVGPY153wKb3aLwb8P71CAwr
-
+          - coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t W1vBS6Hvg6wtzaqdV2E4B4OVTIvxJmNXI

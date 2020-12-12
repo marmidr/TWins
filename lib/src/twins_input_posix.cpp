@@ -60,8 +60,7 @@ static void checkErrNo(int line)
     //  https://stackoverflow.com/questions/3596781/how-to-detect-if-the-current-process-is-being-run-by-gdb
     if (errno)
     {
-        printf("%s:%u ", __FILE__, line);
-        perror(strerror(errno));
+        fprintf(stderr, "-E- %s:%u - %s", __FILE__, line, strerror(errno));
         exit(EXIT_FAILURE);
     }
 }
@@ -88,8 +87,7 @@ void inputPosixInit(uint16_t timeoutMs)
     }
     else
     {
-        printf("%s:%u ", __FILE__, __LINE__);
-        perror(strerror(errno));
+        fprintf(stderr, "-E- %s:%u: cannot open /dev/tty\n", __FILE__, __LINE__);
     }
 }
 

@@ -13,6 +13,7 @@
 #include "twins_pal_defimpl.hpp"
 #include "twins_glob.hpp"
 #include "twins_window_state_base.hpp"
+#include "twins_cli.hpp"
 
 #include "demo_wnd.hpp"
 
@@ -114,22 +115,25 @@ public:
     {
         WindowStateBase::init(pWindowWgts);
         mFocusedIds.resize(wndMainNumPages);
+        mPgcPage = 0;
 
         for (auto &wid : mFocusedIds)
             // wid = twins::WIDGET_ID_NONE;
             wid = ID_WND;
 
         mTxtBox1Text = ESC_BOLD
-                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam arcu magna, placerat sit amet libero at, aliquam fermentum augue.\n"
+                    "🔶 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam arcu magna, placerat sit amet libero at, aliquam fermentum augue.\n"
                     ESC_NORMAL
                     ESC_FG_Gold
-                    "Morbi egestas consectetur malesuada. Mauris vehicula, libero eget tempus ullamcorper, nisi lorem efficitur velit, vel bibendum augue eros vel lorem. Duis vestibulum magna a ornare bibendum. Curabitur eleifend dictum odio, eu ultricies nunc eleifend et.\n"
+                    " Morbi egestas consectetur malesuada. Mauris vehicula, libero eget tempus ullamcorper, nisi lorem efficitur velit, vel bibendum augue eros vel lorem. Duis vestibulum magna a ornare bibendum. Curabitur eleifend dictum odio, eu ultricies nunc eleifend et.\n"
                     "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.\n"
                     ESC_FG_GreenYellow
-                    "Interdum et malesuada fames ac ante ipsum primis in faucibus. Aenean malesuada lacus leo, a eleifend lorem suscipit sed.\n" "▄";
+                    "🔷 Interdum et malesuada fames ac ante ipsum primis in faucibus. Aenean malesuada lacus leo, a eleifend lorem suscipit sed.\n" "▄";
         mTxtBox2Text = "Lorem ipsum ▄";
         mEdt1Text = "00 11 22 33 44 55 66 77 88 99 aa bb cc dd";
         mEdt2Text = "73+37=100";
+        mWgtProp[ID_CHBX_L1].chbx.checked = true;
+        mWgtProp[ID_CHBX_L2].chbx.checked = true;
     }
 
     ~WndMainState()
@@ -155,9 +159,11 @@ public:
 
         if (pWgt->id == ID_BTN_SAYNO)
         {
-            auto &prp = mWgtProp[ID_BTN_SAYYES];
-            prp.enabled = !prp.enabled;
+            mWgtProp[ID_BTN_SAYYES].enabled = !mWgtProp[ID_BTN_SAYYES].enabled;
             invalidate(ID_BTN_SAYYES);
+
+            mWgtProp[ID_BTN_1P5].enabled = !mWgtProp[ID_BTN_1P5].enabled;
+            invalidate(ID_BTN_1P5);
         }
     }
 
@@ -173,6 +179,11 @@ public:
                 [](twins::WID btnID) { TWINS_LOG(ESC_BG_DarkGreen "Choice: %d" ESC_BG_DEFAULT, btnID); },
                 "ync"
             );
+        }
+
+        if (pWgt->id == ID_BTN_YES)
+        {
+            twins::wgt::selectPage(getWidgets(), ID_PGCONTROL, ID_PAGE_TEXTBOX);
         }
     }
 
@@ -197,18 +208,31 @@ public:
 
     void onCheckboxToggle(const twins::Widget* pWgt) override
     {
+        auto &chkd = mWgtProp[pWgt->id].chbx.checked;
+        chkd = !chkd;
+
         switch (pWgt->id)
         {
-        case ID_CHBX_ENBL: TWINS_LOG("CHBX_ENBL"); break;
-        case ID_CHBX_LOCK: TWINS_LOG("CHBX_LOCK"); break;
-        default: TWINS_LOG("CHBX"); break;
+        case ID_CHBX_ENBL:
+            TWINS_LOG("CHBX_ENBL");
+            break;
+        case ID_CHBX_LOCK:
+            TWINS_LOG("CHBX_LOCK");
+            break;
+        case ID_CHBX_L1:
+        case ID_CHBX_L2:
+            invalidate(ID_PAGE_SERV);
+            break;
+        default:
+            TWINS_LOG("CHBX");
+            break;
         }
 
-        mWgtProp[pWgt->id].chbx.checked = !mWgtProp[pWgt->id].chbx.checked;
     }
 
     void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) override
     {
+        TWINS_LOG_I("NewPageIdx=%d", newPageIdx);
         if (pWgt->id == ID_PGCONTROL) mPgcPage = newPageIdx;
     }
 
@@ -289,18 +313,17 @@ public:
 
     bool isEnabled(const twins::Widget* pWgt) override
     {
-        if (pWgt->id == ID_PANEL_VERSIONS)
+        switch (pWgt->id)
         {
-            auto &prp = mWgtProp[pWgt->id];
-            prp.enabled = !prp.enabled;
-            return prp.enabled;
-        }
-
-        if (pWgt->id == ID_CHBX_C)
+        case ID_WND:
+            return wndEnabled;
+        case ID_CHBX_C:
             return false;
-
-        if (pWgt->id == ID_BTN_SAYYES)
+        case ID_PANEL_VERSIONS:
+        case ID_BTN_SAYYES:
+        case ID_BTN_1P5:
             return mWgtProp[pWgt->id].enabled;
+        }
 
         return true;
     }
@@ -312,19 +335,21 @@ public:
 
     bool isVisible(const twins::Widget* pWgt) override
     {
-        //if (pWgt->id == ID_WND)    return bb.wndMngr().topWnd() == pWgt; // always visible
-        if (pWgt->id == ID_PAGE_1) return mPgcPage == 0;
-        if (pWgt->id == ID_PAGE_2) return mPgcPage == 1;
-        if (pWgt->id == ID_PAGE_3) return mPgcPage == 2;
-        if (pWgt->id == ID_PAGE_4) return mPgcPage == 3;
-        if (pWgt->id == ID_PAGE_5) return mPgcPage == 4;
-        if (pWgt->id == ID_PAGE_6) return mPgcPage == 5;
+        if (pWgt->type == twins::Widget::Page)
+            return twins::wgt::getPageID(twins::getWidgetParent(pWgt), mPgcPage) == pWgt->id;
 
-        return true;
+        switch (pWgt->id)
+        {
+        case ID_LAYER_1: return mWgtProp[ID_CHBX_L1].chbx.checked;
+        case ID_LAYER_2: return mWgtProp[ID_CHBX_L2].chbx.checked;
+        default:         return true;
+        }
     }
 
     twins::WID& getFocusedID() override
     {
+        // TODO: distinguish window widgets (use mFocusedId) and page-control widgets (use mFocusedIds[pageidx])
+        //       not possible as long this function returns a reference
         return mFocusedIds[mPgcPage];
     }
 
@@ -362,9 +387,8 @@ public:
                 ESC_BOLD "Name:\n" ESC_NORMAL
                 "  20 Hits on 2\n"
                 ESC_BOLD "Description:\n" ESC_NORMAL
-                "  Latest, most lo♡ed radio hits. ❤"
+                "  Latest, most lo💖ed radio hits. "
                 ;
-                // note: the ❤ is double-width glyph (U+1F90D)
             out = twins::util::wordWrap(s, pWgt->size.width, " \n", "\n  ");
         }
     }
@@ -410,12 +434,14 @@ public:
 
     void getListBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) override
     {
+        const char *plants[4] = {"🌷", "🌱", "🌲", "🌻"};
+
         if (pWgt->id == ID_LISTBOX)
         {
             if (itemIdx == 3)
                 out.appendFmt(ESC_BOLD "Item" ESC_NORMAL " 0034567890123456789*");
             else
-                out.appendFmt(ESC_FG_BLACK "Item" ESC_FG_BLUE " %03d", itemIdx);
+                out.appendFmt(ESC_FG_BLACK "Item" ESC_FG_BLUE " %03d %s", itemIdx, plants[itemIdx & 0x03]);
         }
     }
 
@@ -463,25 +489,37 @@ public:
         }
     }
 
-    // --- requests ---
-
-    void invalidate(twins::WID id, bool instantly = false) override
+    void getButtonText(const twins::Widget* pWgt, twins::String &out) override
     {
-        if (id == twins::WIDGET_ID_NONE)
+        if (pWgt->id == ID_BTN_TOASTER)
         {
-            invalidatedWgts.clear();
+            out.appendFmt("  ✉   📢  ");
+        }
+        else if (pWgt->id == ID_BTN_1P5)
+        {
+            out << "1.5 🍋 Height";
+        }
+    }
+
+private:
+    void invalidateImpl(const twins::WID *pId, uint16_t count, bool instantly) override
+    {
+        if (count == 1 && *pId == twins::WIDGET_ID_NONE)
+        {
+            invalidatedWgts.resize(0); // resize do not free memory if small chunk allocated
             return;
         }
 
         // state or focus changed - widget must be repainted
+
+        for (uint16_t i = 0; i < count; i++)
+            if (!invalidatedWgts.contains(pId[i]))
+                invalidatedWgts.append(pId[i]);
+
         if (instantly)
         {
-            WindowStateBase::invalidate(id, instantly);
-        }
-        else
-        {
-            if (!invalidatedWgts.contains(id))
-                invalidatedWgts.append(id);
+            WindowStateBase::invalidateImpl(invalidatedWgts.data(), invalidatedWgts.size(), true);
+            invalidatedWgts.resize(0);
         }
     }
 
@@ -489,6 +527,7 @@ public:
     twins::String lblKeycodeSeq;
     twins::String lblKeyName;
     twins::Vector<twins::WID> invalidatedWgts;
+    bool wndEnabled = true;
 
 private:
     int16_t mPgbarPos = 0;
@@ -519,14 +558,14 @@ public:
         if (onButton)
             onButton(pWgt->id);
 
-        twins::glob::wMngr.popWnd();
+        twins::glob::wMngr.hide(this);
     }
 
     bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
         if (kc.key == twins::Key::Esc)
         {
-            twins::glob::wMngr.popWnd();
+            twins::glob::wMngr.hide(this);
             return true;
         }
         return false;
@@ -553,7 +592,7 @@ public:
     {
         switch (pWgt->id)
         {
-        case IDPP_WND:          return twins::glob::wMngr.topWndWidgets() == pWgt;
+        case IDPP_WND:          return twins::glob::wMngr.topWnd() == this;
         case IDPP_BTN_YES:      return strstr(buttons.cstr(), "y") != nullptr;
         case IDPP_BTN_NO:       return strstr(buttons.cstr(), "n") != nullptr;
         case IDPP_BTN_CANCEL:   return strstr(buttons.cstr(), "c") != nullptr;
@@ -608,17 +647,15 @@ void showPopup(twins::String title, twins::String message, std::function<void(tw
     wndPopup.onButton = onButton;
     wndPopup.buttons = buttons;
 
-    twins::glob::wMngr.pushWnd(getWndPopup());
+    twins::glob::wMngr.show(getWndPopup());
 }
 
 // -----------------------------------------------------------------------------
 
-int main()
+static void gui()
 {
-    // printf("Win1 controls: %u" "\n", wndMain.topWnd.childCount);
-    // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
     twins::screenClrAll();
-    twins::glob::wMngr.pushWnd(getWndMain());
+    twins::glob::wMngr.show(getWndMain());
     twins::inputPosixInit(100);
     twins::mouseMode(twins::MouseMode::M2);
     twins::flushBuffer();
@@ -651,13 +688,13 @@ int main()
 
             twins::decodeInputSeq(rbKeybInput, kc);
             // pass key to top-window
-            bool key_handled = twins::processKey(twins::glob::wMngr.topWnd()->getWidgets(), kc);
+            bool key_handled = twins::processInput(twins::glob::wMngr.topWndWidgets(), kc);
             wndMain.lblKeyName = kc.name;
 
             // display decoded key
             if (kc.key == twins::Key::MouseEvent)
             {
-                TWINS_LOG("B%c %c%c%c %03d:%03d",
+                TWINS_LOG_D("B%c %c%c%c %03d:%03d",
                     '0' + (char)kc.mouse.btn,
                     kc.m_ctrl ? 'C' : ' ',
                     kc.m_alt ? 'A' : ' ',
@@ -666,15 +703,20 @@ int main()
             }
             else if (kc.key != twins::Key::None)
             {
-                TWINS_LOG("Key: '%s' %s", kc.name, key_handled ? "(handled)" : "");
+                TWINS_LOG_D("Key: '%s' %s", kc.name, key_handled ? "(handled)" : "");
             }
 
 
-            if (kc.m_spec && kc.key == twins::Key::F4)
+            if (kc.m_spec && kc.key == twins::Key::F2)
+            {
+                wndMain.wndEnabled = !wndMain.wndEnabled;
+                wndMain.invalidate(ID_WND);
+            }
+            else if (kc.m_spec && kc.key == twins::Key::F4)
             {
                 static bool mouse_on = true;
                 mouse_on = !mouse_on;
-                TWINS_LOG("Mouse %s", mouse_on ? "ON" : "OFF");
+                TWINS_LOG_I("Mouse %s", mouse_on ? "ON" : "OFF");
                 twins::mouseMode(mouse_on ? twins::MouseMode::M2 : twins::MouseMode::Off);
                 twins::flushBuffer();
             }
@@ -696,12 +738,12 @@ int main()
             else if (kc.m_spec && kc.m_ctrl && (kc.key == twins::Key::PgUp || kc.key == twins::Key::PgDown))
             {
                 if (twins::glob::wMngr.topWnd() == &wndMain)
-                    twins::mainPgControlChangePage(wndMain.getWidgets(), kc.key == twins::Key::PgDown);
+                    twins::wgt::selectNextPage(wndMain.getWidgets(), ID_PGCONTROL, kc.key == twins::Key::PgDown);
             }
             else if (kc.m_spec && (kc.key == twins::Key::F9 || kc.key == twins::Key::F10))
             {
                 if (twins::glob::wMngr.topWnd() == &wndMain)
-                    twins::mainPgControlChangePage(wndMain.getWidgets(), kc.key == twins::Key::F10);
+                    twins::wgt::selectNextPage(wndMain.getWidgets(), ID_PGCONTROL, kc.key == twins::Key::F10);
             }
 
 
@@ -709,7 +751,7 @@ int main()
             {
                 // keyboard code
                 twins::cursorSavePos();
-                twins::drawWidgets(wndMain.getWidgets(), {ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
+                wndMain.invalidate({ID_LABEL_KEYSEQ, ID_LABEL_KEYNAME});
 
                 if (kc.mod_all != KEY_MOD_SPECIAL)
                 {
@@ -723,11 +765,10 @@ int main()
                 twins::cursorRestorePos();
             }
 
-
             if (twins::glob::wMngr.topWnd() == &wndMain)
             {
                 twins::drawWidgets(wndMain.getWidgets(), wndMain.invalidatedWgts.data(), wndMain.invalidatedWgts.size());
-                wndMain.invalidatedWgts.clear();
+                wndMain.invalidate(twins::WIDGET_ID_NONE); // clear
             }
         }
 
@@ -739,6 +780,93 @@ int main()
     twins::mouseMode(twins::MouseMode::Off);
     twins::flushBuffer();
     twins::inputPosixFree();
+}
+
+// -----------------------------------------------------------------------------
+
+static void cli()
+{
+    const twins::cli::Cmd commands[] =
+    {
+        {
+            "verb",
+            "[<1/0>]" "\r\n"
+            "    Enable/disable verbose mode",
+            TWINS_CLI_HANDLER
+            {
+                if (argv.size() >= 2)
+                {
+                    twins::cli::verbose = strcmp(argv[1], "1") == 0;
+                    twins::writeStrFmt("CLI verbose set to %s" "\r\n", twins::cli::verbose ? "ON" : "OFF");
+                }
+                else
+                {
+                    twins::writeStrFmt("CLI verbose is %s" "\r\n", twins::cli::verbose ? "ON" : "OFF");
+                }
+            }
+        },
+        {
+            "stop|S",
+            "\r\n"
+            "    Stop everything",
+            TWINS_CLI_HANDLER
+            {
+                twins::writeStrFmt("cmd '%s' called" "\r\n", argv[0]);
+            }
+        },
+        {
+            "move",
+            "<up/dn/home>" "\r\n"
+            "    Perform a move",
+            TWINS_CLI_HANDLER
+            {
+                twins::writeStrFmt("cmd '%s'(", argv[0]);
+                for (auto a : argv) twins::writeStrFmt("%s, ", a);
+                twins::writeStr(")\r\n");
+            }
+        },
+        { /* terminator*/ }
+    };
+
+    twins::writeStr(ESC_INVERSE_ON "TWins CLI mode; type 'help' for commands (Ctrl+D - quit)" ESC_INVERSE_OFF "\n");
+    twins::inputPosixInit(100);
+    twins::cli::prompt(false);
+    twins::flushBuffer();
+
+    for (;;)
+    {
+        bool quit_req = false;
+        const char *posix_inp = twins::inputPosixRead(quit_req);
+        if (quit_req)
+        {
+            twins::writeStr(ESC_FG_MAGENTA "QUIT requested" ESC_FG_DEFAULT);
+            break;
+        }
+
+        // add new data or process state machine
+        twins::cli::processInput(posix_inp);
+        // execute if command completed
+        twins::cli::checkAndExec(commands);
+        twins::flushBuffer();
+    }
+
+    twins::writeStr("\r\n");
+    twins::flushBuffer();
+    twins::inputPosixFree();
+}
+
+// -----------------------------------------------------------------------------
+
+int main(int argc, char **argv)
+{
+    bool mode_cli = argc >= 2 && (strcmp("-cli", argv[1]) == 0);
+    // printf("Win1 controls: %u" "\n", wndMain.topWnd.childCount);
+    // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
+
+    if (mode_cli)
+        cli();
+    else
+        gui();
 
     printf(ESC_BOLD "Memory stats: max chunks: %d, max allocated: %d B\n" ESC_NORMAL,
         ((DemoPAL&)twins::glob::pal).stats.memChunksMax,
