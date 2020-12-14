@@ -102,7 +102,7 @@ make -j
 ### Run CLI demo:
 
 ```bash
-./bin/TWinsDemo -cli
+./bin/TWinsDemo --cli
 ```
 
 ## How to build unit tests

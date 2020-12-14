@@ -786,6 +786,10 @@ static void gui()
 
 static void cli()
 {
+    static bool quit_req;
+
+    quit_req = false;
+
     const twins::cli::Cmd commands[] =
     {
         {
@@ -825,6 +829,22 @@ static void cli()
                 twins::writeStr(")\r\n");
             }
         },
+        {
+            "",
+            "default cmd handler",
+            TWINS_CLI_HANDLER
+            {
+                twins::writeStrFmt("Default handler: unknown command " ESC_FG_YELLOW "'%s'" ESC_FG_DEFAULT "\r\n", argv[0]);
+            }
+        },
+        {
+            "q",
+            "quit program",
+            TWINS_CLI_HANDLER
+            {
+                quit_req = true;
+            }
+        },
         { /* terminator*/ }
     };
 
@@ -835,7 +855,6 @@ static void cli()
 
     for (;;)
     {
-        bool quit_req = false;
         const char *posix_inp = twins::inputPosixRead(quit_req);
         if (quit_req)
         {
@@ -859,7 +878,7 @@ static void cli()
 
 int main(int argc, char **argv)
 {
-    bool mode_cli = argc >= 2 && (strcmp("-cli", argv[1]) == 0);
+    bool mode_cli = argc >= 2 && (strcmp("--cli", argv[1]) == 0);
     // printf("Win1 controls: %u" "\n", wndMain.topWnd.childCount);
     // printf("sizeof Widget: %zu" "\n", sizeof(twins::Widget));
 

@@ -30,18 +30,23 @@ protected:
 TEST_F(CLI, commands)
 {
     static bool ver_called;
+    static bool default_called;
     static char move_dir;
     static const twins::cli::Cmd *p_commands = nullptr; // to solve lack of lambda captures
 
     ver_called = false;
+    default_called = false;
     move_dir = 0;
 
     const twins::cli::Cmd commands[] =
     {
         {
             "",
-            "",
-            {}
+            "default cmd handler",
+            TWINS_CLI_HANDLER
+            {
+                default_called = true;
+            }
         },
         #if TWINS_LAMBDA_CMD
         {
@@ -115,7 +120,8 @@ TEST_F(CLI, commands)
 
     // unknown cmd
     twins::cli::processInput("say-ello\r\n");
-    EXPECT_FALSE(twins::cli::checkAndExec(commands));
+    EXPECT_TRUE(twins::cli::checkAndExec(commands));
+    EXPECT_TRUE(default_called);
 
     // get history
     EXPECT_GE(twins::cli::getHistory().size(), 2);
