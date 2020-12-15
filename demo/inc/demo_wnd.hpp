@@ -20,7 +20,7 @@ enum WndMainIDs
                 ID_PANEL_VERSIONS,
                     ID_LABEL_FW_VERSION,
                     ID_LABEL_DATE,
-                    ID_LABEL_TIME,
+                    ID_LABEL_ABOUT,
                 ID_PANEL_STATE,
                     ID_LED_PUMP,
                     ID_LED_LOCK,

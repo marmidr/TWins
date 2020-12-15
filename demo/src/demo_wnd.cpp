@@ -164,12 +164,12 @@ static constexpr twins::Widget page1Childs[] =
             },
             {
                 type    : twins::Widget::Label,
-                id      : ID_LABEL_TIME,
+                id      : ID_LABEL_ABOUT,
                 coord   : { 2, 3 },
-                size    : { 16, 1 },
+                size    : { 0, 1 },
                 { label : {
-                    text    : "Time≡" __TIME__,
-                    fgColor : twins::ColorFG::White,
+                    text    : {},
+                    fgColor : twins::ColorFG::Blue,
                 }}
             },
             { /* NUL */ }

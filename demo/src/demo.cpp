@@ -391,6 +391,11 @@ public:
                 ;
             out = twins::util::wordWrap(s, pWgt->size.width, " \n", "\n  ");
         }
+
+        if (pWgt->id == ID_LABEL_ABOUT)
+        {
+            out.appendFmt(ESC_LINK_FMT, "https://bitbucket.org/mmidor/twins", "About...");
+        }
     }
 
     void getEditText(const twins::Widget* pWgt, twins::String &out) override
