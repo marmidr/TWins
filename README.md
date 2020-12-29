@@ -1,8 +1,8 @@
 # TWins in brief
 
-[![Coverage Status](https://coveralls.io/repos/bitbucket/mmidor/twins/badge.svg?branch=master)](https://coveralls.io/bitbucket/mmidor/twins?branch=master) 
+<!-- [![Coverage Status](https://coveralls.io/repos/bitbucket/mmidor/twins/badge.svg?branch=master)](https://coveralls.io/bitbucket/mmidor/twins?branch=master) -->
 
-`TWins` is a C++ library designed to allow developer create a graphical terminal applications on non-os platforms, like bare Cortex-M3.
+`TWins` is a C++ library designed to allow easy creation of visual terminal applications on non-os platforms, like bare Cortex-M3.
 It provides basic facilities required by interactive applications such as screen and cursor management, keyboard input, keymaps, color codes.
 Additionaly it allows to define terminal windows and it's widgets in a convenient way as const tree of `twins::Widget` structures.
 
@@ -11,19 +11,18 @@ Additionaly it allows to define terminal windows and it's widgets in a convenien
 ![example 3](doc/sshot9.png)
 ![popup](doc/sshot10.png)
 
-Wikipedia: [reference color tables for different terminals](https://en.m.wikipedia.org/wiki/ANSI_escape_code)
-
 ## References
 
 Implementation is based on examples:
 
-* https://github.com/fidian/ansi/blob/master/ansi
+* https://github.com/fidian/ansi/blob/master/ansi - great bash script providing most of the codes for use inline
 * https://github.com/stark/Color-Scripts
 * https://wiki.bash-hackers.org/scripting/terminalcodes
 * http://0x80.pl/articles/terminals.html
 * https://www.jedsoft.org/slang/
 * https://www.systutorials.com/docs/linux/man/4-console_codes/#lbAF
 * https://rdrr.io/cran/fansi/man/sgr_to_html.html
+* [Wiki: reference color tables for different terminals](https://en.m.wikipedia.org/wiki/ANSI_escape_code)
 
 ## Primary goals
 
