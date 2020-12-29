@@ -69,7 +69,8 @@
 #define ESC_ATTRIBUTES_DEFAULT          ANSI_CSI("10;22;23;24;25;27;28;29m")
 
 // '\u001B]8;;https://github.com\u0007Click\u001B]8;;\u0007'
-#define ESC_LINK(url, capt)             ANSI_OSC("8;;") url "\u0007" capt ANSI_OSC("8;;\u0007")
+#define ESC_LINK(url, caption)          ANSI_OSC("8;;") url "\u0007" caption ANSI_OSC("8;;\u0007")
+#define ESC_LINK_FMT                    ESC_LINK("%s", "%s")
 
 //@}
 

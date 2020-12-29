@@ -14,22 +14,77 @@ options:
 
 # shallow clone
 clone:
-  depth: 3
+  #depth: 3
+  depth: full # SonarCloud scanner needs the full history to assign issues properly
+
+# https://support.atlassian.com/bitbucket-cloud/docs/yaml-anchors/
+definitions:
+    steps:
+        - step: &build_and_test_std
+            name: Default build && test
+            caches:
+                - pip
+            script:
+                # prerequisites
+                - apt-get update
+                - apt-get install -y cmake
+                - cmake --version
+                - git submodule update --init --remote
+                # build
+                - mkdir build && cd build
+                - cmake -DCMAKE_BUILD_TYPE=Debug -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON ..
+                - make -j4
+                - ctest -V --output-on-failure --timeout 20
+                # create coverage report
+                #- apt-get install -y python-pip
+                #- pip install cpp-coveralls gcovr
+                #- coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t W1vBS6Hvg6wtzaqdV2E4B4OVTIvxJmNXI
+
+        - step: &build_and_test_sonar
+            name: SonarScanner build && test
+            script:
+                # prerequisites
+                - apt-get update
+                - apt-get install -y cmake
+                - cmake --version
+                - git submodule update --init --remote
+                #
+                - export SONAR_SCANNER_VERSION=4.4.0.2170
+                - export SONAR_SCANNER_HOME=$HOME/.sonar/sonar-scanner-$SONAR_SCANNER_VERSION-linux
+                - export SONAR_SCANNER_OPTS="-server"
+                - export BW_OUTPUT=$HOME/.sonar/bw-output
+                - mkdir -p $BW_OUTPUT
+                # download sonar scanner and wrapper
+                - curl --create-dirs -sSLo $HOME/.sonar/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$SONAR_SCANNER_VERSION-linux.zip
+                - unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+                - export PATH=$SONAR_SCANNER_HOME/bin:$PATH
+                - curl --create-dirs -sSLo $HOME/.sonar/build-wrapper-linux-x86.zip https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
+                - unzip -o $HOME/.sonar/build-wrapper-linux-x86.zip -d $HOME/.sonar/
+                - export PATH=$HOME/.sonar/build-wrapper-linux-x86:$PATH
+                # run cmake
+                - mkdir sonarbuild && cd sonarbuild
+                - cmake -DCMAKE_BUILD_TYPE=Debug -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON ..
+                # wrapped-build
+                - build-wrapper-linux-x86-64 --out-dir $BW_OUTPUT make -j4
+                - ctest -V --output-on-failure --timeout 20
+                # prepare coverage report
+                - mkdir gcovreport && cd gcovreport
+                - find .. -name "*.o" | xargs gcov
+                - cd ..
+                - cd ..
+                # scan
+                - sonar-scanner -Dsonar.cfamily.build-wrapper-output=$BW_OUTPUT
+            artifacts:
+                - $HOME/.sonar
 
 pipelines:
-  default:
-    - step:
-        caches:
-          - pip
-        script: # Modify the commands below to build your repository.
-          - apt-get update
-          - apt-get install -y cmake
-          - git submodule update --init --remote
-          - g++ --version
-          - mkdir build && cd build
-          - cmake -DCMAKE_BUILD_TYPE=Debug -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON ..
-          - make -j4
-          - ctest -V --output-on-failure --timeout 20
-          - apt-get install -y python-pip
-          - pip install cpp-coveralls gcovr
-          - coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t W1vBS6Hvg6wtzaqdV2E4B4OVTIvxJmNXI
+    default:
+        - step:
+            name: Environment Info
+            script:
+                - lscpu
+                - g++ --version
+                - env | sort
+                - find $HOME/.sonar || true
+        #- step: *build_and_test_std
+        - step: *build_and_test_sonar

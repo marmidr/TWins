@@ -263,12 +263,16 @@ void printHelp(const Cmd* pCommands)
 
     while (pCommands->name)
     {
-        writeStr(ESC_BOLD);
-        writeStr(pCommands->name);
-        writeStr(ESC_NORMAL " ");
-        writeStr(pCommands->help);
-        writeStr("\r\n");
-        flushBuffer();
+        // default cmd has empty name
+        if (pCommands->name[0] != '\0')
+        {
+            writeStr(ESC_BOLD);
+            writeStr(pCommands->name);
+            writeStr(ESC_NORMAL " ");
+            writeStr(pCommands->help);
+            writeStr("\r\n");
+            flushBuffer();
+        }
         pCommands++;
     }
 }
@@ -343,6 +347,8 @@ void tokenize(StringBuff &cmd, Argv &argv)
 
 const Cmd* find(const Cmd* pCommands, Argv &argv)
 {
+    const Cmd* p_dflt = nullptr;
+
     if (argv.size())
     {
         const char *cmd_name = argv[0];
@@ -352,9 +358,16 @@ const Cmd* find(const Cmd* pCommands, Argv &argv)
             // name
             // name|alias
             const char *name = pCommands->name;
-            if (!*name) continue;
+
+            if (*name == '\0')
+            {
+                p_dflt = pCommands;
+                continue;
+            }
+
             const char *ename = strchr(name, '|');
-            if (!ename) ename = name + strlen(name);
+            if (!ename)
+                ename = name + strlen(name);
 
             if (strncmp(name, cmd_name, ename-name) == 0)
                 return pCommands;
@@ -368,7 +381,7 @@ const Cmd* find(const Cmd* pCommands, Argv &argv)
         }
     }
 
-    return nullptr;
+    return p_dflt ? p_dflt : nullptr;
 }
 
 void prompt(bool newLn)
