@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - string class for our needs
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #include "twins_common.hpp"

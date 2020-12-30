@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - main header file
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #pragma once

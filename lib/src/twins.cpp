@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - core
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #include "twins.hpp"

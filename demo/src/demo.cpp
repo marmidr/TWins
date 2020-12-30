@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - demo application
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #include "twins.hpp"
@@ -394,7 +394,7 @@ public:
 
         if (pWgt->id == ID_LABEL_ABOUT)
         {
-            out.appendFmt(ESC_LINK_FMT, "https://bitbucket.org/mmidor/twins", "About...");
+            out.appendFmt(ESC_LINK_FMT, "https://bitbucket.org/marmidr/twins", "About...");
         }
     }
 

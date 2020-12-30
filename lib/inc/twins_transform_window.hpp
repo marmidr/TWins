@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - window definition constexpr transformation
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *          Proof of concept: https://godbolt.org/z/TkMfcC
  *****************************************************************************/
 

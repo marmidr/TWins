@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - ring buffer for eg. byte stream; only for trivial data types
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #pragma once

@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - unit tests
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #include "gtest/gtest.h"

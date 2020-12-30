@@ -1,7 +1,7 @@
 /*******************************************************************************
  * @brief   TWins - ANSI terminal escape code macros
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  * @note    This file is based on terminal_codes.h (c) NXP
  *          and https://en.m.wikipedia.org/wiki/ANSI_escape_code
  ******************************************************************************/
