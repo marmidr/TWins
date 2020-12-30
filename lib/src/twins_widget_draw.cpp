@@ -394,7 +394,7 @@ static void drawLabel(CallEnv &env, const Widget *pWgt)
             s_line.setWidth(line_width, true);
 
         writeStrLen(s_line.cstr(), s_line.size());
-        moveBy(-s_line.width(), 1);
+        moveBy(-(int16_t)s_line.width(), 1);
         flushBuffer();
 
         if (!p_eol && !pWgt->size.height)
@@ -581,7 +581,7 @@ static void drawButton(CallEnv &env, const Widget *pWgt)
         g_ws.str << " " << txt << " ";
         auto clbg = getWidgetBgColor(pWgt);
         auto clparbg = getWidgetBgColor(getParent(pWgt));
-        const auto bnt_len = 2 + txt.width();
+        const int16_t bnt_len = 2 + txt.width();
         const char* scl_shadow = ESC_BG_COLOR(233);
         const char* scl_bg2fg = transcodeClBg2Fg(encodeCl(clbg));
         FontMemento _m;

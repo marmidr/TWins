@@ -1,5 +1,5 @@
 /******************************************************************************
- * @brief   TWins - ring buffer for eg. byte stream
+ * @brief   TWins - ring buffer for eg. byte stream; only for trivial data types
  * @author  Mariusz Midor
  *          https://bitbucket.org/mmidor/twins
  *****************************************************************************/
@@ -21,6 +21,8 @@ class RingBuff
 {
 public:
     RingBuff() = default;
+    RingBuff(const RingBuff&) = delete;
+    RingBuff(RingBuff&&) = delete;
 
     /** @brief Initialize with external static buffer of size N */
     template<unsigned N>
@@ -29,7 +31,6 @@ public:
         mpBuff = buffer;
         mCapacity = N;
         mStaticBuff = true;
-        mHead = mTail = mSize = 0;
     }
 
     ~RingBuff()
@@ -54,7 +55,7 @@ public:
     void clear()
     {
         mSize = 0;
-        mHead = mTail = 0;
+        mReadIdx = mWriteIdx = 0;
     }
 
     /** @brief Returns data length written */
@@ -75,9 +76,9 @@ public:
         if (isFull())
             return false;
 
-        mpBuff[mTail++] = data;
-        if (mTail == mCapacity)
-            mTail = 0;
+        mpBuff[mWriteIdx++] = data;
+        if (mWriteIdx == mCapacity)
+            mWriteIdx = 0;
         mSize++;
         return true;
     }
@@ -94,9 +95,9 @@ public:
 
         while (dataSize--)
         {
-            mpBuff[mTail++] = *data++;
-            if (mTail == mCapacity)
-                mTail = 0;
+            mpBuff[mWriteIdx++] = *data++;
+            if (mWriteIdx == mCapacity)
+                mWriteIdx = 0;
         }
         return true;
     }
@@ -117,10 +118,10 @@ public:
         if (mSize == 0)
             return nullptr;
 
-        T *ret = mpBuff + mHead++;
+        T *ret = mpBuff + mReadIdx++;
         mSize--;
-        if (mHead == mCapacity)
-            mHead = 0;
+        if (mReadIdx == mCapacity)
+            mReadIdx = 0;
         return ret;
     }
 
@@ -141,9 +142,9 @@ public:
 
         while (n--)
         {
-            *buffer++ = mpBuff[mHead++];
-            if (mHead == mCapacity)
-                mHead = 0;
+            *buffer++ = mpBuff[mReadIdx++];
+            if (mReadIdx == mCapacity)
+                mReadIdx = 0;
         }
 
         return count;
@@ -163,7 +164,7 @@ public:
             count = mSize;
 
         uint16_t n = count;
-        uint16_t head = mHead;
+        uint16_t head = mReadIdx;
 
         while (n--)
         {
@@ -186,7 +187,7 @@ public:
 
         if (dataSz)
         {
-            if (mHead < mTail)
+            if (mReadIdx < mWriteIdx)
             {
                 // ...H...T..
                 *dataSz = mSize;
@@ -194,11 +195,11 @@ public:
             else
             {
                 // ...T...H..
-                *dataSz = mCapacity - mHead;
+                *dataSz = mCapacity - mReadIdx;
             }
         }
 
-        return &mpBuff[mHead];
+        return &mpBuff[mReadIdx];
     }
 
     /** @brief Moves read pointer forward by \p count items, but no more than \p size elements */
@@ -208,24 +209,18 @@ public:
             count = mSize;
 
         mSize -= count;
-        mHead += count;
-        if (mHead >= mCapacity)
-            mHead -= mCapacity;
+        mReadIdx += count;
+        if (mReadIdx >= mCapacity)
+            mReadIdx -= mCapacity;
     }
 
-protected:
-    /** write index */
-    uint16_t mTail = 0;
-    /** read index */
-    uint16_t mHead = 0;
-    /** items count */
+private:
+    uint16_t mWriteIdx = 0;
+    uint16_t mReadIdx = 0;
     uint16_t mSize = 0;
-    /** size of mpBuff[] */
     uint16_t mCapacity = 0;
-    /**  */
     bool     mStaticBuff = false;
-    /** data buffer */
-    T *      mpBuff = {};
+    T *      mpBuff = nullptr;
 };
 
 // -----------------------------------------------------------------------------

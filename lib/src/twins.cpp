@@ -124,7 +124,7 @@ void writeCurrentTime(uint64_t *pTimestamp)
     }
     else
     {
-        gettimeofday(&tv, NULL);
+        gettimeofday(&tv, nullptr);
     }
 
     struct tm *p_stm = localtime(&tv.tv_sec);
@@ -208,7 +208,7 @@ void logRawBegin(const char *prologue, bool timeStamp)
 
     if (timeStamp)
     {
-        time_t t = time(NULL);
+        time_t t = time(nullptr);
         struct tm *p_stm = localtime(&t);
         writeStrFmt("[%2d:%02d:%02d] ",
             p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec);

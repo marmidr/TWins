@@ -26,10 +26,10 @@ public:
     {
         reserve();
         mSize++;
-        mItems[mHead] = std::forward<Tv>(item);
+        mItems[mWriteIdx] = std::forward<Tv>(item);
 
-        if (++mHead == mItems.capacity())
-            mHead = 0;
+        if (++mWriteIdx == mItems.capacity())
+            mWriteIdx = 0;
     }
 
     /** @brief Returns pointer to to the tail item and decrease items counter, or \b nullptr if queue is empty */
@@ -38,10 +38,10 @@ public:
         if (mSize)
         {
             mSize--;
-            T *p_ret = &mItems[mTail];
+            T *p_ret = &mItems[mReadIdx];
 
-            if (++mTail == mItems.capacity())
-                mTail = 0;
+            if (++mReadIdx == mItems.capacity())
+                mReadIdx = 0;
             return p_ret;
         }
 
@@ -68,8 +68,8 @@ private:
 private:
     Vector<T> mItems;
     uint16_t  mSize = 0;
-    uint16_t  mHead = 0; // write ptr
-    uint16_t  mTail = 0; // read ptr
+    uint16_t  mWriteIdx = 0;
+    uint16_t  mReadIdx = 0;
 };
 
 // -----------------------------------------------------------------------------

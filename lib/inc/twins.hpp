@@ -90,7 +90,7 @@ enum class ColorFG : uint8_t
     // begin of theme-defined colors
     ThemeBegin,
     TWINS_THEME_FG
-    ThemeEnd = 255
+    ThemeEnd
 };
 
 /** @brief Background colors */
@@ -117,7 +117,7 @@ enum class ColorBG : uint8_t
     // begin of theme-defined colors
     ThemeBegin,
     TWINS_THEME_BG
-    ThemeEnd = 255
+    ThemeEnd
 };
 
 /** @brief Convert color identifier to ASCII ESC code */
@@ -423,7 +423,7 @@ struct FontMementoManual
     void store();
     void restore();
 
-protected:
+private:
     uint8_t szFg;
     uint8_t szBg;
     uint8_t szAttr;
@@ -663,10 +663,13 @@ void selectNextPage(const Widget *pWindowWidgets, WID pageControlID, bool next);
 /** @brief RAII style locker */
 struct Locker
 {
-    Locker(bool wait = true)
+    explicit Locker(bool wait = true)
     {
         mIsLocked = twins::lock(wait);
     }
+
+    Locker(const Locker&) = delete;
+    Locker(Locker&&) = delete;
 
     ~Locker()
     {

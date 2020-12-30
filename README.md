@@ -1,10 +1,8 @@
 # TWins in brief
 
-<!-- [![Coverage Status](https://coveralls.io/repos/bitbucket/mmidor/twins/badge.svg?branch=master)](https://coveralls.io/bitbucket/mmidor/twins?branch=master) -->
-
-`TWins` is a C++ library designed to allow easy creation of visual terminal applications on non-os platforms, like bare Cortex-M3.
+`TWins` is a C++ library designed for easy creation of visual terminal applications on non-os platforms, like bare Cortex-M3.
 It provides basic facilities required by interactive applications such as screen and cursor management, keyboard input, keymaps, color codes.
-Additionaly it allows to define terminal windows and it's widgets in a convenient way as const tree of `twins::Widget` structures.
+User can also define terminal windows and it's widgets in a convenient way as const tree of `twins::Widget` structures.
 
 ![example 1](doc/sshot7.png)
 ![example 2](doc/sshot8.png)
@@ -15,7 +13,7 @@ Additionaly it allows to define terminal windows and it's widgets in a convenien
 
 Implementation is based on examples:
 
-* https://github.com/fidian/ansi/blob/master/ansi - great bash script providing most of the codes for use inline
+* https://github.com/fidian/ansi/blob/master/ansi - great bash script providing most of the codes for terminal use
 * https://github.com/stark/Color-Scripts
 * https://wiki.bash-hackers.org/scripting/terminalcodes
 * http://0x80.pl/articles/terminals.html
@@ -84,7 +82,7 @@ sudo apt install g++ cmake cmake-curses-gui
 # How to build demo
 
 Project is CMake-based and contains two targets: *TWinsDemo* and *TWinsUT*.  
-Tests are enabled by default, Demo has to be enabled in commandline or in `ccmake`.
+Tests are enabled by default, Demo has to be enabled from commandline or in `ccmake .`.
 
 ```bash
 mkdir build && cd build

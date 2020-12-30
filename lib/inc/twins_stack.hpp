@@ -22,6 +22,10 @@ template<typename T>
 class Stack
 {
 public:
+    Stack() = default;
+    Stack(const Stack&) = delete;
+    Stack(Stack&&) = delete;
+
     ~Stack()
     {
         destroyContent();

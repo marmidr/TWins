@@ -20,8 +20,9 @@ namespace twins
 class String
 {
 public:
-    String(const char*s);
+    String(const char *s);
     String() = default;
+    String(const String &other) : String(other.cstr()) {}
     String(String &&other);
     ~String();
 
@@ -32,7 +33,7 @@ public:
     /** @brief Append \p repeat of given characters \p c */
     String& append(char c, int16_t repeat = 1);
     /** @brief Append new string \p s */
-    inline String& append(const String& s) { return append(s.cstr()); }
+    inline String& append(const String &s) { return append(s.cstr()); }
     /** @brief Append formatted string */
     String& appendFmt(const char *fmt, ...);
     void appendVFmt(const char *fmt, va_list ap);
@@ -102,10 +103,9 @@ class StringBuff : public String
 {
 public:
     StringBuff() = default;
-
-    StringBuff(const char *s)
-        : String(s)
-    {}
+    StringBuff(const char *s) : String(s) {}
+    StringBuff(const StringBuff&) = delete;
+    StringBuff(StringBuff&&) = delete;
 
     StringBuff& operator =(String &&other)
     {
@@ -120,12 +120,20 @@ public:
     }
 
     /**
-     * @brief Returns pointer to writeable internal buffer limited by \b sz.size()
+     * @brief Returns pointer to writable internal buffer limited by \b sz.size()
      */
     char *data()
     {
         if (!mpBuff) append("");
         return mpBuff;
+    }
+
+    /**
+     * @brief Unsafe access operator
+     */
+    char& operator[](uint16_t idx)
+    {
+        return mpBuff[idx];
     }
 };
 
