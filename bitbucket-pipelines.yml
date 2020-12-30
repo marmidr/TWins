@@ -36,9 +36,9 @@ definitions:
                 - make -j4
                 - ctest -V --output-on-failure --timeout 20
                 # create coverage report
-                #- apt-get install -y python-pip
-                #- pip install cpp-coveralls gcovr
-                #- coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t W1vBS6Hvg6wtzaqdV2E4B4OVTIvxJmNXI
+                - apt-get install -y python-pip
+                - pip install cpp-coveralls gcovr
+                - coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t W1vBS6Hvg6wtzaqdV2E4B4OVTIvxJmNXI
 
         - step: &build_and_test_sonar
             name: SonarScanner build && test
@@ -50,17 +50,19 @@ definitions:
                 - git submodule update --init --remote
                 #
                 - export SONAR_SCANNER_VERSION=4.4.0.2170
-                - export SONAR_SCANNER_HOME=$HOME/.sonar/sonar-scanner-$SONAR_SCANNER_VERSION-linux
+                - export SONAR_ROOT=$BITBUCKET_CLONE_DIR/_sonar
+                - export SONAR_SCANNER_HOME=$SONAR_ROOT/sonar-scanner-$SONAR_SCANNER_VERSION-linux
                 - export SONAR_SCANNER_OPTS="-server"
-                - export BW_OUTPUT=$HOME/.sonar/bw-output
-                - mkdir -p $BW_OUTPUT
+                - export BW_OUTPUT=$SONAR_ROOT/bw-output
+                - env | sort
                 # download sonar scanner and wrapper
-                - curl --create-dirs -sSLo $HOME/.sonar/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$SONAR_SCANNER_VERSION-linux.zip
-                - unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+                - mkdir -p $BW_OUTPUT
+                - curl --create-dirs -sSLo $SONAR_ROOT/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$SONAR_SCANNER_VERSION-linux.zip
+                - unzip -o $SONAR_ROOT/sonar-scanner.zip -d $SONAR_ROOT/
                 - export PATH=$SONAR_SCANNER_HOME/bin:$PATH
-                - curl --create-dirs -sSLo $HOME/.sonar/build-wrapper-linux-x86.zip https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
-                - unzip -o $HOME/.sonar/build-wrapper-linux-x86.zip -d $HOME/.sonar/
-                - export PATH=$HOME/.sonar/build-wrapper-linux-x86:$PATH
+                - curl --create-dirs -sSLo $SONAR_ROOT/build-wrapper-linux-x86.zip https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
+                - unzip -o $SONAR_ROOT/build-wrapper-linux-x86.zip -d $SONAR_ROOT/
+                - export PATH=$SONAR_ROOT/build-wrapper-linux-x86:$PATH
                 # run cmake
                 - mkdir sonarbuild && cd sonarbuild
                 - cmake -DCMAKE_BUILD_TYPE=Debug -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON ..
@@ -75,7 +77,7 @@ definitions:
                 # scan
                 - sonar-scanner -Dsonar.cfamily.build-wrapper-output=$BW_OUTPUT
             artifacts:
-                - $HOME/.sonar
+                - _sonar/**
 
 pipelines:
     default:
@@ -84,7 +86,6 @@ pipelines:
             script:
                 - lscpu
                 - g++ --version
-                - env | sort
-                - find $HOME/.sonar || true
+                - find _sonar || true
         #- step: *build_and_test_std
         - step: *build_and_test_sonar

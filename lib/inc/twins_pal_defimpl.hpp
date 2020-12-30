@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - string class for our needs
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -78,10 +78,12 @@ struct DefaultPAL : twins::IPal
             }
 
             lineBuff.clear(1000);
-            lineBuff.reserve(500);
+            lineBuff.reserve(1000);
         }
 
         fflush(stdout);
+    #else
+        lineBuff.clear(1000);
     #endif
     }
 
@@ -161,6 +163,15 @@ struct DefaultPAL : twins::IPal
     {
         auto now = getTimeStamp();
         return now - timestamp;
+    }
+
+    bool lock(bool) override
+    {
+        return true;
+    }
+
+    void unlock() override
+    {
     }
 
 protected:

@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - widget drawing
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #include "twins_widget_prv.hpp"

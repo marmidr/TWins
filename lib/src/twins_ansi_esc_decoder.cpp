@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - ANSI ESC sequence decoder
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  * @note    Based on Python script : https://wiki.bash-hackers.org/scripting/terminalcodes
  *          constexpr sorted array based on @stryku example:
  *              https://stackoverflow.com/questions/19559808/constexpr-initialization-of-array-to-sort-contents

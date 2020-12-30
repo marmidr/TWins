@@ -1,7 +1,7 @@
 ################################################################################
 #   TWins library
 #   (c) 2020 Mariusz Midor
-#   https://bitbucket.org/mmidor/twins/
+#   https://bitbucket.org/marmidr/twins/
 ################################################################################
 
 set(TARGETNAME TWinsDemo)

@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - stack template
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -22,6 +22,10 @@ template<typename T>
 class Stack
 {
 public:
+    Stack() = default;
+    Stack(const Stack&) = delete;
+    Stack(Stack&&) = delete;
+
     ~Stack()
     {
         destroyContent();

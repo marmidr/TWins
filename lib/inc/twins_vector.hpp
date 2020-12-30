@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - vector container
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *          based on eGOL::Vector
  *****************************************************************************/
 
@@ -53,7 +53,7 @@ public:
         //     mPtr++;
         //     return it;
         // }
-    protected:
+    private:
         T* mPtr;
     };
 
@@ -111,7 +111,7 @@ public:
 
     /** @brief Constructor from initializer_list */
     template<typename Tv>
-    Vector(const std::initializer_list<Tv> &items)
+    explicit Vector(const std::initializer_list<Tv> &items)
     {
         append(items);
     }
@@ -231,7 +231,7 @@ public:
 
         if (newSize < mCapacity)
         {
-            if (sizeof(T) * (newSize - newSize) < 64)
+            if (sizeof(T) * (mCapacity - newSize) < 64)
             {
                 // small change in memory - do not reallocate memory
                 destroyContent(mpItems + newSize, mSize-newSize);

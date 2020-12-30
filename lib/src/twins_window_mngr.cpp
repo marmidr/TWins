@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - manager of windows
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #include "twins_window_mngr.hpp"

@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - common definitions
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -97,8 +97,8 @@ struct IPal
     virtual uint16_t getLogsRow() = 0;
     virtual uint32_t getTimeStamp() = 0;
     virtual uint32_t getTimeDiff(uint32_t timestamp) = 0;
-    virtual bool lock(bool wait = true) { return true; }
-    virtual void unlock() {}
+    virtual bool lock(bool wait = true) = 0;
+    virtual void unlock() = 0;
 };
 
 

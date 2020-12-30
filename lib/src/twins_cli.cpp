@@ -1,7 +1,7 @@
 /******************************************************************************
  * @brief   TWins - command line interface
  * @author  Mariusz Midor
- *          https://bitbucket.org/mmidor/twins
+ *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #include "twins.hpp"
@@ -116,7 +116,7 @@ void processInput(twins::RingBuff<char> &rb)
                     else if (g_cs.historyIdx >= (int)g_cs.history.size())
                         g_cs.historyIdx = g_cs.history.size()-1;
 
-                    moveBy(-g_cs.lineBuff.u8len(), 0);
+                    moveBy(-(int16_t)g_cs.lineBuff.u8len(), 0);
                     writeStr(ESC_LINE_ERASE_RIGHT);
                     g_cs.lineBuff = g_cs.history[g_cs.historyIdx];
                     g_cs.cursorPos = g_cs.lineBuff.u8len();
