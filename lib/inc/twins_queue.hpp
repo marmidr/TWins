@@ -49,7 +49,7 @@ public:
     }
 
     /** @brief Remove all items */
-    void clear(bool force = false)
+    void clear()
     {
         mItems.clear();
         mSize = 0;
@@ -65,7 +65,6 @@ private:
             mItems.resize(mItems.capacity() + 8);
     }
 
-private:
     Vector<T> mItems;
     uint16_t  mSize = 0;
     uint16_t  mWriteIdx = 0;

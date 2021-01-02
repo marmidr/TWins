@@ -113,9 +113,9 @@ Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDel
 
 String wordWrap(const char *str, uint16_t areaWidth, const char *delim, const char *separator)
 {
-    if (areaWidth < 1)
-        return {};
     if (!str || !*str)
+        return {};
+    if (areaWidth < 1)
         return {};
     if (!delim || !*delim)
         return {};
@@ -209,6 +209,7 @@ Vector<StringRange> splitLines(const char *str)
 
 twins::String centerText(const char *str, uint16_t areaWidth)
 {
+    if (!str) str = "";
     auto str_width = twins::String::width(str);
     twins::String out;
 

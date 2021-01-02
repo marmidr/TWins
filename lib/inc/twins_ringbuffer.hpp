@@ -25,7 +25,7 @@ public:
     RingBuff(RingBuff&&) = delete;
 
     /** @brief Initialize with external static buffer of size N */
-    template<unsigned N>
+    template<uint16_t N>
     RingBuff(T (&buffer)[N])
     {
         mpBuff = buffer;
@@ -106,7 +106,7 @@ public:
     //template<class = std::enable_if<std::is_same<T, char>::value>>
     bool write(const char* data)
     {
-        return write(data, strlen(data));
+        return data ? write(data, strlen(data)) : 0;
     }
 
     /** @brief Returns a pointer to head element or \b nullptr if buffer is empty;

@@ -97,6 +97,7 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
     case Widget::ComboBox:
         if (pWgt->combobox.bgColor != ColorBG::Inherit)
             return pWgt->combobox.bgColor;
+        break;
     default:
         break;
     }

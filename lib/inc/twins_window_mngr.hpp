@@ -50,7 +50,7 @@ public:
     auto end()   { return mWindows.end(); }
 
 private:
-    twins::Vector<twins::IWindowState *> mWindows;
+    twins::Vector<twins::IWindowState*> mWindows;
 };
 
 // -----------------------------------------------------------------------------

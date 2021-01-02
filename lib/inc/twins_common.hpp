@@ -246,6 +246,13 @@ struct KeyCode
     const char *name = nullptr;
 };
 
+struct NonCopyable
+{
+    NonCopyable() = default;
+    NonCopyable(const NonCopyable&) = delete;
+    void operator=(const NonCopyable&) = delete;
+};
+
 // -----------------------------------------------------------------------------
 
 } // namespace

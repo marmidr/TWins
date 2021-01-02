@@ -133,7 +133,7 @@ struct DefaultPAL : twins::IPal
         nanosleep(&ts, nullptr);
         //*/
 
-        usleep(ms * 1000);
+        //usleep(ms * 1000);
     #endif
     }
 

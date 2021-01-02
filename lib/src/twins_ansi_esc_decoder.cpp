@@ -337,9 +337,9 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
     if (!seq || !*seq || !mapsize)
         return nullptr;
 
-    short lo = 0;
-    short hi = mapsize - 1;
-    short mid = (hi - lo) / 2;
+    int lo = 0;
+    int hi = mapsize - 1;
+    int mid = (hi - lo) / 2;
     //short steps = 1;
 
     do

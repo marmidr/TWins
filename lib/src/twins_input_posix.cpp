@@ -48,7 +48,7 @@ static void waitForKey()
     timeval tv;
     tv.tv_sec = 0;
     tv.tv_usec = termKeyTimeoutMs * 1000;
-    int rc = select(ttyFileNo + 1, &read_set, NULL, NULL, &tv);
+    int rc = select(ttyFileNo + 1, &read_set, nullptr, nullptr, &tv);
 
     if (rc > 0)
         readKey();

@@ -1,5 +1,5 @@
 /******************************************************************************
- * @brief   TWins - global namespace
+ * @brief   TWins - global namespace (not used by the TWins itself)
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
