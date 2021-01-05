@@ -1,3 +1,5 @@
+![compiles](https://github.com/marmidr/twins/workflows/CMake/badge.svg)
+
 # TWins in brief
 
 `TWins` is a C++ library designed for easy creation of visual terminal applications on non-os platforms, like bare Cortex-M3.
@@ -58,6 +60,7 @@ Implementation is based on examples:
     - [ ] horizontal page control
     - [x] popup windows
     - [x] layers - to control visibility of groups of widgets
+    - [ ] password input
 - navigation
     - [x] widgets navigation by Tab/Esc key
     - [x] render focused widget state
@@ -68,12 +71,13 @@ Implementation is based on examples:
 - [x] color theme for window
 - [x] keyboard handler returns if key was handled by active widget
 - [x] support for mouse click
-- [ ] password input
 - [x] double-width character support (emoticons 😁)
 - [x] multiline solid button
 
 
 # Prerequisites
+
+Library is using C++14 and reguires gcc 7.5 or never.
 
 ```bash
 sudo apt install g++ cmake cmake-curses-gui
@@ -104,14 +108,16 @@ make -j
 
 ## How to build unit tests
 
-TWins tests are using google test library as a submodule. 
+TWins tests are using google test library as a submodule.
 The first step is to fetch the library:
 
 ```bash
+cmake -DTWINS_BUILD_UT=ON ..
 git submodule update --init
 ```
 
-Then, go to build/ and use `ccmake .` to turn on `TWINS_BUILD_UT`.  
+You can also turn on building of the tests with `ccmake`:  
+Go to build/ and use `ccmake .` to turn on `TWINS_BUILD_UT`.  
 Press `c` -> `c` -> `g` to reconfigure build scripts
 
 ### Build and run the tests

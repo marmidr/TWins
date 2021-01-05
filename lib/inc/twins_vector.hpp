@@ -2,7 +2,7 @@
  * @brief   TWins - vector container
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
- *          based on eGOL::Vector
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once

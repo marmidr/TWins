@@ -2,6 +2,7 @@
  * @brief   TWins - string class for our needs
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once

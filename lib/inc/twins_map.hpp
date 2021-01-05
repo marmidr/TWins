@@ -2,6 +2,7 @@
  * @brief   TWins - hash map template
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once

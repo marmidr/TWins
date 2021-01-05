@@ -2,6 +2,7 @@
  * @brief   TWins - common definitions
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once

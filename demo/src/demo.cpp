@@ -1,7 +1,6 @@
 /******************************************************************************
  * @brief   TWins - demo application
  * @author  Mariusz Midor
- *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #include "twins.hpp"

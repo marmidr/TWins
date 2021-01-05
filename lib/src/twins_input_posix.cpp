@@ -2,6 +2,7 @@
  * @brief   TWins - keyboard input - POSIX
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  * @note    Most of this code comes from http://0x80.pl/articles/terminals.html
  *****************************************************************************/
 
