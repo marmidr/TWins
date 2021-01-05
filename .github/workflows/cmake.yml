@@ -8,6 +8,7 @@ env:
 
 jobs:
   build_default:
+    name: Default Build & Test
     # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
     # make it compile on gcc 7.5
     runs-on: ubuntu-18.04
@@ -28,8 +29,8 @@ jobs:
       # access regardless of the host operating system
       shell: bash
       working-directory: ${{github.workspace}}/build
-      # Note the current convention is to use the -S and -B options here to specify source 
-      # and build directories, but this is only available with CMake 3.13 and higher.  
+      # Note the current convention is to use the -S and -B options here to specify source
+      # and build directories, but this is only available with CMake 3.13 and higher.
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
       run: cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON $GITHUB_WORKSPACE
 
@@ -42,10 +43,20 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build
       shell: bash
-      # Execute tests defined by the CMake configuration.  
+      # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -V
 
-#  build_sonar:
-#    runs-on: ubuntu-18.04
-
+  # C++ analysis not supported on GitHub ?
+  # build_sonarcloud:
+  #   name: SonarCloud build
+  #   runs-on: ubuntu-18.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+  #     - name: SonarCloud Scan
+  #       uses: SonarSource/sonarcloud-github-action@master
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
