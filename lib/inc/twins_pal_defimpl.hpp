@@ -2,6 +2,7 @@
  * @brief   TWins - string class for our needs
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -133,7 +134,7 @@ struct DefaultPAL : twins::IPal
         nanosleep(&ts, nullptr);
         //*/
 
-        usleep(ms * 1000);
+        //usleep(ms * 1000);
     #endif
     }
 

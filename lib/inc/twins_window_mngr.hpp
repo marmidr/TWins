@@ -2,6 +2,7 @@
  * @brief   TWins - manager of windows
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -50,7 +51,7 @@ public:
     auto end()   { return mWindows.end(); }
 
 private:
-    twins::Vector<twins::IWindowState *> mWindows;
+    twins::Vector<twins::IWindowState*> mWindows;
 };
 
 // -----------------------------------------------------------------------------

@@ -2,7 +2,7 @@
  * @brief   TWins - vector container
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
- *          based on eGOL::Vector
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -31,8 +31,7 @@ public:
     {
     public:
         Iter(void) = delete;
-        Iter(Vector<T> &vec, unsigned idx  = 0) { mPtr = vec.data() + idx; }
-        Iter(const Iter &other) { mPtr = other.mPtr; }
+        Iter(Vector<T> &vec, uint16_t idx  = 0) { mPtr = vec.data() + idx; }
 
         bool operator == (const Iter &other) const { return mPtr == other.mPtr; }
         bool operator != (const Iter &other) const { return mPtr != other.mPtr; }
@@ -61,8 +60,7 @@ public:
     {
     public:
         ConstIter(void) = delete;
-        ConstIter(const Vector<T> &vec, unsigned idx  = 0) { mPtr = vec.data() + idx; }
-        ConstIter(const ConstIter &other) { mPtr = other.mPtr; }
+        ConstIter(const Vector<T> &vec, uint16_t idx  = 0) { mPtr = vec.data() + idx; }
 
         bool operator == (const ConstIter &other) const { return mPtr == other.mPtr; }
         bool operator != (const ConstIter &other) const { return mPtr != other.mPtr; }
@@ -160,7 +158,7 @@ public:
         if (mSize != other.mSize)
             return false;
 
-        for (unsigned i = 0; i < mSize; i++)
+        for (uint16_t i = 0; i < mSize; i++)
             if (mpItems[i] != other.mpItems[i])
                 return false;
 
@@ -201,10 +199,10 @@ public:
     const T * data() const { return mpItems; }
 
     /** @brief Returns vector current size (number of items) */
-    unsigned size(void) const { return mSize; }
+    uint16_t size(void) const { return mSize; }
 
     /** @brief Vector capacity */
-    unsigned capacity(void) const { return mCapacity; }
+    uint16_t capacity(void) const { return mCapacity; }
 
     /** @brief Reserve capacity (higher than current) to avoid memory reallocations */
     void reserve(uint16_t newCapacity)
@@ -215,7 +213,7 @@ public:
         // align count to 4
         newCapacity += (newCapacity & 0x03) ? 0x04 - (newCapacity & 0x03) : 0;
 
-        T* p_new_items = (T*)pPAL->memAlloc(newCapacity * sizeof(T));
+        auto* p_new_items = (T*)pPAL->memAlloc(newCapacity * sizeof(T));
         moveContent(p_new_items, mpItems, mSize);
         initContent(p_new_items + mSize, newCapacity - mSize);
         pPAL->memFree(mpItems);
@@ -240,9 +238,9 @@ public:
             }
         }
 
-        unsigned to_move = MIN(mSize, newSize);
+        uint16_t to_move = MIN(mSize, newSize);
 
-        T* p_new_items = (T*)pPAL->memAlloc(newSize * sizeof(T));
+        auto* p_new_items = (T*)pPAL->memAlloc(newSize * sizeof(T));
         moveContent(p_new_items, mpItems, to_move);
         initContent(p_new_items + to_move, newSize - to_move);
         // if new size is smaller than old, not all entries was moved
@@ -262,9 +260,9 @@ public:
         if (!force && ((mCapacity - mSize) * sizeof(T) < 64))
             return;
 
-        unsigned new_capacity = mSize;
+        uint16_t new_capacity = mSize;
 
-        T* p_new_items = (T*)pPAL->memAlloc(new_capacity * sizeof(T));
+        auto* p_new_items = (T*)pPAL->memAlloc(new_capacity * sizeof(T));
         moveContent(p_new_items, mpItems, mSize);
 
         destroyContent();
@@ -367,7 +365,7 @@ public:
     /** @brief Search for \p val and return pointer or \b nullptr othervise  */
     T* find(const T &val, int *pIdx = nullptr)
     {
-        for (unsigned i = 0; i < mSize; i++)
+        for (uint16_t i = 0; i < mSize; i++)
         {
             if (mpItems[i] == val)
             {
@@ -410,14 +408,14 @@ public:
     ConstIter end(void)   const { return ConstIter(*this, size()); }
 
 protected:
-    T *         mpItems = nullptr;
-    uint16_t    mSize = 0;
-    uint16_t    mCapacity = 0;
+    T *      mpItems = nullptr;
+    uint16_t mSize = 0;
+    uint16_t mCapacity = 0;
 
 protected:
     void initContent(T *pItems, uint16_t count)
     {
-        for (unsigned i = 0; i < count; i++)
+        for (uint16_t i = 0; i < count; i++)
             new (&pItems[i]) T{};
     }
 
@@ -429,20 +427,20 @@ protected:
             count = mSize;
         }
 
-        for (unsigned i = 0; i < count; i++)
+        for (uint16_t i = 0; i < count; i++)
             pItems[i].~T();
     }
 
     template<typename Tv>
     void copyContent(T *pDst, const Tv *pSrc, uint16_t count)
     {
-        for (unsigned i = 0; i < count; i++)
+        for (uint16_t i = 0; i < count; i++)
             pDst[i] = pSrc[i];
     }
 
     void moveContent(T *pDst, T *pSrc, uint16_t count)
     {
-        for (unsigned i = 0; i < count; i++)
+        for (uint16_t i = 0; i < count; i++)
             new (&pDst[i]) T(std::move(pSrc[i]));
     }
 

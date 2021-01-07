@@ -2,6 +2,7 @@
  * @brief   TWins - core
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #include "twins.hpp"
@@ -113,7 +114,7 @@ static inline void setLogging(bool on)
         pPAL->setLogging(on);
 }
 
-void writeCurrentTime(uint64_t *pTimestamp)
+void writeCurrentTime(const uint64_t *pTimestamp)
 {
     struct timeval tv;
 
@@ -246,16 +247,16 @@ int writeChar(char c, int16_t repeat)
 
 int writeStr(const char *s, int16_t repeat)
 {
-    if (!pPAL)
+    if (!pPAL || !s)
         return 0;
 
     if (g_ts.attrFaint)
     {
         int written = 0;
-        const uint16_t s_len = strlen(s);
+        unsigned sl = strlen(s);
 
         while (repeat--)
-            written += writeStrLen(s, s_len);
+            written += writeStrLen(s, sl);
 
         return written;
     }
@@ -272,7 +273,7 @@ inline uint16_t beginsWith(const char *str, const char *preffix, uint16_t preffi
 
 int writeStrLen(const char *s, uint16_t sLen)
 {
-    if (!pPAL)
+    if (!pPAL || !s)
         return 0;
 
     if (g_ts.attrFaint)
@@ -333,7 +334,7 @@ int writeStrLen(const char *s, uint16_t sLen)
 
 int writeStrFmt(const char *fmt, ...)
 {
-    if (!(fmt && pPAL))
+    if (!pPAL || !fmt)
         return 0;
 
     va_list ap;
@@ -345,7 +346,10 @@ int writeStrFmt(const char *fmt, ...)
 
 int writeStrVFmt(const char *fmt, va_list ap)
 {
-    return pPAL ? pPAL->writeStrVFmt(fmt, ap) : 0;
+    if (!pPAL || !fmt)
+        return 0;
+
+    return pPAL->writeStrVFmt(fmt, ap);
 }
 
 void flushBuffer()
@@ -393,6 +397,8 @@ void mouseMode(MouseMode mode)
     case MouseMode::M2:
         writeStr(ESC_MOUSE_REPORTING_M2_ON);
         break;
+    default:
+        break;
     }
 }
 
@@ -407,7 +413,7 @@ void pushClFg(ColorFG cl)
 
 void popClFg(int n)
 {
-    while (g_ts.stackClFg.size() && n-- > 0)
+    while (g_ts.stackClFg.size() && (n-- > 0))
         g_ts.currentClFg = *g_ts.stackClFg.pop();
 
     writeStr(encodeCl(g_ts.currentClFg));
@@ -430,7 +436,7 @@ void pushClBg(ColorBG cl)
 
 void popClBg(int n)
 {
-    while (g_ts.stackClBg.size() && n-- > 0)
+    while (g_ts.stackClBg.size() && (n-- > 0))
         g_ts.currentClBg = *g_ts.stackClBg.pop();
 
     writeStr(encodeCl(g_ts.currentClBg));
@@ -464,7 +470,7 @@ void pushAttr(FontAttrib attr)
 
 void popAttr(int n)
 {
-    while (g_ts.stackAttr.size() && n-- > 0)
+    while (g_ts.stackAttr.size() && (n-- > 0))
     {
         auto *pAttr = g_ts.stackAttr.pop();
 

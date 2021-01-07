@@ -2,6 +2,7 @@
 #   TWins library
 #   (c) 2020 Mariusz Midor
 #   https://bitbucket.org/marmidr/twins/
+#   https://github.com/marmidr/twins/
 ################################################################################
 
 option(TWINS_USE_FASTFILL "Use ANSI repeat code for faster line fill" ON)

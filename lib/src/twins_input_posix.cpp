@@ -2,6 +2,7 @@
  * @brief   TWins - keyboard input - POSIX
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  * @note    Most of this code comes from http://0x80.pl/articles/terminals.html
  *****************************************************************************/
 
@@ -48,7 +49,7 @@ static void waitForKey()
     timeval tv;
     tv.tv_sec = 0;
     tv.tv_usec = termKeyTimeoutMs * 1000;
-    int rc = select(ttyFileNo + 1, &read_set, NULL, NULL, &tv);
+    int rc = select(ttyFileNo + 1, &read_set, nullptr, nullptr, &tv);
 
     if (rc > 0)
         readKey();

@@ -1,7 +1,6 @@
 /******************************************************************************
  * @brief   TWins - demo window definition
  * @author  Mariusz Midor
- *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #pragma once

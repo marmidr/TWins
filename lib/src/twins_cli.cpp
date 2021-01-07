@@ -2,6 +2,7 @@
  * @brief   TWins - command line interface
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #include "twins.hpp"

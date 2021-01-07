@@ -2,6 +2,7 @@
  * @brief   TWins - string class for our needs
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #include "twins_common.hpp"
@@ -26,7 +27,7 @@ String::String(const char *s)
     append(s);
 }
 
-String::String(String &&other)
+String::String(String &&other) noexcept
 {
     *this = std::move(other);
 }
@@ -42,10 +43,10 @@ String& String::append(const char *s, int16_t repeat)
     if (repeat <= 0 || !s || sourceIsOurs(s))
         return *this;
 
-    int s_len = strlen(s);
-    reserve(mSize + repeat * s_len);
+    unsigned sl = strlen(s);
+    reserve(mSize + repeat * sl);
     char *p = mpBuff + mSize;
-    mSize += repeat  *s_len;
+    mSize += repeat * sl;
     while (repeat--)
         p = strcat(p, s);
     mpBuff[mSize] = '\0';
@@ -124,6 +125,7 @@ String& String::trim(int16_t trimPos, bool addEllipsis, bool ignoreESC)
 {
     if (trimPos < 0 || trimPos >= mSize)
         return *this;
+
     if (addEllipsis && trimPos > 0)
         trimPos--;
 
@@ -143,7 +145,9 @@ String& String::trim(int16_t trimPos, bool addEllipsis, bool ignoreESC)
         }
     }
 
-    if (p >= mpBuff + mSize) return *this;
+    if (p >= mpBuff + mSize)
+        return *this;
+
     mSize = p - mpBuff;
     char last = mpBuff[mSize];
 
@@ -297,8 +301,8 @@ bool String::startsWith(const char *str) const
     if (!str || !*str)
         return false;
 
-    int16_t l = strlen(str);
-    return strncmp(cstr(), str, l) == 0;
+    unsigned sl = strlen(str);
+    return strncmp(cstr(), str, sl) == 0;
 }
 
 bool String::endsWith(const char *str) const
@@ -306,11 +310,11 @@ bool String::endsWith(const char *str) const
     if (!str || !*str)
         return false;
 
-    int16_t l = strlen(str);
-    if (l > mSize)
+    unsigned sl = strlen(str);
+    if (sl > mSize)
         return false;
 
-    return strcmp(cstr() + mSize - l, str) == 0;
+    return strcmp(cstr() + mSize - sl, str) == 0;
 }
 
 int String::find(const char *str) const
@@ -325,7 +329,7 @@ int String::find(const char *str) const
     return p - cstr();
 }
 
-unsigned String::u8len(bool ignoreESC, bool realWidth) const
+uint16_t String::u8len(bool ignoreESC, bool realWidth) const
 {
     return u8len(mpBuff, mpBuff + mSize, ignoreESC, realWidth);
 }
@@ -373,7 +377,7 @@ void String::freeBuff()
     mSize = 0;
 }
 
-unsigned String::escLen(const char *str, const char *strEnd)
+uint16_t String::escLen(const char *str, const char *strEnd)
 {
     // ESC sequence always ends with:
     // - A..Z
@@ -427,6 +431,7 @@ struct UnicodeBlockRange
     long first, last;
 };
 
+// not accurate subset, but works in most cases
 const UnicodeBlockRange wideSymbolRanges[] =
 {
     // https://www.compart.com/en/unicode/block/U+2600
@@ -443,7 +448,7 @@ const UnicodeBlockRange wideSymbolRanges[] =
     { 0x1F900, 0x1F9FF },
 };
 
-unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC, bool realWidth)
+uint16_t String::u8len(const char *str, const char *strEnd, bool ignoreESC, bool realWidth)
 {
     if (!str || !*str)
         return 0;
@@ -454,7 +459,7 @@ unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC, bool
     if (!strEnd)
         strEnd = str + strlen(str);
 
-    unsigned len = 0;
+    uint16_t len = 0;
 
     while (str < strEnd)
     {
@@ -462,7 +467,7 @@ unsigned String::u8len(const char *str, const char *strEnd, bool ignoreESC, bool
 
         if (ignoreESC)
         {
-            unsigned esc_len = escLen(str, strEnd);
+            uint16_t esc_len = escLen(str, strEnd);
             seq_found = esc_len > 0;
 
             while (esc_len && (str < strEnd))
@@ -513,7 +518,7 @@ const char* String::u8skip(const char *str, unsigned toSkip, bool ignoreESC)
 
         if (ignoreESC)
         {
-            unsigned esc_len = escLen(str);
+            uint16_t esc_len = escLen(str);
             seq_found = esc_len > 0;
 
             for (; esc_len && (str < str_end); )

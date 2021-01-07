@@ -2,6 +2,7 @@
  * @brief   TWins - main header file
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -430,7 +431,7 @@ private:
 };
 
 /** @brief Helper for automatic restoring terminal font attributes */
-struct FontMemento : FontMementoManual
+struct FontMemento : FontMementoManual, NonCopyable
 {
     FontMemento()  { store(); }
     ~FontMemento() { restore(); }
@@ -473,7 +474,7 @@ void logRawWrite(const char *msg);
 void logRawEnd(const char *epilogue = "");
 
 /** @brief Print HH:MM:SS.mmm */
-void writeCurrentTime(uint64_t *pTimestamp = nullptr);
+void writeCurrentTime(const uint64_t *pTimestamp = nullptr);
 
 /**
  * @brief Delay for given number if milliseconds
@@ -661,15 +662,12 @@ void selectNextPage(const Widget *pWindowWidgets, WID pageControlID, bool next);
 // -----------------------------------------------------------------------------
 
 /** @brief RAII style locker */
-struct Locker
+struct Locker : NonCopyable
 {
     explicit Locker(bool wait = true)
     {
         mIsLocked = twins::lock(wait);
     }
-
-    Locker(const Locker&) = delete;
-    Locker(Locker&&) = delete;
 
     ~Locker()
     {

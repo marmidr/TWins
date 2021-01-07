@@ -2,6 +2,7 @@
  * @brief   TWins - string class for our needs
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -23,7 +24,7 @@ public:
     String(const char *s);
     String() = default;
     String(const String &other) : String(other.cstr()) {}
-    String(String &&other);
+    String(String &&other) noexcept;
     ~String();
 
     /** @brief Append \p repeat of given string \p s */
@@ -48,14 +49,14 @@ public:
     /** @brief Set size to zero; release buffer memory only if capacity >= \p threshordToFree */
     String& clear(uint16_t threshordToFree = 500);
     /** @brief Return string size, in bytes */
-    unsigned size() const { return mSize; }
+    uint16_t size() const { return (uint16_t)mSize; }
     /** @brief Return length of UTF-8 string, ignoring ESC sequences inside it
      *         and recognizing double-width glyphs */
-    unsigned u8len(bool ignoreESC = false, bool realWidth = false) const;
+    uint16_t u8len(bool ignoreESC = false, bool realWidth = false) const;
     /** @brief Text width on terminal */
-    inline unsigned width() { return u8len(true, true); }
+    inline uint16_t width() const { return u8len(true, true); }
     /** @brief Return C-style string buffer */
-    const char *cstr() const { return mpBuff ? mpBuff : ""; }
+    const char* cstr() const { return mpBuff ? mpBuff : ""; }
     /** @brief Reserve buffer if u know the string size in advance */
     void reserve(uint16_t newCapacity);
     /** @brief Useful tests */
@@ -76,12 +77,12 @@ public:
     bool operator==(const char *str) const;
 
     /** @brief Return ESC sequence length starting at \p str */
-    static unsigned escLen(const char *str, const char *strEnd = nullptr);
+    static uint16_t escLen(const char *str, const char *strEnd = nullptr);
     /** @brief Return length of UTF-8 string \p str, ignoring ESC sequences inside it
      *         and recognizing double-width glyphs */
-    static unsigned u8len(const char *str, const char *strEnd = nullptr, bool ignoreESC = false, bool realWidth = false);
+    static uint16_t u8len(const char *str, const char *strEnd = nullptr, bool ignoreESC = false, bool realWidth = false);
     /** @brief Text width on terminal */
-    static inline unsigned width(const char *str, const char *strEnd = nullptr) { return u8len(str, strEnd, true, true); }
+    static inline uint16_t width(const char *str, const char *strEnd = nullptr) { return u8len(str, strEnd, true, true); }
     /** @brief Return pointer to \p str moved by \p toSkip UTF-8 characters, omitting ESC sequences */
     static const char* u8skip(const char *str, unsigned toSkip, bool ignoreESC = true);
 
@@ -89,10 +90,9 @@ protected:
     void freeBuff();
     bool sourceIsOurs(const char *s) const { return (s >= mpBuff) && (s < mpBuff + mCapacity); }
 
-protected:
-    char *  mpBuff = nullptr;
-    int16_t mCapacity = 0;
-    int16_t mSize = 0;
+    char* mpBuff = nullptr;
+    uint16_t mCapacity = 0;
+    uint16_t mSize = 0;
 };
 
 
@@ -122,7 +122,7 @@ public:
     /**
      * @brief Returns pointer to writable internal buffer limited by \b sz.size()
      */
-    char *data()
+    char* data()
     {
         if (!mpBuff) append("");
         return mpBuff;

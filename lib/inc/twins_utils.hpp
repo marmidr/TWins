@@ -2,6 +2,7 @@
  * @brief   TWins - utility code
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -140,7 +141,8 @@ private:
 // -----------------------------------------------------------------------------
 
 /** @brief Default twins::Edit key handler for NumEdit */
-bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos, int64_t limitMin = LONG_MIN, int64_t limitMax = LONG_MAX, bool wrap = false);
+bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos,
+                    int64_t limitMin = LONG_MIN, int64_t limitMax = LONG_MAX, bool wrap = false);
 
 // -----------------------------------------------------------------------------
 

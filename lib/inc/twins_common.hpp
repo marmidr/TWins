@@ -2,6 +2,7 @@
  * @brief   TWins - common definitions
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -244,6 +245,13 @@ struct KeyCode
     };
 
     const char *name = nullptr;
+};
+
+struct NonCopyable
+{
+    NonCopyable() = default;
+    NonCopyable(const NonCopyable&) = delete;
+    void operator=(const NonCopyable&) = delete;
 };
 
 // -----------------------------------------------------------------------------

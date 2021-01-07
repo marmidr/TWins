@@ -2,6 +2,7 @@
 #   TWins library test application
 #   (c) 2020 Mariusz Midor
 #   https://bitbucket.org/marmidr/twins/
+#   https://github.com/marmidr/twins/
 ################################################################################
 
 cmake_minimum_required(VERSION 3.10)

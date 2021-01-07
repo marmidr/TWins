@@ -2,6 +2,7 @@
  * @brief   TWins - manager of windows
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #include "twins_window_mngr.hpp"

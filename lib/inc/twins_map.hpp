@@ -2,6 +2,7 @@
  * @brief   TWins - hash map template
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -151,7 +152,7 @@ public:
         auto hash = H::hash(key);
         auto &bkt = mBuckets[getBucketIdx(hash)];
 
-        for (unsigned i = 0; i < bkt.size(); i++)
+        for (uint16_t i = 0; i < bkt.size(); i++)
         {
             if ((bkt[i].hash == hash) && keysEqual(bkt[i].key, key, key_is_cstr{}))
             {
@@ -163,7 +164,7 @@ public:
     }
 
     /** @brief Return number of key-value pairs */
-    unsigned size() const
+    uint16_t size() const
     {
         return mNodes;
     }
@@ -182,15 +183,15 @@ public:
     }
 
     /** @brief Number of buckets - for test purposes */
-    unsigned bucketsCount() const
+    uint16_t bucketsCount() const
     {
         return mBuckets.size();
     }
 
     /** @brief Return given bucket - for test purposes */
-    const Bucket* bucket(int idx) const
+    const Bucket* bucket(int16_t idx) const
     {
-        if (idx < 0 || (unsigned)idx > bucketsCount())
+        if (idx < 0 || (uint16_t)idx > bucketsCount())
             return nullptr;
 
         return &mBuckets[idx];
@@ -199,6 +200,9 @@ public:
     /** @brief Return elements distribution 0 (worse)..100% (best) */
     uint8_t distribution()
     {
+        if (mNodes < 2)
+            return 100;
+
         unsigned expected_nodes_per_bkt = mNodes / mBuckets.size();
         unsigned over_expected = 0;
 
@@ -223,7 +227,7 @@ private:
                             std::true_type, std::false_type
                         >::type;
 
-    inline unsigned getBucketIdx(Hash hash) const
+    inline uint16_t getBucketIdx(Hash hash) const
     {
         // mBuckets.size() must be power of 2
         return hash & (mBuckets.size() - 1);

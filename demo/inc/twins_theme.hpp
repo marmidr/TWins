@@ -1,7 +1,6 @@
 /******************************************************************************
  * @brief   TWins - demo colors theme definition
  * @author  Mariusz Midor
- *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #pragma once

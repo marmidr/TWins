@@ -6,22 +6,36 @@
 
 image: gcc:8
 
-# https://confluence.atlassian.com/bitbucket/configure-bitbucket-pipelines-yml-792298910.html
+# https://support.atlassian.com/bitbucket-cloud/docs/configure-bitbucket-pipelinesyml/
 
 # maximum amount of minutes a step can execute at a global level or at a step level
 options:
-  max-time: 10
+    max-time: 10
 
 # shallow clone
 clone:
-  #depth: 3
-  depth: full # SonarCloud scanner needs the full history to assign issues properly
+    #depth: 3
+    depth: full # SonarCloud scanner needs the full history to assign issues properly
 
 # https://support.atlassian.com/bitbucket-cloud/docs/yaml-anchors/
 definitions:
     steps:
-        - step: &build_and_test_std
-            name: Default build && test
+        - step: &build_and_test
+            name: Build && test
+            script:
+                # prerequisites
+                - apt-get update
+                - apt-get install -y cmake
+                - cmake --version
+                - git submodule update --init --remote
+                # build
+                - mkdir build && cd build
+                - cmake -DCMAKE_BUILD_TYPE=Debug -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON ..
+                - make -j4
+                - ctest -V --output-on-failure --timeout 20
+
+        - step: &build_and_test_and_cover
+            name: Build, test && cover
             caches:
                 - pip
             script:
@@ -36,9 +50,9 @@ definitions:
                 - make -j4
                 - ctest -V --output-on-failure --timeout 20
                 # create coverage report
-                - apt-get install -y python-pip
-                - pip install cpp-coveralls gcovr
-                - coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t W1vBS6Hvg6wtzaqdV2E4B4OVTIvxJmNXI
+                # - apt-get install -y python-pip
+                # - pip install cpp-coveralls gcovr
+                # - coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t W1vBS6Hvg6wtzaqdV2E4B4OVTIvxJmNXI
 
         - step: &build_and_test_sonar
             name: SonarScanner build && test
@@ -87,5 +101,9 @@ pipelines:
                 - lscpu
                 - g++ --version
                 - find _sonar || true
-        #- step: *build_and_test_std
-        - step: *build_and_test_sonar
+        - step: *build_and_test
+        #- step: *build_and_test_and_cover
+
+    custom: # manual pipeline
+        Sonar: # name
+            - step: *build_and_test_sonar

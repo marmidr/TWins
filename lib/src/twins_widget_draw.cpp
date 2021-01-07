@@ -2,6 +2,7 @@
  * @brief   TWins - widget drawing
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #include "twins_widget_prv.hpp"
@@ -97,6 +98,7 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
     case Widget::ComboBox:
         if (pWgt->combobox.bgColor != ColorBG::Inherit)
             return pWgt->combobox.bgColor;
+        break;
     default:
         break;
     }
