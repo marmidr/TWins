@@ -1,4 +1,5 @@
-![compiles](https://github.com/marmidr/twins/workflows/CMake/badge.svg)
+![Compiles](https://github.com/marmidr/twins/workflows/CMake/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/marmidr/twins/badge.svg)](https://coveralls.io/github/marmidr/twins)
 
 # TWins in brief
 

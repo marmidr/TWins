@@ -50,9 +50,9 @@ definitions:
                 - make -j4
                 - ctest -V --output-on-failure --timeout 20
                 # create coverage report
-                - apt-get install -y python-pip
-                - pip install cpp-coveralls gcovr
-                - coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t W1vBS6Hvg6wtzaqdV2E4B4OVTIvxJmNXI
+                # - apt-get install -y python-pip
+                # - pip install cpp-coveralls gcovr
+                # - coveralls -b . -r .. -i "lib/src" -i "lib/inc" -t W1vBS6Hvg6wtzaqdV2E4B4OVTIvxJmNXI
 
         - step: &build_and_test_sonar
             name: SonarScanner build && test
