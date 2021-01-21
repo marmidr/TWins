@@ -187,7 +187,7 @@ public:
     }
 
     /** @brief Get last element */
-    T * back()
+    T * back(void)
     {
         if (mSize)
             return &mpItems[mSize - 1];
@@ -195,8 +195,8 @@ public:
     }
 
     /** @brief Simply returns iternal poinder do array of T */
-    T * data() { return mpItems; }
-    const T * data() const { return mpItems; }
+    T * data(void) { return mpItems; }
+    const T * data(void) const { return mpItems; }
 
     /** @brief Returns vector current size (number of items) */
     uint16_t size(void) const { return mSize; }
@@ -210,9 +210,6 @@ public:
         if (newCapacity <= mCapacity)
             return;
 
-        // align count to 4
-        newCapacity += (newCapacity & 0x03) ? 0x04 - (newCapacity & 0x03) : 0;
-
         auto* p_new_items = (T*)pPAL->memAlloc(newCapacity * sizeof(T));
         moveContent(p_new_items, mpItems, mSize);
         initContent(p_new_items + mSize, newCapacity - mSize);
@@ -221,7 +218,7 @@ public:
         mCapacity = newCapacity;
     }
 
-    /** @brief Set new size (smaller or higher) */
+    /** @brief Set new size (smaller or bigger) */
     void resize(uint16_t newSize)
     {
         if (newSize == mSize)
@@ -239,7 +236,6 @@ public:
         }
 
         uint16_t to_move = MIN(mSize, newSize);
-
         auto* p_new_items = (T*)pPAL->memAlloc(newSize * sizeof(T));
         moveContent(p_new_items, mpItems, to_move);
         initContent(p_new_items + to_move, newSize - to_move);
@@ -285,7 +281,7 @@ public:
             return;
         }
 
-        reserve(mSize + 1);
+        growAsNecessary();
 
         for (int i = mSize; i > idx; i--)
             mpItems[i] = std::move(mpItems[i-1]);
@@ -298,14 +294,14 @@ public:
     template<typename Tv>
     void append(Tv &&val)
     {
-        reserve(mSize+1);
+        growAsNecessary();
         mpItems[mSize++] = std::forward<Tv>(val);
     }
 
     /** @brief Append empty element and return reference to it */
-    T& append()
+    T& append(void)
     {
-        reserve(mSize+1);
+        growAsNecessary();
         return mpItems[mSize++];
     }
 
@@ -313,7 +309,7 @@ public:
     template<typename Tv>
     void append(const Tv* pItems, uint16_t count)
     {
-        reserve(mSize + count);
+        growAsNecessary(count);
         copyContent(mpItems + mSize, pItems, count);
         mSize += count;
     }
@@ -413,6 +409,20 @@ protected:
     uint16_t mCapacity = 0;
 
 protected:
+    void growAsNecessary(uint16_t growBy = 1)
+    {
+        if (mCapacity >= mSize + growBy)
+            return;
+
+        auto new_capacity = mCapacity + growBy;
+        if (new_capacity < 4)
+            new_capacity = 4;
+        else
+            new_capacity = (new_capacity * 13) / 8; // grow by 1.65
+
+        reserve(new_capacity);
+    }
+
     void initContent(T *pItems, uint16_t count)
     {
         for (uint16_t i = 0; i < count; i++)

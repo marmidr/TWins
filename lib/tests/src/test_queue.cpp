@@ -35,12 +35,17 @@ TEST(QUEUE, push_pop_100int)
 {
     twins::Queue<int> qi;
 
+    EXPECT_EQ(0, qi.size());
     for (int i = 0; i < 100; i++)
         qi.push(i);
 
     EXPECT_EQ(100, qi.size());
-    EXPECT_EQ(0, *qi.pop());
+    ASSERT_EQ(0, *qi.pop());
 
+    for (int i = 1; i < 100; i++)
+        EXPECT_EQ(i, *qi.pop());
+
+    EXPECT_EQ(0, qi.size());
     qi.clear();
     EXPECT_EQ(nullptr, qi.pop());
     EXPECT_EQ(0, qi.size());

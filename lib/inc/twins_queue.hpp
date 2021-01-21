@@ -25,23 +25,23 @@ public:
     template <typename Tv>
     void push(Tv && item)
     {
-        reserve();
+        growAsNecessary();
         mSize++;
         mItems[mWriteIdx] = std::forward<Tv>(item);
 
-        if (++mWriteIdx == mItems.capacity())
+        if (++mWriteIdx == mItems.size())
             mWriteIdx = 0;
     }
 
     /** @brief Returns pointer to to the tail item and decrease items counter, or \b nullptr if queue is empty */
-    T* pop()
+    T* pop(void)
     {
         if (mSize)
         {
             mSize--;
             T *p_ret = &mItems[mReadIdx];
 
-            if (++mReadIdx == mItems.capacity())
+            if (++mReadIdx == mItems.size())
                 mReadIdx = 0;
             return p_ret;
         }
@@ -50,20 +50,28 @@ public:
     }
 
     /** @brief Remove all items */
-    void clear()
+    void clear(void)
     {
         mItems.clear();
         mSize = 0;
     }
 
     /** @brief Return queue size */
-    uint16_t size() const { return mSize; }
+    uint16_t size(void) const { return mSize; }
 
 private:
-    void reserve()
+    void growAsNecessary(void)
     {
-        if (mItems.size() == mItems.capacity())
-            mItems.resize(mItems.capacity() + 8);
+        if (mSize + 1 >= mItems.size())
+        {
+            auto new_size = mSize + 1;
+            if (new_size < 8)
+                new_size = 8;
+            else
+                new_size = (new_size * 13) / 8;
+
+            mItems.resize(new_size);
+        }
     }
 
     Vector<T> mItems;

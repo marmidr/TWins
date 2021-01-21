@@ -38,7 +38,7 @@ public:
     template <typename Tv>
     void push(Tv && item)
     {
-        if (!reserve())
+        if (!growAsNecessary())
             return;
         mpItems[mSize++] = std::forward<Tv>(item);
     }
@@ -81,14 +81,18 @@ public:
     uint16_t size() const { return mSize; }
 
 private:
-    bool reserve()
+    bool growAsNecessary()
     {
         if (mSize == mCapacity)
         {
             if (mCapacity >= 32000)
                 return false;
-            // only one growth strategy: increase by 8 slots
-            mCapacity += 8;
+
+            if (mCapacity < 8)
+                mCapacity = 8;
+            else
+                mCapacity = (mCapacity * 13) / 8; // * 1.65
+
             auto* p_new = (T*)pPAL->memAlloc(mCapacity * sizeof(T));
             moveContent(p_new, mpItems, mSize);
             initContent(p_new + mSize, mCapacity - mSize);

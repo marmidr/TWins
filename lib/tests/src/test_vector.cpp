@@ -180,7 +180,7 @@ TEST(VECTOR, shrink)
     v.append(bigarray_t{});
     v.append(bigarray_t{});
     EXPECT_EQ(3, v.size());
-    EXPECT_GE(v.capacity(), 8);
+    EXPECT_GE(v.capacity(), 5);
 
     v.resize(v.size());
     EXPECT_EQ(3, v.size());
