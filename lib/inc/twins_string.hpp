@@ -88,6 +88,7 @@ public:
 
 protected:
     void freeBuff();
+    uint16_t alignCapacity(uint16_t newCapacity);
     bool sourceIsOurs(const char *s) const { return (s >= mpBuff) && (s < mpBuff + mCapacity); }
 
     char* mpBuff = nullptr;

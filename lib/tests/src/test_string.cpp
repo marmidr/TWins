@@ -47,6 +47,16 @@ TEST_F(STRING_Test, clear)
     }
 
     EXPECT_EQ(0, pal.stats.memChunksMax);
+
+    {
+        twins::String s;
+        s.reserve(10);
+        const char *buff1 = s.cstr();
+        s.clear(10);
+        EXPECT_EQ(buff1, s.cstr());
+        s.reserve(10);
+        EXPECT_EQ(buff1, s.cstr());
+    }
 }
 
 TEST_F(STRING_Test, append_no_resize)

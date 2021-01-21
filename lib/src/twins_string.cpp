@@ -249,7 +249,7 @@ void String::setWidth(int16_t newWidth, bool addEllipsis)
 
 String& String::clear(uint16_t threshordToFree)
 {
-    if (mCapacity >= threshordToFree)
+    if (mCapacity > alignCapacity(threshordToFree))
         freeBuff();
 
     mSize = 0;
@@ -334,19 +334,26 @@ uint16_t String::u8len(bool ignoreESC, bool realWidth) const
     return u8len(mpBuff, mpBuff + mSize, ignoreESC, realWidth);
 }
 
-void String::reserve(uint16_t newCapacity)
+uint16_t String::alignCapacity(uint16_t newCapacity)
 {
-    if (newCapacity < mCapacity)
-        return;
-
-    newCapacity++;  // extra byte for NUL
-
+    // extra byte for NUL
+    newCapacity++;
     if (newCapacity & (32-1))
     {
         // avoid allocating every time 1-byte more
         newCapacity &= ~(32-1);
         newCapacity += 32;
     }
+
+    return newCapacity;
+}
+
+void String::reserve(uint16_t newCapacity)
+{
+    newCapacity = alignCapacity(newCapacity);
+
+    if (newCapacity < mCapacity)
+        return;
 
     if (!mpBuff)
     {
