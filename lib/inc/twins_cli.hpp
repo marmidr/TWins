@@ -31,7 +31,7 @@ using Argv = Vector<const char*>;
 
 /**
  * @brief Struct holding command name and pointer to handler function
- * if \p argc is 1+, the \p argv holds comamnd arguments
+ * if \p argc is 1+, the \p argv holds command arguments
  */
 struct Cmd
 {

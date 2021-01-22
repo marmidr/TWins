@@ -58,7 +58,12 @@ struct WrappedString
 {
     WrappedString() = default;
 
-    /** @brief */
+    /**
+     * @brief Set maximum width the individual line will never break;
+     * @param maxWidth maximum line width
+     * @param delim characters that the line can break at
+     * @param sep lines separator
+     */
     void config(uint16_t maxWidth = 250, const char* delim = " \t\n", const char* sep = "\n")
     {
         mMaxWidth = maxWidth;
@@ -67,7 +72,10 @@ struct WrappedString
         mDirty = true;
     }
 
-    /** @brief */
+    /**
+     * @brief Parse input string and wrap it
+     * @param newContent optional new content; can be null if the same content is to be used with new wrapping configuration
+     */
     void updateLines(const char *newContent = nullptr)
     {
         if (newContent)
@@ -80,7 +88,7 @@ struct WrappedString
         mDirty = false;
     }
 
-    /** @brief */
+    /** @brief Returns vector of lines */
     const Vector<StringRange>& getLines()
     {
         if (mDirty)
@@ -88,19 +96,19 @@ struct WrappedString
         return mLines;
     }
 
-    /** @brief */
+    /** @brief Returns reference to source string */
     String& getSourceStr()
     {
         return mSourceStr;
     }
 
-    /** @brief */
+    /** @brief Returns reference to wrapped string */
     const String& getWrappedStr() const
     {
         return mWrappedStr;
     }
 
-    /** @brief */
+    /** @brief Returns true if source or configuration was changed so the wrapped string is deprecated */
     bool isDirty() const { return mDirty; }
 
     /** @brief */

@@ -17,6 +17,10 @@
 namespace twins
 {
 
+/**
+ * @brief Constant length ring buffer
+ * @tparam T trivial type, like int of any size
+ */
 template <typename T>
 class RingBuff
 {
