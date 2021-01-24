@@ -81,7 +81,8 @@ History& getHistory(void);
  * @brief If line ends with '\r', call the matching \p commands handler
  * @param pCommands array of \b Cmd, terminated with empty cmd {}
  * @param soleOrLastCommandsSet set to false if number of command arrays are to be processed
- *        to avoid printing "unknown command" and clearing internal command buffer
+ *        to avoid printing "unknown command" and clearing internal command queue.
+ *        Remember to set it to true in the last call to remove command line from the internal queue.
  * @return true if command line is complete and handler was found and executed
  */
 bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet = true);

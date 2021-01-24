@@ -20,12 +20,11 @@ namespace twins::cli
 struct CliState
 {
     String      lineBuff;
-    StringBuff  cmd;
     History     history;
     int16_t     cursorPos = 0;
     int16_t     historyIdx = 0;
     RingBuff<char> ringBuff;
-    Queue<String>  cmds;
+    Queue<String>  cmdQue;
     CmdHandler     overrideHandler;
 };
 
@@ -54,7 +53,6 @@ void deInit(void)
 void reset(void)
 {
     g_cs.ringBuff.clear();
-    g_cs.cmd.clear();
     g_cs.lineBuff.clear();
     g_cs.cursorPos = 0;
     g_cs.history.clear();
@@ -213,7 +211,7 @@ void processInput(twins::RingBuff<char> &rb)
                     }
 
                     g_cs.historyIdx = g_cs.history.size();
-                    g_cs.cmds.write(std::move(g_cs.lineBuff));
+                    g_cs.cmdQue.write(std::move(g_cs.lineBuff));
                     g_cs.lineBuff.clear();
                 }
                 else
@@ -395,62 +393,71 @@ void prompt(bool newLn)
 bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
 {
     assert(pCommands);
-    if (g_cs.cmds.size() == 0)
+    if (g_cs.cmdQue.size() == 0)
         return false;
 
-    g_cs.cmd = g_cs.cmds.read();
-
-    if (!g_cs.cmd.size())
+    // drop empty command string
+    if (g_cs.cmdQue.front()->size() == 0)
+    {
+        g_cs.cmdQue.read();
         return false;
+    }
+
+    if (g_cs.overrideHandler)
+        soleOrLastCommandsSet = true;
+
+    StringBuff cmd;
+    if (soleOrLastCommandsSet)
+        cmd = g_cs.cmdQue.read();
+    else
+        cmd = *g_cs.cmdQue.front();
 
     writeStr(ESC_FG_DEFAULT);
 
     if (!g_cs.overrideHandler)
     {
-        if (g_cs.cmd == "help")
+        if (cmd == "help")
         {
             printHelp(pCommands);
             prompt(false);
             flushBuffer();
-            g_cs.cmd.clear();
+            g_cs.cmdQue.read();
             return true;
         }
 
-        if (g_cs.cmd == "hist")
+        if (cmd == "hist")
         {
             printHistory();
             prompt(false);
             flushBuffer();
-            g_cs.cmd.clear();
+            g_cs.cmdQue.read();
             return true;
         }
     }
 
     Argv argv;
-    tokenize(g_cs.cmd, argv);
+    tokenize(cmd, argv);
     bool found = false;
 
     if (g_cs.overrideHandler)
     {
-        found = true;
         g_cs.overrideHandler(argv);
+        found = true;
     }
     else if (const auto *p_cmd = find(pCommands, argv))
     {
-        found = true;
         p_cmd->handler(argv);
+        found = true;
+        if (!soleOrLastCommandsSet) g_cs.cmdQue.read();
     }
     else
     {
-        // if (soleOrLastCommandsSet)
+        if (soleOrLastCommandsSet)
             writeStr("unknown command" "\r\n");
     }
 
-    // if (soleOrLastCommandsSet)
-    {
+    if (soleOrLastCommandsSet)
         prompt(false);
-        g_cs.cmd.clear();
-    }
 
     flushBuffer();
     return found;
