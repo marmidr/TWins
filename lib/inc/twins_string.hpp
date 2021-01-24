@@ -107,6 +107,10 @@ public:
     StringBuff(const char *s) : String(s) {}
     StringBuff(const StringBuff&) = delete;
     StringBuff(StringBuff&&) = delete;
+    StringBuff(String &&other) noexcept
+    {
+        String::operator=(std::move(other));
+    }
 
     StringBuff& operator =(String &&other)
     {
