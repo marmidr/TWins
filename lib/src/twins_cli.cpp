@@ -26,6 +26,7 @@ struct CliState
     int16_t     historyIdx = 0;
     RingBuff<char> ringBuff;
     Queue<String>  cmds;
+    CmdHandler     overrideHandler;
 };
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
@@ -391,7 +392,7 @@ void prompt(bool newLn)
     writeStr(ESC_FG_GREEN_INTENSE "> " ESC_FG_WHITE_INTENSE);
 }
 
-bool checkAndExec(const Cmd* pCommands)
+bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
 {
     assert(pCommands);
     if (g_cs.cmds.size() == 0)
@@ -404,42 +405,54 @@ bool checkAndExec(const Cmd* pCommands)
 
     writeStr(ESC_FG_DEFAULT);
 
-    if (g_cs.cmd == "help")
+    if (!g_cs.overrideHandler)
     {
-        printHelp(pCommands);
-        prompt(false);
-        flushBuffer();
-        g_cs.cmd.clear();
-        return true;
-    }
+        if (g_cs.cmd == "help")
+        {
+            printHelp(pCommands);
+            prompt(false);
+            flushBuffer();
+            g_cs.cmd.clear();
+            return true;
+        }
 
-    if (g_cs.cmd == "hist")
-    {
-        printHistory();
-        prompt(false);
-        flushBuffer();
-        g_cs.cmd.clear();
-        return true;
+        if (g_cs.cmd == "hist")
+        {
+            printHistory();
+            prompt(false);
+            flushBuffer();
+            g_cs.cmd.clear();
+            return true;
+        }
     }
 
     Argv argv;
     tokenize(g_cs.cmd, argv);
     bool found = false;
 
-    if (const auto *p_cmd = find(pCommands, argv))
+    if (g_cs.overrideHandler)
+    {
+        found = true;
+        g_cs.overrideHandler(argv);
+    }
+    else if (const auto *p_cmd = find(pCommands, argv))
     {
         found = true;
         p_cmd->handler(argv);
     }
     else
     {
-        writeStr("unknown command" "\r\n");
+        // if (soleOrLastCommandsSet)
+            writeStr("unknown command" "\r\n");
     }
 
-    prompt(false); // TODO: only if command handler finished it's execution;
-                   // handler may call async job and later tell CLI the job is done
+    // if (soleOrLastCommandsSet)
+    {
+        prompt(false);
+        g_cs.cmd.clear();
+    }
+
     flushBuffer();
-    g_cs.cmd.clear();
     return found;
 }
 
@@ -466,6 +479,11 @@ bool execLine(const char *cmdline, const Cmd* pCommands)
     prompt(false);
     flushBuffer();
     return found;
+}
+
+void setOverrideHandler(CmdHandler handler)
+{
+    g_cs.overrideHandler = std::move(handler);
 }
 
 // -----------------------------------------------------------------------------
