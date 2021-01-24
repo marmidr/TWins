@@ -55,7 +55,7 @@ public:
         return nullptr;
     }
 
-    /** @brief Returns pointer to the top-item or \b nullptr id stack is empty */
+    /** @brief Returns pointer to the top-item or \b nullptr if stack is empty */
     T* top()
     {
         if (mSize)

@@ -213,7 +213,7 @@ void processInput(twins::RingBuff<char> &rb)
                     }
 
                     g_cs.historyIdx = g_cs.history.size();
-                    g_cs.cmds.push(std::move(g_cs.lineBuff));
+                    g_cs.cmds.write(std::move(g_cs.lineBuff));
                     g_cs.lineBuff.clear();
                 }
                 else
@@ -398,7 +398,7 @@ bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
     if (g_cs.cmds.size() == 0)
         return false;
 
-    g_cs.cmd = std::move(*g_cs.cmds.pop());
+    g_cs.cmd = g_cs.cmds.read();
 
     if (!g_cs.cmd.size())
         return false;

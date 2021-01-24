@@ -23,7 +23,7 @@ class Queue
 public:
     /** @brief Write new item to the queue */
     template <typename Tv>
-    void push(Tv && item)
+    void write(Tv && item)
     {
         growAsNecessary();
         mSize++;
@@ -33,18 +33,29 @@ public:
             mWriteIdx = 0;
     }
 
-    /** @brief Returns pointer to to the tail item and decrease items counter, or \b nullptr if queue is empty */
-    T* pop(void)
+    /** @brief Returns tail item and decrease items counter;
+      *        return default \c {} of empty */
+    T read(void)
     {
         if (mSize)
         {
             mSize--;
-            T *p_ret = &mItems[mReadIdx];
+            auto rd_idx = mReadIdx;
 
             if (++mReadIdx == mItems.size())
                 mReadIdx = 0;
-            return p_ret;
+
+            return std::move(mItems[rd_idx]);
         }
+
+        return {};
+    }
+
+    /** @brief Returns pointer to the first item to be read or \b nullptr if queue is empty */
+    const T* front(void)
+    {
+        if (mSize)
+            return &mItems[mReadIdx];
 
         return nullptr;
     }
