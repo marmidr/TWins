@@ -56,6 +56,7 @@ definitions:
 
         - step: &build_and_test_sonar
             name: SonarScanner build && test
+            trigger: manual
             script:
                 # prerequisites
                 - apt-get update
@@ -103,7 +104,4 @@ pipelines:
                 - find _sonar || true
         - step: *build_and_test
         #- step: *build_and_test_and_cover
-
-    custom: # manual pipeline
-        Sonar: # name
-            - step: *build_and_test_sonar
+        - step: *build_and_test_sonar
