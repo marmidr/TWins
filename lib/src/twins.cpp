@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/time.h>
+#include <assert.h>
 
 // -----------------------------------------------------------------------------
 
@@ -21,9 +22,28 @@
 
 namespace twins
 {
+struct StubPAL : twins::IPal
+{
+    int writeChar(char, int16_t) override { return 0; }
+    int writeStr(const char *, int16_t) override { return 0; }
+    int writeStrLen(const char *, uint16_t) override { return 0; }
+    int writeStrVFmt(const char *, va_list) override { return 0; }
+    void flushBuff() override {}
+    void setLogging(bool) override {}
+    void* memAlloc(uint32_t) override { assert(!"PAL not set"); return nullptr; }
+    void memFree(void *) override {}
+    void sleep(uint16_t) override {}
+    uint16_t getLogsRow() override { return 0; }
+    uint32_t getTimeStamp() override { return 0; }
+    uint32_t getTimeDiff(uint32_t) override { return 0; }
+    bool lock(bool) override { return true; }
+    void unlock() override {}
+};
+
+static StubPAL stubPal;
 
 /** @brief Pointer to PAL used internally by TWins */
-IPal *pPAL;
+IPal *pPAL = &stubPal;
 
 /** Local state */
 struct TwinsState
@@ -89,29 +109,26 @@ void init(IPal *pal)
 
 void deinit(void)
 {
+    if (pPAL == &stubPal) return;
     g_ts.~TwinsState();
     widgetDeInit();
     cli::deInit();
-    pPAL = nullptr;
+    pPAL = &stubPal;
 }
 
 bool lock(bool wait)
 {
-    if (pPAL)
-        return pPAL->lock(wait);
-    return true;
+    return pPAL->lock(wait);
 }
 
 void unlock(void)
 {
-    if (pPAL)
-        pPAL->unlock();
+    pPAL->unlock();
 }
 
 static inline void setLogging(bool on)
 {
-    if (pPAL)
-        pPAL->setLogging(on);
+    pPAL->setLogging(on);
 }
 
 void writeCurrentTime(const uint64_t *pTimestamp)
@@ -140,7 +157,7 @@ void writeCurrentTime(const uint64_t *pTimestamp)
 #endif
 }
 
-void log(uint64_t *pTimestamp, const char *file, unsigned line, const char *prefix, const char *fmt, ...)
+void log(const uint64_t *pTimestamp, const char *file, unsigned line, const char *prefix, const char *fmt, ...)
 {
     twins::Locker lck;
 
@@ -150,7 +167,7 @@ void log(uint64_t *pTimestamp, const char *file, unsigned line, const char *pref
     if (const char *delim = strrchr(file, '/'))
         file = delim + 1;
 
-    if (!pPAL)
+    if (pPAL == &stubPal)
     {
         if (fmt)
         {
@@ -236,19 +253,17 @@ void logRawEnd(const char *epilogue)
 
 void sleepMs(uint16_t ms)
 {
-    if (pPAL)
-        pPAL->sleep(ms);
+    pPAL->sleep(ms);
 }
 
 int writeChar(char c, int16_t repeat)
 {
-    return pPAL ? pPAL->writeChar(c, repeat) : 0;
+    return pPAL->writeChar(c, repeat);
 }
 
 int writeStr(const char *s, int16_t repeat)
 {
-    if (!pPAL || !s)
-        return 0;
+    if (!s) return 0;
 
     if (g_ts.attrFaint)
     {
@@ -273,8 +288,7 @@ inline uint16_t beginsWith(const char *str, const char *preffix, uint16_t preffi
 
 int writeStrLen(const char *s, uint16_t sLen)
 {
-    if (!pPAL || !s)
-        return 0;
+    if (!s) return 0;
 
     if (g_ts.attrFaint)
     {
@@ -334,8 +348,7 @@ int writeStrLen(const char *s, uint16_t sLen)
 
 int writeStrFmt(const char *fmt, ...)
 {
-    if (!pPAL || !fmt)
-        return 0;
+    if (!fmt) return 0;
 
     va_list ap;
     va_start(ap, fmt);
@@ -346,16 +359,13 @@ int writeStrFmt(const char *fmt, ...)
 
 int writeStrVFmt(const char *fmt, va_list ap)
 {
-    if (!pPAL || !fmt)
-        return 0;
-
+    if (!fmt) return 0;
     return pPAL->writeStrVFmt(fmt, ap);
 }
 
 void flushBuffer()
 {
-    if (pPAL)
-        pPAL->flushBuff();
+    pPAL->flushBuff();
 }
 
 // -----------------------------------------------------------------------------

@@ -30,6 +30,9 @@ struct TestPAL : twins::DefaultPAL
 {
     TestPAL()
     {
+        // call once to test no-pal version of log()
+        twins::log(nullptr, __FILE__, __LINE__, nullptr, nullptr);
+        twins::log(nullptr, __FILE__, __LINE__, nullptr, "");
         twins::init(this);
     }
 

@@ -334,7 +334,7 @@ uint16_t String::u8len(bool ignoreESC, bool realWidth) const
     return u8len(mpBuff, mpBuff + mSize, ignoreESC, realWidth);
 }
 
-uint16_t String::alignCapacity(uint16_t newCapacity)
+uint16_t String::alignCapacity(uint16_t newCapacity) const
 {
     // extra byte for NUL
     newCapacity++;

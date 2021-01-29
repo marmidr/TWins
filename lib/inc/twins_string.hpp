@@ -49,7 +49,7 @@ public:
     /** @brief Set size to zero; release buffer memory only if capacity >= \p threshordToFree */
     String& clear(uint16_t threshordToFree = 500);
     /** @brief Return string size, in bytes */
-    uint16_t size() const { return (uint16_t)mSize; }
+    uint16_t size() const { return mSize; }
     /** @brief Return length of UTF-8 string, ignoring ESC sequences inside it
      *         and recognizing double-width glyphs */
     uint16_t u8len(bool ignoreESC = false, bool realWidth = false) const;
@@ -88,7 +88,7 @@ public:
 
 protected:
     void freeBuff();
-    uint16_t alignCapacity(uint16_t newCapacity);
+    uint16_t alignCapacity(uint16_t newCapacity) const;
     bool sourceIsOurs(const char *s) const { return (s >= mpBuff) && (s < mpBuff + mCapacity); }
 
     char* mpBuff = nullptr;

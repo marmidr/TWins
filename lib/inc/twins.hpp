@@ -466,7 +466,7 @@ bool lock(bool wait = true);
 void unlock(void);
 
 /** @brief used by TWINS_LOG() */
-void log(uint64_t *pTimestamp, const char *file, unsigned line, const char *prefix, const char *fmt, ...);
+void log(const uint64_t *pTimestamp, const char *file, unsigned line, const char *prefix, const char *fmt, ...);
 
 /** @brief Logs with more control */
 void logRawBegin(const char *prologue = "", bool timeStamp = false);
