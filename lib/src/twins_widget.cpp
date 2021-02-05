@@ -1017,7 +1017,7 @@ static bool processKey_TextBox(CallEnv &env, const Widget *pWgt, const KeyCode &
 
     if (delta != 0)
     {
-        const twins::Vector<twins::StringRange> *p_lines = nullptr;
+        const twins::Vector<twins::CStrView> *p_lines = nullptr;
         int16_t top_line = 0;
 
         env.pState->getTextBoxState(pWgt, &p_lines, top_line);
@@ -1329,7 +1329,7 @@ static void processMouse_TextBox(CallEnv &env, const Widget *pWgt, const Rect &w
 
     if (kc.mouse.btn == MouseBtn::WheelUp || kc.mouse.btn == MouseBtn::WheelDown)
     {
-        const twins::Vector<twins::StringRange> *p_lines = nullptr;
+        const twins::Vector<twins::CStrView> *p_lines = nullptr;
         int16_t top_line = 0;
 
         env.pState->getTextBoxState(pWgt, &p_lines, top_line);

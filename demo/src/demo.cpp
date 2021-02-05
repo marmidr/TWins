@@ -467,7 +467,7 @@ public:
         return mRadioId;
     }
 
-    void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, int16_t &topLine) override
+    void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::CStrView> **ppLines, int16_t &topLine) override
     {
         if (pWgt->id == ID_TBX_LOREMIPSUM)
         {

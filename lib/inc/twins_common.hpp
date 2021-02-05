@@ -59,15 +59,16 @@ struct Array
 };
 
 
-/** @brief Structure to store pointer to first element and their number */
+/** @brief Structure holding pointer to first array element and the array size */
 template <typename T>
-struct Range
+struct Span
 {
     T* data = {};
     unsigned size = {};
 };
 
-using StringRange = twins::Range<const char>;
+/** @brief View on contiguous array of C strings */
+using CStrView = twins::Span<const char>;
 
 /**
  * @brief Platform Abstraction Layer for easy porting

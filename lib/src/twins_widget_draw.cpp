@@ -888,7 +888,7 @@ static void drawTextBox(CallEnv &env, const Widget *pWgt)
         return;
 
     const uint8_t lines_visible = pWgt->size.height - 2;
-    const twins::Vector<twins::StringRange> *p_lines = nullptr;
+    const twins::Vector<twins::CStrView> *p_lines = nullptr;
     int16_t top_line = 0;
 
     env.pState->getTextBoxState(pWgt, &p_lines, top_line);

@@ -30,7 +30,7 @@ const char* strechr(const char *str, const char *estr, char c);
  *  @param storeDelim if true, every second entry returned is delimiter before next word
  *  @return vector of pointers to the beginning of text lines
  */
-twins::Vector<twins::StringRange> splitWords(const char *str, const char *delim = " \t\n", bool storeDelim = false);
+twins::Vector<twins::CStrView> splitWords(const char *str, const char *delim = " \t\n", bool storeDelim = false);
 
 /** @brief Insert \p newLine and ellipsis to ensure the line length is always < \p maxLineLen
  *  @param str input string
@@ -44,7 +44,7 @@ twins::String wordWrap(const char *str, uint16_t areaWidth, const char *delim = 
  *  @param str input string
  *  @return vector of pointers to the beginning of text lines
  */
-twins::Vector<twins::StringRange> splitLines(const char *str);
+twins::Vector<twins::CStrView> splitLines(const char *str);
 
 /** @brief Prepend single line \p str with spaces and append spaces to make it centered on \p areaWidth .
  *         ESC sequences are ignored
@@ -89,7 +89,7 @@ struct WrappedString
     }
 
     /** @brief Returns vector of lines */
-    const Vector<StringRange>& getLines()
+    const Vector<CStrView>& getLines()
     {
         if (mDirty)
             updateLines();
@@ -143,7 +143,7 @@ private:
     const char* mpSep = "\n";
     String      mSourceStr;
     String      mWrappedStr;
-    Vector<StringRange> mLines;
+    Vector<CStrView> mLines;
 };
 
 // -----------------------------------------------------------------------------

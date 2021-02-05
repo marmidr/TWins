@@ -62,7 +62,7 @@ public:
     virtual void getComboBoxState(const twins::Widget* pWgt, int16_t &itemIdx, int16_t &selIdx, int16_t &itemsCount, bool &dropDown) {}
     virtual void getComboBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) {}
     virtual int  getRadioIndex(const twins::Widget* pWgt) { return -1; }
-    virtual void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, int16_t &topLine) {}
+    virtual void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::CStrView> **ppLines, int16_t &topLine) {}
     virtual void getButtonText(const twins::Widget* pWgt, twins::String &out) {}
 
 public:

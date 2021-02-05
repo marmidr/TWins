@@ -38,7 +38,7 @@ const char* strechr(const char *str, const char *estr, char c)
     return nullptr;
 }
 
-Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDelim)
+Vector<CStrView> splitWords(const char *str, const char *delim, bool storeDelim)
 {
     if (!str || !*str)
         return {};
@@ -47,7 +47,7 @@ Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDel
 
     unsigned n_words = 1;
 
-    Vector<StringRange> out;
+    Vector<CStrView> out;
     unsigned span = 0;
 
     const char *pstr = str;
@@ -73,7 +73,7 @@ Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDel
         pstr += span;
 
     if (storeDelim && (pstr > str))
-        out.append(StringRange{str, unsigned(pstr - str)});
+        out.append(CStrView{str, unsigned(pstr - str)});
 
     // put each word into separate cell
     while ((span = strcspn(pstr, delim)) > 0)
@@ -84,28 +84,28 @@ Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDel
 
             // append text before ESC
             if (pesc > pstr)
-                out.append(StringRange{pstr, unsigned(pesc - pstr)});
+                out.append(CStrView{pstr, unsigned(pesc - pstr)});
             auto esc_len = String::escLen(pesc);
 
             // append ESC seq
-            out.append(StringRange{pesc, esc_len});
+            out.append(CStrView{pesc, esc_len});
 
             // append text after ESC
             pesc += esc_len;
             if (pesc < pstr + span)
-                out.append(StringRange{pesc, unsigned(pstr + span - pesc)});
+                out.append(CStrView{pesc, unsigned(pstr + span - pesc)});
         }
         else
         {
             // store word
-            out.append(StringRange{pstr, span});
+            out.append(CStrView{pstr, span});
         }
 
         pstr += span;
         // check delimiters length
         span = strspn(pstr, delim);
         // store delimiter and skip it
-        if (storeDelim) out.append(StringRange{pstr, span});
+        if (storeDelim) out.append(CStrView{pstr, span});
         pstr += span;
     }
 
@@ -188,22 +188,22 @@ String wordWrap(const char *str, uint16_t areaWidth, const char *delim, const ch
     return out;
 }
 
-Vector<StringRange> splitLines(const char *str)
+Vector<CStrView> splitLines(const char *str)
 {
     if (!str || !*str)
         return {};
 
-    Vector<StringRange> out;
+    Vector<CStrView> out;
 
     while (const char *nl = strchr(str, '\n'))
     {
         // possible and allowed: nl == str
-        out.append(StringRange{str, (unsigned)(nl-str)});
+        out.append(CStrView{str, (unsigned)(nl-str)});
         str = nl+1;
     }
 
     if (*str)
-        out.append(StringRange{str, (unsigned)strlen(str)});
+        out.append(CStrView{str, (unsigned)strlen(str)});
 
     return out;
 }
