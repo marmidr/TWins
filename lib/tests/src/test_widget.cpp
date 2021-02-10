@@ -278,11 +278,11 @@ static constexpr twins::Widget wndTestDef =
             }}
         },
         {
-            type    : twins::Widget::Edit,
+            type    : twins::Widget::TextEdit,
             id      : ID_EDIT,
             coord   : { 2, 30 },
             size    : { 30, 4 },
-            { edit : {
+            { textedit : {
                 fgColor : {},
                 bgColor : {},
             }}

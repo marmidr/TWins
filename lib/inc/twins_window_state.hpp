@@ -28,8 +28,8 @@ public:
     virtual void onButtonDown(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
     virtual void onButtonUp(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
     virtual void onButtonClick(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
-    virtual void onEditChange(const twins::Widget* pWgt, twins::String &&str) {}
-    virtual bool onEditInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos) { return false; }
+    virtual void onTextEditChange(const twins::Widget* pWgt, twins::String &&str) {}
+    virtual bool onTextEditInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos) { return false; }
     virtual void onCheckboxToggle(const twins::Widget* pWgt) {}
     virtual void onPageControlPageChange(const twins::Widget* pWgt, uint8_t newPageIdx) {}
     virtual void onListBoxSelect(const twins::Widget* pWgt, int16_t selIdx) {}
@@ -52,7 +52,7 @@ public:
     virtual void getWindowTitle(const twins::Widget* pWgt, twins::String &title) {}
     virtual bool getCheckboxChecked(const twins::Widget* pWgt) { return false; }
     virtual void getLabelText(const twins::Widget* pWgt, twins::String &out) {}
-    virtual void getEditText(const twins::Widget* pWgt, twins::String &out) {}
+    virtual void getTextEditText(const twins::Widget* pWgt, twins::String &out) {}
     virtual bool getLedLit(const twins::Widget* pWgt) { return false; }
     virtual void getLedText(const twins::Widget* pWgt, twins::String &out) {}
     virtual void getProgressBarState(const twins::Widget* pWgt, int32_t &pos, int32_t &max) {}

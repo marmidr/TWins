@@ -433,21 +433,21 @@ static constexpr twins::Widget page3Childs[] =
         link    : { (const twins::Widget[]) // set first field in union - pChilds
         {
             {
-                type    : twins::Widget::Edit,
+                type    : twins::Widget::TextEdit,
                 id      : ID_EDT_1,
                 coord   : { 1, 1 },
                 size    : { 30, 1 },
-                { edit : {
+                { textedit : {
                     fgColor     : twins::ColorFG::Black,
                     bgColor     : twins::ColorBG::Edit1,
                 }}
             },
             {
-                type    : twins::Widget::Edit,
+                type    : twins::Widget::TextEdit,
                 id      : ID_EDT_2,
                 coord   : { 1, 3 },
                 size    : { 30, 1 },
-                { edit : {
+                { textedit : {
                     fgColor     : twins::ColorFG::Black,
                     bgColor     : twins::ColorBG::Edit2,
                 }}

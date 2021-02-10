@@ -83,9 +83,9 @@ static ColorBG getWidgetBgColor(const Widget *pWgt)
         if (pWgt->label.bgColor != ColorBG::Inherit)
             return pWgt->label.bgColor;
         break;
-    case Widget::Edit:
-        if (pWgt->edit.bgColor != ColorBG::Inherit)
-            return pWgt->edit.bgColor;
+    case Widget::TextEdit:
+        if (pWgt->textedit.bgColor != ColorBG::Inherit)
+            return pWgt->textedit.bgColor;
         break;
     case Widget::Button:
         if (pWgt->button.bgColor != ColorBG::Inherit)
@@ -124,9 +124,9 @@ static ColorFG getWidgetFgColor(const Widget *pWgt)
         if (pWgt->label.fgColor != ColorFG::Inherit)
             return pWgt->label.fgColor;
         break;
-    case Widget::Edit:
-        if (pWgt->edit.fgColor != ColorFG::Inherit)
-            return pWgt->edit.fgColor;
+    case Widget::TextEdit:
+        if (pWgt->textedit.fgColor != ColorFG::Inherit)
+            return pWgt->textedit.fgColor;
         break;
     case Widget::CheckBox:
         if (pWgt->checkbox.fgColor != ColorFG::Inherit)
@@ -404,17 +404,17 @@ static void drawLabel(CallEnv &env, const Widget *pWgt)
     }
 }
 
-static void drawEdit(CallEnv &env, const Widget *pWgt)
+static void drawTextEdit(CallEnv &env, const Widget *pWgt)
 {
     g_ws.str.clear();
     int16_t display_pos = 0;
     const int16_t max_w = pWgt->size.width-3;
 
-    if (pWgt == g_ws.editState.pWgt)
+    if (pWgt == g_ws.textEditState.pWgt)
     {
         // in edit mode; similar calculation in setCursorAt()
-        g_ws.str = g_ws.editState.str;
-        auto cursor_pos = g_ws.editState.cursorPos;
+        g_ws.str = g_ws.textEditState.str;
+        auto cursor_pos = g_ws.textEditState.cursorPos;
         auto delta = (max_w/2);
 
         while (cursor_pos >= max_w-1)
@@ -425,7 +425,7 @@ static void drawEdit(CallEnv &env, const Widget *pWgt)
     }
     else
     {
-        env.pState->getEditText(pWgt, g_ws.str);
+        env.pState->getTextEditText(pWgt, g_ws.str);
     }
 
     const int txt_width = g_ws.str.width();
@@ -968,7 +968,7 @@ static void drawWidgetInternal(CallEnv &env, const Widget *pWgt)
     case Widget::Window:        drawWindow(env, pWgt); break;
     case Widget::Panel:         drawPanel(env, pWgt); break;
     case Widget::Label:         drawLabel(env, pWgt); break;
-    case Widget::Edit:          drawEdit(env, pWgt); break;
+    case Widget::TextEdit:      drawTextEdit(env, pWgt); break;
     case Widget::CheckBox:      drawCheckbox(env, pWgt); break;
     case Widget::Radio:         drawRadio(env, pWgt);  break;
     case Widget::Button:        drawButton(env, pWgt); break;

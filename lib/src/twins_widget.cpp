@@ -117,7 +117,7 @@ const Widget* getWidgetAt(CallEnv &env, uint8_t col, uint8_t row, Rect &wgtRect)
         // correct the widget size
         switch (p_wgt->type)
         {
-        case Widget::Edit:
+        case Widget::TextEdit:
             break;
         case Widget::CheckBox:
             r.size.height = 1;
@@ -202,12 +202,12 @@ void setCursorAt(CallEnv &env, const Widget *pWgt)
 
     switch (pWgt->type)
     {
-    case Widget::Edit:
-        if (g_ws.editState.pWgt == pWgt)
+    case Widget::TextEdit:
+        if (g_ws.textEditState.pWgt == pWgt)
         {
             const int16_t max_w = pWgt->size.width-3;
-            coord.col += g_ws.editState.cursorPos;
-            auto cursor_pos = g_ws.editState.cursorPos;
+            coord.col += g_ws.textEditState.cursorPos;
+            auto cursor_pos = g_ws.textEditState.cursorPos;
             auto delta = (max_w/2);
             while (cursor_pos >= max_w-1)
             {
@@ -368,7 +368,7 @@ static bool isFocusable(CallEnv &env, const Widget *pWgt)
 
     switch (pWgt->type)
     {
-    case Widget::Edit:
+    case Widget::TextEdit:
     case Widget::CheckBox:
     case Widget::Radio:
     case Widget::Button:
@@ -639,7 +639,7 @@ static void pgControlChangePage(CallEnv &env, const Widget *pWgt, bool next)
     env.pState->invalidate(pWgt->id);
 
     // cancel EDIT mode
-    g_ws.editState.pWgt = nullptr;
+    g_ws.textEditState.pWgt = nullptr;
 
     if (const auto *p_wgt = getWidgetByWID(env, env.pState->getFocusedID()))
     {
@@ -668,12 +668,12 @@ static void comboBoxHideList(CallEnv &env, const Widget *pWgt)
 
 // -----------------------------------------------------------------------------
 
-static bool processKey_Edit(CallEnv &env, const Widget *pWgt, const KeyCode &kc)
+static bool processKey_TextEdit(CallEnv &env, const Widget *pWgt, const KeyCode &kc)
 {
-    if (pWgt == g_ws.editState.pWgt)
+    if (pWgt == g_ws.textEditState.pWgt)
     {
         // if in edit state, allow user to handle key
-        if (env.pState->onEditInputEvt(pWgt, kc, g_ws.editState.str, g_ws.editState.cursorPos))
+        if (env.pState->onTextEditInputEvt(pWgt, kc, g_ws.textEditState.str, g_ws.textEditState.cursorPos))
         {
             env.pState->invalidate(pWgt->id);
             return true;
@@ -683,9 +683,9 @@ static bool processKey_Edit(CallEnv &env, const Widget *pWgt, const KeyCode &kc)
 
     bool key_handled = false;
 
-    if (g_ws.editState.pWgt)
+    if (g_ws.textEditState.pWgt)
     {
-        auto cursor_pos = g_ws.editState.cursorPos;
+        auto cursor_pos = g_ws.textEditState.cursorPos;
 
         if (kc.m_spec)
         {
@@ -693,21 +693,21 @@ static bool processKey_Edit(CallEnv &env, const Widget *pWgt, const KeyCode &kc)
             {
             case Key::Esc:
                 // cancel editing
-                g_ws.editState.pWgt = nullptr;
+                g_ws.textEditState.pWgt = nullptr;
                 env.pState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
             case Key::Tab:
                 // real TAB may have different widths and require extra processing
-                g_ws.editState.str.insert(cursor_pos, "    ");
+                g_ws.textEditState.str.insert(cursor_pos, "    ");
                 cursor_pos += 4;
                 env.pState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
             case Key::Enter:
                 // finish editing
-                env.pState->onEditChange(pWgt, std::move(g_ws.editState.str));
-                g_ws.editState.pWgt = nullptr;
+                env.pState->onTextEditChange(pWgt, std::move(g_ws.textEditState.str));
+                g_ws.textEditState.pWgt = nullptr;
                 env.pState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
@@ -716,12 +716,12 @@ static bool processKey_Edit(CallEnv &env, const Widget *pWgt, const KeyCode &kc)
                 {
                     if (kc.m_ctrl)
                     {
-                        g_ws.editState.str.erase(0, cursor_pos);
+                        g_ws.textEditState.str.erase(0, cursor_pos);
                         cursor_pos = 0;
                     }
                     else
                     {
-                        g_ws.editState.str.erase(cursor_pos-1);
+                        g_ws.textEditState.str.erase(cursor_pos-1);
                         cursor_pos--;
                     }
                     env.pState->invalidate(pWgt->id);
@@ -730,9 +730,9 @@ static bool processKey_Edit(CallEnv &env, const Widget *pWgt, const KeyCode &kc)
                 break;
             case Key::Delete:
                 if (kc.m_ctrl)
-                    g_ws.editState.str.trim(cursor_pos);
+                    g_ws.textEditState.str.trim(cursor_pos);
                 else
-                    g_ws.editState.str.erase(cursor_pos);
+                    g_ws.textEditState.str.erase(cursor_pos);
 
                 key_handled = true;
                 env.pState->invalidate(pWgt->id);
@@ -749,7 +749,7 @@ static bool processKey_Edit(CallEnv &env, const Widget *pWgt, const KeyCode &kc)
                 key_handled = true;
                 break;
             case Key::Right:
-                if (cursor_pos < (signed)g_ws.editState.str.u8len())
+                if (cursor_pos < (signed)g_ws.textEditState.str.u8len())
                 {
                     cursor_pos++;
                     env.pState->invalidate(pWgt->id);
@@ -762,7 +762,7 @@ static bool processKey_Edit(CallEnv &env, const Widget *pWgt, const KeyCode &kc)
                 key_handled = true;
                 break;
             case Key::End:
-                cursor_pos = g_ws.editState.str.u8len();
+                cursor_pos = g_ws.textEditState.str.u8len();
                 env.pState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
@@ -772,20 +772,20 @@ static bool processKey_Edit(CallEnv &env, const Widget *pWgt, const KeyCode &kc)
         }
         else
         {
-            g_ws.editState.str.insert(cursor_pos, kc.utf8);
+            g_ws.textEditState.str.insert(cursor_pos, kc.utf8);
             cursor_pos++;
             env.pState->invalidate(pWgt->id);
             key_handled = true;
         }
 
-        g_ws.editState.cursorPos = cursor_pos;
+        g_ws.textEditState.cursorPos = cursor_pos;
     }
     else if (kc.key == Key::Enter)
     {
         // enter edit mode
-        g_ws.editState.pWgt = pWgt;
-        env.pState->getEditText(pWgt, g_ws.editState.str);
-        g_ws.editState.cursorPos = g_ws.editState.str.u8len();
+        g_ws.textEditState.pWgt = pWgt;
+        env.pState->getTextEditText(pWgt, g_ws.textEditState.str);
+        g_ws.textEditState.cursorPos = g_ws.textEditState.str.u8len();
         env.pState->invalidate(pWgt->id);
         key_handled = true;
     }
@@ -1055,8 +1055,8 @@ static bool processKey(CallEnv &env, const KeyCode &kc)
 
     switch (p_wgt->type)
     {
-    case Widget::Edit:
-        key_handled = processKey_Edit(env, p_wgt, kc);
+    case Widget::TextEdit:
+        key_handled = processKey_TextEdit(env, p_wgt, kc);
         break;
     case Widget::CheckBox:
         key_handled = processKey_CheckBox(env, p_wgt, kc);
@@ -1090,7 +1090,7 @@ static bool processKey(CallEnv &env, const KeyCode &kc)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static void processMouse_Edit(CallEnv &env, const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
+static void processMouse_TextEdit(CallEnv &env, const Widget *pWgt, const Rect &wgtRect, const KeyCode &kc)
 {
     if (kc.mouse.btn == MouseBtn::ButtonLeft)
     {
@@ -1424,8 +1424,8 @@ static bool processMouse(CallEnv &env, const KeyCode &kc)
     {
         switch (p_wgt->type)
         {
-        case Widget::Edit:
-            processMouse_Edit(env, p_wgt, rct, kc);
+        case Widget::TextEdit:
+            processMouse_TextEdit(env, p_wgt, rct, kc);
             break;
         case Widget::CheckBox:
             processMouse_CheckBox(env, p_wgt, rct, kc);
@@ -1478,7 +1478,7 @@ const char * toString(Widget::Type type)
     CASE_WGT_STR(Window)
     CASE_WGT_STR(Panel)
     CASE_WGT_STR(Label)
-    CASE_WGT_STR(Edit)
+    CASE_WGT_STR(TextEdit)
     CASE_WGT_STR(CheckBox)
     CASE_WGT_STR(Radio)
     CASE_WGT_STR(Button)
@@ -1618,7 +1618,7 @@ void resetInternalState()
     g_ws.pFocusedWgt = nullptr;
     g_ws.pMouseDownWgt = nullptr;
     g_ws.pDropDownCombo = nullptr;
-    g_ws.editState.pWgt = nullptr;
+    g_ws.textEditState.pWgt = nullptr;
 }
 
 // -----------------------------------------------------------------------------

@@ -214,7 +214,7 @@ struct Widget
         Window,
         Panel,
         Label,
-        Edit,
+        TextEdit,
         CheckBox,
         Radio,
         Button,
@@ -266,7 +266,7 @@ struct Widget
         {
             ColorFG     fgColor;
             ColorBG     bgColor;
-        } edit;
+        } textedit;
 
         struct
         {

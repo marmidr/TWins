@@ -186,7 +186,7 @@ public:
         }
     }
 
-    void onEditChange(const twins::Widget* pWgt, twins::String &&str) override
+    void onTextEditChange(const twins::Widget* pWgt, twins::String &&str) override
     {
         switch (pWgt->id)
         {
@@ -197,7 +197,7 @@ public:
         TWINS_LOG("value:%s", str.cstr());
     }
 
-    bool onEditInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos) override
+    bool onTextEditInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos) override
     {
         if (pWgt->id == ID_EDT_2)
             return twins::util::numEditInputEvt(kc, str, cursorPos);
@@ -397,7 +397,7 @@ public:
         }
     }
 
-    void getEditText(const twins::Widget* pWgt, twins::String &out) override
+    void getTextEditText(const twins::Widget* pWgt, twins::String &out) override
     {
         switch (pWgt->id)
         {

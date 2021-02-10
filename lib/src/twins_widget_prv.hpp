@@ -36,7 +36,7 @@ struct WidgetState
         const Widget *pWgt = nullptr;
         int16_t cursorPos = 0;
         String  str;
-    } editState;
+    } textEditState;
 };
 
 struct CallEnv
