@@ -397,7 +397,7 @@ public:
         }
     }
 
-    void getTextEditText(const twins::Widget* pWgt, twins::String &out) override
+    void getTextEditText(const twins::Widget* pWgt, twins::String &out, bool editMode) override
     {
         switch (pWgt->id)
         {

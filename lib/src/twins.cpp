@@ -138,7 +138,8 @@ void writeCurrentTime(const uint64_t *pTimestamp)
     if (pTimestamp)
     {
         tv.tv_sec = *pTimestamp >> 16;
-        tv.tv_usec = (*pTimestamp) & 0xFFFF;
+        tv.tv_usec = (*pTimestamp) & 0x3FF;
+        tv.tv_usec *= 1000;
     }
     else
     {
@@ -225,12 +226,7 @@ void logRawBegin(const char *prologue, bool timeStamp)
     writeStr(ESC_FG_COLOR(245));
 
     if (timeStamp)
-    {
-        time_t t = time(nullptr);
-        struct tm *p_stm = localtime(&t);
-        writeStrFmt("[%2d:%02d:%02d] ",
-            p_stm->tm_hour, p_stm->tm_min, p_stm->tm_sec);
-    }
+        writeCurrentTime();
 
     writeStr(ESC_FG_COLOR(253));
     writeStr(prologue);

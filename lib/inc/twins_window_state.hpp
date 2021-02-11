@@ -52,7 +52,7 @@ public:
     virtual void getWindowTitle(const twins::Widget* pWgt, twins::String &title) {}
     virtual bool getCheckboxChecked(const twins::Widget* pWgt) { return false; }
     virtual void getLabelText(const twins::Widget* pWgt, twins::String &out) {}
-    virtual void getTextEditText(const twins::Widget* pWgt, twins::String &out) {}
+    virtual void getTextEditText(const twins::Widget* pWgt, twins::String &out, bool editMode = false) {}
     virtual bool getLedLit(const twins::Widget* pWgt) { return false; }
     virtual void getLedText(const twins::Widget* pWgt, twins::String &out) {}
     virtual void getProgressBarState(const twins::Widget* pWgt, int32_t &pos, int32_t &max) {}

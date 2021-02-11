@@ -235,17 +235,8 @@ twins::String centerText(const char *str, uint16_t areaWidth)
 
 bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos, int64_t limitMin, int64_t limitMax, bool wrap)
 {
-    if (kc.mod_all == 0)
+    if (kc.mod_all == KEY_MOD_NONE)
     {
-        switch (kc.key)
-        {
-        case twins::Key::Enter:
-        case twins::Key::Esc:
-            return false;
-        default:
-            break;
-        }
-
         // reject non-digits and avoid too long numbers
         // 0x7fffffffffffffff = 9223372036854775807
         if (kc.utf8[0] < '0' || kc.utf8[0] > '9' || str.size() >= 19)
@@ -256,26 +247,41 @@ bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &curs
         }
     }
 
-    switch (kc.key)
+    if (kc.m_spec)
     {
-    case twins::Key::Up:
-    case twins::Key::Down:
-    {
-        int64_t n = atoll(str.cstr());
-        int delta = kc.m_ctrl && kc.m_shift ? 100 : (kc.m_ctrl ? 10 : 1);
-        if (kc.key == twins::Key::Down) delta *= -1;
-        n += delta;
-        if (n < limitMin) n = wrap ? limitMax : limitMin;
-        if (n > limitMax) n = wrap ? limitMin : limitMax;
+        switch (kc.key)
+        {
+        case twins::Key::Enter:
+        {
+            int64_t n = atoll(str.cstr());
+            if (n < limitMin) n = limitMin;
+            if (n > limitMax) n = limitMax;
+            str.clear();
+            str.appendFmt("%lld", n);
+            return false;
+        }
+        case twins::Key::Esc:
+            return false;
+        case twins::Key::Up:
+        case twins::Key::Down:
+        {
+            int64_t n = atoll(str.cstr());
+            int delta = kc.m_shift ? 100 : (kc.m_ctrl ? 10 : 1);
+            if (kc.key == twins::Key::Down) delta *= -1;
+            n += delta;
+            if (n < limitMin) n = wrap ? limitMax : limitMin;
+            if (n > limitMax) n = wrap ? limitMin : limitMax;
 
-        str.clear();
-        str.appendFmt("%lld", n);
-        cursorPos = str.size();
-        return true;
+            str.clear();
+            str.appendFmt("%lld", n);
+            cursorPos = str.size();
+            return true;
+        }
+        default:
+            break;
+        }
     }
-    default:
-        break;
-    }
+
     return false;
 }
 

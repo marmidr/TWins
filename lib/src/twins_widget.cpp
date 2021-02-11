@@ -784,7 +784,8 @@ static bool processKey_TextEdit(CallEnv &env, const Widget *pWgt, const KeyCode 
     {
         // enter edit mode
         g_ws.textEditState.pWgt = pWgt;
-        env.pState->getTextEditText(pWgt, g_ws.textEditState.str);
+        g_ws.textEditState.str.clear();
+        env.pState->getTextEditText(pWgt, g_ws.textEditState.str, true);
         g_ws.textEditState.cursorPos = g_ws.textEditState.str.u8len();
         env.pState->invalidate(pWgt->id);
         key_handled = true;
