@@ -453,7 +453,7 @@ static const Widget* getNextFocusable(CallEnv &env, const Widget *pParent, WID f
         if (!pFirstParent)
         {
             // it must be Panel/Page/Layer because while traversing we never step below Page level
-            // TWINS_LOG("1st parent[%s id:%u]", toString(pParent->type), pParent->id);
+            // TWINS_LOG_D("1st parent[%s id:%u]", toString(pParent->type), pParent->id);
             pFirstParent = pParent;
         }
         break;
@@ -464,7 +464,7 @@ static const Widget* getNextFocusable(CallEnv &env, const Widget *pParent, WID f
     assert(p_childs);
     const Widget *p_wgt = nullptr;
 
-    // TWINS_LOG("pParent[%s id:%u] focusedId=%d", toString(pParent->type), pParent->id, focusedID); twins::sleepMs(200);
+    // TWINS_LOG_D("pParent[%s id:%u] focusedId=%d", toString(pParent->type), pParent->id, focusedID); twins::sleepMs(200);
 
     if (focusedID == WIDGET_ID_NONE)
     {
@@ -499,7 +499,7 @@ static const Widget* getNextFocusable(CallEnv &env, const Widget *pParent, WID f
     }
 
 
-    // TWINS_LOG("search in [%s id:%d childs:%d]", toString(pParent->type), pParent->id, child_cnt);
+    // TWINS_LOG_D("search in [%s id:%d childs:%d]", toString(pParent->type), pParent->id, child_cnt);
     // iterate until focusable found or childs border reached
     assert(p_wgt);
 
@@ -573,7 +573,7 @@ static WID getParentToFocus(CallEnv &env, WID focusedID)
 static bool changeFocusTo(CallEnv &env, WID newID)
 {
     auto &curr_id = env.pState->getFocusedID();
-    // TWINS_LOG("curr_id=%d, newID=%d", curr_id, newID);
+    // TWINS_LOG_D("curr_id=%d, newID=%d", curr_id, newID);
 
     if (newID != curr_id)
     {
@@ -643,7 +643,7 @@ static void pgControlChangePage(CallEnv &env, const Widget *pWgt, bool next)
 
     if (const auto *p_wgt = getWidgetByWID(env, env.pState->getFocusedID()))
     {
-        //TWINS_LOG("focused id=%d (%s)", p_wgt->id, toString(p_wgt->type));
+        // TWINS_LOG_D("focused id=%d (%s)", p_wgt->id, toString(p_wgt->type));
         g_ws.pFocusedWgt = p_wgt;
         setCursorAt(env, p_wgt);
     }
@@ -1397,7 +1397,7 @@ static bool processMouse(CallEnv &env, const KeyCode &kc)
     if (!p_wgt)
         return false;
 
-    //TWINS_LOG("WidgetAt(%2d:%2d)=%s ID:%u", kc.mouse.col, kc.mouse.row, toString(p_wgt->type), p_wgt->id);
+    // TWINS_LOG_D("WidgetAt(%2d:%2d)=%s ID:%u", kc.mouse.col, kc.mouse.row, toString(p_wgt->type), p_wgt->id);
 
     if (g_ws.pDropDownCombo && (p_wgt->type != Widget::ComboBox))
     {
@@ -1557,7 +1557,7 @@ bool processInput(const Widget *pWindowWidgets, const KeyCode &kc)
     if (kc.key == Key::None)
         return true;
 
-    //TWINS_LOG("---");
+    // TWINS_LOG_D("---");
 
     if (kc.key == Key::MouseEvent)
     {

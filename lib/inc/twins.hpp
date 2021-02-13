@@ -15,7 +15,6 @@
 
 // -----------------------------------------------------------------------------
 
-#define TWINS_LOG(...)          TWINS_LOG_I(__VA_ARGS__) // deprecated
 #define TWINS_LOG_D(...)        twins::log(nullptr, __FILE__, __LINE__,                 "-D- ", "" __VA_ARGS__)
 #define TWINS_LOG_I(...)        twins::log(nullptr, __FILE__, __LINE__, ESC_FG_WHITE    "-I- ", "" __VA_ARGS__)
 #define TWINS_LOG_W(...)        twins::log(nullptr, __FILE__, __LINE__, ESC_FG_YELLOW   "-W- ", "" __VA_ARGS__)
@@ -465,7 +464,7 @@ void deinit(void);
 bool lock(bool wait = true);
 void unlock(void);
 
-/** @brief used by TWINS_LOG() */
+/** @brief used by TWINS_LOG_x() */
 void log(const uint64_t *pTimestamp, const char *file, unsigned line, const char *prefix, const char *fmt, ...);
 
 /** @brief Logs with more control */

@@ -428,7 +428,7 @@ uint8_t decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 default: break;
                 }
 
-                //TWINS_LOG("MouseBtn:0x%x", (unsigned)mouse_btn);
+                // TWINS_LOG_D("MouseBtn:0x%x", (unsigned)mouse_btn);
 
                 if (mouse_btn & 0x04) output.m_shift = 1;
                 if (mouse_btn & 0x08) output.m_alt = 1;

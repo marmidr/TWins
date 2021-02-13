@@ -455,7 +455,7 @@ TEST_F(WIDGET, drawWidget)
     twins::writeChar('\n', 3);
 
     t = twins::pPAL->getTimeDiff(t);
-    TWINS_LOG("Drawn in %u ms", t);
+    TWINS_LOG_D("Drawn in %u ms", t);
 }
 
 TEST_F(WIDGET, drawWidgets)

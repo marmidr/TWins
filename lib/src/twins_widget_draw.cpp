@@ -270,7 +270,7 @@ static void drawListScrollBarV(const Coord coord, int height, int max, int pos)
 {
     if (pos > max)
     {
-        // TWINS_LOG("pos (%d) > max (%d)", pos, max);
+        // TWINS_LOG_D("pos (%d) > max (%d)", pos, max);
         return;
     }
 
