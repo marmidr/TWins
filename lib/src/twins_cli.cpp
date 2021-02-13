@@ -14,18 +14,29 @@
 
 // -----------------------------------------------------------------------------
 
+#ifndef TWINS_CLI_MAXCMDLEN
+# define TWINS_CLI_MAXCMDLEN    120
+#endif
+
+#ifndef TWINS_CLI_MAXHIST
+# define TWINS_CLI_MAXHIST      20
+#endif
+
+static_assert(TWINS_CLI_MAXCMDLEN > 5);
+static_assert(TWINS_CLI_MAXHIST > 0);
+
 namespace twins::cli
 {
 
 struct CliState
 {
-    String      lineBuff;
-    History     history;
-    int16_t     cursorPos = 0;
-    int16_t     historyIdx = 0;
-    RingBuff<char> ringBuff;
-    Queue<String>  cmdQue;
-    CmdHandler     overrideHandler;
+    String          lineBuff;
+    History         history;
+    int16_t         cursorPos = 0;
+    int16_t         historyIdx = 0;
+    RingBuff<char>  seqRingBuff;
+    Queue<String>   cmdQue;
+    CmdHandler      overrideHandler;
 };
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
@@ -52,7 +63,7 @@ void deInit(void)
 
 void reset(void)
 {
-    g_cs.ringBuff.clear();
+    g_cs.seqRingBuff.clear();
     g_cs.lineBuff.clear();
     g_cs.cursorPos = 0;
     g_cs.history.clear();
@@ -67,15 +78,15 @@ void processInput(const char* data, uint8_t dataLen)
     if (!dataLen)
         dataLen = strlen(data);
 
-    if (g_cs.ringBuff.capacity() == 0)
-        g_cs.ringBuff.init(ESC_SEQ_MAX_LENGTH+2);
+    if (g_cs.seqRingBuff.capacity() == 0)
+        g_cs.seqRingBuff.init(ESC_SEQ_MAX_LENGTH+2);
 
     while (dataLen)
     {
         uint8_t to_write = dataLen > ESC_SEQ_MAX_LENGTH ? ESC_SEQ_MAX_LENGTH : dataLen;
 
-        g_cs.ringBuff.write(data, to_write);
-        processInput(g_cs.ringBuff);
+        g_cs.seqRingBuff.write(data, to_write);
+        processInput(g_cs.seqRingBuff);
 
         data += to_write;
         dataLen -= to_write;
@@ -95,6 +106,9 @@ void processInput(twins::RingBuff<char> &rb)
 
         if (kc.key == Key::None)
             break;
+
+        if (seq_sz >= ESC_SEQ_MAX_LENGTH)
+            seq_sz = ESC_SEQ_MAX_LENGTH-1;
 
         seq[seq_sz] = '\0';
         const char *p_seq = seq; // echo decoded sequence
@@ -193,7 +207,7 @@ void processInput(twins::RingBuff<char> &rb)
                 {
                     if (echoNlAfterCr) twins::writeChar('\n');
 
-                    // append to history, limit history to 20
+                    // append to history, limit history size
                     int idx = 0;
 
                     if (auto *str = g_cs.history.find(g_cs.lineBuff, &idx))
@@ -206,7 +220,7 @@ void processInput(twins::RingBuff<char> &rb)
                     else
                     {
                         g_cs.history.append(g_cs.lineBuff);
-                        if (g_cs.history.size() > 20)
+                        if (g_cs.history.size() > TWINS_CLI_MAXHIST)
                             g_cs.history.remove(0, true);
                     }
 
@@ -232,7 +246,7 @@ void processInput(twins::RingBuff<char> &rb)
         else
         {
             // append/insert
-            if (g_cs.lineBuff.u8len() < 100)
+            if (g_cs.lineBuff.size() < TWINS_CLI_MAXCMDLEN)
             {
                 g_cs.lineBuff.insert(g_cs.cursorPos, kc.utf8);
                 g_cs.cursorPos += 1;

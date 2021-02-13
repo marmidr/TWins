@@ -59,9 +59,9 @@ else()
 endif()
 
 if (TWINS_USE_LIGHTWEIGHT_CMD)
-    target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_LIGHTWEIGHT_CMD=1)
+    target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_CLI_LIGHTWEIGHT_CMD=1)
 else()
-    target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_LIGHTWEIGHT_CMD=0)
+    target_compile_definitions(${TARGETNAME} PUBLIC -DTWINS_CLI_LIGHTWEIGHT_CMD=0)
 endif()
 
 if (NOT "${TWINS_THEME_DIR}" STREQUAL "")

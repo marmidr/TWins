@@ -13,8 +13,8 @@
 #include <stdint.h>
 #include <functional>
 
-#ifndef TWINS_LIGHTWEIGHT_CMD
-# define TWINS_LIGHTWEIGHT_CMD 1
+#ifndef TWINS_CLI_LIGHTWEIGHT_CMD
+# define TWINS_CLI_LIGHTWEIGHT_CMD  1
 #endif
 
 // -----------------------------------------------------------------------------
@@ -35,7 +35,7 @@ struct Cmd
 {
     const char* name;
     const char* help;
-    #if TWINS_LIGHTWEIGHT_CMD
+    #if TWINS_CLI_LIGHTWEIGHT_CMD
     void (*handler)(twins::cli::Argv &argv);
     #else
     CmdHandler handler;
