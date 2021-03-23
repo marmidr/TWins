@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <assert.h>
 
 #if TWINS_ENV_LINUX_LIKE
 # include <time.h>
@@ -106,6 +107,7 @@ struct DefaultPAL : twins::IPal
 
         return ptr;
     #else
+        assert(!"memAlloc() must be implemented");
         return nullptr;
     #endif
     }
@@ -120,6 +122,8 @@ struct DefaultPAL : twins::IPal
             stats.memChunks--;
             free(ptr);
         }
+    #else
+        assert(!"memFree() must be implemented");
     #endif
     }
 

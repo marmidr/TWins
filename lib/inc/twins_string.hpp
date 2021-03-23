@@ -107,6 +107,7 @@ public:
     StringBuff(const char *s) : String(s) {}
     StringBuff(const StringBuff&) = delete;
     StringBuff(StringBuff&&) = delete;
+
     StringBuff(String &&other) noexcept
     {
         String::operator=(std::move(other));
@@ -129,7 +130,8 @@ public:
      */
     char* data()
     {
-        if (!mpBuff) append("");
+        if (!mpBuff)
+            append("");
         return mpBuff;
     }
 
