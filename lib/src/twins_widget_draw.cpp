@@ -58,8 +58,8 @@ const char * const frame_double[] =
 
 
 // forward decl
-static void drawWidgetInternal(CallEnv &env, const Widget *pWgt);
-static void drawPage(CallEnv &env, const Widget *pWgt, bool eraseBg = false);
+static void drawWidgetInternal(CallCtx &ctx, const Widget *pWgt);
+static void drawPage(CallCtx &ctx, const Widget *pWgt, bool eraseBg = false);
 
 // -----------------------------------------------------------------------------
 // ---- TWINS PRIVATE FUNCTIONS ------------------------------------------------
@@ -284,11 +284,11 @@ static void drawListScrollBarV(const Coord coord, int height, int max, int pos)
     }
 }
 
-static void drawWindow(CallEnv &env, const Widget *pWgt)
+static void drawWindow(CallCtx &ctx, const Widget *pWgt)
 {
     Coord wnd_coord = pWgt->coord;
-    env.parentCoord = {0, 0};
-    env.pState->getWindowCoord(pWgt, wnd_coord);
+    ctx.parentCoord = {0, 0};
+    ctx.pState->getWindowCoord(pWgt, wnd_coord);
 
     drawArea(wnd_coord, pWgt->size,
         pWgt->window.bgColor, pWgt->window.fgColor, FrameStyle::Double, true, pWgt->window.isPopup);
@@ -298,7 +298,7 @@ static void drawWindow(CallEnv &env, const Widget *pWgt)
     if (pWgt->window.title)
         wnd_title << pWgt->window.title;
     else
-        env.pState->getWindowTitle(pWgt, wnd_title);
+        ctx.pState->getWindowTitle(pWgt, wnd_title);
 
     if (wnd_title.size())
     {
@@ -310,10 +310,10 @@ static void drawWindow(CallEnv &env, const Widget *pWgt)
     }
 
     flushBuffer();
-    env.parentCoord = wnd_coord;
+    ctx.parentCoord = wnd_coord;
 
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
-        drawWidgetInternal(env, &env.pWidgets[i]);
+        drawWidgetInternal(ctx, &ctx.pWidgets[i]);
 
     // reset colors set by frame drawer
     popClBg();
@@ -321,10 +321,10 @@ static void drawWindow(CallEnv &env, const Widget *pWgt)
     moveTo(0, wnd_coord.row + pWgt->size.height);
 }
 
-static void drawPanel(CallEnv &env, const Widget *pWgt)
+static void drawPanel(CallCtx &ctx, const Widget *pWgt)
 {
     FontMemento _m;
-    const auto my_coord = env.parentCoord + pWgt->coord;
+    const auto my_coord = ctx.parentCoord + pWgt->coord;
 
     drawArea(my_coord, pWgt->size,
         pWgt->panel.bgColor, pWgt->panel.fgColor,
@@ -342,16 +342,16 @@ static void drawPanel(CallEnv &env, const Widget *pWgt)
     }
 
     flushBuffer();
-    auto coord_bkp = env.parentCoord;
-    env.parentCoord = my_coord;
+    auto coord_bkp = ctx.parentCoord;
+    ctx.parentCoord = my_coord;
 
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
-        drawWidgetInternal(env, &env.pWidgets[i]);
+        drawWidgetInternal(ctx, &ctx.pWidgets[i]);
 
-    env.parentCoord = coord_bkp;
+    ctx.parentCoord = coord_bkp;
 }
 
-static void drawLabel(CallEnv &env, const Widget *pWgt)
+static void drawLabel(CallCtx &ctx, const Widget *pWgt)
 {
     g_ws.str.clear();
 
@@ -359,7 +359,7 @@ static void drawLabel(CallEnv &env, const Widget *pWgt)
     if (pWgt->label.text)
         g_ws.str = pWgt->label.text;
     else
-        env.pState->getLabelText(pWgt, g_ws.str);
+        ctx.pState->getLabelText(pWgt, g_ws.str);
 
     FontMemento _m;
 
@@ -370,7 +370,7 @@ static void drawLabel(CallEnv &env, const Widget *pWgt)
     // print all lines
     const char *p_line = g_ws.str.cstr();
     String s_line;
-    moveTo(env.parentCoord.col + pWgt->coord.col, env.parentCoord.row + pWgt->coord.row);
+    moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
     const uint8_t max_lines = pWgt->size.height ? pWgt->size.height : 50;
     const uint8_t line_width = pWgt->size.width;
 
@@ -404,7 +404,7 @@ static void drawLabel(CallEnv &env, const Widget *pWgt)
     }
 }
 
-static void drawTextEdit(CallEnv &env, const Widget *pWgt)
+static void drawTextEdit(CallCtx &ctx, const Widget *pWgt)
 {
     g_ws.str.clear();
     int16_t display_pos = 0;
@@ -425,7 +425,7 @@ static void drawTextEdit(CallEnv &env, const Widget *pWgt)
     }
     else
     {
-        env.pState->getTextEditText(pWgt, g_ws.str);
+        ctx.pState->getTextEditText(pWgt, g_ws.str);
     }
 
     const int txt_width = g_ws.str.width();
@@ -449,68 +449,68 @@ static void drawTextEdit(CallEnv &env, const Widget *pWgt)
     }
     g_ws.str.append("[^]");
 
-    bool focused = env.pState->isFocused(pWgt);
+    bool focused = ctx.pState->isFocused(pWgt);
     auto clbg = getWidgetBgColor(pWgt);
     intensifyClIf(focused, clbg);
 
     FontMemento _m;
-    moveTo(env.parentCoord.col + pWgt->coord.col, env.parentCoord.row + pWgt->coord.row);
+    moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
     pushClFg(getWidgetFgColor(pWgt));
     writeStrLen(g_ws.str.cstr(), g_ws.str.size());
 }
 
-static void drawLed(CallEnv &env, const Widget *pWgt)
+static void drawLed(CallCtx &ctx, const Widget *pWgt)
 {
-    auto clbg = env.pState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
+    auto clbg = ctx.pState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
     g_ws.str.clear();
 
     if (pWgt->led.text)
         g_ws.str = pWgt->led.text;
     else
-        env.pState->getLedText(pWgt, g_ws.str);
+        ctx.pState->getLedText(pWgt, g_ws.str);
 
     // led text
     FontMemento _m;
-    moveTo(env.parentCoord.col + pWgt->coord.col, env.parentCoord.row + pWgt->coord.row);
+    moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
     pushClFg(getWidgetFgColor(pWgt));
     writeStrLen(g_ws.str.cstr(), g_ws.str.size());
 }
 
-static void drawCheckbox(CallEnv &env, const Widget *pWgt)
+static void drawCheckbox(CallCtx &ctx, const Widget *pWgt)
 {
-    const char *s_chk_state = env.pState->getCheckboxChecked(pWgt) ? "[■] " : "[ ] ";
-    bool focused = env.pState->isFocused(pWgt);
+    const char *s_chk_state = ctx.pState->getCheckboxChecked(pWgt) ? "[■] " : "[ ] ";
+    bool focused = ctx.pState->isFocused(pWgt);
     auto clfg = getWidgetFgColor(pWgt);
     intensifyClIf(focused, clfg);
 
     FontMemento _m;
-    moveTo(env.parentCoord.col + pWgt->coord.col, env.parentCoord.row + pWgt->coord.row);
+    moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Bold);
     pushClFg(clfg);
     writeStr(s_chk_state);
     writeStr(pWgt->checkbox.text);
 }
 
-static void drawRadio(CallEnv &env, const Widget *pWgt)
+static void drawRadio(CallCtx &ctx, const Widget *pWgt)
 {
-    const char *s_radio_state = pWgt->radio.radioId == env.pState->getRadioIndex(pWgt) ? "(●) " : "( ) ";
-    bool focused = env.pState->isFocused(pWgt);
+    const char *s_radio_state = pWgt->radio.radioId == ctx.pState->getRadioIndex(pWgt) ? "(●) " : "( ) ";
+    bool focused = ctx.pState->isFocused(pWgt);
     auto clfg = getWidgetFgColor(pWgt);
     intensifyClIf(focused, clfg);
 
     FontMemento _m;
-    moveTo(env.parentCoord.col + pWgt->coord.col, env.parentCoord.row + pWgt->coord.row);
+    moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
     if (focused) pushAttr(FontAttrib::Bold);
     pushClFg(clfg);
     writeStr(s_radio_state);
     writeStr(pWgt->radio.text);
 }
 
-static void drawButton(CallEnv &env, const Widget *pWgt)
+static void drawButton(CallCtx &ctx, const Widget *pWgt)
 {
-    const bool focused = env.pState->isFocused(pWgt);
+    const bool focused = ctx.pState->isFocused(pWgt);
     const bool pressed = pWgt == g_ws.pMouseDownWgt;
     auto clfg = getWidgetFgColor(pWgt);
     intensifyClIf(focused, clfg);
@@ -519,7 +519,7 @@ static void drawButton(CallEnv &env, const Widget *pWgt)
     if (pWgt->button.text)
         txt = pWgt->button.text;
     else
-        env.pState->getButtonText(pWgt, txt);
+        ctx.pState->getButtonText(pWgt, txt);
 
     if (pWgt->button.style == ButtonStyle::Simple)
     {
@@ -529,7 +529,7 @@ static void drawButton(CallEnv &env, const Widget *pWgt)
                 .append(txt)
                 .append(" ]");
 
-        moveTo(env.parentCoord.col + pWgt->coord.col, env.parentCoord.row + pWgt->coord.row);
+        moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
         if (focused) pushAttr(FontAttrib::Bold);
         if (pressed) pushAttr(FontAttrib::Inverse);
         auto clbg = pressed ? getWidgetBgColor(pWgt) : getWidgetBgColor(getParent(pWgt));
@@ -545,7 +545,7 @@ static void drawButton(CallEnv &env, const Widget *pWgt)
             g_ws.str << " " << txt << " ";
 
             auto clbg = getWidgetBgColor(pWgt);
-            moveTo(env.parentCoord.col + pWgt->coord.col, env.parentCoord.row + pWgt->coord.row);
+            moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
             if (focused) pushAttr(FontAttrib::Bold);
             if (pressed) pushAttr(FontAttrib::Inverse);
             pushClBg(clbg);
@@ -561,7 +561,7 @@ static void drawButton(CallEnv &env, const Widget *pWgt)
             pushClBg(getWidgetBgColor(getParent(pWgt)));
             writeChar(' ');
             // erase shadow below
-            moveTo(env.parentCoord.col + pWgt->coord.col + 1, env.parentCoord.row + pWgt->coord.row + 1);
+            moveTo(ctx.parentCoord.col + pWgt->coord.col + 1, ctx.parentCoord.row + pWgt->coord.row + 1);
             writeStr(" ", shadow_len);
             popClBg();
         }
@@ -573,7 +573,7 @@ static void drawButton(CallEnv &env, const Widget *pWgt)
             writeStr(ESC_FG_COLOR(233));
             writeStr("▄");
             // shadow below
-            moveTo(env.parentCoord.col + pWgt->coord.col + 1, env.parentCoord.row + pWgt->coord.row + 1);
+            moveTo(ctx.parentCoord.col + pWgt->coord.col + 1, ctx.parentCoord.row + pWgt->coord.row + 1);
             writeStr("▀", shadow_len);
         }
     }
@@ -589,7 +589,7 @@ static void drawButton(CallEnv &env, const Widget *pWgt)
         FontMemento _m;
 
         // upper half line
-        moveTo(env.parentCoord.col + pWgt->coord.col, env.parentCoord.row + pWgt->coord.row);
+        moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
         pushClBg(clparbg);
         if (pressed)
             pushClFg(clfg);
@@ -637,9 +637,9 @@ static void drawButton(CallEnv &env, const Widget *pWgt)
     }
 }
 
-static void drawPageControl(CallEnv &env, const Widget *pWgt)
+static void drawPageControl(CallCtx &ctx, const Widget *pWgt)
 {
-    const auto my_coord = env.parentCoord + pWgt->coord;
+    const auto my_coord = ctx.parentCoord + pWgt->coord;
     FontMemento _m;
     pushClBg(getWidgetBgColor(pWgt));
     pushClFg(getWidgetFgColor(pWgt));
@@ -647,8 +647,8 @@ static void drawPageControl(CallEnv &env, const Widget *pWgt)
         ColorBG::Inherit, ColorFG::Inherit, FrameStyle::PgControl);
     flushBuffer();
 
-    auto coord_bkp = env.parentCoord;
-    env.parentCoord = my_coord;
+    auto coord_bkp = ctx.parentCoord;
+    ctx.parentCoord = my_coord;
     // tabs title
     g_ws.str.clear();
     g_ws.str.append(' ', (pWgt->pagectrl.tabWidth-8) / 2);
@@ -660,9 +660,9 @@ static void drawPageControl(CallEnv &env, const Widget *pWgt)
     popAttr();
 
     // draw tabs and pages
-    const int pg_idx = env.pState->getPageCtrlPageIndex(pWgt);
-    // const bool focused = env.pState->isFocused(pWgt);
-    // moveTo(env.parentCoord.col + pWgt->coord.col, env.parentCoord.row + pWgt->coord.row);
+    const int pg_idx = ctx.pState->getPageCtrlPageIndex(pWgt);
+    // const bool focused = ctx.pState->isFocused(pWgt);
+    // moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
     flushBuffer();
 
     for (int i = 0; i < pWgt->link.childsCnt; i++)
@@ -670,7 +670,7 @@ static void drawPageControl(CallEnv &env, const Widget *pWgt)
         if (i == pWgt->size.height - 1 - pWgt->pagectrl.vertOffs)
             break;
 
-        const auto *p_page = &env.pWidgets[pWgt->link.childsIdx + i];
+        const auto *p_page = &ctx.pWidgets[pWgt->link.childsIdx + i];
 
         // draw page title
         g_ws.str.clear();
@@ -690,19 +690,19 @@ static void drawPageControl(CallEnv &env, const Widget *pWgt)
         if (i == pg_idx) popAttr();
         popClFg();
 
-        if (env.pState->isVisible(p_page))
+        if (ctx.pState->isVisible(p_page))
         {
             flushBuffer();
-            env.parentCoord.col += pWgt->pagectrl.tabWidth;
-            drawPage(env, p_page);
-            env.parentCoord.col -= pWgt->pagectrl.tabWidth;
+            ctx.parentCoord.col += pWgt->pagectrl.tabWidth;
+            drawPage(ctx, p_page);
+            ctx.parentCoord.col -= pWgt->pagectrl.tabWidth;
         }
     }
 
-    env.parentCoord = coord_bkp;
+    ctx.parentCoord = coord_bkp;
 }
 
-static void drawPage(CallEnv &env, const Widget *pWgt, bool eraseBg)
+static void drawPage(CallCtx &ctx, const Widget *pWgt, bool eraseBg)
 {
     if (eraseBg)
     {
@@ -715,10 +715,10 @@ static void drawPage(CallEnv &env, const Widget *pWgt, bool eraseBg)
 
     // draw childrens
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
-        drawWidgetInternal(env, &env.pWidgets[i]);
+        drawWidgetInternal(ctx, &ctx.pWidgets[i]);
 }
 
-static void drawProgressBar(CallEnv &env, const Widget *pWgt)
+static void drawProgressBar(CallCtx &ctx, const Widget *pWgt)
 {
     const char* style_data[][2] =
     {
@@ -729,12 +729,12 @@ static void drawProgressBar(CallEnv &env, const Widget *pWgt)
 
     int32_t pos = 0, max = 1;
     auto style = (short)pWgt->progressbar.style;
-    env.pState->getProgressBarState(pWgt, pos, max);
+    ctx.pState->getProgressBarState(pWgt, pos, max);
 
     if (max <= 0) max = 1;
     if (pos > max) pos = max;
 
-    moveTo(env.parentCoord.col + pWgt->coord.col, env.parentCoord.row + pWgt->coord.row);
+    moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
     g_ws.str.clear();
     int fill = pos * pWgt->size.width / max;
     g_ws.str.append(style_data[style][0], fill);
@@ -802,10 +802,10 @@ static void drawList(DrawListParams &p)
     }
 };
 
-static void drawListBox(CallEnv &env, const Widget *pWgt)
+static void drawListBox(CallCtx &ctx, const Widget *pWgt)
 {
     FontMemento _m;
-    const auto my_coord = env.parentCoord + pWgt->coord;
+    const auto my_coord = ctx.parentCoord + pWgt->coord;
     drawArea(my_coord, pWgt->size,
         pWgt->listbox.bgColor, pWgt->listbox.fgColor,
         pWgt->listbox.noFrame ? FrameStyle::None : FrameStyle::ListBox, false);
@@ -815,28 +815,28 @@ static void drawListBox(CallEnv &env, const Widget *pWgt)
 
     DrawListParams dlp = {};
     dlp.coord = my_coord;
-    env.pState->getListBoxState(pWgt, dlp.item_idx, dlp.sel_idx, dlp.items_cnt);
+    ctx.pState->getListBoxState(pWgt, dlp.item_idx, dlp.sel_idx, dlp.items_cnt);
     dlp.frame_size = !pWgt->listbox.noFrame;
     dlp.items_visible = pWgt->size.height - (dlp.frame_size * 2);
     dlp.top_item = (dlp.sel_idx / dlp.items_visible) * dlp.items_visible;
-    dlp.focused = env.pState->isFocused(pWgt);
+    dlp.focused = ctx.pState->isFocused(pWgt);
     dlp.wgt_width = pWgt->size.width;
-    dlp.getItem = [pWgt, &env](int16_t idx, String &out) { env.pState->getListBoxItem(pWgt, idx, out); };
+    dlp.getItem = [pWgt, &ctx](int16_t idx, String &out) { ctx.pState->getListBoxItem(pWgt, idx, out); };
     drawList(dlp);
 }
 
-static void drawComboBox(CallEnv &env, const Widget *pWgt)
+static void drawComboBox(CallCtx &ctx, const Widget *pWgt)
 {
     FontMemento _m;
-    const auto my_coord = env.parentCoord + pWgt->coord;
-    const bool focused = env.pState->isFocused(pWgt);
+    const auto my_coord = ctx.parentCoord + pWgt->coord;
+    const bool focused = ctx.pState->isFocused(pWgt);
 
     int16_t item_idx = 0; int16_t sel_idx = 0; int16_t items_count; bool drop_down = false;
-    env.pState->getComboBoxState(pWgt, item_idx, sel_idx, items_count, drop_down);
+    ctx.pState->getComboBoxState(pWgt, item_idx, sel_idx, items_count, drop_down);
 
     {
         g_ws.str.clear();
-        env.pState->getComboBoxItem(pWgt, item_idx, g_ws.str);
+        ctx.pState->getComboBoxItem(pWgt, item_idx, g_ws.str);
         g_ws.str.insert(0, " ");
         g_ws.str.setWidth(pWgt->size.width - 4, true);
         g_ws.str << " [▼]";
@@ -865,20 +865,20 @@ static void drawComboBox(CallEnv &env, const Widget *pWgt)
         dlp.top_item = (dlp.sel_idx / dlp.items_visible) * dlp.items_visible;
         dlp.focused = focused;
         dlp.wgt_width = pWgt->size.width;
-        dlp.getItem = [pWgt, &env](int16_t idx, String &out) { env.pState->getComboBoxItem(pWgt, idx, out); };
+        dlp.getItem = [pWgt, &ctx](int16_t idx, String &out) { ctx.pState->getComboBoxItem(pWgt, idx, out); };
         drawList(dlp);
     }
 }
 
-static void drawCustomWgt(CallEnv &env, const Widget *pWgt)
+static void drawCustomWgt(CallCtx &ctx, const Widget *pWgt)
 {
-    env.pState->onCustomWidgetDraw(pWgt);
+    ctx.pState->onCustomWidgetDraw(pWgt);
 }
 
-static void drawTextBox(CallEnv &env, const Widget *pWgt)
+static void drawTextBox(CallCtx &ctx, const Widget *pWgt)
 {
     FontMemento _m;
-    const auto my_coord = env.parentCoord + pWgt->coord;
+    const auto my_coord = ctx.parentCoord + pWgt->coord;
 
     drawArea(my_coord, pWgt->size,
         pWgt->textbox.bgColor, pWgt->textbox.fgColor,
@@ -891,7 +891,7 @@ static void drawTextBox(CallEnv &env, const Widget *pWgt)
     const twins::Vector<twins::CStrView> *p_lines = nullptr;
     int16_t top_line = 0;
 
-    env.pState->getTextBoxState(pWgt, &p_lines, top_line);
+    ctx.pState->getTextBoxState(pWgt, &p_lines, top_line);
 
     if (!p_lines || !p_lines->size())
         return;
@@ -899,12 +899,12 @@ static void drawTextBox(CallEnv &env, const Widget *pWgt)
     if (top_line > (int)p_lines->size())
     {
         top_line = p_lines->size() - lines_visible;
-        env.pState->onTextBoxScroll(pWgt, top_line);
+        ctx.pState->onTextBoxScroll(pWgt, top_line);
     }
 
     if (top_line < 0)
     {
-        env.pState->onTextBoxScroll(pWgt, top_line);
+        ctx.pState->onTextBoxScroll(pWgt, top_line);
         top_line = 0;
     }
 
@@ -946,41 +946,41 @@ static void drawTextBox(CallEnv &env, const Widget *pWgt)
     flushBuffer();
 }
 
-static void drawLayer(CallEnv &env, const Widget *pWgt)
+static void drawLayer(CallCtx &ctx, const Widget *pWgt)
 {
     // draw only childrens; to erase, redraw layer's parent
     for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
-        drawWidgetInternal(env, &env.pWidgets[i]);
+        drawWidgetInternal(ctx, &ctx.pWidgets[i]);
 }
 
 // -----------------------------------------------------------------------------
 
-static void drawWidgetInternal(CallEnv &env, const Widget *pWgt)
+static void drawWidgetInternal(CallCtx &ctx, const Widget *pWgt)
 {
-    if (!env.pState->isVisible(pWgt))
+    if (!ctx.pState->isVisible(pWgt))
         return;
 
-    bool en = isEnabled(env, pWgt);
+    bool en = isEnabled(ctx, pWgt);
     if (!en) pushAttr(FontAttrib::Faint);
 
     switch (pWgt->type)
     {
-    case Widget::Window:        drawWindow(env, pWgt); break;
-    case Widget::Panel:         drawPanel(env, pWgt); break;
-    case Widget::Label:         drawLabel(env, pWgt); break;
-    case Widget::TextEdit:      drawTextEdit(env, pWgt); break;
-    case Widget::CheckBox:      drawCheckbox(env, pWgt); break;
-    case Widget::Radio:         drawRadio(env, pWgt);  break;
-    case Widget::Button:        drawButton(env, pWgt); break;
-    case Widget::Led:           drawLed(env, pWgt); break;
-    case Widget::PageCtrl:      drawPageControl(env, pWgt); break;
-    case Widget::Page:          drawPage(env, pWgt, true); break;
-    case Widget::ProgressBar:   drawProgressBar(env, pWgt); break;
-    case Widget::ListBox:       drawListBox(env, pWgt); break;;
-    case Widget::ComboBox:      drawComboBox(env, pWgt); break;
-    case Widget::CustomWgt:     drawCustomWgt(env, pWgt); break;
-    case Widget::TextBox:       drawTextBox(env, pWgt); break;
-    case Widget::Layer:         drawLayer(env, pWgt); break;
+    case Widget::Window:        drawWindow(ctx, pWgt); break;
+    case Widget::Panel:         drawPanel(ctx, pWgt); break;
+    case Widget::Label:         drawLabel(ctx, pWgt); break;
+    case Widget::TextEdit:      drawTextEdit(ctx, pWgt); break;
+    case Widget::CheckBox:      drawCheckbox(ctx, pWgt); break;
+    case Widget::Radio:         drawRadio(ctx, pWgt);  break;
+    case Widget::Button:        drawButton(ctx, pWgt); break;
+    case Widget::Led:           drawLed(ctx, pWgt); break;
+    case Widget::PageCtrl:      drawPageControl(ctx, pWgt); break;
+    case Widget::Page:          drawPage(ctx, pWgt, true); break;
+    case Widget::ProgressBar:   drawProgressBar(ctx, pWgt); break;
+    case Widget::ListBox:       drawListBox(ctx, pWgt); break;;
+    case Widget::ComboBox:      drawComboBox(ctx, pWgt); break;
+    case Widget::CustomWgt:     drawCustomWgt(ctx, pWgt); break;
+    case Widget::TextBox:       drawTextBox(ctx, pWgt); break;
+    case Widget::Layer:         drawLayer(ctx, pWgt); break;
     default:                    break;
     }
 
@@ -999,15 +999,15 @@ void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t c
     if (count == 0)
         return;
 
-    CallEnv env(pWindowWidgets);
+    CallCtx ctx(pWindowWidgets);
     assert(pWidgetIds);
-    g_ws.pFocusedWgt = getWidgetByWID(env, env.pState->getFocusedID());
+    g_ws.pFocusedWgt = getWidgetByWID(ctx, ctx.pState->getFocusedID());
     cursorHide();
     flushBuffer();
 
     if (count == 1 && *pWidgetIds == WIDGET_ID_ALL)
     {
-        drawWidgetInternal(env, pWindowWidgets);
+        drawWidgetInternal(ctx, pWindowWidgets);
     }
     else
     {
@@ -1015,12 +1015,12 @@ void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t c
         {
             WidgetSearchStruct wss { searchedID : pWidgetIds[i] };
 
-            if (getWidgetWSS(env, wss) && wss.isVisible)
+            if (getWidgetWSS(ctx, wss) && wss.isVisible)
             {
-                env.parentCoord = wss.parentCoord;
+                ctx.parentCoord = wss.parentCoord;
                 // set parent's background color
                 pushClBg(getWidgetBgColor(wss.pWidget));
-                drawWidgetInternal(env, wss.pWidget);
+                drawWidgetInternal(ctx, wss.pWidget);
                 popClBg();
             }
         }
@@ -1029,7 +1029,7 @@ void drawWidgets(const Widget *pWindowWidgets, const WID *pWidgetIds, uint16_t c
     resetAttr();
     resetClBg();
     resetClFg();
-    setCursorAt(env, g_ws.pFocusedWgt);
+    setCursorAt(ctx, g_ws.pFocusedWgt);
     cursorShow();
     flushBuffer();
 }
