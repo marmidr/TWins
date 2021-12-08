@@ -27,7 +27,7 @@ definitions:
                 - apt-get update
                 - apt-get install -y cmake
                 - cmake --version
-                - git submodule update --init --remote
+                - git submodule update --init
                 # build
                 - mkdir build && cd build
                 - cmake -DCMAKE_BUILD_TYPE=Debug -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON ..
