@@ -2,6 +2,7 @@
  * @brief   TWins - common definitions
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -58,15 +59,16 @@ struct Array
 };
 
 
-/** @brief Structure to store pointer to first element and their number */
+/** @brief Structure holding pointer to first array element and the array size */
 template <typename T>
-struct Range
+struct Span
 {
     T* data = {};
     unsigned size = {};
 };
 
-using StringRange = twins::Range<const char>;
+/** @brief View on contiguous array of C strings */
+using CStrView = twins::Span<const char>;
 
 /**
  * @brief Platform Abstraction Layer for easy porting
@@ -244,6 +246,13 @@ struct KeyCode
     };
 
     const char *name = nullptr;
+};
+
+struct NonCopyable
+{
+    NonCopyable() = default;
+    NonCopyable(const NonCopyable&) = delete;
+    void operator=(const NonCopyable&) = delete;
 };
 
 // -----------------------------------------------------------------------------

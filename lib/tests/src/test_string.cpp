@@ -47,6 +47,16 @@ TEST_F(STRING_Test, clear)
     }
 
     EXPECT_EQ(0, pal.stats.memChunksMax);
+
+    {
+        twins::String s;
+        s.reserve(10);
+        const char *buff1 = s.cstr();
+        s.clear(10);
+        EXPECT_EQ(buff1, s.cstr());
+        s.reserve(10);
+        EXPECT_EQ(buff1, s.cstr());
+    }
 }
 
 TEST_F(STRING_Test, append_no_resize)
@@ -382,7 +392,7 @@ TEST_F(STRING_Test, insert)
     }
 }
 
-TEST(STRING, escLen)
+TEST_F(STRING_Test, escLen)
 {
     EXPECT_EQ(0, twins::String::escLen(nullptr));
     EXPECT_EQ(0, twins::String::escLen(""));
@@ -410,7 +420,7 @@ TEST(STRING, escLen)
     EXPECT_EQ(0, twins::String::escLen("\e[Ma$\"", "\e[Ma$\""+5));
 }
 
-TEST(STRING, u8len_IgnoreEsc)
+TEST_F(STRING_Test, u8len_IgnoreEsc)
 {
     EXPECT_EQ(0, twins::String::u8len(nullptr));
     EXPECT_EQ(0, twins::String::u8len(""));
@@ -423,7 +433,7 @@ TEST(STRING, u8len_IgnoreEsc)
     EXPECT_EQ(4, twins::String::u8len("Ą\e[ABĆ\e[48;2;255;255;255mĘ", nullptr, true));
 }
 
-TEST(STRING, u8skipEsc)
+TEST_F(STRING_Test, u8skipEsc)
 {
     EXPECT_STREQ("", twins::String::u8skip(nullptr, 0));
     EXPECT_STREQ("", twins::String::u8skip("", 5));
@@ -437,7 +447,7 @@ TEST(STRING, u8skipEsc)
     EXPECT_STREQ("", twins::String::u8skip("Ą\e[ABĆ\e[1;2AĘ", 4));
 }
 
-TEST(STRING, emoticons)
+TEST_F(STRING_Test, emoticons)
 {
     EXPECT_EQ(11, twins::String::u8len("😉\e[1m*\e[0m🍺", nullptr, false, false));
     EXPECT_EQ(13, twins::String::u8len("😉\e[1m*\e[0m🍺", nullptr, false, true));
@@ -450,7 +460,7 @@ TEST(STRING, emoticons)
     EXPECT_EQ( 5, s.width());
 }
 
-TEST(STRING, startsWith)
+TEST_F(STRING_Test, startsWith)
 {
     {
         twins::String s;
@@ -477,7 +487,7 @@ TEST(STRING, startsWith)
     }
 }
 
-TEST(STRING, find)
+TEST_F(STRING_Test, find)
 {
     twins::String s;
     EXPECT_EQ(-1, s.find(nullptr));
@@ -489,7 +499,7 @@ TEST(STRING, find)
     EXPECT_EQ(4,  s.find("Ć"));
 }
 
-TEST(STRING, eq)
+TEST_F(STRING_Test, eq)
 {
     twins::String s;
     EXPECT_FALSE(s == nullptr);
@@ -500,4 +510,70 @@ TEST(STRING, eq)
     EXPECT_TRUE(s == s);
 
     EXPECT_FALSE(s == "*ĄBĆDĘ?#");
+}
+
+// -----------------------------------------------------------------------------
+
+TEST(STRINGBUFF, create_empty)
+{
+    twins::StringBuff sb;
+    EXPECT_EQ(0, sb.size());
+}
+
+TEST(STRINGBUFF, create_from_cstr)
+{
+    {
+        twins::StringBuff sb(nullptr);
+        EXPECT_EQ(0, sb.size());
+    }
+
+    {
+        twins::StringBuff sb("");
+        EXPECT_EQ(0, sb.size());
+    }
+
+    {
+        twins::StringBuff sb("Blume");
+        EXPECT_EQ(5, sb.size());
+    }
+}
+
+TEST(STRINGBUFF, create_from_string)
+{
+    {
+        twins::String s(nullptr);
+        twins::StringBuff sb(std::move(s));
+        EXPECT_EQ(0, sb.size());
+    }
+
+    {
+        twins::String s("ChilloutDeer");
+        twins::StringBuff sb(std::move(s));
+        EXPECT_EQ(0, s.size());
+        EXPECT_EQ(12, sb.size());
+    }
+}
+
+TEST(STRINGBUFF, copy_from_string)
+{
+    twins::String s("ChilloutDeer");
+    twins::StringBuff sb;
+    EXPECT_EQ(12, s.size());
+    EXPECT_EQ(0, sb.size());
+
+    sb = s;
+    EXPECT_STREQ("ChilloutDeer", s.cstr());
+    EXPECT_STREQ("ChilloutDeer", sb.cstr());
+}
+
+TEST(STRINGBUFF, move_from_string)
+{
+    twins::String s("ChilloutDeer");
+    twins::StringBuff sb;
+    EXPECT_EQ(12, s.size());
+    EXPECT_EQ(0, sb.size());
+
+    sb = std::move(s);
+    EXPECT_STREQ("", s.cstr());
+    EXPECT_STREQ("ChilloutDeer", sb.cstr());
 }

@@ -2,6 +2,7 @@
  * @brief   TWins - command line interface
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #include "twins.hpp"
@@ -13,18 +14,29 @@
 
 // -----------------------------------------------------------------------------
 
+#ifndef TWINS_CLI_MAXCMDLEN
+# define TWINS_CLI_MAXCMDLEN    120
+#endif
+
+#ifndef TWINS_CLI_MAXHIST
+# define TWINS_CLI_MAXHIST      20
+#endif
+
+static_assert(TWINS_CLI_MAXCMDLEN > 5);
+static_assert(TWINS_CLI_MAXHIST > 0);
+
 namespace twins::cli
 {
 
 struct CliState
 {
-    String      lineBuff;
-    StringBuff  cmd;
-    History     history;
-    int16_t     cursorPos = 0;
-    int16_t     historyIdx = 0;
-    RingBuff<char> ringBuff;
-    Queue<String>  cmds;
+    String          lineBuff;
+    History         history;
+    int16_t         cursorPos = 0;
+    int16_t         historyIdx = 0;
+    RingBuff<char>  seqRingBuff;
+    Queue<String>   cmdQue;
+    CmdHandler      overrideHandler;
 };
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
@@ -51,8 +63,7 @@ void deInit(void)
 
 void reset(void)
 {
-    g_cs.ringBuff.clear();
-    g_cs.cmd.clear();
+    g_cs.seqRingBuff.clear();
     g_cs.lineBuff.clear();
     g_cs.cursorPos = 0;
     g_cs.history.clear();
@@ -67,15 +78,15 @@ void processInput(const char* data, uint8_t dataLen)
     if (!dataLen)
         dataLen = strlen(data);
 
-    if (g_cs.ringBuff.capacity() == 0)
-        g_cs.ringBuff.init(ESC_SEQ_MAX_LENGTH+2);
+    if (g_cs.seqRingBuff.capacity() == 0)
+        g_cs.seqRingBuff.init(ESC_SEQ_MAX_LENGTH+2);
 
     while (dataLen)
     {
         uint8_t to_write = dataLen > ESC_SEQ_MAX_LENGTH ? ESC_SEQ_MAX_LENGTH : dataLen;
 
-        g_cs.ringBuff.write(data, to_write);
-        processInput(g_cs.ringBuff);
+        g_cs.seqRingBuff.write(data, to_write);
+        processInput(g_cs.seqRingBuff);
 
         data += to_write;
         dataLen -= to_write;
@@ -95,6 +106,9 @@ void processInput(twins::RingBuff<char> &rb)
 
         if (kc.key == Key::None)
             break;
+
+        if (seq_sz >= ESC_SEQ_MAX_LENGTH)
+            seq_sz = ESC_SEQ_MAX_LENGTH-1;
 
         seq[seq_sz] = '\0';
         const char *p_seq = seq; // echo decoded sequence
@@ -193,7 +207,7 @@ void processInput(twins::RingBuff<char> &rb)
                 {
                     if (echoNlAfterCr) twins::writeChar('\n');
 
-                    // append to history, limit history to 20
+                    // append to history, limit history size
                     int idx = 0;
 
                     if (auto *str = g_cs.history.find(g_cs.lineBuff, &idx))
@@ -206,12 +220,12 @@ void processInput(twins::RingBuff<char> &rb)
                     else
                     {
                         g_cs.history.append(g_cs.lineBuff);
-                        if (g_cs.history.size() > 20)
+                        if (g_cs.history.size() > TWINS_CLI_MAXHIST)
                             g_cs.history.remove(0, true);
                     }
 
                     g_cs.historyIdx = g_cs.history.size();
-                    g_cs.cmds.push(std::move(g_cs.lineBuff));
+                    g_cs.cmdQue.write(std::move(g_cs.lineBuff));
                     g_cs.lineBuff.clear();
                 }
                 else
@@ -232,7 +246,7 @@ void processInput(twins::RingBuff<char> &rb)
         else
         {
             // append/insert
-            if (g_cs.lineBuff.u8len() < 100)
+            if (g_cs.lineBuff.size() < TWINS_CLI_MAXCMDLEN)
             {
                 g_cs.lineBuff.insert(g_cs.cursorPos, kc.utf8);
                 g_cs.cursorPos += 1;
@@ -390,55 +404,76 @@ void prompt(bool newLn)
     writeStr(ESC_FG_GREEN_INTENSE "> " ESC_FG_WHITE_INTENSE);
 }
 
-bool checkAndExec(const Cmd* pCommands)
+bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
 {
     assert(pCommands);
-    if (g_cs.cmds.size() == 0)
+    if (g_cs.cmdQue.size() == 0)
         return false;
 
-    g_cs.cmd = std::move(*g_cs.cmds.pop());
-
-    if (!g_cs.cmd.size())
+    // drop empty command string
+    if (g_cs.cmdQue.front()->size() == 0)
+    {
+        g_cs.cmdQue.read();
         return false;
+    }
+
+    if (g_cs.overrideHandler)
+        soleOrLastCommandsSet = true;
+
+    StringBuff cmd;
+    if (soleOrLastCommandsSet)
+        cmd = g_cs.cmdQue.read();
+    else
+        cmd = *g_cs.cmdQue.front();
 
     writeStr(ESC_FG_DEFAULT);
 
-    if (g_cs.cmd == "help")
+    if (!g_cs.overrideHandler)
     {
-        printHelp(pCommands);
-        prompt(false);
-        flushBuffer();
-        g_cs.cmd.clear();
-        return true;
-    }
+        if (cmd == "help")
+        {
+            printHelp(pCommands);
+            prompt(false);
+            flushBuffer();
+            g_cs.cmdQue.read();
+            return true;
+        }
 
-    if (g_cs.cmd == "hist")
-    {
-        printHistory();
-        prompt(false);
-        flushBuffer();
-        g_cs.cmd.clear();
-        return true;
+        if (cmd == "hist")
+        {
+            printHistory();
+            prompt(false);
+            flushBuffer();
+            g_cs.cmdQue.read();
+            return true;
+        }
     }
 
     Argv argv;
-    tokenize(g_cs.cmd, argv);
+    tokenize(cmd, argv);
     bool found = false;
 
-    if (const auto *p_cmd = find(pCommands, argv))
+    if (g_cs.overrideHandler)
     {
+        g_cs.overrideHandler(argv);
         found = true;
+    }
+    else if (const auto *p_cmd = find(pCommands, argv))
+    {
         p_cmd->handler(argv);
+        found = true;
+        if (!soleOrLastCommandsSet) g_cs.cmdQue.read();
     }
     else
     {
-        writeStr("unknown command" "\r\n");
+        if (soleOrLastCommandsSet)
+            writeStr("unknown command" "\r\n");
     }
 
-    prompt(false); // TODO: only if command handler finished it's execution;
-                   // handler may call async job and later tell CLI the job is done
+    if (soleOrLastCommandsSet)
+        prompt(false);
+
     flushBuffer();
-    g_cs.cmd.clear();
     return found;
 }
 
@@ -465,6 +500,11 @@ bool execLine(const char *cmdline, const Cmd* pCommands)
     prompt(false);
     flushBuffer();
     return found;
+}
+
+void setOverrideHandler(CmdHandler handler)
+{
+    g_cs.overrideHandler = std::move(handler);
 }
 
 // -----------------------------------------------------------------------------

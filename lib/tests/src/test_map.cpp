@@ -152,7 +152,7 @@ TEST(MAP, key_string)
 
     // example of own hashing object for not embedded key type
     {
-        struct HashStdStr { static uint16_t hash(const std::string& str) { return twins::bernsteinHashImpl(str.data(), str.size()); } };
+        struct HashStdStr { static uint16_t hash(const std::string& str) { return twins::HashDefault::bernsteinHashImpl(str.data(), str.size()); } };
         twins::Map<std::string, bool, HashStdStr> m;
 
         EXPECT_FALSE(m["exists"]);
@@ -209,13 +209,23 @@ TEST(MAP, iterators_big)
 
     {
         int n = 0;
-        for (auto it : m)
+        for (auto &it : m)
         {
             printf("m[%d | %04x] : %d\n", it.key, it.hash, it.val);
-            it.val++;
             n++;
         }
 
         EXPECT_EQ(m.size(), n);
+    }
+
+    // iterating const-map
+    {
+        int x = 0;
+        const auto &map = m;
+        for (auto &it : map)
+        {
+            // it.val++; error -> ok
+            x += it.val;
+        }
     }
 }

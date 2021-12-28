@@ -290,3 +290,77 @@ TEST_F(CLI, many_cmds_in_buffer)
     EXPECT_TRUE(pop_called);
     EXPECT_FALSE(twins::cli::checkAndExec(commands));
 }
+
+TEST_F(CLI, override_handler)
+{
+    static bool push_called;
+
+    const twins::cli::Cmd commands[] =
+    {
+        {
+            "push", "", TWINS_CLI_HANDLER { push_called = true; }
+        },
+        { /* terminator */ }
+    };
+
+    bool temporary_called = false;
+
+    // warning: holds reference to a local variable - must be unregistered before function ends;
+    // use shared_ptr<> to avoid problems
+    auto temporary_handler = [&temporary_called](twins::cli::Argv &argv)
+    {
+        temporary_called = true;
+
+        // handler unregisters itself
+        if (argv.size() && (twins::String(argv[0]) == "unregister"))
+            twins::cli::setOverrideHandler({});
+    };
+
+    // lifetime override
+    {
+        push_called = false;
+        temporary_called = false;
+
+        // register override
+        twins::cli::setOverrideHandler(temporary_handler);
+        twins::cli::processInput("push 1\r");
+        EXPECT_TRUE(twins::cli::checkAndExec(commands));
+        EXPECT_FALSE(push_called);
+        EXPECT_TRUE(temporary_called);
+
+        push_called = false;
+        temporary_called = false;
+        twins::cli::processInput("any weird command\r");
+        EXPECT_TRUE(twins::cli::checkAndExec(commands));
+        EXPECT_TRUE(temporary_called);
+
+        // unregister override manually
+        push_called = false;
+        temporary_called = false;
+        twins::cli::setOverrideHandler({});
+        twins::cli::processInput("push 1\r");
+        EXPECT_TRUE(twins::cli::checkAndExec(commands));
+        EXPECT_TRUE(push_called);
+    }
+
+    // single call override
+    {
+        push_called = false;
+        temporary_called = false;
+
+        // register override
+        twins::cli::setOverrideHandler(temporary_handler);
+        twins::cli::processInput("unregister\r");
+        EXPECT_TRUE(twins::cli::checkAndExec(commands));
+        EXPECT_FALSE(push_called);
+        EXPECT_TRUE(temporary_called);
+
+        // second call - handler from commands expected to be called
+        push_called = false;
+        temporary_called = false;
+        twins::cli::processInput("push 1\r");
+        EXPECT_TRUE(twins::cli::checkAndExec(commands));
+        EXPECT_TRUE(push_called);
+        EXPECT_FALSE(temporary_called);
+    }
+}

@@ -2,6 +2,7 @@
  * @brief   TWins - hash map template
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -29,9 +30,9 @@ public:
 
     struct Node
     {
-        Hash      hash;
-        K         key;
-        mutable V val;
+        Hash    hash;
+        K       key;
+        V       val;
     };
 
     using Bucket = Vector<Node>;
@@ -50,7 +51,7 @@ public:
     public:
         Iter(void) = delete;
 
-        Iter(Map<K, V, H> &map, bool begin)
+        Iter(const Map<K, V, H> &map, bool begin)
             : mBkts(map.mBuckets)
         {
             if (begin)
@@ -67,10 +68,8 @@ public:
         }
 
         Iter(const Iter &other)
-            : mBkts(other.mBkts)
-        {
-            mIdx = other.mIdx;
-        }
+            : mBkts(other.mBkts), mIdx(other.mIdx)
+        {}
 
         bool operator == (const Iter &other) const { return mIdx == other.mIdx; }
         bool operator != (const Iter &other) const { return !(mIdx == other.mIdx); }
@@ -78,7 +77,7 @@ public:
         const Node & operator * (void)  const { return mBkts[mIdx.bktIdx][mIdx.itemIdx]; }
 
         // ++it
-        Iter& operator ++(void)
+        const Iter& operator ++(void) const
         {
             if (mIdx.bktIdx < mBkts.size())
             {
@@ -94,15 +93,15 @@ public:
         }
 
     private:
-        void goToNextNonemptyBucket()
+        void goToNextNonemptyBucket() const
         {
             while (mIdx.bktIdx < mBkts.size() && mBkts[mIdx.bktIdx].size() == 0)
                 mIdx.bktIdx++;
         }
 
     protected:
-        Buckets &mBkts;
-        NodeIdx  mIdx;
+        const Buckets &mBkts;
+        mutable NodeIdx mIdx;
     };
 
 public:
@@ -151,7 +150,7 @@ public:
         auto hash = H::hash(key);
         auto &bkt = mBuckets[getBucketIdx(hash)];
 
-        for (unsigned i = 0; i < bkt.size(); i++)
+        for (uint16_t i = 0; i < bkt.size(); i++)
         {
             if ((bkt[i].hash == hash) && keysEqual(bkt[i].key, key, key_is_cstr{}))
             {
@@ -163,7 +162,7 @@ public:
     }
 
     /** @brief Return number of key-value pairs */
-    unsigned size() const
+    uint16_t size() const
     {
         return mNodes;
     }
@@ -182,15 +181,15 @@ public:
     }
 
     /** @brief Number of buckets - for test purposes */
-    unsigned bucketsCount() const
+    uint16_t bucketsCount() const
     {
         return mBuckets.size();
     }
 
     /** @brief Return given bucket - for test purposes */
-    const Bucket* bucket(int idx) const
+    const Bucket* bucket(int16_t idx) const
     {
-        if (idx < 0 || (unsigned)idx > bucketsCount())
+        if (idx < 0 || (uint16_t)idx > bucketsCount())
             return nullptr;
 
         return &mBuckets[idx];
@@ -199,6 +198,9 @@ public:
     /** @brief Return elements distribution 0 (worse)..100% (best) */
     uint8_t distribution()
     {
+        if (mNodes < 2)
+            return 100;
+
         unsigned expected_nodes_per_bkt = mNodes / mBuckets.size();
         unsigned over_expected = 0;
 
@@ -214,8 +216,8 @@ public:
         return 100 - (100 * over_expected / mNodes);
     }
 
-    Iter begin(void) { return Iter(*this, true); }
-    Iter end(void)   { return Iter(*this, false); }
+    Iter begin(void) const  { return Iter(*this, true); }
+    Iter end(void)   const  { return Iter(*this, false); }
 
 private:
     using key_is_cstr = typename std::conditional<
@@ -223,7 +225,7 @@ private:
                             std::true_type, std::false_type
                         >::type;
 
-    inline unsigned getBucketIdx(Hash hash) const
+    inline uint16_t getBucketIdx(Hash hash) const
     {
         // mBuckets.size() must be power of 2
         return hash & (mBuckets.size() - 1);

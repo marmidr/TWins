@@ -2,6 +2,7 @@
  * @brief   TWins - main header file
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -35,12 +36,12 @@ struct WidgetState
         const Widget *pWgt = nullptr;
         int16_t cursorPos = 0;
         String  str;
-    } editState;
+    } textEditState;
 };
 
-struct CallEnv
+struct CallCtx
 {
-    CallEnv(const Widget* pWindowWidgets)
+    CallCtx(const Widget* pWindowWidgets)
     {
         assert(pWindowWidgets);
         assert(pWindowWidgets->type == Widget::Window);
@@ -56,15 +57,15 @@ extern WidgetState& g_ws;
 
 // -----------------------------------------------------------------------------
 
-const Widget* getWidgetByWID(CallEnv &env, const WID widgetId);
-const Widget* getWidgetAt(CallEnv &env, uint8_t col, uint8_t row, Rect &wgtRect);
-bool isVisible(CallEnv &env, const Widget *pWgt);
-bool isEnabled(CallEnv &env, const Widget *pWgt);
+const Widget* getWidgetByWID(CallCtx &ctx, const WID widgetId);
+const Widget* getWidgetAt(CallCtx &ctx, uint8_t col, uint8_t row, Rect &wgtRect);
+bool isVisible(CallCtx &ctx, const Widget *pWgt);
+bool isEnabled(CallCtx &ctx, const Widget *pWgt);
 
 const Widget* getParent(const Widget *pWgt);
 
-bool getWidgetWSS(CallEnv &env, WidgetSearchStruct &wss);
-void setCursorAt(CallEnv &env, const Widget *pWgt);
+bool getWidgetWSS(CallCtx &ctx, WidgetSearchStruct &wss);
+void setCursorAt(CallCtx &ctx, const Widget *pWgt);
 
 // -----------------------------------------------------------------------------
 

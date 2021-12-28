@@ -2,6 +2,7 @@
  * @brief   TWins - stack template
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -37,7 +38,7 @@ public:
     template <typename Tv>
     void push(Tv && item)
     {
-        if (!reserve())
+        if (!growAsNecessary())
             return;
         mpItems[mSize++] = std::forward<Tv>(item);
     }
@@ -54,7 +55,7 @@ public:
         return nullptr;
     }
 
-    /** @brief Returns pointer to the top-item or \b nullptr id stack is empty */
+    /** @brief Returns pointer to the top-item or \b nullptr if stack is empty */
     T* top()
     {
         if (mSize)
@@ -80,15 +81,19 @@ public:
     uint16_t size() const { return mSize; }
 
 private:
-    bool reserve()
+    bool growAsNecessary()
     {
         if (mSize == mCapacity)
         {
             if (mCapacity >= 32000)
                 return false;
-            // only one growth strategy: increase by 8 slots
-            mCapacity += 8;
-            T* p_new = (T*)pPAL->memAlloc(mCapacity * sizeof(T));
+
+            if (mCapacity < 8)
+                mCapacity = 8;
+            else
+                mCapacity = (mCapacity * 13) / 8; // * 1.65
+
+            auto* p_new = (T*)pPAL->memAlloc(mCapacity * sizeof(T));
             moveContent(p_new, mpItems, mSize);
             initContent(p_new + mSize, mCapacity - mSize);
             pPAL->memFree(mpItems);
@@ -100,25 +105,25 @@ private:
 
     void destroyContent(void)
     {
-        for (unsigned i = 0; i < mCapacity; i++)
+        for (uint16_t i = 0; i < mCapacity; i++)
             mpItems[i].~T();
     }
 
     void copyContent(const T *pSrc, uint16_t count)
     {
-        for (unsigned i = 0; i < count; i++)
+        for (uint16_t i = 0; i < count; i++)
             mpItems[i] = pSrc[i];
     }
 
     void moveContent(T *pDst, T *pSrc, uint16_t count)
     {
-        for (unsigned i = 0; i < count; i++)
+        for (uint16_t i = 0; i < count; i++)
             new (&pDst[i]) T(std::move(pSrc[i]));
     }
 
     void initContent(T *pItems, uint16_t count)
     {
-        for (unsigned i = 0; i < count; i++)
+        for (uint16_t i = 0; i < count; i++)
             new (&pItems[i]) T();
     }
 

@@ -2,6 +2,7 @@
  * @brief   TWins - window definition constexpr transformation
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *          Proof of concept: https://godbolt.org/z/TkMfcC
  *****************************************************************************/
 

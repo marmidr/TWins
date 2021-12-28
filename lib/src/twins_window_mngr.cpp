@@ -2,6 +2,7 @@
  * @brief   TWins - manager of windows
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #include "twins_window_mngr.hpp"
@@ -17,18 +18,25 @@ void WndManager::show(twins::IWindowState *pWnd, bool bringToTop)
 {
     int idx = -1;
 
-    if (mWindows.find(pWnd, &idx) && bringToTop)
+    if (mWindows.find(pWnd, &idx))
     {
         // is on the list
         if (idx < (int)(mWindows.size())-1)
         {
-            // and is not on top
-            mWindows.remove(idx, true);
-            mWindows.append(pWnd);
-            redrawAll();
+            // ...and is not on top
+            if (bringToTop)
+            {
+                mWindows.remove(idx, true);
+                mWindows.append(pWnd);
+                redrawAll();
+            }
+        }
+        else
+        {
+            twins::drawWidget(pWnd->getWidgets());
         }
     }
-    else
+    else if (pWnd)
     {
         mWindows.append(pWnd);
         twins::resetInternalState();

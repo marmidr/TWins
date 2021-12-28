@@ -1,7 +1,6 @@
 /******************************************************************************
  * @brief   TWins - demo window definition
  * @author  Mariusz Midor
- *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #include "twins_transform_window.hpp"
@@ -128,7 +127,7 @@ static constexpr twins::Widget pnlStateChilds[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget page1Childs[] =
+static constexpr twins::Widget pageVersionChilds[] =
 {
     {
         type    : twins::Widget::Panel,
@@ -310,7 +309,7 @@ static constexpr twins::Widget page1Childs[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget page2Childs[] =
+static constexpr twins::Widget pageServiceChilds[] =
 {
     {
         type    : twins::Widget::Layer,
@@ -418,7 +417,7 @@ static constexpr twins::Widget page2Childs[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget page3Childs[] =
+static constexpr twins::Widget pageDiagnosticsChilds[] =
 {
     {
         type    : twins::Widget::Panel,
@@ -434,21 +433,21 @@ static constexpr twins::Widget page3Childs[] =
         link    : { (const twins::Widget[]) // set first field in union - pChilds
         {
             {
-                type    : twins::Widget::Edit,
+                type    : twins::Widget::TextEdit,
                 id      : ID_EDT_1,
                 coord   : { 1, 1 },
                 size    : { 30, 1 },
-                { edit : {
+                { textedit : {
                     fgColor     : twins::ColorFG::Black,
                     bgColor     : twins::ColorBG::Edit1,
                 }}
             },
             {
-                type    : twins::Widget::Edit,
+                type    : twins::Widget::TextEdit,
                 id      : ID_EDT_2,
                 coord   : { 1, 3 },
                 size    : { 30, 1 },
-                { edit : {
+                { textedit : {
                     fgColor     : twins::ColorFG::Black,
                     bgColor     : twins::ColorBG::Edit2,
                 }}
@@ -528,7 +527,7 @@ static constexpr twins::Widget page3Childs[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget page4Childs[] =
+static constexpr twins::Widget pageInactiveChilds[] =
 {
     {
         type    : twins::Widget::Panel,
@@ -595,7 +594,7 @@ static constexpr twins::Widget page4Childs[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget page5Childs[] =
+static constexpr twins::Widget pageTextboxChilds[] =
 {
     {
         type    : twins::Widget::TextBox,
@@ -620,7 +619,7 @@ static constexpr twins::Widget page5Childs[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget page6Childs[] =
+static constexpr twins::Widget pageComboboxChilds[] =
 {
     {
         type    : twins::Widget::ComboBox,
@@ -634,10 +633,21 @@ static constexpr twins::Widget page6Childs[] =
         }},
     },
     {
+        type    : twins::Widget::ComboBox,
+        id      : ID_CBX_COLORS,
+        coord   : { 8, 4 },
+        size    : { 24, 1 },
+        { combobox : {
+            fgColor     : twins::ColorFG::GreenIntense,
+            bgColor     : twins::ColorBG::Black,
+            dropDownSize: 4
+        }},
+    },
+    {
         type    : twins::Widget::ListBox,
         id      : ID_LBX_UNDEROPTIONS,
-        coord   : { 5, 4 },
-        size    : { 30, 7 },
+        coord   : { 5, 6 },
+        size    : { 30, 5 },
         { listbox : {
         }},
     },
@@ -730,7 +740,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Version",
                         fgColor     : twins::ColorFG::Yellow,
                     }},
-                    link    : { page1Childs }
+                    link    : { pageVersionChilds }
                 },
                 {
                     type    : twins::Widget::Page,
@@ -741,7 +751,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Service ∑",
                         fgColor     : twins::ColorFG::White,
                     }},
-                    link    : { page2Childs }
+                    link    : { pageServiceChilds }
                 },
                 {
                     type    : twins::Widget::Page,
@@ -752,7 +762,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Diagnostics",
                         fgColor     : twins::ColorFG::Yellow,
                     }},
-                    link    : { page3Childs }
+                    link    : { pageDiagnosticsChilds }
                 },
                 {
                     type    : twins::Widget::Page,
@@ -763,7 +773,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Inactiv 🍀",
                         fgColor     : twins::ColorFG::White,
                     }},
-                    link    : { page4Childs }
+                    link    : { pageInactiveChilds }
                 },
                 {
                     type    : twins::Widget::Page,
@@ -774,7 +784,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Text Box",
                         fgColor     : twins::ColorFG::White,
                     }},
-                    link    : { page5Childs }
+                    link    : { pageTextboxChilds }
                 },
                 {
                     type    : twins::Widget::Page,
@@ -785,7 +795,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Combo Box",
                         fgColor     : twins::ColorFG::White,
                     }},
-                    link    : { page6Childs }
+                    link    : { pageComboboxChilds }
                 },
                 { /* NUL */ }
             }}

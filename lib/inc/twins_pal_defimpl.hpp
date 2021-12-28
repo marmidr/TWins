@@ -2,6 +2,7 @@
  * @brief   TWins - string class for our needs
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -25,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <assert.h>
 
 #if TWINS_ENV_LINUX_LIKE
 # include <time.h>
@@ -105,6 +107,7 @@ struct DefaultPAL : twins::IPal
 
         return ptr;
     #else
+        assert(!"memAlloc() must be implemented");
         return nullptr;
     #endif
     }
@@ -119,6 +122,8 @@ struct DefaultPAL : twins::IPal
             stats.memChunks--;
             free(ptr);
         }
+    #else
+        assert(!"memFree() must be implemented");
     #endif
     }
 
@@ -133,7 +138,7 @@ struct DefaultPAL : twins::IPal
         nanosleep(&ts, nullptr);
         //*/
 
-        usleep(ms * 1000);
+        //usleep(ms * 1000);
     #endif
     }
 

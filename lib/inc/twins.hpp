@@ -2,6 +2,7 @@
  * @brief   TWins - main header file
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -14,7 +15,6 @@
 
 // -----------------------------------------------------------------------------
 
-#define TWINS_LOG(...)          TWINS_LOG_I(__VA_ARGS__) // deprecated
 #define TWINS_LOG_D(...)        twins::log(nullptr, __FILE__, __LINE__,                 "-D- ", "" __VA_ARGS__)
 #define TWINS_LOG_I(...)        twins::log(nullptr, __FILE__, __LINE__, ESC_FG_WHITE    "-I- ", "" __VA_ARGS__)
 #define TWINS_LOG_W(...)        twins::log(nullptr, __FILE__, __LINE__, ESC_FG_YELLOW   "-W- ", "" __VA_ARGS__)
@@ -213,7 +213,7 @@ struct Widget
         Window,
         Panel,
         Label,
-        Edit,
+        TextEdit,
         CheckBox,
         Radio,
         Button,
@@ -265,7 +265,7 @@ struct Widget
         {
             ColorFG     fgColor;
             ColorBG     bgColor;
-        } edit;
+        } textedit;
 
         struct
         {
@@ -430,7 +430,7 @@ private:
 };
 
 /** @brief Helper for automatic restoring terminal font attributes */
-struct FontMemento : FontMementoManual
+struct FontMemento : FontMementoManual, NonCopyable
 {
     FontMemento()  { store(); }
     ~FontMemento() { restore(); }
@@ -464,8 +464,8 @@ void deinit(void);
 bool lock(bool wait = true);
 void unlock(void);
 
-/** @brief used by TWINS_LOG() */
-void log(uint64_t *pTimestamp, const char *file, unsigned line, const char *prefix, const char *fmt, ...);
+/** @brief used by TWINS_LOG_x() */
+void log(const uint64_t *pTimestamp, const char *file, unsigned line, const char *prefix, const char *fmt, ...);
 
 /** @brief Logs with more control */
 void logRawBegin(const char *prologue = "", bool timeStamp = false);
@@ -473,7 +473,7 @@ void logRawWrite(const char *msg);
 void logRawEnd(const char *epilogue = "");
 
 /** @brief Print HH:MM:SS.mmm */
-void writeCurrentTime(uint64_t *pTimestamp = nullptr);
+void writeCurrentTime(const uint64_t *pTimestamp = nullptr);
 
 /**
  * @brief Delay for given number if milliseconds
@@ -661,15 +661,12 @@ void selectNextPage(const Widget *pWindowWidgets, WID pageControlID, bool next);
 // -----------------------------------------------------------------------------
 
 /** @brief RAII style locker */
-struct Locker
+struct Locker : NonCopyable
 {
     explicit Locker(bool wait = true)
     {
         mIsLocked = twins::lock(wait);
     }
-
-    Locker(const Locker&) = delete;
-    Locker(Locker&&) = delete;
 
     ~Locker()
     {

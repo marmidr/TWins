@@ -2,6 +2,7 @@
  * @brief   TWins - ANSI ESC sequence decoder
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  * @note    Based on Python script : https://wiki.bash-hackers.org/scripting/terminalcodes
  *          constexpr sorted array based on @stryku example:
  *              https://stackoverflow.com/questions/19559808/constexpr-initialization-of-array-to-sort-contents
@@ -337,9 +338,9 @@ static const SeqMap *binary_search(const char *seq, const SeqMap map[], unsigned
     if (!seq || !*seq || !mapsize)
         return nullptr;
 
-    short lo = 0;
-    short hi = mapsize - 1;
-    short mid = (hi - lo) / 2;
+    int lo = 0;
+    int hi = mapsize - 1;
+    int mid = (hi - lo) / 2;
     //short steps = 1;
 
     do
@@ -427,7 +428,7 @@ uint8_t decodeInputSeq(RingBuff<char> &input, KeyCode &output)
                 default: break;
                 }
 
-                //TWINS_LOG("MouseBtn:0x%x", (unsigned)mouse_btn);
+                // TWINS_LOG_D("MouseBtn:0x%x", (unsigned)mouse_btn);
 
                 if (mouse_btn & 0x04) output.m_shift = 1;
                 if (mouse_btn & 0x08) output.m_alt = 1;

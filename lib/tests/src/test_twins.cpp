@@ -35,7 +35,6 @@ class TWINS : public testing::Test
 protected:
     void SetUp() override
     {
-
     }
 
     void TearDown() override
@@ -151,15 +150,6 @@ TEST_F(TWINS, log)
     // own timestamp
     uint64_t timestamp;
     twins::log(&timestamp, __FILE__, __LINE__, "-I-", "Message");
-
-    // no PAL
-    auto *pal_bkp = twins::pPAL;
-    twins::pPAL = nullptr;
-    TWINS_LOG_W("123");
-    twins::log(nullptr, __FILE__, __LINE__, nullptr, nullptr);
-
-    // restore
-    twins::pPAL = pal_bkp;
 }
 
 TEST_F(TWINS, attr)

@@ -1,7 +1,6 @@
 /******************************************************************************
  * @brief   TWins - demo window definition
  * @author  Mariusz Midor
- *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -68,6 +67,7 @@ enum WndMainIDs
                 ID_TBX_1LINE,
             ID_PAGE_COMBOBOX,
                 ID_CBX_OPTIONS,
+                ID_CBX_COLORS,
                 ID_LBX_UNDEROPTIONS,
                 ID_BTN_SAYYES,
                 ID_BTN_SAYNO,

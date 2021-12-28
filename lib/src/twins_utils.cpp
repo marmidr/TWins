@@ -2,6 +2,7 @@
  * @brief   TWins - utility code
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #include "twins_utils.hpp"
@@ -37,7 +38,7 @@ const char* strechr(const char *str, const char *estr, char c)
     return nullptr;
 }
 
-Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDelim)
+Vector<CStrView> splitWords(const char *str, const char *delim, bool storeDelim)
 {
     if (!str || !*str)
         return {};
@@ -46,7 +47,7 @@ Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDel
 
     unsigned n_words = 1;
 
-    Vector<StringRange> out;
+    Vector<CStrView> out;
     unsigned span = 0;
 
     const char *pstr = str;
@@ -72,7 +73,7 @@ Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDel
         pstr += span;
 
     if (storeDelim && (pstr > str))
-        out.append(StringRange{str, unsigned(pstr - str)});
+        out.append(CStrView{str, unsigned(pstr - str)});
 
     // put each word into separate cell
     while ((span = strcspn(pstr, delim)) > 0)
@@ -83,28 +84,28 @@ Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDel
 
             // append text before ESC
             if (pesc > pstr)
-                out.append(StringRange{pstr, unsigned(pesc - pstr)});
+                out.append(CStrView{pstr, unsigned(pesc - pstr)});
             auto esc_len = String::escLen(pesc);
 
             // append ESC seq
-            out.append(StringRange{pesc, esc_len});
+            out.append(CStrView{pesc, esc_len});
 
             // append text after ESC
             pesc += esc_len;
             if (pesc < pstr + span)
-                out.append(StringRange{pesc, unsigned(pstr + span - pesc)});
+                out.append(CStrView{pesc, unsigned(pstr + span - pesc)});
         }
         else
         {
             // store word
-            out.append(StringRange{pstr, span});
+            out.append(CStrView{pstr, span});
         }
 
         pstr += span;
         // check delimiters length
         span = strspn(pstr, delim);
         // store delimiter and skip it
-        if (storeDelim) out.append(StringRange{pstr, span});
+        if (storeDelim) out.append(CStrView{pstr, span});
         pstr += span;
     }
 
@@ -113,9 +114,9 @@ Vector<StringRange> splitWords(const char *str, const char *delim, bool storeDel
 
 String wordWrap(const char *str, uint16_t areaWidth, const char *delim, const char *separator)
 {
-    if (areaWidth < 1)
-        return {};
     if (!str || !*str)
+        return {};
+    if (areaWidth < 1)
         return {};
     if (!delim || !*delim)
         return {};
@@ -187,28 +188,29 @@ String wordWrap(const char *str, uint16_t areaWidth, const char *delim, const ch
     return out;
 }
 
-Vector<StringRange> splitLines(const char *str)
+Vector<CStrView> splitLines(const char *str)
 {
     if (!str || !*str)
         return {};
 
-    Vector<StringRange> out;
+    Vector<CStrView> out;
 
     while (const char *nl = strchr(str, '\n'))
     {
         // possible and allowed: nl == str
-        out.append(StringRange{str, (unsigned)(nl-str)});
+        out.append(CStrView{str, (unsigned)(nl-str)});
         str = nl+1;
     }
 
     if (*str)
-        out.append(StringRange{str, (unsigned)strlen(str)});
+        out.append(CStrView{str, (unsigned)strlen(str)});
 
     return out;
 }
 
 twins::String centerText(const char *str, uint16_t areaWidth)
 {
+    if (!str) str = "";
     auto str_width = twins::String::width(str);
     twins::String out;
 
@@ -233,17 +235,8 @@ twins::String centerText(const char *str, uint16_t areaWidth)
 
 bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos, int64_t limitMin, int64_t limitMax, bool wrap)
 {
-    if (kc.mod_all == 0)
+    if (kc.mod_all == KEY_MOD_NONE)
     {
-        switch (kc.key)
-        {
-        case twins::Key::Enter:
-        case twins::Key::Esc:
-            return false;
-        default:
-            break;
-        }
-
         // reject non-digits and avoid too long numbers
         // 0x7fffffffffffffff = 9223372036854775807
         if (kc.utf8[0] < '0' || kc.utf8[0] > '9' || str.size() >= 19)
@@ -254,26 +247,41 @@ bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &curs
         }
     }
 
-    switch (kc.key)
+    if (kc.m_spec)
     {
-    case twins::Key::Up:
-    case twins::Key::Down:
-    {
-        int64_t n = atoll(str.cstr());
-        int delta = kc.m_ctrl && kc.m_shift ? 100 : (kc.m_ctrl ? 10 : 1);
-        if (kc.key == twins::Key::Down) delta *= -1;
-        n += delta;
-        if (n < limitMin) n = wrap ? limitMax : limitMin;
-        if (n > limitMax) n = wrap ? limitMin : limitMax;
+        switch (kc.key)
+        {
+        case twins::Key::Enter:
+        {
+            int64_t n = atoll(str.cstr());
+            if (n < limitMin) n = limitMin;
+            if (n > limitMax) n = limitMax;
+            str.clear();
+            str.appendFmt("%lld", n);
+            return false;
+        }
+        case twins::Key::Esc:
+            return false;
+        case twins::Key::Up:
+        case twins::Key::Down:
+        {
+            int64_t n = atoll(str.cstr());
+            int delta = kc.m_shift ? 100 : (kc.m_ctrl ? 10 : 1);
+            if (kc.key == twins::Key::Down) delta *= -1;
+            n += delta;
+            if (n < limitMin) n = wrap ? limitMax : limitMin;
+            if (n > limitMax) n = wrap ? limitMin : limitMax;
 
-        str.clear();
-        str.appendFmt("%lld", n);
-        cursorPos = str.size();
-        return true;
+            str.clear();
+            str.appendFmt("%lld", n);
+            cursorPos = str.size();
+            return true;
+        }
+        default:
+            break;
+        }
     }
-    default:
-        break;
-    }
+
     return false;
 }
 

@@ -11,42 +11,49 @@
 
 // -----------------------------------------------------------------------------
 
-TEST(QUEUE, push_pop_2int)
+TEST(QUEUE, write_read_2int)
 {
     twins::Queue<int> qi;
 
     EXPECT_EQ(0, qi.size());
-    EXPECT_EQ(nullptr, qi.pop());
+    EXPECT_EQ(0, qi.read());
+    EXPECT_EQ(nullptr, qi.front());
 
-    qi.push(1);
-    qi.push(2);
+    qi.write(1);
+    qi.write(2);
+
     EXPECT_EQ(2, qi.size());
-
-    EXPECT_EQ(1, *qi.pop());
+    EXPECT_EQ(1, *qi.front());
+    EXPECT_EQ(1, qi.read());
     EXPECT_EQ(1, qi.size());
 
-    EXPECT_EQ(2, *qi.pop());
+    EXPECT_EQ(2, qi.read());
     EXPECT_EQ(0, qi.size());
-
-    EXPECT_EQ(nullptr, qi.pop());
+    EXPECT_EQ(nullptr, qi.front());
 }
 
-TEST(QUEUE, push_pop_100int)
+TEST(QUEUE, write_read_100int)
 {
     twins::Queue<int> qi;
 
+    EXPECT_EQ(0, qi.size());
     for (int i = 0; i < 100; i++)
-        qi.push(i);
+        qi.write(i);
 
     EXPECT_EQ(100, qi.size());
-    EXPECT_EQ(0, *qi.pop());
+    ASSERT_EQ(0, qi.read());
 
+    for (int i = 1; i < 100; i++)
+        EXPECT_EQ(i, qi.read());
+
+    EXPECT_EQ(0, qi.size());
     qi.clear();
-    EXPECT_EQ(nullptr, qi.pop());
+    EXPECT_EQ(0, qi.read());
+    EXPECT_EQ(nullptr, qi.front());
     EXPECT_EQ(0, qi.size());
 }
 
-TEST(QUEUE, push_pop_string)
+TEST(QUEUE, write_read_string)
 {
     twins::Queue<std::string> qstr;
     // test for proper content destruction to catch memory leak
@@ -56,13 +63,13 @@ TEST(QUEUE, push_pop_string)
     EXPECT_FALSE(s.empty());
     EXPECT_EQ(0, qstr.size());
 
-    // push copy
-    qstr.push(s);
+    // write copy
+    qstr.write(s);
     EXPECT_FALSE(s.empty());
     EXPECT_EQ(1, qstr.size());
 
-    // move-push
-    qstr.push(std::move(s));
+    // write-by-move
+    qstr.write(std::move(s));
     EXPECT_EQ(2, qstr.size());
     EXPECT_TRUE(s.empty());
 }

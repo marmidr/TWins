@@ -1,7 +1,6 @@
 /******************************************************************************
  * @brief   TWins - demo application
  * @author  Mariusz Midor
- *          https://bitbucket.org/marmidr/twins
  *****************************************************************************/
 
 #include "twins.hpp"
@@ -146,16 +145,16 @@ public:
 
     void onButtonDown(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
-        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("▼ BTN_YES");
+        if (pWgt->id == ID_BTN_YES)     TWINS_LOG_D("▼ BTN_YES");
         if (pWgt->id == ID_BTN_NO)      TWINS_LOG_W("▼ BTN_NO");
-        if (pWgt->id == ID_BTN_POPUP)   TWINS_LOG("▼ BTN_POPUP");
+        if (pWgt->id == ID_BTN_POPUP)   TWINS_LOG_I("▼ BTN_POPUP");
     }
 
     void onButtonUp(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
-        if (pWgt->id == ID_BTN_YES)     TWINS_LOG("▲ BTN_YES");
+        if (pWgt->id == ID_BTN_YES)     TWINS_LOG_D("▲ BTN_YES");
         if (pWgt->id == ID_BTN_NO)      TWINS_LOG_E("▲ BTN_NO");
-        if (pWgt->id == ID_BTN_POPUP)   TWINS_LOG("▲ BTN_POPUP");
+        if (pWgt->id == ID_BTN_POPUP)   TWINS_LOG_I("▲ BTN_POPUP");
 
         if (pWgt->id == ID_BTN_SAYNO)
         {
@@ -169,14 +168,14 @@ public:
 
     void onButtonClick(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
-        TWINS_LOG("BTN_CLICK");
+        TWINS_LOG_D("BTN_CLICK");
 
         if (pWgt->id == ID_BTN_POPUP)
         {
             showPopup("Lorem Titlum",
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
                 "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-                [](twins::WID btnID) { TWINS_LOG(ESC_BG_DarkGreen "Choice: %d" ESC_BG_DEFAULT, btnID); },
+                [](twins::WID btnID) { TWINS_LOG_D(ESC_BG_DarkGreen "Choice: %d" ESC_BG_DEFAULT, btnID); },
                 "ync"
             );
         }
@@ -187,7 +186,7 @@ public:
         }
     }
 
-    void onEditChange(const twins::Widget* pWgt, twins::String &&str) override
+    void onTextEditChange(const twins::Widget* pWgt, twins::String &&str) override
     {
         switch (pWgt->id)
         {
@@ -195,10 +194,10 @@ public:
         case ID_EDT_2: mEdt2Text = std::move(str); break;
         default: break;
         }
-        TWINS_LOG("value:%s", str.cstr());
+        TWINS_LOG_D("value:%s", str.cstr());
     }
 
-    bool onEditInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos) override
+    bool onTextEditInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos) override
     {
         if (pWgt->id == ID_EDT_2)
             return twins::util::numEditInputEvt(kc, str, cursorPos);
@@ -214,17 +213,17 @@ public:
         switch (pWgt->id)
         {
         case ID_CHBX_ENBL:
-            TWINS_LOG("CHBX_ENBL");
+            TWINS_LOG_D("CHBX_ENBL");
             break;
         case ID_CHBX_LOCK:
-            TWINS_LOG("CHBX_LOCK");
+            TWINS_LOG_D("CHBX_LOCK");
             break;
         case ID_CHBX_L1:
         case ID_CHBX_L2:
             invalidate(ID_PAGE_SERV);
             break;
         default:
-            TWINS_LOG("CHBX");
+            TWINS_LOG_D("CHBX");
             break;
         }
 
@@ -239,7 +238,7 @@ public:
     void onListBoxSelect(const twins::Widget* pWgt, int16_t selIdx) override
     {
         mWgtProp[pWgt->id].lbx.selIdx = selIdx;
-        TWINS_LOG("LISTBOX_SELECT(%u)", selIdx);
+        TWINS_LOG_D("LISTBOX_SELECT(%u)", selIdx);
     }
 
     void onListBoxChange(const twins::Widget* pWgt, int16_t newIdx) override
@@ -248,20 +247,20 @@ public:
         {
             mWgtProp[pWgt->id].lbx.itemIdx = newIdx;
             mWgtProp[pWgt->id].lbx.selIdx = newIdx;
-            TWINS_LOG("LISTBOX_CHANGE(%u)", newIdx);
+            TWINS_LOG_D("LISTBOX_CHANGE(%u)", newIdx);
         }
     }
 
     void onComboBoxSelect(const twins::Widget* pWgt, int16_t selIdx) override
     {
         mWgtProp[pWgt->id].cbbx.selIdx = selIdx;
-        TWINS_LOG("COMBOBOX_SELECT(%u)", selIdx);
+        TWINS_LOG_D("COMBOBOX_SELECT(%u)", selIdx);
     }
 
     void onComboBoxChange(const twins::Widget* pWgt, int16_t newIdx) override
     {
         mWgtProp[pWgt->id].cbbx.itemIdx = newIdx;
-        TWINS_LOG("COMBOBOX_CHANGE(%u)", newIdx);
+        TWINS_LOG_D("COMBOBOX_CHANGE(%u)", newIdx);
     }
 
     void onComboBoxDrop(const twins::Widget* pWgt, bool dropState) override
@@ -270,12 +269,12 @@ public:
         if (dropState)
             mWgtProp[pWgt->id].cbbx.selIdx = mWgtProp[pWgt->id].cbbx.itemIdx;
 
-        TWINS_LOG("COMBOBOX_DROP(%u)", dropState);
+        TWINS_LOG_D("COMBOBOX_DROP(%u)", dropState);
     }
 
     void onRadioSelect(const twins::Widget* pWgt) override
     {
-        TWINS_LOG("RADIO_SELECT(%d)", pWgt->radio.radioId);
+        TWINS_LOG_D("RADIO_SELECT(%d)", pWgt->radio.radioId);
         if (pWgt->radio.groupId == 1)
             mRadioId = pWgt->radio.radioId;
     }
@@ -305,7 +304,7 @@ public:
 
     bool onWindowUnhandledInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc) override
     {
-        TWINS_LOG("onWindowUnhandledInputEvt(%s)", kc.name);
+        TWINS_LOG_D("onWindowUnhandledInputEvt(%s)", kc.name);
         return false;
     }
 
@@ -398,7 +397,7 @@ public:
         }
     }
 
-    void getEditText(const twins::Widget* pWgt, twins::String &out) override
+    void getTextEditText(const twins::Widget* pWgt, twins::String &out, bool editMode) override
     {
         switch (pWgt->id)
         {
@@ -458,9 +457,12 @@ public:
         dropDown = mWgtProp[pWgt->id].cbbx.dropDown;
     }
 
-    void getComboBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
+    void getComboBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) override
     {
-        out.appendFmt("Option %03d", itemIdx);
+        if (pWgt->id == ID_CBX_OPTIONS)
+            out.appendFmt("Option %03d", itemIdx);
+        else if (pWgt->id == ID_CBX_COLORS)
+            out.appendFmt("Color [%d]", itemIdx);
     }
 
     int getRadioIndex(const twins::Widget* pWgt) override
@@ -468,7 +470,7 @@ public:
         return mRadioId;
     }
 
-    void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, int16_t &topLine) override
+    void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::CStrView> **ppLines, int16_t &topLine) override
     {
         if (pWgt->id == ID_TBX_LOREMIPSUM)
         {

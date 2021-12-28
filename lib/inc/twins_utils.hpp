@@ -2,6 +2,7 @@
  * @brief   TWins - utility code
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -29,7 +30,7 @@ const char* strechr(const char *str, const char *estr, char c);
  *  @param storeDelim if true, every second entry returned is delimiter before next word
  *  @return vector of pointers to the beginning of text lines
  */
-twins::Vector<twins::StringRange> splitWords(const char *str, const char *delim = " \t\n", bool storeDelim = false);
+twins::Vector<twins::CStrView> splitWords(const char *str, const char *delim = " \t\n", bool storeDelim = false);
 
 /** @brief Insert \p newLine and ellipsis to ensure the line length is always < \p maxLineLen
  *  @param str input string
@@ -43,7 +44,7 @@ twins::String wordWrap(const char *str, uint16_t areaWidth, const char *delim = 
  *  @param str input string
  *  @return vector of pointers to the beginning of text lines
  */
-twins::Vector<twins::StringRange> splitLines(const char *str);
+twins::Vector<twins::CStrView> splitLines(const char *str);
 
 /** @brief Prepend single line \p str with spaces and append spaces to make it centered on \p areaWidth .
  *         ESC sequences are ignored
@@ -57,7 +58,12 @@ struct WrappedString
 {
     WrappedString() = default;
 
-    /** @brief */
+    /**
+     * @brief Set maximum width the individual line will never break;
+     * @param maxWidth maximum line width
+     * @param delim characters that the line can break at
+     * @param sep lines separator
+     */
     void config(uint16_t maxWidth = 250, const char* delim = " \t\n", const char* sep = "\n")
     {
         mMaxWidth = maxWidth;
@@ -66,7 +72,10 @@ struct WrappedString
         mDirty = true;
     }
 
-    /** @brief */
+    /**
+     * @brief Parse input string and wrap it
+     * @param newContent optional new content; can be null if the same content is to be used with new wrapping configuration
+     */
     void updateLines(const char *newContent = nullptr)
     {
         if (newContent)
@@ -79,27 +88,27 @@ struct WrappedString
         mDirty = false;
     }
 
-    /** @brief */
-    const Vector<StringRange>& getLines()
+    /** @brief Returns vector of lines */
+    const Vector<CStrView>& getLines()
     {
         if (mDirty)
             updateLines();
         return mLines;
     }
 
-    /** @brief */
+    /** @brief Returns reference to source string */
     String& getSourceStr()
     {
         return mSourceStr;
     }
 
-    /** @brief */
+    /** @brief Returns reference to wrapped string */
     const String& getWrappedStr() const
     {
         return mWrappedStr;
     }
 
-    /** @brief */
+    /** @brief Returns true if source or configuration was changed so the wrapped string is deprecated */
     bool isDirty() const { return mDirty; }
 
     /** @brief */
@@ -134,13 +143,14 @@ private:
     const char* mpSep = "\n";
     String      mSourceStr;
     String      mWrappedStr;
-    Vector<StringRange> mLines;
+    Vector<CStrView> mLines;
 };
 
 // -----------------------------------------------------------------------------
 
 /** @brief Default twins::Edit key handler for NumEdit */
-bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos, int64_t limitMin = LONG_MIN, int64_t limitMax = LONG_MAX, bool wrap = false);
+bool numEditInputEvt(const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos,
+                    int64_t limitMin = LONG_MIN, int64_t limitMax = LONG_MAX, bool wrap = false);
 
 // -----------------------------------------------------------------------------
 

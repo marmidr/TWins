@@ -2,6 +2,7 @@
  * @brief   TWins - command line interface
  * @author  Mariusz Midor
  *          https://bitbucket.org/marmidr/twins
+ *          https://github.com/marmidr/twins
  *****************************************************************************/
 
 #pragma once
@@ -10,13 +11,10 @@
 #include "twins_ringbuffer.hpp"
 
 #include <stdint.h>
+#include <functional>
 
-#ifndef TWINS_LIGHTWEIGHT_CMD
-# define TWINS_LIGHTWEIGHT_CMD 1
-#endif
-
-#if !TWINS_LIGHTWEIGHT_CMD
-# include <functional>
+#ifndef TWINS_CLI_LIGHTWEIGHT_CMD
+# define TWINS_CLI_LIGHTWEIGHT_CMD  1
 #endif
 
 // -----------------------------------------------------------------------------
@@ -25,21 +23,22 @@ namespace twins::cli
 {
 
 using Argv = Vector<const char*>;
+using CmdHandler = std::function<void(twins::cli::Argv &argv)>;
 
 #define TWINS_CLI_HANDLER  [](twins::cli::Argv &argv)
 
 /**
  * @brief Struct holding command name and pointer to handler function
- * if \p argc is 1+, the \p argv holds comamnd arguments
+ * if \p argc is 1+, the \p argv holds command arguments
  */
 struct Cmd
 {
     const char* name;
     const char* help;
-    #if TWINS_LIGHTWEIGHT_CMD
-    void (*handler)(Argv &argv);
+    #if TWINS_CLI_LIGHTWEIGHT_CMD
+    void (*handler)(twins::cli::Argv &argv);
     #else
-    std::function<void(Argv &argv)> handler;
+    CmdHandler handler;
     #endif
 };
 
@@ -64,7 +63,7 @@ void reset(void);
 void processInput(const char* data, uint8_t dataLen = 0);
 
 /**
- * @brief Process buffer \p rb, emit echo
+ * @brief Process the ring buffer \p rb, emit echo
  */
 void processInput(twins::RingBuff<char> &rb);
 
@@ -81,9 +80,12 @@ History& getHistory(void);
 /**
  * @brief If line ends with '\r', call the matching \p commands handler
  * @param pCommands array of \b Cmd, terminated with empty cmd {}
+ * @param soleOrLastCommandsSet set to false if number of command arrays are to be processed
+ *        to avoid printing "unknown command" and clearing internal command queue.
+ *        Remember to set it to true in the last call to remove command line from the internal queue.
  * @return true if command line is complete and handler was found and executed
  */
-bool checkAndExec(const Cmd* pCommands);
+bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet = true);
 
 /**
  * @brief Execute command line \p cmdline.
@@ -92,6 +94,13 @@ bool checkAndExec(const Cmd* pCommands);
  * @return true if handler was found and executed
  */
 bool execLine(const char *cmdline, const Cmd* pCommands);
+
+/**
+ * @brief Set the override command handler used when \c checkAndExec() called;
+ *        call again with \c {} to restore normal behavior
+ * @param handler
+ */
+void setOverrideHandler(CmdHandler handler);
 
 // -----------------------------------------------------------------------------
 

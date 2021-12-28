@@ -81,7 +81,7 @@ public:
         out.appendFmt("item: %d", itemIdx);
     }
 
-    void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::StringRange> **ppLines, int16_t &topLine) override
+    void getTextBoxState(const twins::Widget* pWgt, const twins::Vector<twins::CStrView> **ppLines, int16_t &topLine) override
     {
         if (pWgt->id == ID_TEXTBOX_EMPTY)
         {
@@ -278,11 +278,11 @@ static constexpr twins::Widget wndTestDef =
             }}
         },
         {
-            type    : twins::Widget::Edit,
+            type    : twins::Widget::TextEdit,
             id      : ID_EDIT,
             coord   : { 2, 30 },
             size    : { 30, 4 },
-            { edit : {
+            { textedit : {
                 fgColor : {},
                 bgColor : {},
             }}
@@ -455,7 +455,7 @@ TEST_F(WIDGET, drawWidget)
     twins::writeChar('\n', 3);
 
     t = twins::pPAL->getTimeDiff(t);
-    TWINS_LOG("Drawn in %u ms", t);
+    TWINS_LOG_D("Drawn in %u ms", t);
 }
 
 TEST_F(WIDGET, drawWidgets)
@@ -470,10 +470,18 @@ TEST_F(WIDGET, wndManager)
 
     EXPECT_EQ(0, wmngr.size());
     EXPECT_EQ(nullptr, wmngr.topWndWidgets());
+    EXPECT_FALSE(wmngr.visible(getWndTest()));
+
+    wmngr.show(nullptr);
     wmngr.show(getWndTest());
-    wmngr.redrawAll();
+    wmngr.show(getWndTest());
     EXPECT_EQ(1, wmngr.size());
+    EXPECT_TRUE(wmngr.visible(getWndTest()));
     EXPECT_EQ(getWndTest(), wmngr.topWnd());
+
+    wmngr.redrawAll();
+    wmngr.hide(nullptr);
+    wmngr.hide(getWndTest());
     wmngr.hide(getWndTest());
     EXPECT_EQ(0, wmngr.size());
 }
