@@ -457,9 +457,12 @@ public:
         dropDown = mWgtProp[pWgt->id].cbbx.dropDown;
     }
 
-    void getComboBoxItem(const twins::Widget*, int itemIdx, twins::String &out) override
+    void getComboBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) override
     {
-        out.appendFmt("Option %03d", itemIdx);
+        if (pWgt->id == ID_CBX_OPTIONS)
+            out.appendFmt("Option %03d", itemIdx);
+        else if (pWgt->id == ID_CBX_COLORS)
+            out.appendFmt("Color [%d]", itemIdx);
     }
 
     int getRadioIndex(const twins::Widget* pWgt) override

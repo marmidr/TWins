@@ -1399,7 +1399,7 @@ static bool processMouse(CallCtx &ctx, const KeyCode &kc)
 
     // TWINS_LOG_D("WidgetAt(%2d:%2d)=%s ID:%u", kc.mouse.col, kc.mouse.row, toString(p_wgt->type), p_wgt->id);
 
-    if (g_ws.pDropDownCombo && (p_wgt->type != Widget::ComboBox))
+    if (g_ws.pDropDownCombo)
     {
         // check if drop-down list clicked
         Rect dropdownlist_rct;
@@ -1417,7 +1417,8 @@ static bool processMouse(CallCtx &ctx, const KeyCode &kc)
         }
         else
         {
-            comboBoxHideList(ctx, g_ws.pDropDownCombo);
+            if (kc.mouse.btn == MouseBtn::ButtonLeft)
+                comboBoxHideList(ctx, g_ws.pDropDownCombo);
         }
     }
 
