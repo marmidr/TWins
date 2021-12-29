@@ -335,9 +335,9 @@ static void invalidateRadioGroup(CallCtx &ctx, const Widget *pRadio)
     const Widget *p_parent = ctx.pWidgets + pRadio->link.parentIdx;
     const auto group_id = pRadio->radio.groupId;
 
-    for (unsigned i = 0; i < p_parent->link.childsCnt; i++)
+    for (unsigned i = 0; i < p_parent->link.childrenCnt; i++)
     {
-        const auto *p_wgt = ctx.pWidgets + p_parent->link.childsIdx + i;
+        const auto *p_wgt = ctx.pWidgets + p_parent->link.childrenIdx + i;
         if (p_wgt->type == Widget::Type::Radio && p_wgt->radio.groupId == group_id)
             ctx.pState->invalidate(p_wgt->id);
     }
@@ -406,7 +406,7 @@ static const Widget* getNextFocusable(CallCtx &ctx, const Widget *pParent, WID f
     if (pParent->id == focusedID)
         return nullptr;
 
-    const Widget *p_childs = {};
+    const Widget *p_children = {};
     uint16_t child_cnt = 0;
 
     // get childrens and their number
@@ -417,19 +417,19 @@ static const Widget* getNextFocusable(CallCtx &ctx, const Widget *pParent, WID f
     case Widget::Page:
     case Widget::Layer:
     {
-        p_childs  = ctx.pWidgets + pParent->link.childsIdx;
-        child_cnt = pParent->link.childsCnt;
+        p_children  = ctx.pWidgets + pParent->link.childrenIdx;
+        child_cnt = pParent->link.childrenCnt;
         break;
     }
     case Widget::PageCtrl:
     {
         // get selected page childrens
         int idx = ctx.pState->getPageCtrlPageIndex(pParent);
-        if (idx >= 0 && idx < pParent->link.childsCnt)
+        if (idx >= 0 && idx < pParent->link.childrenCnt)
         {
-            pParent   = ctx.pWidgets + pParent->link.childsIdx + idx;
-            p_childs  = ctx.pWidgets + pParent->link.childsIdx;
-            child_cnt = pParent->link.childsCnt;
+            pParent   = ctx.pWidgets + pParent->link.childrenIdx + idx;
+            p_children  = ctx.pWidgets + pParent->link.childrenIdx;
+            child_cnt = pParent->link.childrenCnt;
         }
         else
         {
@@ -461,15 +461,15 @@ static const Widget* getNextFocusable(CallCtx &ctx, const Widget *pParent, WID f
         break;
     }
 
-    assert(p_childs);
+    assert(p_children);
     const Widget *p_wgt = nullptr;
 
     // TWINS_LOG_D("pParent[%s id:%u] focusedId=%d", toString(pParent->type), pParent->id, focusedID); twins::sleepMs(200);
 
     if (focusedID == WIDGET_ID_NONE)
     {
-        // get first/last of the childs ID
-        p_wgt = forward ? &p_childs[0] : &p_childs[child_cnt-1];
+        // get first/last of the children ID
+        p_wgt = forward ? &p_children[0] : &p_children[child_cnt-1];
         focusedID = p_wgt->id;
 
         if (isFocusable(ctx, p_wgt) && isVisible(ctx, p_wgt))
@@ -484,14 +484,14 @@ static const Widget* getNextFocusable(CallCtx &ctx, const Widget *pParent, WID f
     else
     {
         // get pointer to focusedID
-        p_wgt = p_childs;
+        p_wgt = p_children;
 
-        while (p_wgt->id != focusedID && p_wgt < p_childs + child_cnt)
+        while (p_wgt->id != focusedID && p_wgt < p_children + child_cnt)
             p_wgt++;
 
-        // expect that childs have focusedID
-        //assert(p_wgt < p_childs + child_cnt); // occures rarely
-        if (p_wgt >= p_childs + child_cnt)
+        // expect that children have focusedID
+        //assert(p_wgt < p_children + child_cnt); // occures rarely
+        if (p_wgt >= p_children + child_cnt)
         {
             TWINS_LOG_W("Focused ID=%d not found on parent ID=%d", focusedID, pParent->id);
             return nullptr;
@@ -499,22 +499,22 @@ static const Widget* getNextFocusable(CallCtx &ctx, const Widget *pParent, WID f
     }
 
 
-    // TWINS_LOG_D("search in [%s id:%d childs:%d]", toString(pParent->type), pParent->id, child_cnt);
-    // iterate until focusable found or childs border reached
+    // TWINS_LOG_D("search in [%s id:%d children:%d]", toString(pParent->type), pParent->id, child_cnt);
+    // iterate until focusable found or children border reached
     assert(p_wgt);
 
     for (uint16_t i = 0; i < child_cnt; i++)
     {
         p_wgt += forward ? 1 : -1;
 
-        if (p_wgt == p_childs + child_cnt || p_wgt == p_childs - 1)
+        if (p_wgt == p_children + child_cnt || p_wgt == p_children - 1)
         {
             // border reached: if we are on Panel or Layer, jump to next sibling
             if (pParent->type == Widget::Panel || pParent->type == Widget::Layer)
                 return getNextFocusable(ctx, getParent(pParent), pParent->id, forward, pFirstParent);
 
-            if (p_wgt > p_childs) p_wgt = p_childs;
-            else                  p_wgt = p_childs + child_cnt - 1;
+            if (p_wgt > p_children) p_wgt = p_children;
+            else                  p_wgt = p_children + child_cnt - 1;
         }
 
         if (isFocusable(ctx, p_wgt) && isVisible(ctx, p_wgt))
@@ -613,9 +613,9 @@ static const Widget *findMainPgControl(CallCtx &ctx)
 {
     const auto *p_wnd = &ctx.pWidgets[0];
 
-    for (unsigned i = 0; i < p_wnd->link.childsCnt; i++)
+    for (unsigned i = 0; i < p_wnd->link.childrenCnt; i++)
     {
-        const auto *p_wgt = ctx.pWidgets + p_wnd->link.childsIdx + i;
+        const auto *p_wgt = ctx.pWidgets + p_wnd->link.childrenIdx + i;
 
         if (p_wgt->type == Widget::PageCtrl)
             return p_wgt;
@@ -631,8 +631,8 @@ static void pgControlChangePage(CallCtx &ctx, const Widget *pWgt, bool next)
 
     int idx = ctx.pState->getPageCtrlPageIndex(pWgt);
     idx += next ? 1 : -1;
-    if (idx < 0)                     idx = pWgt->link.childsCnt -1;
-    if (idx >= pWgt->link.childsCnt) idx = 0;
+    if (idx < 0)                     idx = pWgt->link.childrenCnt -1;
+    if (idx >= pWgt->link.childrenCnt) idx = 0;
 
     // changeFocusTo(ctx, pWgt->id); // DON'T or separate focus for each Tab will not work
     ctx.pState->onPageControlPageChange(pWgt, idx);
@@ -1160,7 +1160,7 @@ static void processMouse_PageCtrl(CallCtx &ctx, const Widget *pWgt, const Rect &
         int idx = ctx.pState->getPageCtrlPageIndex(pWgt);
         int new_idx = kc.mouse.row - wgtRect.coord.row - 1 - pWgt->pagectrl.vertOffs;
 
-        if (new_idx != idx && new_idx >= 0 && new_idx < pWgt->link.childsCnt)
+        if (new_idx != idx && new_idx >= 0 && new_idx < pWgt->link.childrenCnt)
         {
             ctx.pState->onPageControlPageChange(pWgt, new_idx);
             ctx.pState->invalidate(pWgt->id);
@@ -1633,11 +1633,11 @@ WID getPageID(const Widget *pPageControl, int8_t pageIdx)
     assert(pPageControl);
     assert(pPageControl->type == Widget::PageCtrl);
 
-    if (pageIdx < 0 || pageIdx >= pPageControl->link.childsCnt)
+    if (pageIdx < 0 || pageIdx >= pPageControl->link.childrenCnt)
         return WIDGET_ID_NONE;
 
     const Widget *p_page = pPageControl;
-    p_page += (pPageControl->link.childsIdx - pPageControl->link.ownIdx) + pageIdx;
+    p_page += (pPageControl->link.childrenIdx - pPageControl->link.ownIdx) + pageIdx;
     return p_page->id;
 }
 
@@ -1647,10 +1647,10 @@ int8_t getPageIdx(const Widget *pPageControl, WID pageID)
     assert(pPageControl->type == Widget::PageCtrl);
 
     const Widget *p_page = pPageControl;
-    p_page += pPageControl->link.childsIdx - pPageControl->link.ownIdx;
+    p_page += pPageControl->link.childrenIdx - pPageControl->link.ownIdx;
     assert(p_page->type == Widget::Page);
 
-    for (uint8_t i = 0; i < pPageControl->link.childsCnt; i++)
+    for (uint8_t i = 0; i < pPageControl->link.childrenCnt; i++)
         if (p_page[i].id == pageID)
             return i;
 

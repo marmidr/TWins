@@ -344,7 +344,7 @@ struct Widget
         } layer;
     };
 
-    /** parent <- this -> childs linking */
+    /** parent <- this -> children linking */
     union Link
     {
         __TWINS_LINK_SECRET;
@@ -353,10 +353,10 @@ struct Widget
         {
             /** in constexpr the pointer cannot be calculated, thus,
               * we use flat Widgets array index instead */
-            uint16_t ownIdx;     /// set in compile-time
-            uint16_t parentIdx;  /// set in compile-time
-            uint16_t childsIdx;  /// set in compile-time
-            uint8_t  childsCnt;  /// set in compile-time
+            uint16_t ownIdx;        /// set in compile-time
+            uint16_t parentIdx;     /// set in compile-time
+            uint16_t childrenIdx;   /// set in compile-time
+            uint8_t  childrenCnt;   /// set in compile-time
         };
     } link;
 };
