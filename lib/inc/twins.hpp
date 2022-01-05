@@ -656,6 +656,11 @@ void selectPage(const Widget *pWindowWidgets, WID pageControlID, WID pageID);
  */
 void selectNextPage(const Widget *pWindowWidgets, WID pageControlID, bool next);
 
+/**
+ * @brief Useful with onButtonKey() event to mark button as pressed or not
+ */
+void markButtonDown(const Widget *pBtn, bool isDown);
+
 } // wgt
 
 // -----------------------------------------------------------------------------

@@ -834,11 +834,17 @@ static bool processKey_Radio(CallCtx &ctx, const Widget *pWgt, const KeyCode &kc
 
 static bool processKey_Button(CallCtx &ctx, const Widget *pWgt, const KeyCode &kc)
 {
+    auto *p_wstate = ctx.pState;
+
+    if (p_wstate->onButtonKey(pWgt, kc))
+    {
+        // user handled the keyboard event
+        return true;
+    }
+
     if (kc.key == Key::Enter)
     {
         // pointer may change between onButtonUp and onButtonClick, so remember it
-        auto *p_wstate = ctx.pState;
-
         g_ws.pMouseDownWgt = pWgt;
         p_wstate->onButtonDown(pWgt, kc);
         p_wstate->invalidate(pWgt->id, true);
@@ -1679,6 +1685,14 @@ void selectNextPage(const Widget *pWindowWidgets, WID pageControlID, bool next)
     CallCtx ctx(pWindowWidgets);
     const auto *p_pgctrl = getWidget(pWindowWidgets, pageControlID);
     pgControlChangePage(ctx, p_pgctrl, next);
+}
+
+void markButtonDown(const Widget *pBtn, bool isDown)
+{
+    if (pBtn)
+    {
+        g_ws.pMouseDownWgt = isDown ? pBtn : nullptr;
+    }
 }
 
 } // wgt
