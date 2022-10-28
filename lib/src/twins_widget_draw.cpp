@@ -312,7 +312,7 @@ static void drawWindow(CallCtx &ctx, const Widget *pWgt)
     flushBuffer();
     ctx.parentCoord = wnd_coord;
 
-    for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
+    for (int i = pWgt->link.childrenIdx; i < pWgt->link.childrenIdx + pWgt->link.childrenCnt; i++)
         drawWidgetInternal(ctx, &ctx.pWidgets[i]);
 
     // reset colors set by frame drawer
@@ -345,7 +345,7 @@ static void drawPanel(CallCtx &ctx, const Widget *pWgt)
     auto coord_bkp = ctx.parentCoord;
     ctx.parentCoord = my_coord;
 
-    for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
+    for (int i = pWgt->link.childrenIdx; i < pWgt->link.childrenIdx + pWgt->link.childrenCnt; i++)
         drawWidgetInternal(ctx, &ctx.pWidgets[i]);
 
     ctx.parentCoord = coord_bkp;
@@ -665,12 +665,12 @@ static void drawPageControl(CallCtx &ctx, const Widget *pWgt)
     // moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
     flushBuffer();
 
-    for (int i = 0; i < pWgt->link.childsCnt; i++)
+    for (int i = 0; i < pWgt->link.childrenCnt; i++)
     {
         if (i == pWgt->size.height - 1 - pWgt->pagectrl.vertOffs)
             break;
 
-        const auto *p_page = &ctx.pWidgets[pWgt->link.childsIdx + i];
+        const auto *p_page = &ctx.pWidgets[pWgt->link.childrenIdx + i];
 
         // draw page title
         g_ws.str.clear();
@@ -714,7 +714,7 @@ static void drawPage(CallCtx &ctx, const Widget *pWgt, bool eraseBg)
     }
 
     // draw childrens
-    for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
+    for (int i = pWgt->link.childrenIdx; i < pWgt->link.childrenIdx + pWgt->link.childrenCnt; i++)
         drawWidgetInternal(ctx, &ctx.pWidgets[i]);
 }
 
@@ -949,7 +949,7 @@ static void drawTextBox(CallCtx &ctx, const Widget *pWgt)
 static void drawLayer(CallCtx &ctx, const Widget *pWgt)
 {
     // draw only childrens; to erase, redraw layer's parent
-    for (int i = pWgt->link.childsIdx; i < pWgt->link.childsIdx + pWgt->link.childsCnt; i++)
+    for (int i = pWgt->link.childrenIdx; i < pWgt->link.childrenIdx + pWgt->link.childrenCnt; i++)
         drawWidgetInternal(ctx, &ctx.pWidgets[i]);
 }
 

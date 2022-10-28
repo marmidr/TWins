@@ -28,6 +28,7 @@ public:
     virtual void onButtonDown(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
     virtual void onButtonUp(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
     virtual void onButtonClick(const twins::Widget* pWgt, const twins::KeyCode &kc) {}
+    virtual bool onButtonKey(const twins::Widget* pWgt, const twins::KeyCode &kc) { return false; }
     virtual void onTextEditChange(const twins::Widget* pWgt, twins::String &&str) {}
     virtual bool onTextEditInputEvt(const twins::Widget* pWgt, const twins::KeyCode &kc, twins::String &str, int16_t &cursorPos) { return false; }
     virtual void onCheckboxToggle(const twins::Widget* pWgt) {}

@@ -25,6 +25,8 @@
 static_assert(TWINS_CLI_MAXCMDLEN > 5);
 static_assert(TWINS_CLI_MAXHIST > 0);
 
+#define PASSWORD    "35786"
+
 namespace twins::cli
 {
 
@@ -46,6 +48,7 @@ CliState& g_cs = (CliState&)cs_buff;
 // global variables
 bool verbose = true;
 bool echoNlAfterCr = false;
+bool cliEnabled = true;
 
 // -----------------------------------------------------------------------------
 
@@ -99,7 +102,17 @@ void processInput(twins::RingBuff<char> &rb)
 
     while (true)
     {
-        rb.copy(seq, sizeof(seq));
+        if(cliEnabled)
+            rb.copy(seq, sizeof(seq));
+        else
+        {
+            for(uint16_t i = 0; i<rb.size(); i++)
+            {
+                seq[i] = '*';
+                if(i >= ESC_SEQ_MAX_LENGTH)
+                    break;
+            }
+        }
 
         KeyCode kc = {};
         uint8_t seq_sz = decodeInputSeq(rb, kc);
@@ -209,21 +222,22 @@ void processInput(twins::RingBuff<char> &rb)
 
                     // append to history, limit history size
                     int idx = 0;
-
-                    if (auto *str = g_cs.history.find(g_cs.lineBuff, &idx))
+                    if(cliEnabled)//prevents password to be stored in history
                     {
-                        // move to top
-                        String tmp = std::move(*str);
-                        g_cs.history.remove(idx, true);
-                        g_cs.history.append(std::move(tmp));
+                        if (auto *str = g_cs.history.find(g_cs.lineBuff, &idx))
+                        {
+                            // move to top
+                            String tmp = std::move(*str);
+                            g_cs.history.remove(idx, true);
+                            g_cs.history.append(std::move(tmp));
+                        }
+                        else
+                        {
+                            g_cs.history.append(g_cs.lineBuff);
+                            if (g_cs.history.size() > TWINS_CLI_MAXHIST)
+                                g_cs.history.remove(0, true);
+                        }
                     }
-                    else
-                    {
-                        g_cs.history.append(g_cs.lineBuff);
-                        if (g_cs.history.size() > TWINS_CLI_MAXHIST)
-                            g_cs.history.remove(0, true);
-                    }
-
                     g_cs.historyIdx = g_cs.history.size();
                     g_cs.cmdQue.write(std::move(g_cs.lineBuff));
                     g_cs.lineBuff.clear();
@@ -231,8 +245,8 @@ void processInput(twins::RingBuff<char> &rb)
                 else
                 {
                     prompt(true);
-                    p_seq = nullptr; // suppress echo
                 }
+                p_seq = nullptr; // suppress echo
                 g_cs.cursorPos = 0;
                 break;
             default:
@@ -302,9 +316,9 @@ void printHistory()
 void tokenize(StringBuff &cmd, Argv &argv)
 {
     char *p = cmd.data();
-    // fputs(">>", stderr);
-    // fputs(p, stderr);
-    // fputs("<<\n", stderr);
+//     fputs(">>", stderr);
+//     fputs(p, stderr);
+//     fputs("<<\n", stderr);
 
     // skip leading spaces
     while (*p == ' ')
@@ -430,6 +444,32 @@ bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
 
     if (!g_cs.overrideHandler)
     {
+        if(not cliEnabled)
+        {
+            if (cmd == PASSWORD)
+            {
+                cliEnabled = true;
+                writeStr(ESC_FG_GREEN_INTENSE);
+                writeStr("Access granted." "\r\n");
+                writeStr(ESC_FG_DEFAULT);
+                writeStr("CLI interface ready; type 'help' for available commands." "\r\n");
+                prompt(false);
+                flushBuffer();
+                g_cs.cmdQue.read();
+                return true;
+            }
+            else
+            {
+                writeStr(ESC_FG_RED_INTENSE);
+                writeStr("Incorrect password, access denied." "\r\n");
+                writeStr(ESC_FG_DEFAULT);
+                prompt(false);
+                flushBuffer();
+                g_cs.cmdQue.read();
+                return true;
+            }
+        }
+
         if (cmd == "help")
         {
             printHelp(pCommands);

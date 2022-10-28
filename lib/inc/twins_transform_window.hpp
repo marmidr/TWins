@@ -9,7 +9,7 @@
 #pragma once
 
 // field set in user Widget definition;
-#define __TWINS_LINK_SECRET     const Widget *pChilds
+#define __TWINS_LINK_SECRET     const Widget *pChildren
 
 #include "twins.hpp"
 
@@ -49,7 +49,7 @@ constexpr int getWgtsCount(const twins::Widget *pWgt)
     int n = 1;
     checkWidgetParams(pWgt);
 
-    for (const auto *ch = pWgt->link.pChilds; ch && ch->id != twins::WIDGET_ID_NONE; ch++)
+    for (const auto *ch = pWgt->link.pChildren; ch && ch->id != twins::WIDGET_ID_NONE; ch++)
         n += getWgtsCount(ch);
 
     return n;
@@ -62,7 +62,7 @@ constexpr int getPagesCount(const twins::Widget *pWgt)
 {
     int n = pWgt->type == twins::Widget::Page;
 
-    for (const auto *ch = pWgt->link.pChilds; ch && ch->id != twins::WIDGET_ID_NONE; ch++)
+    for (const auto *ch = pWgt->link.pChildren; ch && ch->id != twins::WIDGET_ID_NONE; ch++)
         n += getWgtsCount(ch);
 
     return n;
@@ -84,17 +84,17 @@ constexpr int transformWidgetTreeToArray(twins::Array<twins::Widget, N> &arr, co
     arr[wgtIdx].link = {};
     arr[wgtIdx].link.ownIdx = wgtIdx;
 
-    // count the childs
-    int n_childs = 0;
-    for (auto *p_child = pWgt->link.pChilds; p_child && p_child->id != twins::WIDGET_ID_NONE; p_child++)
-        n_childs++;
+    // count the children
+    int n_children = 0;
+    for (auto *p_child = pWgt->link.pChildren; p_child && p_child->id != twins::WIDGET_ID_NONE; p_child++)
+        n_children++;
 
-    arr[wgtIdx].link.childsIdx = child_idx;
-    arr[wgtIdx].link.childsCnt = n_childs;
-    freeSlotIdx += n_childs;
+    arr[wgtIdx].link.childrenIdx = child_idx;
+    arr[wgtIdx].link.childrenCnt = n_children;
+    freeSlotIdx += n_children;
 
-    // copy childs
-    for (auto *p_child = pWgt->link.pChilds; p_child && p_child->id != twins::WIDGET_ID_NONE; p_child++)
+    // copy children
+    for (auto *p_child = pWgt->link.pChildren; p_child && p_child->id != twins::WIDGET_ID_NONE; p_child++)
     {
         freeSlotIdx = transformWidgetTreeToArray<N>(arr, p_child, child_idx, freeSlotIdx);
         arr[child_idx].link.parentIdx = wgtIdx;
