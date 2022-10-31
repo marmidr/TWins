@@ -186,6 +186,31 @@ public:
         }
     }
 
+    bool onButtonKey(const twins::Widget* pWgt, const twins::KeyCode &kc) override
+    {
+        if (pWgt->id == ID_BTN_1P5)
+        {
+            TWINS_LOG_D("BTN_ON_KEY");
+            if (kc.utf8[0] == ' ')
+            {
+                twins::wgt::markButtonDown(pWgt, true);
+                invalidate(pWgt->id, true);
+                // wait and unpress the button
+                twins::glob::pal.sleep(500);
+                twins::wgt::markButtonDown(pWgt, false);
+                invalidate(pWgt->id, false);
+                // clear input queue as it may be full of Keyboar key events;
+                // ... rbKeybInput is out of reach from here 🙁
+                return true;
+            }
+
+            twins::wgt::markButtonDown(pWgt, false);
+            invalidate(pWgt->id);
+        }
+
+        return false;
+    }
+
     void onTextEditChange(const twins::Widget* pWgt, twins::String &&str) override
     {
         switch (pWgt->id)

@@ -84,7 +84,7 @@ ColorBG intensifyClTheme(ColorBG cl)
 
 // -----------------------------------------------------------------------------
 
-static constexpr twins::Widget pnlStateChilds[] =
+static constexpr twins::Widget pnlStateChildren[] =
 {
     {
         type    : twins::Widget::Led,
@@ -127,7 +127,7 @@ static constexpr twins::Widget pnlStateChilds[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget pageVersionChilds[] =
+static constexpr twins::Widget pageVersionChildren[] =
 {
     {
         type    : twins::Widget::Panel,
@@ -139,7 +139,7 @@ static constexpr twins::Widget pageVersionChilds[] =
             fgColor     : twins::ColorFG::White,
             bgColor     : twins::ColorBG::PanelVer,
         }},
-        link    : { (const twins::Widget[]) // set first field in union - pChilds
+        link    : { (const twins::Widget[]) // set first field in union - pChildren
         {
             {
                 type    : twins::Widget::Label,
@@ -184,7 +184,7 @@ static constexpr twins::Widget pageVersionChilds[] =
             fgColor     : twins::ColorFG::Blue,
             bgColor     : twins::ColorBG::PanelLeds,
         }},
-        link    : { pnlStateChilds }
+        link    : { pnlStateChildren }
     },
     {
         type    : twins::Widget::Panel,
@@ -309,7 +309,7 @@ static constexpr twins::Widget pageVersionChilds[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget pageServiceChilds[] =
+static constexpr twins::Widget pageServiceChildren[] =
 {
     {
         type    : twins::Widget::Layer,
@@ -417,7 +417,7 @@ static constexpr twins::Widget pageServiceChilds[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget pageDiagnosticsChilds[] =
+static constexpr twins::Widget pageDiagnosticsChildren[] =
 {
     {
         type    : twins::Widget::Panel,
@@ -430,7 +430,7 @@ static constexpr twins::Widget pageDiagnosticsChilds[] =
             bgColor     : twins::ColorBG::White,
             noFrame     : true
         }},
-        link    : { (const twins::Widget[]) // set first field in union - pChilds
+        link    : { (const twins::Widget[]) // set first field in union - pChildren
         {
             {
                 type    : twins::Widget::TextEdit,
@@ -471,7 +471,7 @@ static constexpr twins::Widget pageDiagnosticsChilds[] =
             fgColor     : twins::ColorFG::PanelChbox,
             bgColor     : twins::ColorBG::PanelChbox,
         }},
-        link    : { (const twins::Widget[]) // set first field in union - pChilds
+        link    : { (const twins::Widget[]) // set first field in union - pChildren
         {
             {
                 type    : twins::Widget::Label,
@@ -527,7 +527,7 @@ static constexpr twins::Widget pageDiagnosticsChilds[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget pageInactiveChilds[] =
+static constexpr twins::Widget pageInactiveChildren[] =
 {
     {
         type    : twins::Widget::Panel,
@@ -594,7 +594,7 @@ static constexpr twins::Widget pageInactiveChilds[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget pageTextboxChilds[] =
+static constexpr twins::Widget pageTextboxChildren[] =
 {
     {
         type    : twins::Widget::TextBox,
@@ -619,7 +619,7 @@ static constexpr twins::Widget pageTextboxChilds[] =
     { /* NUL */ }
 };
 
-static constexpr twins::Widget pageComboboxChilds[] =
+static constexpr twins::Widget pageComboboxChildren[] =
 {
     {
         type    : twins::Widget::ComboBox,
@@ -740,7 +740,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Version",
                         fgColor     : twins::ColorFG::Yellow,
                     }},
-                    link    : { pageVersionChilds }
+                    link    : { pageVersionChildren }
                 },
                 {
                     type    : twins::Widget::Page,
@@ -751,7 +751,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Service ∑",
                         fgColor     : twins::ColorFG::White,
                     }},
-                    link    : { pageServiceChilds }
+                    link    : { pageServiceChildren }
                 },
                 {
                     type    : twins::Widget::Page,
@@ -762,7 +762,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Diagnostics",
                         fgColor     : twins::ColorFG::Yellow,
                     }},
-                    link    : { pageDiagnosticsChilds }
+                    link    : { pageDiagnosticsChildren }
                 },
                 {
                     type    : twins::Widget::Page,
@@ -773,7 +773,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Inactiv 🍀",
                         fgColor     : twins::ColorFG::White,
                     }},
-                    link    : { pageInactiveChilds }
+                    link    : { pageInactiveChildren }
                 },
                 {
                     type    : twins::Widget::Page,
@@ -784,7 +784,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Text Box",
                         fgColor     : twins::ColorFG::White,
                     }},
-                    link    : { pageTextboxChilds }
+                    link    : { pageTextboxChildren }
                 },
                 {
                     type    : twins::Widget::Page,
@@ -795,7 +795,7 @@ static constexpr twins::Widget wndMain =
                         title       : "Combo Box",
                         fgColor     : twins::ColorFG::White,
                     }},
-                    link    : { pageComboboxChilds }
+                    link    : { pageComboboxChildren }
                 },
                 { /* NUL */ }
             }}
