@@ -37,6 +37,7 @@ struct CliState
     RingBuff<char>  seqRingBuff;
     Queue<String>   cmdQue;
     CmdHandler      overrideHandler;
+    String          password = {};
 };
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
@@ -47,7 +48,6 @@ CliState& g_cs = (CliState&)cs_buff;
 bool verbose = true;
 bool echoNlAfterCr = false;
 bool passwordMode  = false;
-String password = {};
 // -----------------------------------------------------------------------------
 
 void init(void)
@@ -73,11 +73,8 @@ void reset(void)
 
 void setPassword(String pw)
 {
-    if(pw.size())
-    {
-       password = std::move(pw);
-       passwordMode = true;
-    }
+    g_cs.password = std::move(pw);
+    passwordMode = g_cs.password.size();
 }
 
 void processInput(const char* data, uint8_t dataLen)
@@ -455,7 +452,7 @@ bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
     {
         if(passwordMode)
         {
-            if (cmd == password)
+            if (cmd == g_cs.password)
             {
                 passwordMode  = false;
                 writeStr(ESC_FG_GREEN_INTENSE);
