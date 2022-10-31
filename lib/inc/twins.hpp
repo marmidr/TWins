@@ -344,7 +344,7 @@ struct Widget
         } layer;
     };
 
-    /** parent <- this -> childs linking */
+    /** parent <- this -> children linking */
     union Link
     {
         __TWINS_LINK_SECRET;
@@ -353,10 +353,10 @@ struct Widget
         {
             /** in constexpr the pointer cannot be calculated, thus,
               * we use flat Widgets array index instead */
-            uint16_t ownIdx;     /// set in compile-time
-            uint16_t parentIdx;  /// set in compile-time
-            uint16_t childsIdx;  /// set in compile-time
-            uint8_t  childsCnt;  /// set in compile-time
+            uint16_t ownIdx;        /// set in compile-time
+            uint16_t parentIdx;     /// set in compile-time
+            uint16_t childrenIdx;   /// set in compile-time
+            uint8_t  childrenCnt;   /// set in compile-time
         };
     } link;
 };
@@ -655,6 +655,11 @@ void selectPage(const Widget *pWindowWidgets, WID pageControlID, WID pageID);
  *        when to change page
  */
 void selectNextPage(const Widget *pWindowWidgets, WID pageControlID, bool next);
+
+/**
+ * @brief Useful with onButtonKey() event to mark button as pressed or not
+ */
+void markButtonDown(const Widget *pBtn, bool isDown);
 
 } // wgt
 
