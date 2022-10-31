@@ -37,6 +37,7 @@ struct CliState
     RingBuff<char>  seqRingBuff;
     Queue<String>   cmdQue;
     CmdHandler      overrideHandler;
+    String          password = {};
 };
 
 // trick to avoid automatic variable creation/destruction causing calls to uninitialized PAL
@@ -46,7 +47,7 @@ CliState& g_cs = (CliState&)cs_buff;
 // global variables
 bool verbose = true;
 bool echoNlAfterCr = false;
-
+bool passwordMode  = false;
 // -----------------------------------------------------------------------------
 
 void init(void)
@@ -68,6 +69,12 @@ void reset(void)
     g_cs.cursorPos = 0;
     g_cs.history.clear();
     g_cs.historyIdx = 0;
+}
+
+void setPassword(String pw)
+{
+    g_cs.password = std::move(pw);
+    passwordMode = g_cs.password.size();
 }
 
 void processInput(const char* data, uint8_t dataLen)
@@ -99,7 +106,19 @@ void processInput(twins::RingBuff<char> &rb)
 
     while (true)
     {
-        rb.copy(seq, sizeof(seq));
+        if(passwordMode)
+        {
+            for(uint16_t i = 0; i<rb.size(); i++)
+            {
+                seq[i] = '*';
+                if(i >= ESC_SEQ_MAX_LENGTH)
+                    break;
+            }
+        }
+        else
+        {
+            rb.copy(seq, sizeof(seq));
+        }
 
         KeyCode kc = {};
         uint8_t seq_sz = decodeInputSeq(rb, kc);
@@ -209,21 +228,22 @@ void processInput(twins::RingBuff<char> &rb)
 
                     // append to history, limit history size
                     int idx = 0;
-
-                    if (auto *str = g_cs.history.find(g_cs.lineBuff, &idx))
+                    if(passwordMode == false)//prevents password to be stored in history
                     {
-                        // move to top
-                        String tmp = std::move(*str);
-                        g_cs.history.remove(idx, true);
-                        g_cs.history.append(std::move(tmp));
+                        if (auto *str = g_cs.history.find(g_cs.lineBuff, &idx))
+                        {
+                            // move to top
+                            String tmp = std::move(*str);
+                            g_cs.history.remove(idx, true);
+                            g_cs.history.append(std::move(tmp));
+                        }
+                        else
+                        {
+                            g_cs.history.append(g_cs.lineBuff);
+                            if (g_cs.history.size() > TWINS_CLI_MAXHIST)
+                                g_cs.history.remove(0, true);
+                        }
                     }
-                    else
-                    {
-                        g_cs.history.append(g_cs.lineBuff);
-                        if (g_cs.history.size() > TWINS_CLI_MAXHIST)
-                            g_cs.history.remove(0, true);
-                    }
-
                     g_cs.historyIdx = g_cs.history.size();
                     g_cs.cmdQue.write(std::move(g_cs.lineBuff));
                     g_cs.lineBuff.clear();
@@ -231,8 +251,8 @@ void processInput(twins::RingBuff<char> &rb)
                 else
                 {
                     prompt(true);
-                    p_seq = nullptr; // suppress echo
                 }
+                p_seq = nullptr; // suppress echo
                 g_cs.cursorPos = 0;
                 break;
             default:
@@ -302,9 +322,9 @@ void printHistory()
 void tokenize(StringBuff &cmd, Argv &argv)
 {
     char *p = cmd.data();
-    // fputs(">>", stderr);
-    // fputs(p, stderr);
-    // fputs("<<\n", stderr);
+//     fputs(">>", stderr);
+//     fputs(p, stderr);
+//     fputs("<<\n", stderr);
 
     // skip leading spaces
     while (*p == ' ')
@@ -430,6 +450,32 @@ bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
 
     if (!g_cs.overrideHandler)
     {
+        if(passwordMode)
+        {
+            if (cmd == g_cs.password)
+            {
+                passwordMode  = false;
+                writeStr(ESC_FG_GREEN_INTENSE);
+                writeStr("Access granted." "\r\n");
+                writeStr(ESC_FG_DEFAULT);
+                writeStr("CLI interface ready; type 'help' for available commands." "\r\n");
+                prompt(false);
+                flushBuffer();
+                g_cs.cmdQue.read();
+                return true;
+            }
+            else
+            {
+                writeStr(ESC_FG_RED_INTENSE);
+                writeStr("Incorrect password, access denied." "\r\n");
+                writeStr(ESC_FG_DEFAULT);
+                prompt(false);
+                flushBuffer();
+                g_cs.cmdQue.read();
+                return true;
+            }
+        }
+
         if (cmd == "help")
         {
             printHelp(pCommands);

@@ -58,6 +58,11 @@ extern bool echoNlAfterCr;
 void reset(void);
 
 /**
+ * @brief Sets password to \p pw, if \p pw is empty, password mode is disabled.
+ */
+void setPassword(String pw);
+
+/**
  * @brief Process \p data, emit echo
  */
 void processInput(const char* data, uint8_t dataLen = 0);
