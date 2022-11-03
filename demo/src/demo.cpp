@@ -870,8 +870,19 @@ static void cli()
             }
         },
         {
+            "psw",
+            "\r\n"
+            "    enable password mode (psw=qwerty)",
+            TWINS_CLI_HANDLER
+            {
+                twins::writeStrFmt("Enabled password mode" "\r\n");
+                twins::cli::setPassword("qwerty");
+            }
+        },
+        {
             "q",
-            "quit program",
+            "\r\n"
+            "    quit program",
             TWINS_CLI_HANDLER
             {
                 quit_req = true;
@@ -884,6 +895,8 @@ static void cli()
     twins::inputPosixInit(100);
     twins::cli::prompt(false);
     twins::flushBuffer();
+    // ensure cursor moves to next line after Enter is hit
+    twins::cli::echoNlAfterCr = true;
 
     for (;;)
     {

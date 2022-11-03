@@ -49,14 +49,14 @@ public:
     /** @brief Set size to zero; release buffer memory only if capacity >= \p threshordToFree */
     String& clear(uint16_t threshordToFree = 500);
     /** @brief Return string size, in bytes */
-    uint16_t size() const { return mSize; }
+    inline uint16_t size() const { return mSize; }
     /** @brief Return length of UTF-8 string, ignoring ESC sequences inside it
      *         and recognizing double-width glyphs */
     uint16_t u8len(bool ignoreESC = false, bool realWidth = false) const;
     /** @brief Text width on terminal */
     inline uint16_t width() const { return u8len(true, true); }
     /** @brief Return C-style string buffer */
-    const char* cstr() const { return mpBuff ? mpBuff : ""; }
+    inline const char* cstr() const { return mpBuff ? mpBuff : ""; }
     /** @brief Reserve buffer if u know the string size in advance */
     void reserve(uint16_t newCapacity);
     /** @brief Useful tests */

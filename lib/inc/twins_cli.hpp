@@ -49,6 +49,7 @@ using History = Vector<String>;
 
 /** @brief Controls command parser debug output */
 extern bool verbose;
+
 /** @brief Echo NL if CR (Enter) key detected */
 extern bool echoNlAfterCr;
 
@@ -61,6 +62,11 @@ void reset(void);
  * @brief Sets password to \p pw, if \p pw is empty, password mode is disabled.
  */
 void setPassword(String pw);
+
+/**
+ * @brief Returns state of password mode. It is automatically reset to \p false when correct password is provided.
+ */
+bool passwordModeActive();
 
 /**
  * @brief Process \p data, emit echo
