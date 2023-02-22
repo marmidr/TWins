@@ -666,7 +666,11 @@ twins::IWindowState * getWndPopup()
 {
     // the only place where pWndPopupWidgets is used
     if (!wndPopup.getWidgets())
+    {
         wndPopup.init(pWndPopupWidgets);
+        // sets the widget to be focused when the Popup is shown for the first time
+        wndPopup.getFocusedID() = IDPP_BTN_NO;
+    }
     return &wndPopup;
 }
 
