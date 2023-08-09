@@ -1,0 +1,3 @@
+{
+    "testMate.cpp.test.executables": "{build,Build,BUILD}/**/*{test,Test,UT}*",
+}

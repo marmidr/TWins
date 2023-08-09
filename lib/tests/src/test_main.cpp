@@ -62,9 +62,11 @@ TestPAL test_pal;
 int main(int argc, char **argv)
 {
     std::vector<char*> vargs(argv, argv+argc);
-    auto arg1 = std::string("--gtest_color=yes");
-    vargs.push_back((char*)arg1.c_str());
-    argc = vargs.size();
+
+    // forcing this makes it impossible to work with VSCode Test Explorer
+    // auto arg1 = std::string("--gtest_color=yes");
+    // vargs.push_back((char*)arg1.c_str());
+    // argc = vargs.size();
 
     testing::InitGoogleTest(&argc, vargs.data());
     twins::mouseMode(twins::MouseMode::M1);
