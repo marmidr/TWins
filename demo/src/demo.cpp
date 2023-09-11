@@ -268,12 +268,10 @@ public:
 
     void onListBoxChange(const twins::Widget* pWgt, int16_t newIdx) override
     {
-        if (pWgt->id == ID_LISTBOX)
-        {
-            mWgtProp[pWgt->id].lbx.itemIdx = newIdx;
-            mWgtProp[pWgt->id].lbx.selIdx = newIdx;
-            TWINS_LOG_D("LISTBOX_CHANGE(%u)", newIdx);
-        }
+        mWgtProp[pWgt->id].lbx.itemIdx = newIdx;
+        mWgtProp[pWgt->id].lbx.selIdx = newIdx;
+
+        TWINS_LOG_D("LISTBOX_CHANGE(%u)", newIdx);
     }
 
     void onComboBoxSelect(const twins::Widget* pWgt, int16_t selIdx) override
@@ -459,6 +457,12 @@ public:
             selIdx = mWgtProp[pWgt->id].lbx.selIdx;
             itemsCount = mListBoxItemsCount;
         }
+        else if (pWgt->id == ID_LBX_UNDEROPTIONS)
+        {
+            itemIdx = mWgtProp[pWgt->id].lbx.itemIdx;
+            selIdx = mWgtProp[pWgt->id].lbx.selIdx;
+            itemsCount = mListBoxItemsCount;
+        }
     }
 
     void getListBoxItem(const twins::Widget* pWgt, int itemIdx, twins::String &out) override
@@ -471,6 +475,10 @@ public:
                 out.appendFmt(ESC_BOLD "Item" ESC_NORMAL " 0034567890123456789*");
             else
                 out.appendFmt(ESC_FG_BLACK "Item" ESC_FG_BLUE " %03d %s", itemIdx, plants[itemIdx & 0x03]);
+        }
+        else if (pWgt->id == ID_LBX_UNDEROPTIONS)
+        {
+            out.appendFmt("Item" " %02d %s", itemIdx, plants[itemIdx & 0x03]);
         }
     }
 

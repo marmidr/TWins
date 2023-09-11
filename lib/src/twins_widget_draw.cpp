@@ -182,83 +182,83 @@ static void drawArea(const Coord coord, const Size size, ColorBG clBg, ColorFG c
     if (clFg != ColorFG::Inherit) pushClFg(clFg);
 
     // top line
-    g_ws.str.clear();
-    g_ws.str.append(frame[0]);
+    g_ws.strbuff.clear();
+    g_ws.strbuff.append(frame[0]);
 #if TWINS_FAST_FILL
-    g_ws.str.append(frame[1]);
-    g_ws.str.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 3);
+    g_ws.strbuff.append(frame[1]);
+    g_ws.strbuff.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 3);
 #else
-    g_ws.str.append(frame[1], size.width - 2);
+    g_ws.strbuff.append(frame[1], size.width - 2);
 #endif
-    g_ws.str.append(frame[2]);
-    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+    g_ws.strbuff.append(frame[2]);
+    writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
     moveBy(-size.width, 1);
     flushBuffer();
 
     // lines in the middle
-    g_ws.str.clear();
-    g_ws.str.append(frame[3]);
+    g_ws.strbuff.clear();
+    g_ws.strbuff.append(frame[3]);
     if (filled)
     {
     #if TWINS_FAST_FILL
-        g_ws.str.append(frame[4]);
-        g_ws.str.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 3);
+        g_ws.strbuff.append(frame[4]);
+        g_ws.strbuff.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 3);
     #else
-        g_ws.str.append(frame[4], size.width - 2);
+        g_ws.strbuff.append(frame[4], size.width - 2);
     #endif
     }
     else
     {
-        g_ws.str.appendFmt(ESC_CURSOR_FORWARD_FMT, size.width - 2);
+        g_ws.strbuff.appendFmt(ESC_CURSOR_FORWARD_FMT, size.width - 2);
     }
-    g_ws.str.append(frame[5]);
+    g_ws.strbuff.append(frame[5]);
     if (shadow)
     {
         // trailing shadow
-        g_ws.str << ESC_FG_BLACK;
-        g_ws.str << "█";
-        g_ws.str << encodeCl(clFg);
+        g_ws.strbuff << ESC_FG_BLACK;
+        g_ws.strbuff << "█";
+        g_ws.strbuff << encodeCl(clFg);
     }
 
     for (int r = coord.row + 1; r < coord.row + size.height - 1; r++)
     {
-        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+        writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
         moveBy(-(size.width + shadow), 1);
         flushBuffer();
     }
 
     // bottom line
-    g_ws.str.clear();
-    g_ws.str.append(frame[6]);
+    g_ws.strbuff.clear();
+    g_ws.strbuff.append(frame[6]);
 #if TWINS_FAST_FILL
-    g_ws.str.append(frame[7]);
-    g_ws.str.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 3);
+    g_ws.strbuff.append(frame[7]);
+    g_ws.strbuff.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 3);
 #else
-    g_ws.str.append(frame[7], size.width - 2);
+    g_ws.strbuff.append(frame[7], size.width - 2);
 #endif
-    g_ws.str.append(frame[8]);
+    g_ws.strbuff.append(frame[8]);
     if (shadow)
     {
         // trailing shadow
-        g_ws.str << ESC_FG_BLACK;
-        g_ws.str << "█";
+        g_ws.strbuff << ESC_FG_BLACK;
+        g_ws.strbuff << "█";
     }
-    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+    writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
     flushBuffer();
 
     if (shadow)
     {
         moveBy(-size.width, 1);
-        g_ws.str.clear();
+        g_ws.strbuff.clear();
         // trailing shadow
-        // g_ws.str = ESC_FG_BLACK;
+        // g_ws.strbuff = ESC_FG_BLACK;
     #if TWINS_FAST_FILL
-        g_ws.str.append("█");
-        g_ws.str.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 1);
+        g_ws.strbuff.append("█");
+        g_ws.strbuff.appendFmt(ESC_CHAR_REPEAT_LAST_FMT, size.width - 1);
     #else
-        g_ws.str.append("█", size.width);
+        g_ws.strbuff.append("█", size.width);
     #endif
-        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+        writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
         writeStr(encodeCl(clFg));
         flushBuffer();
     }
@@ -353,13 +353,13 @@ static void drawPanel(CallCtx &ctx, const Widget *pWgt)
 
 static void drawLabel(CallCtx &ctx, const Widget *pWgt)
 {
-    g_ws.str.clear();
+    g_ws.strbuff.clear();
 
     // label text
     if (pWgt->label.text)
-        g_ws.str = pWgt->label.text;
+        g_ws.strbuff = pWgt->label.text;
     else
-        ctx.pState->getLabelText(pWgt, g_ws.str);
+        ctx.pState->getLabelText(pWgt, g_ws.strbuff);
 
     FontMemento _m;
 
@@ -368,7 +368,7 @@ static void drawLabel(CallCtx &ctx, const Widget *pWgt)
     pushClBg(getWidgetBgColor(pWgt));
 
     // print all lines
-    const char *p_line = g_ws.str.cstr();
+    const char *p_line = g_ws.strbuff.cstr();
     String s_line;
     moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
     const uint8_t max_lines = pWgt->size.height ? pWgt->size.height : 50;
@@ -406,14 +406,14 @@ static void drawLabel(CallCtx &ctx, const Widget *pWgt)
 
 static void drawTextEdit(CallCtx &ctx, const Widget *pWgt)
 {
-    g_ws.str.clear();
+    g_ws.strbuff.clear();
     int16_t display_pos = 0;
     const int16_t max_w = pWgt->size.width-3;
 
     if (pWgt == g_ws.textEditState.pWgt)
     {
         // in edit mode; similar calculation in setCursorAt()
-        g_ws.str = g_ws.textEditState.str;
+        g_ws.strbuff = g_ws.textEditState.txt;
         auto cursor_pos = g_ws.textEditState.cursorPos;
         auto delta = (max_w/2);
 
@@ -425,29 +425,29 @@ static void drawTextEdit(CallCtx &ctx, const Widget *pWgt)
     }
     else
     {
-        ctx.pState->getTextEditText(pWgt, g_ws.str);
+        ctx.pState->getTextEditText(pWgt, g_ws.strbuff);
     }
 
-    const int txt_width = g_ws.str.width();
+    const int txt_width = g_ws.strbuff.width();
 
     if (display_pos > 0)
     {
-        auto *str_beg = String::u8skip(g_ws.str.cstr(), display_pos + 1);
+        auto *str_beg = String::u8skip(g_ws.strbuff.cstr(), display_pos + 1);
         String s("◁");
         s << str_beg;
-        g_ws.str = std::move(s);
+        g_ws.strbuff = std::move(s);
     }
 
     if (display_pos + max_w <= txt_width)
     {
-        g_ws.str.setWidth(pWgt->size.width-3-1);
-        g_ws.str.append("▷");
+        g_ws.strbuff.setWidth(pWgt->size.width-3-1);
+        g_ws.strbuff.append("▷");
     }
     else
     {
-        g_ws.str.setWidth(pWgt->size.width-3);
+        g_ws.strbuff.setWidth(pWgt->size.width-3);
     }
-    g_ws.str.append("[^]");
+    g_ws.strbuff.append("[^]");
 
     bool focused = ctx.pState->isFocused(pWgt);
     auto clbg = getWidgetBgColor(pWgt);
@@ -457,25 +457,25 @@ static void drawTextEdit(CallCtx &ctx, const Widget *pWgt)
     moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
     pushClFg(getWidgetFgColor(pWgt));
-    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+    writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
 }
 
 static void drawLed(CallCtx &ctx, const Widget *pWgt)
 {
     auto clbg = ctx.pState->getLedLit(pWgt) ? pWgt->led.bgColorOn : pWgt->led.bgColorOff;
-    g_ws.str.clear();
+    g_ws.strbuff.clear();
 
     if (pWgt->led.text)
-        g_ws.str = pWgt->led.text;
+        g_ws.strbuff = pWgt->led.text;
     else
-        ctx.pState->getLedText(pWgt, g_ws.str);
+        ctx.pState->getLedText(pWgt, g_ws.strbuff);
 
     // led text
     FontMemento _m;
     moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
     pushClBg(clbg);
     pushClFg(getWidgetFgColor(pWgt));
-    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+    writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
 }
 
 static void drawCheckbox(CallCtx &ctx, const Widget *pWgt)
@@ -524,7 +524,7 @@ static void drawButton(CallCtx &ctx, const Widget *pWgt)
     if (pWgt->button.style == ButtonStyle::Simple)
     {
         FontMemento _m;
-        g_ws.str.clear()
+        g_ws.strbuff.clear()
                 .append("[ ")
                 .append(txt)
                 .append(" ]");
@@ -535,14 +535,14 @@ static void drawButton(CallCtx &ctx, const Widget *pWgt)
         auto clbg = pressed ? getWidgetBgColor(pWgt) : getWidgetBgColor(getParent(pWgt));
         pushClBg(clbg);
         pushClFg(clfg);
-        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+        writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
     }
     else if (pWgt->button.style == ButtonStyle::Solid)
     {
         {
             FontMemento _m;
-            g_ws.str.clear();
-            g_ws.str << " " << txt << " ";
+            g_ws.strbuff.clear();
+            g_ws.strbuff << " " << txt << " ";
 
             auto clbg = getWidgetBgColor(pWgt);
             moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
@@ -550,7 +550,7 @@ static void drawButton(CallCtx &ctx, const Widget *pWgt)
             if (pressed) pushAttr(FontAttrib::Inverse);
             pushClBg(clbg);
             pushClFg(clfg);
-            writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+            writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
         }
 
         auto shadow_len = 2 + txt.width();
@@ -579,8 +579,8 @@ static void drawButton(CallCtx &ctx, const Widget *pWgt)
     }
     else if (pWgt->button.style == ButtonStyle::Solid1p5)
     {
-        g_ws.str.clear();
-        g_ws.str << " " << txt << " ";
+        g_ws.strbuff.clear();
+        g_ws.strbuff << " " << txt << " ";
         auto clbg = getWidgetBgColor(pWgt);
         auto clparbg = getWidgetBgColor(getParent(pWgt));
         const int16_t bnt_len = 2 + txt.width();
@@ -603,7 +603,7 @@ static void drawButton(CallCtx &ctx, const Widget *pWgt)
         pushClFg(clfg);
         if (pressed) pushAttr(FontAttrib::Inverse);
         if (focused) pushAttr(FontAttrib::Bold);
-        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+        writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
         if (focused) popAttr();
         if (pressed) popAttr();
 
@@ -650,13 +650,13 @@ static void drawPageControl(CallCtx &ctx, const Widget *pWgt)
     auto coord_bkp = ctx.parentCoord;
     ctx.parentCoord = my_coord;
     // tabs title
-    g_ws.str.clear();
-    g_ws.str.append(' ', (pWgt->pagectrl.tabWidth-8) / 2);
-    g_ws.str.append("≡ MENU ≡");
-    g_ws.str.setWidth(pWgt->pagectrl.tabWidth);
+    g_ws.strbuff.clear();
+    g_ws.strbuff.append(' ', (pWgt->pagectrl.tabWidth-8) / 2);
+    g_ws.strbuff.append("≡ MENU ≡");
+    g_ws.strbuff.setWidth(pWgt->pagectrl.tabWidth);
     moveTo(my_coord.col, my_coord.row + pWgt->pagectrl.vertOffs);
     pushAttr(FontAttrib::Inverse);
-    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+    writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
     popAttr();
 
     // draw tabs and pages
@@ -673,9 +673,9 @@ static void drawPageControl(CallCtx &ctx, const Widget *pWgt)
         const auto *p_page = &ctx.pWidgets[pWgt->link.childrenIdx + i];
 
         // draw page title
-        g_ws.str.clear();
-        g_ws.str.appendFmt("%s%s", i == pg_idx ? "►" : " ", p_page->page.title);
-        g_ws.str.setWidth(pWgt->pagectrl.tabWidth, true);
+        g_ws.strbuff.clear();
+        g_ws.strbuff.appendFmt("%s%s", i == pg_idx ? "►" : " ", p_page->page.title);
+        g_ws.strbuff.setWidth(pWgt->pagectrl.tabWidth, true);
 
         moveTo(my_coord.col, my_coord.row + pWgt->pagectrl.vertOffs + i + 1);
 
@@ -686,7 +686,7 @@ static void drawPageControl(CallCtx &ctx, const Widget *pWgt)
 
         pushClFg(clfg);
         if (i == pg_idx) pushAttr(FontAttrib::Inverse);
-        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+        writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
         if (i == pg_idx) popAttr();
         popClFg();
 
@@ -735,13 +735,13 @@ static void drawProgressBar(CallCtx &ctx, const Widget *pWgt)
     if (pos > max) pos = max;
 
     moveTo(ctx.parentCoord.col + pWgt->coord.col, ctx.parentCoord.row + pWgt->coord.row);
-    g_ws.str.clear();
+    g_ws.strbuff.clear();
     int fill = pos * pWgt->size.width / max;
-    g_ws.str.append(style_data[style][0], fill);
-    g_ws.str.append(style_data[style][1], pWgt->size.width - fill);
+    g_ws.strbuff.append(style_data[style][0], fill);
+    g_ws.strbuff.append(style_data[style][1], pWgt->size.width - fill);
 
     pushClFg(getWidgetFgColor(pWgt));
-    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+    writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
     popClFg();
 
     // ████░░░░░░░░░░░
@@ -780,23 +780,23 @@ static void drawList(DrawListParams &p)
         bool is_sel_item = p.top_item + i == p.sel_idx;
         moveTo(p.coord.col + p.frame_size, p.coord.row + i + p.frame_size);
 
-        g_ws.str.clear();
+        g_ws.strbuff.clear();
 
         if (p.top_item + i < p.items_cnt)
         {
-            p.getItem(p.top_item + i, g_ws.str);
-            g_ws.str.insert(0, is_current_item ? "►" : " ");
-            g_ws.str.setWidth(p.wgt_width - 1 - p.frame_size, true);
+            p.getItem(p.top_item + i, g_ws.strbuff);
+            g_ws.strbuff.insert(0, is_current_item ? "►" : " ");
+            g_ws.strbuff.setWidth(p.wgt_width - 1 - p.frame_size, true);
         }
         else
         {
             // empty string - to erase old content
-            g_ws.str.setWidth(p.wgt_width - 1 - p.frame_size);
+            g_ws.strbuff.setWidth(p.wgt_width - 1 - p.frame_size);
         }
 
         if (p.focused && is_sel_item) pushAttr(FontAttrib::Inverse);
         if (is_current_item) pushAttr(FontAttrib::Underline);
-        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+        writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
         if (is_current_item) popAttr();
         if (p.focused && is_sel_item) popAttr();
     }
@@ -835,11 +835,11 @@ static void drawComboBox(CallCtx &ctx, const Widget *pWgt)
     ctx.pState->getComboBoxState(pWgt, item_idx, sel_idx, items_count, drop_down);
 
     {
-        g_ws.str.clear();
-        ctx.pState->getComboBoxItem(pWgt, item_idx, g_ws.str);
-        g_ws.str.insert(0, " ");
-        g_ws.str.setWidth(pWgt->size.width - 4, true);
-        g_ws.str << " [▼]";
+        g_ws.strbuff.clear();
+        ctx.pState->getComboBoxItem(pWgt, item_idx, g_ws.strbuff);
+        g_ws.strbuff.insert(0, " ");
+        g_ws.strbuff.setWidth(pWgt->size.width - 4, true);
+        g_ws.strbuff << (drop_down ? " [▲]" : " [▼]");
 
         moveTo(my_coord.col, my_coord.row);
         pushClFg(getWidgetFgColor(pWgt));
@@ -847,7 +847,7 @@ static void drawComboBox(CallCtx &ctx, const Widget *pWgt)
         if (focused && !drop_down) pushAttr(FontAttrib::Inverse);
         if (drop_down) pushAttr(FontAttrib::Underline);
         if (focused) pushAttr(FontAttrib::Bold);
-        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+        writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
         if (focused) popAttr();
         if (drop_down) popAttr();
     }
@@ -914,33 +914,33 @@ static void drawTextBox(CallCtx &ctx, const Widget *pWgt)
     flushBuffer();
 
     // scan invisible lines for ESC sequences: colors, font attributes
-    g_ws.str.clear();
+    g_ws.strbuff.clear();
     for (int i = 0; i < top_line; i++)
     {
         auto sr = (*p_lines)[i];
         while (const char *esc = twins::util::strnchr(sr.data, sr.size, '\e'))
         {
             auto esclen = String::escLen(esc, sr.data + sr.size);
-            g_ws.str.appendLen(esc, esclen);
+            g_ws.strbuff.appendLen(esc, esclen);
 
             sr.size -= esc - sr.data + 1;
             sr.data = esc + 1;
         }
     }
-    writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+    writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
 
     // draw lines
     for (int i = 0; i < lines_visible; i++)
     {
-        g_ws.str.clear();
+        g_ws.strbuff.clear();
         if (top_line + i < (int)p_lines->size())
         {
             const auto &sr = (*p_lines)[top_line + i];
-            g_ws.str.appendLen(sr.data, sr.size);
+            g_ws.strbuff.appendLen(sr.data, sr.size);
         }
-        g_ws.str.setWidth(pWgt->size.width - 2, true);
+        g_ws.strbuff.setWidth(pWgt->size.width - 2, true);
         moveTo(my_coord.col + 1, my_coord.row + i + 1);
-        writeStrLen(g_ws.str.cstr(), g_ws.str.size());
+        writeStrLen(g_ws.strbuff.cstr(), g_ws.strbuff.size());
     }
 
     flushBuffer();

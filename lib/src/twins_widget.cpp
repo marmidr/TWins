@@ -137,9 +137,9 @@ const Widget* getWidgetAt(CallCtx &ctx, uint8_t col, uint8_t row, Rect &wgtRect)
                 txt_w = p_wgt->size.width;
             else
             {
-                g_ws.str.clear();
-                ctx.pState->getButtonText(p_wgt, g_ws.str);
-                txt_w = g_ws.str.width();
+                g_ws.strbuff.clear();
+                ctx.pState->getButtonText(p_wgt, g_ws.strbuff);
+                txt_w = g_ws.strbuff.width();
             }
 
             switch (p_wgt->button.style)
@@ -663,7 +663,7 @@ static void comboBoxHideList(CallCtx &ctx, const Widget *pWgt)
     // redraw parent to hide list
     const auto *p_parent = getParent(pWgt);
     ctx.pState->invalidate(p_parent->id);
-    g_ws.pDropDownCombo = nullptr;
+    g_ws.pCbxDropDown = nullptr;
 }
 
 // -----------------------------------------------------------------------------
@@ -673,7 +673,7 @@ static bool processKey_TextEdit(CallCtx &ctx, const Widget *pWgt, const KeyCode 
     if (pWgt == g_ws.textEditState.pWgt)
     {
         // if in edit state, allow user to handle key
-        if (ctx.pState->onTextEditInputEvt(pWgt, kc, g_ws.textEditState.str, g_ws.textEditState.cursorPos))
+        if (ctx.pState->onTextEditInputEvt(pWgt, kc, g_ws.textEditState.txt, g_ws.textEditState.cursorPos))
         {
             ctx.pState->invalidate(pWgt->id);
             return true;
@@ -699,14 +699,14 @@ static bool processKey_TextEdit(CallCtx &ctx, const Widget *pWgt, const KeyCode 
                 break;
             case Key::Tab:
                 // real TAB may have different widths and require extra processing
-                g_ws.textEditState.str.insert(cursor_pos, "    ");
+                g_ws.textEditState.txt.insert(cursor_pos, "    ");
                 cursor_pos += 4;
                 ctx.pState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
             case Key::Enter:
                 // finish editing
-                ctx.pState->onTextEditChange(pWgt, std::move(g_ws.textEditState.str));
+                ctx.pState->onTextEditChange(pWgt, std::move(g_ws.textEditState.txt));
                 g_ws.textEditState.pWgt = nullptr;
                 ctx.pState->invalidate(pWgt->id);
                 key_handled = true;
@@ -716,12 +716,12 @@ static bool processKey_TextEdit(CallCtx &ctx, const Widget *pWgt, const KeyCode 
                 {
                     if (kc.m_ctrl)
                     {
-                        g_ws.textEditState.str.erase(0, cursor_pos);
+                        g_ws.textEditState.txt.erase(0, cursor_pos);
                         cursor_pos = 0;
                     }
                     else
                     {
-                        g_ws.textEditState.str.erase(cursor_pos-1);
+                        g_ws.textEditState.txt.erase(cursor_pos-1);
                         cursor_pos--;
                     }
                     ctx.pState->invalidate(pWgt->id);
@@ -730,9 +730,9 @@ static bool processKey_TextEdit(CallCtx &ctx, const Widget *pWgt, const KeyCode 
                 break;
             case Key::Delete:
                 if (kc.m_ctrl)
-                    g_ws.textEditState.str.trim(cursor_pos);
+                    g_ws.textEditState.txt.trim(cursor_pos);
                 else
-                    g_ws.textEditState.str.erase(cursor_pos);
+                    g_ws.textEditState.txt.erase(cursor_pos);
 
                 key_handled = true;
                 ctx.pState->invalidate(pWgt->id);
@@ -749,7 +749,7 @@ static bool processKey_TextEdit(CallCtx &ctx, const Widget *pWgt, const KeyCode 
                 key_handled = true;
                 break;
             case Key::Right:
-                if (cursor_pos < (signed)g_ws.textEditState.str.u8len())
+                if (cursor_pos < (signed)g_ws.textEditState.txt.u8len())
                 {
                     cursor_pos++;
                     ctx.pState->invalidate(pWgt->id);
@@ -762,7 +762,7 @@ static bool processKey_TextEdit(CallCtx &ctx, const Widget *pWgt, const KeyCode 
                 key_handled = true;
                 break;
             case Key::End:
-                cursor_pos = g_ws.textEditState.str.u8len();
+                cursor_pos = g_ws.textEditState.txt.u8len();
                 ctx.pState->invalidate(pWgt->id);
                 key_handled = true;
                 break;
@@ -772,7 +772,7 @@ static bool processKey_TextEdit(CallCtx &ctx, const Widget *pWgt, const KeyCode 
         }
         else
         {
-            g_ws.textEditState.str.insert(cursor_pos, kc.utf8);
+            g_ws.textEditState.txt.insert(cursor_pos, kc.utf8);
             cursor_pos++;
             ctx.pState->invalidate(pWgt->id);
             key_handled = true;
@@ -784,9 +784,9 @@ static bool processKey_TextEdit(CallCtx &ctx, const Widget *pWgt, const KeyCode 
     {
         // enter edit mode
         g_ws.textEditState.pWgt = pWgt;
-        g_ws.textEditState.str.clear();
-        ctx.pState->getTextEditText(pWgt, g_ws.textEditState.str, true);
-        g_ws.textEditState.cursorPos = g_ws.textEditState.str.u8len();
+        g_ws.textEditState.txt.clear();
+        ctx.pState->getTextEditText(pWgt, g_ws.textEditState.txt, true);
+        g_ws.textEditState.cursorPos = g_ws.textEditState.txt.u8len();
         ctx.pState->invalidate(pWgt->id);
         key_handled = true;
     }
@@ -944,7 +944,7 @@ static bool processKey_ComboBox(CallCtx &ctx, const Widget *pWgt, const KeyCode 
             if (drop_down)
             {
                 ctx.pState->onComboBoxDrop(pWgt, true);
-                g_ws.pDropDownCombo = pWgt;
+                g_ws.pCbxDropDown = pWgt;
             }
             else
             {
@@ -1277,7 +1277,7 @@ static void processMouse_ComboBox(CallCtx &ctx, const Widget *pWgt, const Rect &
             {
                 ctx.pState->onComboBoxDrop(pWgt, true);
                 ctx.pState->invalidate(pWgt->id);
-                g_ws.pDropDownCombo = pWgt;
+                g_ws.pCbxDropDown = pWgt;
             }
             else
             {
@@ -1405,26 +1405,25 @@ static bool processMouse(CallCtx &ctx, const KeyCode &kc)
 
     // TWINS_LOG_D("WidgetAt(%2d:%2d)=%s ID:%u", kc.mouse.col, kc.mouse.row, toString(p_wgt->type), p_wgt->id);
 
-    if (g_ws.pDropDownCombo)
+    if (g_ws.pCbxDropDown)
     {
         // check if drop-down list clicked
         Rect dropdownlist_rct;
-        dropdownlist_rct.coord = getScreenCoord(g_ws.pDropDownCombo);
-        dropdownlist_rct.coord.row++;
-        dropdownlist_rct.size.width = g_ws.pDropDownCombo->size.width;
-        dropdownlist_rct.size.height = g_ws.pDropDownCombo->combobox.dropDownSize;
+        dropdownlist_rct.coord = getScreenCoord(g_ws.pCbxDropDown);
+        dropdownlist_rct.size.width = g_ws.pCbxDropDown->size.width;
+        dropdownlist_rct.size.height = g_ws.pCbxDropDown->combobox.dropDownSize + 1;
 
         if (isPointWithin(kc.mouse.col, kc.mouse.row, dropdownlist_rct))
         {
             // yes -> replace data for processing with g_ds.pDropDownCombo
-            p_wgt = g_ws.pDropDownCombo;
-            rct.coord = getScreenCoord(g_ws.pDropDownCombo);
-            rct.size = g_ws.pDropDownCombo->size;
+            p_wgt = g_ws.pCbxDropDown;
+            rct.coord = getScreenCoord(g_ws.pCbxDropDown);
+            rct.size = g_ws.pCbxDropDown->size;
         }
         else
         {
             if (kc.mouse.btn == MouseBtn::ButtonLeft)
-                comboBoxHideList(ctx, g_ws.pDropDownCombo);
+                comboBoxHideList(ctx, g_ws.pCbxDropDown);
         }
     }
 
@@ -1576,9 +1575,9 @@ bool processInput(const Widget *pWindowWidgets, const KeyCode &kc)
 
         if (!key_processed && kc.m_spec)
         {
-            if (g_ws.pDropDownCombo)
+            if (g_ws.pCbxDropDown)
             {
-                comboBoxHideList(ctx, g_ws.pDropDownCombo);
+                comboBoxHideList(ctx, g_ws.pCbxDropDown);
             }
 
             switch (kc.key)
@@ -1625,7 +1624,7 @@ void resetInternalState()
 {
     g_ws.pFocusedWgt = nullptr;
     g_ws.pMouseDownWgt = nullptr;
-    g_ws.pDropDownCombo = nullptr;
+    g_ws.pCbxDropDown = nullptr;
     g_ws.textEditState.pWgt = nullptr;
 }
 

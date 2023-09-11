@@ -26,16 +26,16 @@ struct WidgetSearchStruct
 /** Widget drawing state object */
 struct WidgetState
 {
-    String  str;                        // common string buff for widget drawers
+    String strbuff;                     // common string buff for widget drawers
     const Widget *pFocusedWgt = {};     //
     const Widget *pMouseDownWgt = {};   //
-    const Widget *pDropDownCombo = {};
+    const Widget *pCbxDropDown = {};
     KeyCode       mouseDownKeyCode = {};
     struct                              // state of Edit being modified
     {
         const Widget *pWgt = nullptr;
         int16_t cursorPos = 0;
-        String  str;
+        String  txt;
     } textEditState;
 };
 
