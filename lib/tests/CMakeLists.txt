@@ -32,17 +32,18 @@ target_link_libraries(${TARGETNAME}
     gmock
 )
 
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
-    # https://cmake.org/cmake/help/v3.19/command/target_precompile_headers.html
-    # 51s -> 40s
-    target_precompile_headers(${TARGETNAME}
-        PRIVATE
-            <string>
-            <vector>
-            <gtest/gtest.h>
-            <gmock/gmock.h>
-    )
-endif()
+# FIXME: causes problems when used with VSCode
+# if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
+#     # https://cmake.org/cmake/help/v3.19/command/target_precompile_headers.html
+#     # 51s -> 40s
+#     target_precompile_headers(${TARGETNAME}
+#         PRIVATE
+#             <string>
+#             <vector>
+#             <gtest/gtest.h>
+#             <gmock/gmock.h>
+#     )
+# endif()
 
 # ---
 

@@ -31,14 +31,15 @@ target_include_directories(${TARGETNAME}
         inc
 )
 
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
-    target_precompile_headers(${TARGETNAME}
-        PRIVATE
-            <utility>
-            <type_traits>
-            <memory>
-    )
-endif()
+# FIXME: causes problems when used with VSCode
+# if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
+#     target_precompile_headers(${TARGETNAME}
+#         PRIVATE
+#             <utility>
+#             <type_traits>
+#             <memory>
+#     )
+# endif()
 
 if (TWINS_USE_FASTFILL)
     target_compile_definitions(${TARGETNAME} PRIVATE -DTWINS_FAST_FILL=1)
