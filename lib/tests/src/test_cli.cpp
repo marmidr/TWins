@@ -97,6 +97,14 @@ TEST_F(CLI, commands)
     EXPECT_TRUE(ver_called);
     EXPECT_EQ('u', move_dir);
 
+    // known command, but extra chars
+    move_dir = 0;
+    default_called = false;
+    twins::cli::processInput("moveEEE up" "\r\n");
+    EXPECT_TRUE(twins::cli::checkAndExec(commands));
+    EXPECT_TRUE(default_called);
+    EXPECT_EQ(0, move_dir);
+
     // test for alias
     ver_called = false;
     twins::cli::processInput("V" "\r\n");
@@ -119,6 +127,7 @@ TEST_F(CLI, commands)
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
 
     // unknown cmd
+    default_called = false;
     twins::cli::processInput("say-ello\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
     EXPECT_TRUE(default_called);
