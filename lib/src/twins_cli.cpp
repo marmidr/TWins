@@ -432,6 +432,7 @@ void prompt(bool newLn)
 {
     if (newLn) writeStr("\r\n");
     writeStr(ESC_FG_GREEN_INTENSE "> " ESC_FG_WHITE_INTENSE);
+    pPAL->promptPrinted();
 }
 
 bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)

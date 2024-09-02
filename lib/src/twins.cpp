@@ -30,6 +30,7 @@ struct StubPAL : twins::IPal
     int writeStrVFmt(const char *, va_list) override { return 0; }
     void flushBuff() override {}
     void setLogging(bool) override {}
+    void promptPrinted() override {}
     void* memAlloc(uint32_t) override { assert(!"PAL not set"); return nullptr; }
     void memFree(void *) override {}
     void sleep(uint16_t) override {}

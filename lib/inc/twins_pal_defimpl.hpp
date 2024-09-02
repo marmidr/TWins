@@ -91,6 +91,8 @@ struct DefaultPAL : twins::IPal
 
     void setLogging(bool on) override {}
 
+    void promptPrinted() override {}
+
     void* memAlloc(uint32_t size) override
     {
     #if TWINS_PAL_FULLIMPL
