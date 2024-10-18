@@ -177,9 +177,12 @@ struct DefaultPAL : twins::IPal
         return true;
     }
 
-    void unlock() override
-    {
-    }
+    void unlock() override {}
+
+
+    void wgtDrawBegin(const void *pWgt) override {}
+
+    void wgtDrawEnd(const void *pWgt) override {}
 
 protected:
     // called before PAL is unregistered

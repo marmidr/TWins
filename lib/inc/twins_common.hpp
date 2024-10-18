@@ -30,7 +30,9 @@ namespace twins
 # define BIT(n)                  (1 << (n))
 #endif
 
-#define INRANGE(val, min, max)  (((val) >= (min)) && ((val) <= (max)))
+#ifndef INRANGE
+# define INRANGE(val, min, max)  (((val) >= (min)) && ((val) <= (max)))
+#endif
 
 // forward decl
 class String;
@@ -100,8 +102,12 @@ struct IPal
     virtual uint16_t getLogsRow() = 0;
     virtual uint32_t getTimeStamp() = 0;
     virtual uint32_t getTimeDiff(uint32_t timestamp) = 0;
+    //
     virtual bool lock(bool wait = true) = 0;
     virtual void unlock() = 0;
+    //
+    virtual void wgtDrawBegin(const void *pWgt) = 0;
+    virtual void wgtDrawEnd(const void *pWgt) = 0;
 };
 
 
