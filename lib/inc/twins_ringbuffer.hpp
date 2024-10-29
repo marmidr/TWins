@@ -8,8 +8,9 @@
 #pragma once
 #include "twins_common.hpp"
 
-#include <stdint.h>
+#include <atomic>
 #include <assert.h>
+#include <stdint.h>
 #include <string.h>
 
 // -----------------------------------------------------------------------------
@@ -33,15 +34,24 @@ public:
     template<uint16_t N>
     RingBuff(T (&buffer)[N])
     {
-        mpBuff = buffer;
-        mCapacity = N;
-        mStaticBuff = true;
+        initStatic<N>(buffer);
     }
 
     ~RingBuff()
     {
         if (mpBuff && !mStaticBuff)
             pPAL->memFree(mpBuff);
+    }
+
+    /** @brief Initialize with external static buffer of size N */
+    template<uint16_t N>
+    void initStatic(T (&buffer)[N])
+    {
+        assert(!(mpBuff && !mStaticBuff));
+
+        mpBuff = buffer;
+        mCapacity = N;
+        mStaticBuff = true;
     }
 
     /** @brief Initialize the internal buffer using twins::IOS memAlloc() */
@@ -84,6 +94,7 @@ public:
         mpBuff[mWriteIdx++] = data;
         if (mWriteIdx == mCapacity)
             mWriteIdx = 0;
+
         mSize++;
         return true;
     }
@@ -96,14 +107,17 @@ public:
         assert(mpBuff);
         if (mSize + dataSize > mCapacity)
             return false;
-        mSize += dataSize;
 
-        while (dataSize--)
+        uint32_t toCopy = dataSize;
+
+        while (toCopy--)
         {
             mpBuff[mWriteIdx++] = *data++;
             if (mWriteIdx == mCapacity)
                 mWriteIdx = 0;
         }
+
+        mSize += dataSize;
         return true;
     }
 
@@ -123,10 +137,13 @@ public:
         if (mSize == 0)
             return nullptr;
 
-        T *ret = mpBuff + mReadIdx++;
+        T *ret = mpBuff + mReadIdx;
         mSize--;
+        mReadIdx++;
+
         if (mReadIdx == mCapacity)
             mReadIdx = 0;
+
         return ret;
     }
 
@@ -142,16 +159,16 @@ public:
         if (count > mSize)
             count = mSize;
 
-        uint16_t n = count;
-        mSize -= count;
+        uint32_t toCopy = count;
 
-        while (n--)
+        while (toCopy--)
         {
             *buffer++ = mpBuff[mReadIdx++];
             if (mReadIdx == mCapacity)
                 mReadIdx = 0;
         }
 
+        mSize -= count;
         return count;
     }
 
@@ -168,10 +185,10 @@ public:
         if (count > mSize)
             count = mSize;
 
-        uint16_t n = count;
+        uint32_t toCopy = count;
         uint16_t head = mReadIdx;
 
-        while (n--)
+        while (toCopy--)
         {
             *buffer++ = mpBuff[head++];
             if (head == mCapacity)
@@ -220,12 +237,13 @@ public:
     }
 
 private:
-    uint16_t mWriteIdx = 0;
-    uint16_t mReadIdx = 0;
-    uint16_t mSize = 0;
-    uint16_t mCapacity = 0;
-    bool     mStaticBuff = false;
-    T *      mpBuff = nullptr;
+    std::atomic_uint16_t mWriteIdx {};
+    std::atomic_uint16_t mReadIdx {};
+    std::atomic_uint16_t mSize {};
+
+    uint16_t mCapacity {};
+    bool     mStaticBuff {};
+    T *      mpBuff {};
 };
 
 // -----------------------------------------------------------------------------

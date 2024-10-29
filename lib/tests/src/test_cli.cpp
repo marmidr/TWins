@@ -126,6 +126,10 @@ TEST_F(CLI, commands)
     twins::cli::processInput("help" "\r\n");
     EXPECT_TRUE(twins::cli::checkAndExec(commands));
 
+    // print help of given command
+    twins::cli::processInput("help ver" "\r\n");
+    EXPECT_TRUE(twins::cli::checkAndExec(commands));
+
     // unknown cmd
     default_called = false;
     twins::cli::processInput("say-ello\r\n");

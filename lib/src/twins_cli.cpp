@@ -61,6 +61,11 @@ void deInit(void)
     g_cs.~CliState();
 }
 
+static inline bool streq(const char *s1, const char *s2)
+{
+    return strcmp(s1, s2) == 0;
+}
+
 // -----------------------------------------------------------------------------
 
 void reset(void)
@@ -294,24 +299,53 @@ History& getHistory(void)
     return g_cs.history;
 }
 
-void printHelp(const Cmd* pCommands)
+void printHelp(Argv &argv, const Cmd* pCommands)
 {
-    writeStr(ESC_BOLD "help" ESC_NORMAL "\r\n" "    this help" "\r\n");
-    writeStr(ESC_BOLD "hist" ESC_NORMAL "\r\n" "    commands history" "\r\n");
+    const char *pSubCmdHelp = argv.size() > 1 ? argv[1] : nullptr;
+    bool subCmdFound = false;
+
+    if (!pSubCmdHelp)
+    {
+        writeStr(ESC_BOLD "help" ESC_NORMAL " <cmd>" "\r\n" "    this help" "\r\n");
+        writeStr(ESC_BOLD "hist" ESC_NORMAL "\r\n" "    commands history" "\r\n");
+    }
 
     while (pCommands->name)
     {
         // default cmd has empty name
         if (pCommands->name[0] != '\0')
         {
+            if (pSubCmdHelp)
+            {
+                // help for this single command
+                if (!streq(pSubCmdHelp, pCommands->name))
+                {
+                    pCommands++;
+                    continue;
+                }
+            }
+
             writeStr(ESC_BOLD);
             writeStr(pCommands->name);
             writeStr(ESC_NORMAL " ");
             writeStr(pCommands->help);
             writeStr("\r\n");
             flushBuffer();
+
+            if (pSubCmdHelp)
+            {
+                subCmdFound = true;
+                // asked for this single command - we can quit the loop
+                break;
+            }
         }
+
         pCommands++;
+    }
+
+    if (pSubCmdHelp && !subCmdFound)
+    {
+        writeStrFmt("command '%s' not found" "\r\n", pSubCmdHelp);
     }
 }
 
@@ -432,9 +466,10 @@ void prompt(bool newLn)
 {
     if (newLn) writeStr("\r\n");
     writeStr(ESC_FG_GREEN_INTENSE "> " ESC_FG_WHITE_INTENSE);
+    pPAL->promptPrinted();
 }
 
-bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
+bool checkAndExec(const Cmd* pCommands, bool lastCommandSet)
 {
     assert(pCommands);
     if (g_cs.cmdQue.size() == 0)
@@ -448,10 +483,10 @@ bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
     }
 
     if (g_cs.overrideHandler)
-        soleOrLastCommandsSet = true;
+        lastCommandSet = true;
 
     StringBuff cmd;
-    if (soleOrLastCommandsSet)
+    if (lastCommandSet)
         cmd = g_cs.cmdQue.read();
     else
         cmd = *g_cs.cmdQue.front();
@@ -488,15 +523,6 @@ bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
             }
         }
 
-        if (cmd == "help")
-        {
-            printHelp(pCommands);
-            prompt(false);
-            flushBuffer();
-            g_cs.cmdQue.read();
-            return true;
-        }
-
         if (cmd == "hist")
         {
             printHistory();
@@ -516,19 +542,28 @@ bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
         g_cs.overrideHandler(argv);
         found = true;
     }
+    else if (argv.size() > 0 && streq(argv[0], "help"))
+    {
+        printHelp(argv, pCommands);
+        prompt(false);
+        flushBuffer();
+        g_cs.cmdQue.read();
+        return true;
+    }
     else if (const auto *p_cmd = find_cmd_handler(pCommands, argv))
     {
         p_cmd->handler(argv);
         found = true;
-        if (!soleOrLastCommandsSet) g_cs.cmdQue.read();
+        if (!lastCommandSet)
+            g_cs.cmdQue.read();
     }
     else
     {
-        if (soleOrLastCommandsSet)
-            writeStr("unknown command" "\r\n");
+        if (lastCommandSet)
+            writeStr("unknown command - type 'help' for available commands" "\r\n");
     }
 
-    if (soleOrLastCommandsSet)
+    if (lastCommandSet)
         prompt(false);
 
     flushBuffer();
