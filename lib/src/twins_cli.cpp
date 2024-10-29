@@ -383,13 +383,13 @@ void tokenize(StringBuff &cmd, Argv &argv)
     }
 }
 
-const Cmd* find(const Cmd* pCommands, Argv &argv)
+const Cmd* find_cmd_handler(const Cmd* pCommands, Argv &argv)
 {
     const Cmd* p_dflt = nullptr;
 
     if (argv.size())
     {
-        const char *cmd_name = argv[0];
+        const char *entered_cmd_name = argv[0];
 
         for (; pCommands->name; pCommands++)
         {
@@ -403,17 +403,23 @@ const Cmd* find(const Cmd* pCommands, Argv &argv)
                 continue;
             }
 
+            // get the command name end in case of 'cmd|alias'
             const char *ename = strchr(name, '|');
             if (!ename)
                 ename = name + strlen(name);
 
-            if (strncmp(name, cmd_name, ename-name) == 0)
-                return pCommands;
+            const size_t entered_cmd_len = strlen(entered_cmd_name);
+            // avoid matching 'moveee' for 'move' command
+            if ((size_t)(ename - name) == entered_cmd_len)
+            {
+                if (strncmp(name, entered_cmd_name, entered_cmd_len) == 0)
+                    return pCommands;
+            }
 
             if (*ename == '|')
             {
                 name = ename+1;
-                if (strcmp(name, cmd_name) == 0)
+                if (strcmp(name, entered_cmd_name) == 0)
                     return pCommands;
             }
         }
@@ -510,7 +516,7 @@ bool checkAndExec(const Cmd* pCommands, bool soleOrLastCommandsSet)
         g_cs.overrideHandler(argv);
         found = true;
     }
-    else if (const auto *p_cmd = find(pCommands, argv))
+    else if (const auto *p_cmd = find_cmd_handler(pCommands, argv))
     {
         p_cmd->handler(argv);
         found = true;
@@ -539,7 +545,7 @@ bool execLine(const char *cmdline, const Cmd* pCommands)
     tokenize(cmd, argv);
     bool found = false;
 
-    if (const auto *p_cmd = find(pCommands, argv))
+    if (const auto *p_cmd = find_cmd_handler(pCommands, argv))
     {
         found = true;
         p_cmd->handler(argv);
