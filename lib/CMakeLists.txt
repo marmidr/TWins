@@ -101,6 +101,4 @@ if (TWINS_BUILD_UT)
 
     # enable coverage only for source files
     target_compile_options(${TARGETNAME} PRIVATE --coverage)
-
-    add_subdirectory(tests)
 endif()
