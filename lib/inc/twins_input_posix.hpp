@@ -6,6 +6,7 @@
  *****************************************************************************/
 
 #pragma once
+
 #include "twins_common.hpp"
 #include <stdint.h>
 
@@ -28,4 +29,4 @@ const char * inputPosixRead(bool &quitRequested);
 
 // -----------------------------------------------------------------------------
 
-} // namespace
+} // twins

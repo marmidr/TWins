@@ -98,7 +98,7 @@ namespace cli
 {
 extern void init(void);
 extern void deInit(void);
-}
+} // cli
 
 void init(IPal *pal)
 {
@@ -507,4 +507,4 @@ void resetAttr()
 
 // -----------------------------------------------------------------------------
 
-}
+} // twins
