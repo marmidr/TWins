@@ -51,6 +51,8 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-fcolor-diagnostics)
 endif ()
 
+# by default, we want to have 'compile_commands.json' generated
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "Generate JSON with compile commands" FORCE)
 
 # build target switches
 option(TWINS_BUILD_UT "Build TWins Unit Tests" OFF)
