@@ -30,7 +30,7 @@ definitions:
                 - git submodule update --init
                 # build
                 - mkdir build && cd build
-                - cmake -DCMAKE_BUILD_TYPE=Debug -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON ..
+                - cmake .. -DCMAKE_BUILD_TYPE=Debug -DTWINS_USE_SANITIZERS=OFF -DTWINS_BUILD_UT=ON -DTWINS_SEPARATE_TESTS=OFF
                 - make -j4
                 - ctest -j1 -V --output-on-failure --timeout 20
 

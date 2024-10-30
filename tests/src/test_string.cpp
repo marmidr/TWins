@@ -12,7 +12,7 @@
 
 // -----------------------------------------------------------------------------
 
-struct STRING_Test : public testing::Test
+struct STRING : public testing::Test
 {
     void SetUp() override
     {
@@ -29,7 +29,7 @@ struct STRING_Test : public testing::Test
 
 // -----------------------------------------------------------------------------
 
-TEST_F(STRING_Test, clear)
+TEST_F(STRING, clear)
 {
     {
         twins::String s;
@@ -59,7 +59,7 @@ TEST_F(STRING_Test, clear)
     }
 }
 
-TEST_F(STRING_Test, append_no_resize)
+TEST_F(STRING, append_no_resize)
 {
     {
         twins::String s;
@@ -84,7 +84,7 @@ TEST_F(STRING_Test, append_no_resize)
     EXPECT_EQ(1, pal.stats.memChunksMax);
 }
 
-TEST_F(STRING_Test, append_resize_buffer)
+TEST_F(STRING, append_resize_buffer)
 {
     {
         twins::String s;
@@ -106,7 +106,7 @@ TEST_F(STRING_Test, append_resize_buffer)
     EXPECT_EQ(2, pal.stats.memChunksMax);
 }
 
-TEST_F(STRING_Test, append_very_long)
+TEST_F(STRING, append_very_long)
 {
     twins::String s;
     s.append("12345ABCDE", 101);
@@ -119,7 +119,7 @@ TEST_F(STRING_Test, append_very_long)
     EXPECT_EQ(1, s.size());
 }
 
-TEST_F(STRING_Test, append_esc)
+TEST_F(STRING, append_esc)
 {
     twins::String s;
     s.append(ESC_BLINK "x" ESC_BLINK_OFF);
@@ -129,7 +129,7 @@ TEST_F(STRING_Test, append_esc)
     EXPECT_EQ(1, s.u8len(true));
 }
 
-TEST_F(STRING_Test, append_len)
+TEST_F(STRING, append_len)
 {
     twins::String s;
     s.appendLen(nullptr, 3);
@@ -145,7 +145,7 @@ TEST_F(STRING_Test, append_len)
     EXPECT_STREQ("ABC12345", s.cstr());
 }
 
-TEST_F(STRING_Test, append_fmt__fits_in_buffer)
+TEST_F(STRING, append_fmt__fits_in_buffer)
 {
     {
         twins::String s;
@@ -162,7 +162,7 @@ TEST_F(STRING_Test, append_fmt__fits_in_buffer)
     EXPECT_EQ(1, pal.stats.memChunksMax);
 }
 
-TEST_F(STRING_Test, append_fmt__buffer_to_small)
+TEST_F(STRING, append_fmt__buffer_to_small)
 {
     {
         twins::String s;
@@ -178,7 +178,7 @@ TEST_F(STRING_Test, append_fmt__buffer_to_small)
     EXPECT_EQ(2, pal.stats.memChunksMax);
 }
 
-TEST_F(STRING_Test, stream_append)
+TEST_F(STRING, stream_append)
 {
     twins::String s;
     s.append("x");
@@ -188,7 +188,7 @@ TEST_F(STRING_Test, stream_append)
     EXPECT_STREQ("x► Service Menu:", s.cstr());
 }
 
-TEST_F(STRING_Test, trim_no_ellipsis)
+TEST_F(STRING, trim_no_ellipsis)
 {
     twins::String s;
     s.append("► Service Menu");
@@ -204,7 +204,7 @@ TEST_F(STRING_Test, trim_no_ellipsis)
     EXPECT_STREQ("► Service ", s.cstr());
 }
 
-TEST_F(STRING_Test, trim_ellipsis_1)
+TEST_F(STRING, trim_ellipsis_1)
 {
     twins::String s;
     s = "► Service Menu";
@@ -213,7 +213,7 @@ TEST_F(STRING_Test, trim_ellipsis_1)
     EXPECT_STREQ("► Service ", s.cstr());
 }
 
-TEST_F(STRING_Test, trim_ellipsis_2)
+TEST_F(STRING, trim_ellipsis_2)
 {
     twins::String s;
     s = "► Service Menu";
@@ -222,7 +222,7 @@ TEST_F(STRING_Test, trim_ellipsis_2)
     EXPECT_STREQ("► Service M…", s.cstr());
 }
 
-TEST_F(STRING_Test, trim_ignore_esc)
+TEST_F(STRING, trim_ignore_esc)
 {
     twins::String s;
     s.append("►" ESC_BOLD " Service" ESC_NORMAL " Menu");
@@ -231,7 +231,7 @@ TEST_F(STRING_Test, trim_ignore_esc)
     EXPECT_STREQ("►" ESC_BOLD " Service" ESC_NORMAL " ", s.cstr());
 }
 
-TEST_F(STRING_Test, set_width)
+TEST_F(STRING, set_width)
 {
     {
         twins::String s;
@@ -281,7 +281,7 @@ TEST_F(STRING_Test, set_width)
     }
 }
 
-TEST_F(STRING_Test, copy_assign)
+TEST_F(STRING, copy_assign)
 {
     twins::String s;
     s = "Menu";
@@ -297,7 +297,7 @@ TEST_F(STRING_Test, copy_assign)
     EXPECT_STREQ("Menu", s.cstr());
 }
 
-TEST_F(STRING_Test, move_assign)
+TEST_F(STRING, move_assign)
 {
     twins::String s1;
     s1 = "Menu";
@@ -317,7 +317,7 @@ TEST_F(STRING_Test, move_assign)
     EXPECT_EQ(4, s3.size());
 }
 
-TEST_F(STRING_Test, erase)
+TEST_F(STRING, erase)
 {
     {
         twins::String s;
@@ -344,7 +344,7 @@ TEST_F(STRING_Test, erase)
     }
 }
 
-TEST_F(STRING_Test, insert)
+TEST_F(STRING, insert)
 {
     {
         twins::String s;
@@ -392,7 +392,7 @@ TEST_F(STRING_Test, insert)
     }
 }
 
-TEST_F(STRING_Test, escLen)
+TEST_F(STRING, escLen)
 {
     EXPECT_EQ(0, twins::String::escLen(nullptr));
     EXPECT_EQ(0, twins::String::escLen(""));
@@ -420,7 +420,7 @@ TEST_F(STRING_Test, escLen)
     EXPECT_EQ(0, twins::String::escLen("\e[Ma$\"", "\e[Ma$\""+5));
 }
 
-TEST_F(STRING_Test, u8len_IgnoreEsc)
+TEST_F(STRING, u8len_IgnoreEsc)
 {
     EXPECT_EQ(0, twins::String::u8len(nullptr));
     EXPECT_EQ(0, twins::String::u8len(""));
@@ -433,7 +433,7 @@ TEST_F(STRING_Test, u8len_IgnoreEsc)
     EXPECT_EQ(4, twins::String::u8len("Ą\e[ABĆ\e[48;2;255;255;255mĘ", nullptr, true));
 }
 
-TEST_F(STRING_Test, u8skipEsc)
+TEST_F(STRING, u8skipEsc)
 {
     EXPECT_STREQ("", twins::String::u8skip(nullptr, 0));
     EXPECT_STREQ("", twins::String::u8skip("", 5));
@@ -447,7 +447,7 @@ TEST_F(STRING_Test, u8skipEsc)
     EXPECT_STREQ("", twins::String::u8skip("Ą\e[ABĆ\e[1;2AĘ", 4));
 }
 
-TEST_F(STRING_Test, emoticons)
+TEST_F(STRING, emoticons)
 {
     EXPECT_EQ(11, twins::String::u8len("😉\e[1m*\e[0m🍺", nullptr, false, false));
     EXPECT_EQ(13, twins::String::u8len("😉\e[1m*\e[0m🍺", nullptr, false, true));
@@ -460,7 +460,7 @@ TEST_F(STRING_Test, emoticons)
     EXPECT_EQ( 5, s.width());
 }
 
-TEST_F(STRING_Test, startsWith)
+TEST_F(STRING, startsWith)
 {
     {
         twins::String s;
@@ -487,7 +487,7 @@ TEST_F(STRING_Test, startsWith)
     }
 }
 
-TEST_F(STRING_Test, find)
+TEST_F(STRING, find)
 {
     twins::String s;
     EXPECT_EQ(-1, s.find(nullptr));
@@ -499,7 +499,7 @@ TEST_F(STRING_Test, find)
     EXPECT_EQ(4,  s.find("Ć"));
 }
 
-TEST_F(STRING_Test, eq)
+TEST_F(STRING, eq)
 {
     twins::String s;
     EXPECT_FALSE(s == nullptr);
