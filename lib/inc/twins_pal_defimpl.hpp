@@ -89,7 +89,7 @@ struct DefaultPAL : twins::IPal
     #endif
     }
 
-    void setLogging(bool on) override {}
+    void setLogging(bool /* on */) override {}
 
     void promptPrinted() override {}
 
@@ -180,9 +180,9 @@ struct DefaultPAL : twins::IPal
     void unlock() override {}
 
 
-    void wgtDrawBegin(const void *pWgt) override {}
+    void wgtDrawBegin(const void */* pWgt */) override {}
 
-    void wgtDrawEnd(const void *pWgt) override {}
+    void wgtDrawEnd(const void */* pWgt */) override {}
 
 protected:
     // called before PAL is unregistered

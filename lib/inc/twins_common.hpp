@@ -42,7 +42,7 @@ class String;
  * @brief Template returning length of array of type T
  */
 template<unsigned N, typename T>
-unsigned arrSize(const T (&arr)[N]) { return N; }
+unsigned arrSize(const T (&)[N]) { return N; }
 
 
 /**
