@@ -303,7 +303,11 @@ TEST_F(STRING, move_assign)
     s1 = "Menu";
 
     // such try shall fail
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
     s1 = std::move(s1);
+#pragma GCC diagnostic pop
+
     EXPECT_STREQ("Menu", s1.cstr());
 
     twins::String s2;

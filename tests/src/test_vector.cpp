@@ -88,7 +88,11 @@ TEST(VECTOR, mv_assign)
     EXPECT_EQ(0, v1.size());
     EXPECT_EQ(0, v1.capacity());
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
     v2 = std::move(v2);
+#pragma GCC diagnostic pop
+
     EXPECT_EQ(5, v2.size());
 }
 
