@@ -12,8 +12,12 @@
 
 // -----------------------------------------------------------------------------
 
-namespace twins
-{
+#if defined __linux__ || defined __CYGWIN__ || defined __MSYS__
+# define TWINS_ENV_LINUX_LIKE   1
+#else
+# define TWINS_ENV_LINUX_LIKE   0
+#endif
+
 
 #ifndef MIN
 # define MIN(x, y)              (((x) < (y)) ? (x) : (y))
@@ -34,6 +38,9 @@ namespace twins
 #ifndef INRANGE
 # define INRANGE(val, min, max)  (((val) >= (min)) && ((val) <= (max)))
 #endif
+
+namespace twins
+{
 
 // forward decl
 class String;

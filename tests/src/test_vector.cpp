@@ -9,6 +9,8 @@
 
 #include "twins_vector.hpp"
 
+#include <array>
+
 // -----------------------------------------------------------------------------
 
 TEST(VECTOR, reserve)

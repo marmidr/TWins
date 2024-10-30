@@ -7,12 +7,6 @@
 
 #pragma once
 
-#if defined __linux__ || defined __CYGWIN__ || defined __MSYS__
-# define TWINS_ENV_LINUX_LIKE   1
-#else
-# define TWINS_ENV_LINUX_LIKE   0
-#endif
-
 #ifndef TWINS_PAL_FULLIMPL
 # define TWINS_PAL_FULLIMPL     1
 #endif
